@@ -1,0 +1,28 @@
+.superpowers/
+node_modules/
+target/
+dist/
+out/
+*.log
+
+src/renderer/src/sim/pkg/
+test-results/
+playwright-report/
+
+# Worktrees temporales de los agentes
+.claude/worktrees/
+
+# Herramientas de desarrollo que no se distribuyen (ngspice portable para las referencias del motor)
+/herramientas/
+# ngspice que prepara scripts/preparar-ngspice.mjs para el instalador (se regenera en cada dist)
+/resources/herramientas/ngspice/
+# Licencias de Electron que extrae scripts/preparar-licencias-electron.mjs para el dmg
+/resources/licencias-electron/
+
+# Carpetas de trabajo y resultados que no se publican
+scratch_tmp/
+/x
+.claude/
+.superpowers/
+playwright-report/
+*.bundle

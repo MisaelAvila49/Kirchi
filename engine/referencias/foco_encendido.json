@@ -1,0 +1,13 @@
+{
+  "netlist": {
+    "nodes": 2,
+    "elements": [
+      { "type": "V", "a": 1, "b": 0, "wave": { "kind": "dc", "v": 12 } },
+      { "type": "LAMP", "a": 1, "b": 0, "rfrio": 2.88, "k": 9, "pnom": 5, "tau": 0.05 }
+    ]
+  },
+  "fin": 0.3,
+  "hmax": 2e-5,
+  "tolerancia_t": 2e-5,
+  "columnas": { "i(v1)": { "corriente": 0 }, "v(th)": { "aux": 1 } }
+}

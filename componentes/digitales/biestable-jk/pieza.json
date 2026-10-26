@@ -1,0 +1,31 @@
+{
+  "id": "biestable-jk",
+  "nombre": { "es": "Flip-flop JK", "en": "JK flip-flop" },
+  "categoria": "digitales",
+  "prefijo": "U",
+  "buscar": ["u", "biestable jk", "biestable", "báscula", "bascula", "flip-flop jk", "jk", "74112", "74hc112", "4027"],
+  "pines": [
+    { "id": "J", "nombre": "J", "x": -6, "y": -4 },
+    { "id": "CLK", "nombre": "reloj (CLK, flanco de bajada)", "x": -6, "y": 0 },
+    { "id": "K", "nombre": "K", "x": -6, "y": 4 },
+    { "id": "PRE", "nombre": "PRE (activo en bajo)", "x": 0, "y": -8 },
+    { "id": "CLR", "nombre": "CLR (activo en bajo)", "x": 0, "y": 8 },
+    { "id": "Q", "nombre": "Q", "x": 6, "y": -4 },
+    { "id": "QN", "nombre": "Q negada", "x": 6, "y": 4 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS", "CD4000B"] },
+    { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
+  ],
+  "modelo": { "tipo": "biestable-jk", "j": "J", "k": "K", "clk": "CLK", "pre": "PRE", "clr": "CLR", "q": "Q", "qn": "QN", "familia": "familia", "alimentacion": "alimentacion" },
+  "etiquetas": { "ref": { "x": 0, "y": -10 }, "valor": { "x": 0, "y": 10 } },
+  "rotulos": [
+    { "texto": "J", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "CLK", "x": -2.6, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "K", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "PRE", "x": 0, "y": -5.2, "tam": 1, "alinear": "abajo" },
+    { "texto": "CLR", "x": 0, "y": 5.2, "tam": 1, "alinear": "arriba" },
+    { "texto": "Q", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "Q", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" }
+  ]
+}

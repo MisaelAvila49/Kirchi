@@ -1,0 +1,14 @@
+* Ohmetro: prueba de 1 V con el rango de 10 kohm (menos el fusible) sobre 4.7 kohm
+VP n1 0 DC 1
+RM n1 n2 9999.99
+RF n2 1 10m
+RX 1 0 4.7k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(1) i(vp)
+.endc
+.end

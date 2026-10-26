@@ -1,0 +1,98 @@
+/* Panel «Calculadoras»: la ficha compacta del inspector en el riel izquierdo. Solo variables: los colores viven en
+   ui/colores.css y styles.css. El panel se ensancha a 300 px porque la ficha lleva rótulo y valor en el mismo renglón. */
+.panel-calculadoras { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-right: 6px; }
+
+/* La lista de las calculadoras: dos columnas de botones que se pulsan como una opción. */
+.calc-lista { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 3px; border-radius: 8px; background: var(--chip); }
+.calc-eleccion { min-height: 28px; padding: 3px 6px; border: 0; border-radius: 6px; background: transparent; color: var(--texto-secundario); font-size: 12px; line-height: 1.2; cursor: pointer; }
+.calc-eleccion:hover:not([aria-pressed='true']) { background: var(--resalte); color: var(--trazo); }
+.calc-eleccion[aria-pressed='true'] { background: var(--seleccion); color: var(--sobre-seleccion); font-weight: 600; }
+.calc-eleccion:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 1px; }
+.calc-eleccion[aria-pressed='true']:focus-visible { outline-color: var(--trazo); }
+
+.calc-ficha { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.calc-titulo { margin: 2px 0 0; font-size: 13px; font-weight: 700; font-stretch: 108%; line-height: 1.25; }
+.calc-resumen { margin: -4px 0 0; color: var(--texto-secundario); font-size: 11.5px; line-height: 1.35; }
+
+/* Campos: rótulo a la izquierda y valor a la derecha, como el inspector. */
+.calc-campos { display: flex; flex-direction: column; gap: 2px; }
+.panel-calculadoras .fld-campo { grid-template-columns: minmax(0, 1fr) auto; margin: 2px 0; }
+.panel-calculadoras .fld-campo > label, .calc-rotulo { color: var(--texto-secundario); font-size: 12px; }
+.panel-calculadoras .calc-campo > .campo-error { grid-column: 1 / -1; margin: -2px 0 0; font-size: 11px; line-height: 1.3; }
+.panel-calculadoras .campo-lista { display: inline-flex; align-items: center; gap: 6px; justify-self: end; }
+.panel-calculadoras select.campo { width: auto; min-width: 8.5rem; height: 28px; font-size: 12px; }
+.calc-serie { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--bordes); }
+
+/* Resultado: la ecuación como fórmula, la cuenta con los valores en tenue, el resultado grande, los
+   valores comerciales en una tabla corta y «Con esos valores» como una lista compacta. Solo variables de color. */
+.calc-resultado { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.calc-subtitulo { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--bordes); color: var(--texto-secundario); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; }
+.calc-exacto { color: var(--texto-secundario); font-size: 11px; }
+.calc-exacto span { white-space: nowrap; }
+.calc-cifra { color: var(--trazo); font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+
+/* Fórmula: variables en cursiva de la serif, cifras y unidades derechas, fracciones apiladas. */
+.formula { display: inline-block; max-width: 100%; font-family: var(--fuente-serif); font-size: 15px; line-height: 1.25; color: inherit; }
+.f-fila { display: inline-flex; flex-wrap: wrap; align-items: center; column-gap: 0.32em; row-gap: 0.15em; }
+.f-grupo { display: inline-flex; align-items: center; }
+.f-v { font-style: italic; }
+.f-v sub { font-size: 0.7em; line-height: 0; vertical-align: -0.28em; margin-left: 0.04em; font-style: italic; }
+.f-n { font-style: normal; font-size: 0.92em; white-space: nowrap; }
+.f-u { color: var(--texto-secundario); font-size: 0.86em; }
+.f-op { color: var(--texto-secundario); }
+.f-signo { margin-right: -0.28em; }
+.f-par { font-size: 1.12em; line-height: 1; }
+.f-par-grupo { display: inline-flex; align-items: center; column-gap: 0.05em; }
+.f-frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 0.1em; }
+.f-arriba { display: inline-flex; justify-content: center; padding: 0 0.3em 0.12em; border-bottom: 1.2px solid currentColor; }
+.f-abajo { display: inline-flex; justify-content: center; padding: 0.12em 0.3em 0; }
+.f-raiz { display: inline-flex; align-items: stretch; }
+.f-radical { font-size: 1.25em; line-height: 1; align-self: center; }
+.f-radicando { display: inline-flex; align-items: center; padding: 0.05em 0.2em 0; border-top: 1.2px solid currentColor; }
+.f-fn { display: inline-flex; align-items: center; column-gap: 0.25em; }
+.f-fn-nombre { font-style: normal; }
+
+.calc-ecuaciones { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.calc-ecuacion + .calc-ecuacion { padding-top: 10px; border-top: 1px dashed var(--bordes); }
+.calc-ecuacion { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.calc-formula { color: var(--trazo); }
+.calc-sustitucion { color: var(--texto-secundario); }
+.calc-sustitucion .formula { font-size: 12.5px; }
+.calc-ecuacion-texto { margin: 0; overflow-wrap: anywhere; color: var(--texto-secundario); font-size: 12px; line-height: 1.4; }
+.calc-igual { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 6px; margin: 0; color: var(--trazo); }
+.calc-igual .formula { font-size: 15px; align-self: center; }
+.calc-igual-cifra { font-size: 22px; font-weight: 650; line-height: 1.15; letter-spacing: -0.01em; }
+.calc-igual-unidad { color: var(--texto-secundario); font-size: 14px; font-weight: 500; }
+
+/* Valores comerciales: valor, exacto, comercial y error; el error lleva el color de su estado y una marca. */
+.calc-tabla { position: relative; width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.calc-tabla th, .calc-tabla td { padding: 4px 0 4px 8px; text-align: right; font-weight: 400; vertical-align: baseline; }
+.calc-tabla thead th { padding-bottom: 3px; border-bottom: 1px solid var(--bordes); color: var(--texto-secundario); font-size: 10.5px; font-weight: 600; }
+.calc-tabla tbody tr + tr :is(th, td) { border-top: 1px solid var(--bordes); }
+.calc-tabla :is(th, td):first-child { padding-left: 0; text-align: left; }
+.calc-tabla tbody th { color: var(--texto-secundario); }
+.calc-comercial { color: var(--trazo); font-weight: 600; }
+.calc-frase { color: var(--texto-secundario); text-align: left; }
+.calc-error > span:first-of-type { white-space: nowrap; }
+.calc-error { position: relative; white-space: nowrap; }
+.calc-error .nota-serie-icono { display: inline-block; width: 12px; height: 12px; margin: 0 3px -1px 0; vertical-align: baseline; }
+.calc-error[data-estado='ok'] { color: var(--verdeazul-texto); }
+.calc-error[data-estado='aviso'] { color: var(--ambar-texto); font-weight: 600; }
+
+/* Con esos valores: la misma tabla corta de los valores comerciales, con el detalle en tenue bajo el rótulo. */
+.calc-reales tbody th small { display: block; margin-top: 1px; }
+.calc-reales td { white-space: nowrap; }
+
+/* Acciones: fijas arriba del panel, con el botón principal en su renglón y los otros dos debajo. */
+.calc-fijo { position: sticky; top: 0; z-index: 2; display: flex; flex-direction: column; gap: 4px; padding: 2px 0 8px; margin-bottom: -2px; background: var(--paneles); border-bottom: 1px solid var(--bordes); }
+.calc-acciones { display: flex; flex-wrap: wrap; gap: 6px; }
+.calc-acciones .boton:not(.principal) { flex: 1 1 0; min-width: 0; padding-inline: 6px; }
+.calc-acciones .boton { height: 28px; font-size: 12px; }
+.calc-acciones .boton.principal { flex: 1 1 100%; }
+.calc-acciones .boton:disabled { opacity: 0.55; cursor: not-allowed; }
+.calc-acciones .boton.principal:disabled { background: var(--chip); border-color: var(--bordes); color: var(--texto-secundario); }
+.calc-ayuda { margin: 0; color: var(--texto-secundario); font-size: 11px; line-height: 1.35; }
+
+@media (forced-colors: active) {
+  .calc-eleccion[aria-pressed='true'] { outline: 2px solid Highlight; outline-offset: -2px; }
+}

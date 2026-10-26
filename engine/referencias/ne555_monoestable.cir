@@ -1,0 +1,23 @@
+* NE555 monoestable con R = 10 k y C = 100 nF a 9 V: el disparo baja 10 us cada 1.01 ms (a 1, 2.01 y 3.02 ms) y
+* cada pulso dura 1.1 RC = 1.1 ms; el segundo disparo llega con la salida en alto y no la alarga
+.include digital.lib
+V1 vcc 0 DC 9
+VT trig 0 PULSE(9 0 1m 1p 1p 9.999999u 1.01m)
+R1 vcc thr 10k
+C1 thr 0 100n
+C2 cv 0 10n
+RL out 0 1k
+X1 0 trig out vcc cv thr thr vcc K555
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1u 4m 0 0.5u uic
+wrdata salida.txt v(thr) v(out) i(v1)
+eprint x1.q > eventos.txt
+meas tran sube WHEN v(out)=4.5 RISE=1
+meas tran baja WHEN v(out)=4.5 FALL=1
+print baja-sube
+.endc
+.end

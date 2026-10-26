@@ -1,0 +1,20 @@
+{
+  "id": "multimetro",
+  "nombre": { "es": "Multímetro", "en": "Multimeter" },
+  "categoria": "instrumentos",
+  "prefijo": "XMM",
+  "buscar": ["multímetro", "multimetro", "voltímetro", "voltimetro", "amperímetro", "amperimetro", "óhmetro", "ohmetro", "tester", "xmm"],
+  "pines": [
+    { "id": "+", "nombre": "+", "x": 0, "y": -6 },
+    { "id": "COM", "nombre": "COM", "x": 0, "y": 6 }
+  ],
+  "props": [
+    { "id": "modo", "nombre": "Modo", "defecto": "V DC", "opciones": ["V DC", "V AC", "A DC", "A AC", "Ω", "Continuidad"] },
+    { "id": "ideal", "nombre": "Instrumento ideal", "defecto": "no", "opciones": ["no", "sí"], "casilla": true }
+  ],
+  "modelo": { "tipo": "multimetro", "mas": "+", "com": "COM", "modo": "modo", "ideal": "ideal" },
+  "etiquetas": { "ref": { "x": 4, "y": -2 }, "valor": { "x": 4, "y": 2 } },
+  "rotulos": [
+    { "prop": "modo", "valores": { "V DC": "V", "V AC": "V~", "A DC": "A", "A AC": "A~", "Ω": "Ω", "Continuidad": "Ω" }, "x": 0, "y": -0.8, "tam": 2, "fuente": "sans" }
+  ]
+}

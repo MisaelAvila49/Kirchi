@@ -1,0 +1,21 @@
+* Cadena de cuatro NAND 74HC con sus entradas unidas: 5 ns de retardo por compuerta
+.include digital.lib
+V1 in 0 PULSE(0 5 0 1p 1p 249.999n 500n)
+AIN [in] [d0] adc_hc5
+AU1 [d0 d0] d1 nand_hc5
+AU2 [d1 d1] d2 nand_hc5
+AU3 [d2 d2] d3 nand_hc5
+AU4 [d3 d3] d4 nand_hc5
+AOUT [d4] [o1] dac_hc5
+RO o1 out 55
+R1 out 0 10k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 1.5u 0 0.1n uic
+wrdata salida.txt v(out)
+eprint d0 d1 d2 d3 d4 > eventos.txt
+.endc
+.end

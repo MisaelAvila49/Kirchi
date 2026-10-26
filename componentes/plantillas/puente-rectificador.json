@@ -1,0 +1,373 @@
+{
+  "id": "puente-rectificador",
+  "nombre": "Puente rectificador con filtro",
+  "descripcion": "Cuatro diodos rectifican la corriente alterna y un capacitor alisa el voltaje, cerca de 10.6 V.",
+  "circuito": {
+    "cables": {
+      "c_1": {
+        "id": "c_1",
+        "puntos": [
+          {
+            "x": -6,
+            "y": -2
+          },
+          {
+            "x": -6,
+            "y": 0
+          }
+        ]
+      },
+      "c_10": {
+        "id": "c_10",
+        "puntos": [
+          {
+            "x": 6,
+            "y": 2
+          },
+          {
+            "x": 6,
+            "y": 0
+          }
+        ]
+      },
+      "c_11": {
+        "id": "c_11",
+        "puntos": [
+          {
+            "x": -4,
+            "y": 0
+          },
+          {
+            "x": -6,
+            "y": 0
+          }
+        ]
+      },
+      "c_12": {
+        "id": "c_12",
+        "puntos": [
+          {
+            "x": -6,
+            "y": -10
+          },
+          {
+            "x": -6,
+            "y": -12
+          },
+          {
+            "x": 6,
+            "y": -12
+          }
+        ]
+      },
+      "c_13": {
+        "id": "c_13",
+        "puntos": [
+          {
+            "x": 18,
+            "y": -2
+          },
+          {
+            "x": 18,
+            "y": 0
+          },
+          {
+            "x": 24,
+            "y": 0
+          }
+        ]
+      },
+      "c_14": {
+        "id": "c_14",
+        "puntos": [
+          {
+            "x": 6,
+            "y": -12
+          },
+          {
+            "x": 18,
+            "y": -12
+          }
+        ]
+      },
+      "c_15": {
+        "id": "c_15",
+        "puntos": [
+          {
+            "x": 6,
+            "y": 10
+          },
+          {
+            "x": 6,
+            "y": 12
+          },
+          {
+            "x": 0,
+            "y": 12
+          }
+        ]
+      },
+      "c_2": {
+        "id": "c_2",
+        "puntos": [
+          {
+            "x": 18,
+            "y": -12
+          },
+          {
+            "x": 18,
+            "y": -10
+          }
+        ]
+      },
+      "c_3": {
+        "id": "c_3",
+        "puntos": [
+          {
+            "x": 6,
+            "y": 0
+          },
+          {
+            "x": 6,
+            "y": -2
+          }
+        ]
+      },
+      "c_4": {
+        "id": "c_4",
+        "puntos": [
+          {
+            "x": 6,
+            "y": -12
+          },
+          {
+            "x": 6,
+            "y": -10
+          }
+        ]
+      },
+      "c_5": {
+        "id": "c_5",
+        "puntos": [
+          {
+            "x": 30,
+            "y": -2
+          },
+          {
+            "x": 30,
+            "y": 0
+          },
+          {
+            "x": 24,
+            "y": 0
+          }
+        ]
+      },
+      "c_6": {
+        "id": "c_6",
+        "puntos": [
+          {
+            "x": -6,
+            "y": 10
+          },
+          {
+            "x": -6,
+            "y": 12
+          },
+          {
+            "x": 0,
+            "y": 12
+          }
+        ]
+      },
+      "c_7": {
+        "id": "c_7",
+        "puntos": [
+          {
+            "x": -6,
+            "y": 0
+          },
+          {
+            "x": -6,
+            "y": 2
+          }
+        ]
+      },
+      "c_8": {
+        "id": "c_8",
+        "puntos": [
+          {
+            "x": 30,
+            "y": -10
+          },
+          {
+            "x": 30,
+            "y": -12
+          },
+          {
+            "x": 18,
+            "y": -12
+          }
+        ]
+      },
+      "c_9": {
+        "id": "c_9",
+        "puntos": [
+          {
+            "x": 4,
+            "y": 0
+          },
+          {
+            "x": 6,
+            "y": 0
+          }
+        ]
+      }
+    },
+    "etiquetas": {},
+    "notas": {},
+    "piezas": {
+      "p_c1": {
+        "espejo": false,
+        "id": "p_c1",
+        "props": {
+          "valor": "470u"
+        },
+        "ref": "C1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo"
+          },
+          "valor": {
+            "lugar": "abajo"
+          }
+        },
+        "tipo": "capacitor-electrolitico",
+        "x": 18,
+        "y": -6
+      },
+      "p_d1": {
+        "espejo": false,
+        "id": "p_d1",
+        "props": {},
+        "ref": "D1",
+        "rot": 270,
+        "textos": {
+          "ref": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "diodo",
+        "x": -6,
+        "y": -6
+      },
+      "p_d2": {
+        "espejo": false,
+        "id": "p_d2",
+        "props": {},
+        "ref": "D3",
+        "rot": 270,
+        "textos": {
+          "ref": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "diodo",
+        "x": 6,
+        "y": -6
+      },
+      "p_d3": {
+        "espejo": false,
+        "id": "p_d3",
+        "props": {},
+        "ref": "D2",
+        "rot": 270,
+        "textos": {
+          "ref": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "diodo",
+        "x": -6,
+        "y": 6
+      },
+      "p_d4": {
+        "espejo": false,
+        "id": "p_d4",
+        "props": {},
+        "ref": "D4",
+        "rot": 270,
+        "textos": {
+          "ref": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "diodo",
+        "x": 6,
+        "y": 6
+      },
+      "p_g1": {
+        "espejo": false,
+        "id": "p_g1",
+        "props": {},
+        "ref": "GND1",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 24,
+        "y": 0
+      },
+      "p_g2": {
+        "espejo": false,
+        "id": "p_g2",
+        "props": {},
+        "ref": "GND2",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 0,
+        "y": 12
+      },
+      "p_rl": {
+        "espejo": false,
+        "id": "p_rl",
+        "props": {
+          "valor": "1k"
+        },
+        "ref": "R1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo"
+          },
+          "valor": {
+            "lugar": "abajo"
+          }
+        },
+        "tipo": "resistencia",
+        "x": 30,
+        "y": -6
+      },
+      "p_v1": {
+        "espejo": false,
+        "id": "p_v1",
+        "props": {
+          "amplitud": "12",
+          "frecuencia": "60"
+        },
+        "ref": "V1",
+        "rot": 270,
+        "textos": {
+          "ref": {
+            "lugar": "derecha"
+          },
+          "valor": {
+            "lugar": "izquierda"
+          }
+        },
+        "tipo": "fuente-ac",
+        "x": 0,
+        "y": 0
+      }
+    }
+  }
+}

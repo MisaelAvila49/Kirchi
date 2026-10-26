@@ -1,0 +1,17 @@
+* Dos diodos en serie polarizados en inversa frente a un escalon de 10 V, con un filtro RC de 47 uF
+.include modelos.lib
+V1 1 0 DC 10
+D1 2 1 DGEN
+D2 3 2 DGEN
+RS 3 4 100
+C1 4 0 47u
+R2 4 0 10k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20u 20m 0 2u uic
+wrdata salida.txt v(2) v(4) i(v1)
+.endc
+.end

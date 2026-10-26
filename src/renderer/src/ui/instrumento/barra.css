@@ -1,0 +1,46 @@
+/* La barra del instrumento: icono y nombre corto en grupos. Sin colores propios: todo con las variables de la
+   interfaz y los tonos de colores.css (data-tono entrega --t, --t-suave, --t-tenue y --t-texto). */
+.barra-instrumento { container: barra / inline-size; display: flex; align-items: center; flex-wrap: nowrap; gap: 4px 6px; min-width: 0; padding: 4px 0; }
+.bi-quien { display: flex; flex: 1 1 auto; align-items: center; gap: 8px; margin-right: 6px; min-width: 0; overflow: hidden; font-size: 13px; }
+.bi-grupo { flex: none; }
+.bi-grupo { position: relative; display: flex; align-items: center; gap: 2px; }
+.bi-grupo + .bi-grupo { margin-left: 4px; padding-left: 8px; }
+.bi-grupo + .bi-grupo::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 1px; background: var(--bordes); }
+/* Título y estado a la izquierda; todos los botones a la derecha, con «Ventana» o «Acoplar» al borde. */
+.barra-instrumento { justify-content: flex-end; }
+.bi-rotulo { margin-right: 2px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--texto-secundario); }
+.bi-boton { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px; border: 1px solid transparent; border-radius: 7px; background: none; color: var(--trazo); font: inherit; font-size: 13px; font-weight: 550; white-space: nowrap; cursor: pointer; }
+.bi-boton .icono { width: 16px; height: 16px; flex: none; }
+.bi-boton.bi-solo { width: 30px; padding: 0; justify-content: center; }
+.bi-boton:hover:not(:disabled) { background: var(--resalte); border-color: var(--bordes); }
+.bi-boton:active:not(:disabled) { transform: translateY(1px); }
+.bi-boton[aria-pressed='true'], .bi-boton[aria-expanded='true'] { background: var(--t-suave, var(--seleccion-fondo)); color: var(--t-texto, var(--seleccion)); border-color: var(--t-tenue, var(--bordes)); }
+.bi-boton.bi-solo[aria-pressed='true']::after, .bi-boton.bi-solo[aria-expanded='true']::after { content: ''; position: absolute; left: 7px; right: 7px; bottom: 2px; height: 2px; border-radius: 2px; background: var(--t, var(--seleccion)); }
+.bi-boton:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 1px; }
+.bi-boton:disabled { cursor: default; color: var(--texto-secundario); }
+.bi-boton:disabled .icono { filter: grayscale(1); opacity: 0.5; }
+/* El globo: nombre y atajo, al pasar el puntero o al enfocar con el teclado. */
+.bi-globo { position: absolute; left: 50%; top: calc(100% + 6px); z-index: 20; transform: translateX(-50%); display: none; padding: 4px 9px; border-radius: 6px; background: var(--paneles); color: var(--trazo); border: 1px solid var(--bordes); font-size: 12.5px; font-weight: 500; white-space: nowrap; pointer-events: none; box-shadow: var(--sombra); }
+.bi-globo::before { content: attr(data-nombre); }
+.bi-globo::after { content: attr(data-atajo); margin-left: 8px; padding: 0 5px; border-radius: 4px; background: var(--resalte); border: 1px solid var(--bordes); font: 600 11.5px var(--fuente-cifras, monospace); }
+.bi-globo[data-atajo='']::after { display: none; }
+.bi-boton:hover .bi-globo, .bi-boton:focus-visible .bi-globo { display: block; }
+.bi-grupo:last-child .bi-globo { left: auto; right: 0; transform: none; }
+.bi-detalles { height: 30px; padding: 0 9px; border: 1px solid transparent; border-radius: 7px; background: none; color: var(--texto-secundario); font: inherit; font-size: 12.5px; cursor: pointer; }
+.bi-detalles:hover { background: var(--resalte); border-color: var(--bordes); }
+.bi-detalles[aria-pressed='true'] { color: var(--trazo); border-color: var(--bordes); }
+.bi-detalles:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 1px; }
+@media (forced-colors: active) {
+  .bi-boton { border-color: ButtonText; }
+  .bi-boton[aria-pressed='true'], .bi-boton[aria-expanded='true'] { outline: 2px solid Highlight; }
+}
+@media (prefers-reduced-motion: reduce) { .bi-boton:active:not(:disabled) { transform: none; } }
+
+/* Una sola fila siempre: con poco ancho la barra deja los nombres cortos y queda solo con iconos (cada uno conserva su nombre
+   accesible y su globo); el estado y el barrido se acortan antes que los botones. */
+@container barra (max-width: 1220px) {
+  .bi-boton:not(.bi-solo) { width: 30px; padding: 0; justify-content: center; }
+  .bi-corto { display: none; }
+  .bi-rotulo { display: none; }
+  .bi-grupo + .bi-grupo { margin-left: 2px; padding-left: 6px; }
+}

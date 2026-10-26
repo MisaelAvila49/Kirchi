@@ -1,0 +1,21 @@
+* Comparador LM393 con una senoidal de 10 mV sobre la tierra: el retardo depende de la sobreexcitacion
+.include modelos.lib
+V1 1 0 DC 5
+V2 2 0 DC 0
+V3 3 0 DC 0
+VIN 4 0 SIN(0 10m 10k)
+V8 8 0 DC 5
+RL 8 5 5.1k
+* sin CL
+XU1 3 4 6 1 2 AMPOP a0=200000 gbw=1.15e+08 sr=2e+07 rin=1e+08 rout=100 ilim=0.03 dhi=0.05 dlo=0.001 rq=22200
+RB 6 7 2200
+Q1 5 7 2 QCMP393
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 50n 150u 0 20n uic
+wrdata salida.txt v(5)
+.endc
+.end

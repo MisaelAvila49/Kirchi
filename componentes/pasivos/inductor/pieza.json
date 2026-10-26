@@ -1,0 +1,16 @@
+{
+  "id": "inductor",
+  "nombre": { "es": "Inductor", "en": "Inductor" },
+  "categoria": "pasivos",
+  "prefijo": "L",
+  "buscar": ["l", "bobina", "inductor"],
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "valor", "nombre": "Inductancia", "unidad": "H", "defecto": "10m", "serie": "elegida", "comunes": ["1u", "10u", "100u", "1m", "10m"] },
+    { "id": "dcr", "nombre": "Resistencia del alambre (DCR)", "unidad": "Ω", "defecto": "0", "omitir": true, "comunes": ["0", "0.1", "1", "5", "10"] }
+  ],
+  "modelo": { "tipo": "L", "a": "1", "b": "2", "prop": "valor", "rserie": "dcr" }
+}

@@ -1,0 +1,23 @@
+{
+  "netlist": {
+    "nodes": 3,
+    "digital_nets": 14,
+    "elements": [
+      { "type": "V", "a": 1, "b": 0, "wave": { "kind": "square", "low": 0, "high": 5, "freq": 1e6 } },
+      { "type": "ADC", "p": 1, "n": 0, "out": 0, "in_low": 1.5, "in_high": 3.5 },
+      { "type": "DAC", "input": 0, "out": 2, "v_lo": 0, "v_hi": 5, "r_lo": 55, "r_hi": 55, "t_rise": 1e-7, "t_fall": 1e-7 },
+      { "type": "R", "a": 2, "b": 0, "ohms": 10000 },
+      { "type": "ADC", "p": 2, "n": 0, "out": 2, "in_low": 1.5, "in_high": 3.5 },
+      { "type": "LOGIC", "out": 7, "value": 1 },
+      { "type": "LOGIC", "out": 8, "value": 0 },
+      { "type": "DFF", "d": 4, "clk": 2, "pre": 7, "clr": 7, "q": 3, "qn": 4, "rise_delay": 5e-9, "fall_delay": 5e-9 },
+      { "type": "JKFF", "j": 7, "k": 7, "clk": 2, "pre": 7, "clr": 7, "q": 5, "qn": 6, "rise_delay": 5e-9, "fall_delay": 5e-9 },
+      { "type": "COUNTER", "clk": 2, "rst": 8, "q": [9, 10, 11, 12], "co": 13, "modulo": 10, "rise_delay": 5e-9, "fall_delay": 5e-9 }
+    ]
+  },
+  "fin": 4e-6,
+  "hmax": 1e-10,
+  "tolerancia_t": 5e-10,
+  "columnas": { "v(ck)": { "nodo": 2 } },
+  "eventos": { "dck": 2, "q": 3, "qj": 5, "q0": 9, "q1": 10 }
+}

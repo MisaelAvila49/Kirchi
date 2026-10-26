@@ -1,0 +1,487 @@
+{
+  "id": "555-monoestable",
+  "nombre": "555 monoestable",
+  "descripcion": "Un pulso corto en el disparo da un pulso de salida de duración fija, unos 0.11 s.",
+  "circuito": {
+    "cables": {
+      "c_1": {
+        "id": "c_1",
+        "puntos": [
+          {
+            "x": 2,
+            "y": -8
+          },
+          {
+            "x": 2,
+            "y": -10
+          },
+          {
+            "x": -2,
+            "y": -10
+          }
+        ]
+      },
+      "c_10": {
+        "id": "c_10",
+        "puntos": [
+          {
+            "x": 0,
+            "y": 8
+          },
+          {
+            "x": 0,
+            "y": 10
+          }
+        ]
+      },
+      "c_11": {
+        "id": "c_11",
+        "puntos": [
+          {
+            "x": 8,
+            "y": 14
+          },
+          {
+            "x": 8,
+            "y": 16
+          }
+        ]
+      },
+      "c_12": {
+        "id": "c_12",
+        "puntos": [
+          {
+            "x": 6,
+            "y": -2
+          },
+          {
+            "x": 8,
+            "y": -2
+          }
+        ]
+      },
+      "c_13": {
+        "id": "c_13",
+        "puntos": [
+          {
+            "x": -14,
+            "y": 10
+          },
+          {
+            "x": -14,
+            "y": 12
+          }
+        ]
+      },
+      "c_14": {
+        "id": "c_14",
+        "puntos": [
+          {
+            "x": -6,
+            "y": -4
+          },
+          {
+            "x": -10,
+            "y": -4
+          }
+        ]
+      },
+      "c_15": {
+        "id": "c_15",
+        "puntos": [
+          {
+            "x": -8,
+            "y": 14
+          },
+          {
+            "x": -8,
+            "y": 16
+          }
+        ]
+      },
+      "c_16": {
+        "id": "c_16",
+        "puntos": [
+          {
+            "x": 16,
+            "y": -2
+          },
+          {
+            "x": 18,
+            "y": -2
+          },
+          {
+            "x": 18,
+            "y": 0
+          }
+        ]
+      },
+      "c_17": {
+        "id": "c_17",
+        "puntos": [
+          {
+            "x": 6,
+            "y": 4
+          },
+          {
+            "x": 8,
+            "y": 4
+          },
+          {
+            "x": 8,
+            "y": 6
+          }
+        ]
+      },
+      "c_18": {
+        "id": "c_18",
+        "puntos": [
+          {
+            "x": -14,
+            "y": -16
+          },
+          {
+            "x": -14,
+            "y": -14
+          }
+        ]
+      },
+      "c_2": {
+        "id": "c_2",
+        "puntos": [
+          {
+            "x": -14,
+            "y": -6
+          },
+          {
+            "x": -14,
+            "y": -4
+          },
+          {
+            "x": -10,
+            "y": -4
+          }
+        ]
+      },
+      "c_3": {
+        "id": "c_3",
+        "puntos": [
+          {
+            "x": -2,
+            "y": -12
+          },
+          {
+            "x": -2,
+            "y": -10
+          }
+        ]
+      },
+      "c_4": {
+        "id": "c_4",
+        "puntos": [
+          {
+            "x": -10,
+            "y": 0
+          },
+          {
+            "x": -6,
+            "y": 0
+          }
+        ]
+      },
+      "c_5": {
+        "id": "c_5",
+        "puntos": [
+          {
+            "x": -2,
+            "y": -10
+          },
+          {
+            "x": -2,
+            "y": -8
+          }
+        ]
+      },
+      "c_6": {
+        "id": "c_6",
+        "puntos": [
+          {
+            "x": -6,
+            "y": 4
+          },
+          {
+            "x": -8,
+            "y": 4
+          },
+          {
+            "x": -8,
+            "y": 6
+          }
+        ]
+      },
+      "c_7": {
+        "id": "c_7",
+        "puntos": [
+          {
+            "x": -10,
+            "y": -4
+          },
+          {
+            "x": -10,
+            "y": 0
+          }
+        ]
+      },
+      "c_8": {
+        "id": "c_8",
+        "puntos": [
+          {
+            "x": 18,
+            "y": 8
+          },
+          {
+            "x": 18,
+            "y": 10
+          }
+        ]
+      },
+      "c_9": {
+        "id": "c_9",
+        "puntos": [
+          {
+            "x": -14,
+            "y": 2
+          },
+          {
+            "x": -14,
+            "y": 0
+          },
+          {
+            "x": -10,
+            "y": 0
+          }
+        ]
+      }
+    },
+    "etiquetas": {},
+    "notas": {},
+    "piezas": {
+      "p_c1": {
+        "espejo": false,
+        "id": "p_c1",
+        "props": {
+          "valor": "10u"
+        },
+        "ref": "C1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo"
+          },
+          "valor": {
+            "lugar": "abajo"
+          }
+        },
+        "tipo": "capacitor-electrolitico",
+        "x": -14,
+        "y": 6
+      },
+      "p_c2": {
+        "espejo": false,
+        "id": "p_c2",
+        "props": {
+          "valor": "10n"
+        },
+        "ref": "C2",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "arriba"
+          },
+          "valor": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "capacitor",
+        "x": 8,
+        "y": 10
+      },
+      "p_d1": {
+        "espejo": false,
+        "id": "p_d1",
+        "props": {
+          "color": "rojo"
+        },
+        "ref": "D1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -4.96
+          }
+        },
+        "tipo": "led",
+        "x": 18,
+        "y": 4
+      },
+      "p_g1": {
+        "espejo": false,
+        "id": "p_g1",
+        "props": {},
+        "ref": "GND1",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": -14,
+        "y": 12
+      },
+      "p_g2": {
+        "espejo": false,
+        "id": "p_g2",
+        "props": {},
+        "ref": "GND2",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 18,
+        "y": 10
+      },
+      "p_g3": {
+        "espejo": false,
+        "id": "p_g3",
+        "props": {},
+        "ref": "GND3",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": -8,
+        "y": 16
+      },
+      "p_g4": {
+        "espejo": false,
+        "id": "p_g4",
+        "props": {},
+        "ref": "GND4",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 8,
+        "y": 16
+      },
+      "p_g5": {
+        "espejo": false,
+        "id": "p_g5",
+        "props": {},
+        "ref": "GND5",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 0,
+        "y": 10
+      },
+      "p_p1": {
+        "espejo": false,
+        "id": "p_p1",
+        "props": {
+          "nombre": "+5V"
+        },
+        "ref": "PWR1",
+        "rot": 0,
+        "tipo": "alimentacion",
+        "x": -14,
+        "y": -16
+      },
+      "p_p2": {
+        "espejo": false,
+        "id": "p_p2",
+        "props": {
+          "nombre": "+5V"
+        },
+        "ref": "PWR2",
+        "rot": 0,
+        "tipo": "alimentacion",
+        "x": -2,
+        "y": -12
+      },
+      "p_r1": {
+        "espejo": false,
+        "id": "p_r1",
+        "props": {
+          "valor": "10k"
+        },
+        "ref": "R1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo"
+          },
+          "valor": {
+            "lugar": "abajo"
+          }
+        },
+        "tipo": "resistencia",
+        "x": -14,
+        "y": -10
+      },
+      "p_r3": {
+        "espejo": false,
+        "id": "p_r3",
+        "props": {
+          "valor": "330"
+        },
+        "ref": "R2",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -5
+          },
+          "valor": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "resistencia",
+        "x": 12,
+        "y": -2
+      },
+      "p_u1": {
+        "espejo": false,
+        "id": "p_u1",
+        "props": {
+          "modelo": "NE555"
+        },
+        "ref": "U1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "lugar": "arriba-derecha"
+          },
+          "valor": {
+            "x": 3.98,
+            "y": 7.38
+          }
+        },
+        "tipo": "temporizador-555",
+        "x": 0,
+        "y": 0
+      },
+      "p_v2": {
+        "espejo": false,
+        "id": "p_v2",
+        "props": {
+          "alto": "5",
+          "ciclo": "90 %",
+          "frecuencia": "2"
+        },
+        "ref": "V1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "lugar": "derecha"
+          },
+          "valor": {
+            "lugar": "derecha"
+          }
+        },
+        "tipo": "fuente-pulso",
+        "x": -8,
+        "y": 10
+      }
+    }
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "id": "amp-op",
+  "nombre": { "es": "Amp. operacional", "en": "Operational amplifier" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["u", "op", "opamp", "amp op", "amplificador", "amplificador operacional", "741", "lm741", "lm358", "tl081", "lm324", "op07", "ne5532", "tlv9002", "rail to rail", "riel a riel"],
+  "pines": [
+    { "id": "-", "nombre": "entrada inversora (−)", "x": -6, "y": -2 },
+    { "id": "+", "nombre": "entrada no inversora (+)", "x": -6, "y": 2 },
+    { "id": "OUT", "nombre": "salida", "x": 6, "y": 0 },
+    { "id": "V+", "nombre": "alimentación V+", "x": 0, "y": -4 },
+    { "id": "V-", "nombre": "alimentación V−", "x": 0, "y": 4 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "LM741", "opciones": ["LM741", "TL081", "LM358", "LM324", "OP07", "NE5532", "TLV9002"] }
+  ],
+  "modelo": {
+    "tipo": "ampop", "mas": "+", "menos": "-", "sal": "OUT", "vmas": "V+", "vmenos": "V-", "prop": "modelo",
+    "modelos": {
+      "LM741": { "a0": 2e5, "gbw": 1e6, "sr": 0.5e6, "rin": 2e6, "rout": 75, "ilim": 25e-3, "dhi": 1, "dlo": 1, "rq": 17.6e3 },
+      "TL081": { "a0": 2e5, "gbw": 3e6, "sr": 13e6, "rin": 1e12, "rout": 100, "ilim": 40e-3, "dhi": 1.5, "dlo": 1.5, "rq": 21.4e3 },
+      "LM358": { "a0": 1e5, "gbw": 1e6, "sr": 0.3e6, "rin": 10e6, "rout": 50, "ilim": 40e-3, "dhi": 1.5, "dlo": 5e-3, "rq": 14.3e3 },
+      "LM324": { "a0": 100000, "gbw": 1.2e+06, "sr": 500000, "rin": 1e+07, "rout": 50, "ilim": 0.04, "dhi": 1.5, "dlo": 0.005, "rq": 42900 },
+      "OP07": { "a0": 400000, "gbw": 600000, "sr": 300000, "rin": 3.3e+07, "rout": 60, "ilim": 0.025, "dhi": 2.2, "dlo": 2.2, "rq": 11250 },
+      "NE5532": { "a0": 100000, "gbw": 1.2e+07, "sr": 5e+06, "rin": 300000, "rout": 0.3, "ilim": 0.038, "dhi": 2, "dlo": 2, "rq": 10000 },
+      "TLV9002": { "a0": 710000, "gbw": 1e+06, "sr": 2e+06, "rin": 1e+12, "rout": 1200, "ilim": 0.055, "dhi": 0.02, "dlo": 0.02, "rq": 91700 }
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "LM741": {
+          "fuente": "Texas Instruments LM741, SNOSC25D, Absolute Maximum Ratings (LM741C): alimentación ±18 V (36 V entre V+ y V−), voltaje diferencial de entrada ±30 V, entrada de ±15 V o la alimentación si es menor.",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 36, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada sobre V+", "de": ["+", "-"], "a": "V+", "max": 0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "voltaje de entrada (contra tierra)", "de": ["+", "-"], "a": "tierra", "abs": true, "max": 15, "escala": 10, "consejo": "la hoja admite como mucho ±15 V en la entrada (o la alimentación, si es menor): reduce la señal o la alimentación."},
+            {"nombre": "voltaje entre las entradas", "de": "+", "a": "-", "abs": true, "sinQuema": true, "max": 30, "consejo": "pon una resistencia en serie con la entrada o limita la diferencia entre las dos entradas."}
+          ]
+        },
+        "TL081": {
+          "fuente": "Texas Instruments TL081/TL082/TL084, SLOS081, Absolute Maximum Ratings: alimentación de ±18 V (36 V entre V+ y V−), voltaje diferencial de entrada ±30 V, entrada de ±15 V o la alimentación si es menor.",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 36, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada sobre V+", "de": ["+", "-"], "a": "V+", "max": 0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "voltaje de entrada (contra tierra)", "de": ["+", "-"], "a": "tierra", "abs": true, "max": 15, "escala": 10, "consejo": "la hoja admite como mucho ±15 V en la entrada (o la alimentación, si es menor): reduce la señal o la alimentación."},
+            {"nombre": "voltaje entre las entradas", "de": "+", "a": "-", "abs": true, "sinQuema": true, "max": 30, "consejo": "pon una resistencia en serie con la entrada o limita la diferencia entre las dos entradas."}
+          ]
+        },
+        "LM358": {
+          "fuente": "Texas Instruments LM358/LM2904, SLOS068, Absolute Maximum Ratings: alimentación de 32 V, voltaje diferencial de entrada ±32 V, entrada de −0.3 V a 32 V.",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 32, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada sobre V−", "de": ["+", "-"], "a": "V-", "max": 32, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "voltaje entre las entradas", "de": "+", "a": "-", "abs": true, "sinQuema": true, "max": 32, "consejo": "pon una resistencia en serie con la entrada o limita la diferencia entre las dos entradas."}
+          ]
+        },
+        "LM324": {
+          "fuente": "Texas Instruments LM124/LM224/LM324, SLOS066, Absolute Maximum Ratings: alimentación de 32 V, voltaje diferencial de entrada ±32 V, entrada de −0.3 V a 32 V.",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 32, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada sobre V−", "de": ["+", "-"], "a": "V-", "max": 32, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "voltaje entre las entradas", "de": "+", "a": "-", "abs": true, "sinQuema": true, "max": 32, "consejo": "pon una resistencia en serie con la entrada o limita la diferencia entre las dos entradas."}
+          ]
+        },
+        "OP07": {
+          "fuente": "Texas Instruments OP07, SLOS099, Absolute Maximum Ratings (OP07C): alimentación de ±22 V (44 V entre V+ y V−), voltaje diferencial de entrada ±30 V, entrada de ±22 V o la alimentación si es menor.",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 44, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada sobre V+", "de": ["+", "-"], "a": "V+", "max": 0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "voltaje de entrada (contra tierra)", "de": ["+", "-"], "a": "tierra", "abs": true, "max": 22, "escala": 10, "consejo": "la hoja admite como mucho ±22 V en la entrada (o la alimentación, si es menor): reduce la señal o la alimentación."},
+            {"nombre": "voltaje entre las entradas", "de": "+", "a": "-", "abs": true, "sinQuema": true, "max": 30, "consejo": "pon una resistencia en serie con la entrada o limita la diferencia entre las dos entradas."}
+          ]
+        },
+        "NE5532": {
+          "fuente": "Texas Instruments NE5532/NE5532A, SLOS075, Absolute Maximum Ratings: alimentación de ±22 V (44 V entre V+ y V−), voltaje diferencial de entrada ±0.5 V, entrada de ±22 V o la alimentación si es menor.",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 44, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada sobre V+", "de": ["+", "-"], "a": "V+", "max": 0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "voltaje entre las entradas", "de": "+", "a": "-", "abs": true, "sinQuema": true, "max": 0.5, "consejo": "pon una resistencia en serie con la entrada o limita la diferencia entre las dos entradas."}
+          ]
+        },
+        "TLV9002": {
+          "fuente": "Texas Instruments TLV9001/TLV9002/TLV9004, SBOS833, Absolute Maximum Ratings: alimentación de 6 V, entradas de 0.5 V bajo V− a 0.5 V sobre V+.",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 6, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada sobre V+", "de": ["+", "-"], "a": "V+", "max": 0.5, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.5, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."}
+          ]
+        }
+      }
+    },
+    "quema": {"factor": 2, "durante": 0.5}
+  },
+  "etiquetas": { "ref": { "x": 2, "y": -5 }, "valor": { "x": 2, "y": 5 } },
+  "rotulos": [
+    { "texto": "−", "x": -2.6, "y": -2, "tam": 2 },
+    { "texto": "+", "x": -2.6, "y": 2, "tam": 2 }
+  ],
+  "fuentes": {
+    "LM324": "Texas Instruments LM124/LM224/LM324, SLOS066AE (ago 1975, rev. sep 2025), https://www.ti.com/lit/ds/symlink/lm324.pdf: GBW 1.2 MHz, SR 0.5 V/µs, ganancia 100 V/mV típica (VCC = 15 V), salida a VCC - 1.5 V y 5 mV de la tierra, corriente de corto 40 mA, ICC de 1.4 mA con cuatro amplificadores (0.35 mA por uno a 15 V, de ahí rq). Parámetros copiados de la hoja salvo rin y rout, que no vienen en ella y se tomaron iguales a los del LM358 (misma familia). Sin voltaje de offset: el modelo de una etapa no lo tiene.",
+    "OP07": "Texas Instruments OP07/OP07C/OP07D, SLOS099H (sep 1983, rev. mar 2023), https://www.ti.com/lit/ds/symlink/op07.pdf (cifras del OP07C a ±15 V): ganancia 400 V/mV típica, GBW 0.6 MHz, SR 0.3 V/µs, resistencia de entrada 33 MΩ, salida de ±12.8 V con 10 kΩ (dhi y dlo de 2.2 V), disipación de 80 mW sin carga (2.67 mA, de ahí rq). Parámetros copiados de la hoja salvo rout (60 Ω) e ilim (25 mA), que esta revisión no da y se tomaron de las cifras tradicionales de la familia 741/OP07. Sin voltaje de offset (60 µV típicos de la hoja): el modelo de una etapa no lo tiene.",
+    "NE5532": "Texas Instruments NE5532/NE5532A, SLOS075K (nov 1979, rev. dic 2025), https://www.ti.com/lit/ds/symlink/ne5532.pdf: GBW 12 MHz, SR 5 V/µs, ganancia 100 V/mV típica (RL = 2 kΩ), resistencia de entrada 300 kΩ típica, corriente de corto 38 mA, ICC de 6 mA con dos amplificadores (3 mA por uno, de ahí rq). Parámetros copiados de la hoja salvo rout (0.3 Ω) y la caída de salida (2 V a ±15 V), que esta revisión ya no publica y se tomaron de ediciones anteriores de la hoja. Sin voltaje de offset: el modelo de una etapa no lo tiene.",
+    "TLV9002": "Texas Instruments TLV9001/TLV9002/TLV9004 (riel a riel en entrada y salida), SBOS833R (oct 2017, rev. nov 2021), https://www.ti.com/lit/ds/symlink/tlv9002.pdf: GBW 1 MHz, SR 2 V/µs, ganancia 117 dB típica (7.1e5), salida a 20 mV de cada riel con 10 kΩ, corriente de corto 55 mA, impedancia de salida en lazo abierto 1.2 kΩ, IQ de 60 µA por amplificador a 5.5 V (de ahí rq). Parámetros copiados de la hoja salvo rin (1 TΩ), que no viene en ella (corriente de polarización de 5 pA, entrada CMOS). Sin voltaje de offset: el modelo de una etapa no lo tiene."
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "id": "temporizador-555",
+  "nombre": { "es": "Temporizador 555", "en": "555 timer" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["u", "555", "ne555", "lm555", "temporizador", "timer"],
+  "pines": [
+    { "id": "1", "nombre": "GND", "x": 0, "y": 8 },
+    { "id": "2", "nombre": "disparo (TRIG)", "x": -6, "y": 4 },
+    { "id": "3", "nombre": "salida (OUT)", "x": 6, "y": -2 },
+    { "id": "4", "nombre": "reinicio (RESET)", "x": 2, "y": -8 },
+    { "id": "5", "nombre": "control (CV)", "x": 6, "y": 4 },
+    { "id": "6", "nombre": "umbral (THR)", "x": -6, "y": 0 },
+    { "id": "7", "nombre": "descarga (DIS)", "x": -6, "y": -4 },
+    { "id": "8", "nombre": "VCC", "x": -2, "y": -8 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "NE555", "opciones": ["NE555", "LM555", "TLC555"] }
+  ],
+  "modelo": {
+    "tipo": "555", "gnd": "1", "trig": "2", "out": "3", "reset": "4", "cv": "5", "thr": "6", "dis": "7", "vcc": "8", "prop": "modelo",
+    "modelos": {
+      "NE555": { "rdiv": 5000, "rq": 1800, "vres": 0.7, "td": 1e-7, "tr": 1e-7, "tf": 1e-7, "vlo": 0.025, "rlo": 7.5, "vhi": -1.4, "rhi": 3, "rdis": 15, "vmin": 4.5, "vmax": 16 },
+      "LM555": { "rdiv": 5000, "rq": 1800, "vres": 0.7, "td": 1e-7, "tr": 1e-7, "tf": 1e-7, "vlo": 0.025, "rlo": 7.5, "vhi": -1.4, "rhi": 3, "rdis": 15, "vmin": 4.5, "vmax": 16 },
+      "TLC555": { "rdiv": 100000, "rq": 33000, "vres": 1.1, "td": 1e-7, "tr": 2e-8, "tf": 1.5e-8, "vlo": 0, "rlo": 26, "vhi": 0, "rhi": 160, "rdis": 12, "vmin": 2, "vmax": 15 }
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "NE555": {
+          "fuente": "Texas Instruments NE555/SA555/SE555, SLFS022, Absolute Maximum Ratings: alimentación VCC de 18 V.",
+          "limites": [
+            {"nombre": "alimentación (VCC a GND)", "de": "8", "a": "1", "max": 18, "consejo": "baja la alimentación del 555."}
+          ]
+        },
+        "LM555": {
+          "fuente": "Texas Instruments LM555, SNAS548, Absolute Maximum Ratings: alimentación de 18 V.",
+          "limites": [
+            {"nombre": "alimentación (VCC a GND)", "de": "8", "a": "1", "max": 18, "consejo": "baja la alimentación del 555."}
+          ]
+        },
+        "TLC555": {
+          "fuente": "Texas Instruments TLC555, SLFS043, Absolute Maximum Ratings: alimentación VDD de 18 V.",
+          "limites": [
+            {"nombre": "alimentación (VCC a GND)", "de": "8", "a": "1", "max": 18, "consejo": "baja la alimentación del 555."}
+          ]
+        }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -10 }, "valor": { "x": 0, "y": 10 } },
+  "rotulos": [
+    { "texto": "GND", "x": 0, "y": 5.2, "tam": 1, "alinear": "arriba" },
+    { "texto": "TRIG", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "OUT", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "RESET", "x": 2, "y": -5.2, "tam": 1, "alinear": "abajo" },
+    { "texto": "CV", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "THR", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "DIS", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "VCC", "x": -2, "y": -5.2, "tam": 1, "alinear": "abajo" },
+    { "texto": "1", "x": 1, "y": 7, "tam": 1, "alinear": "centro", "tinta": "valor" },
+    { "texto": "2", "x": -5, "y": 3, "tam": 1, "alinear": "centro", "tinta": "valor" },
+    { "texto": "3", "x": 5, "y": -3, "tam": 1, "alinear": "centro", "tinta": "valor" },
+    { "texto": "4", "x": 3, "y": -7, "tam": 1, "alinear": "centro", "tinta": "valor" },
+    { "texto": "5", "x": 5, "y": 3, "tam": 1, "alinear": "centro", "tinta": "valor" },
+    { "texto": "6", "x": -5, "y": -1, "tam": 1, "alinear": "centro", "tinta": "valor" },
+    { "texto": "7", "x": -5, "y": -5, "tam": 1, "alinear": "centro", "tinta": "valor" },
+    { "texto": "8", "x": -1, "y": -7, "tam": 1, "alinear": "centro", "tinta": "valor" }
+  ]
+}

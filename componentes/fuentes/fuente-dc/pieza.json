@@ -1,0 +1,15 @@
+{
+  "id": "fuente-dc",
+  "nombre": { "es": "Fuente de voltaje DC", "en": "DC voltage source" },
+  "categoria": "fuentes",
+  "prefijo": "V",
+  "buscar": ["v", "fuente", "voltaje", "dc", "source"],
+  "pines": [
+    { "id": "+", "nombre": "+", "x": 0, "y": -4 },
+    { "id": "-", "nombre": "−", "x": 0, "y": 4 }
+  ],
+  "props": [{ "id": "voltaje", "nombre": "Voltaje", "unidad": "V", "defecto": "5", "comunes": ["1.5", "3.3", "5", "9", "12"] }],
+  "modelo": { "tipo": "V", "a": "+", "b": "-", "prop": "voltaje" },
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
+  "rotulos": [{ "texto": "−", "x": 0, "y": 0.85, "tam": 1.6 }]
+}

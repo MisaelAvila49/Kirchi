@@ -1,0 +1,48 @@
+{
+  "id": "transformador",
+  "nombre": { "es": "Transformador", "en": "Transformer" },
+  "categoria": "pasivos",
+  "prefijo": "T",
+  "buscar": ["t", "transformador", "transformer", "bobinas acopladas", "inductancias acopladas", "reductor", "elevador", "aislamiento"],
+  "pines": [
+    { "id": "P1", "nombre": "primario (P1, punto)", "x": -6, "y": -4 },
+    { "id": "P2", "nombre": "primario (P2)", "x": -6, "y": 4 },
+    { "id": "S1", "nombre": "secundario (S1, punto)", "x": 6, "y": -4 },
+    { "id": "S2", "nombre": "secundario (S2)", "x": 6, "y": 4 }
+  ],
+  "props": [
+    { "id": "relacion", "nombre": "Relación de espiras (Np:Ns)", "mostrar": true, "defecto": "1:1", "opciones": ["1:1", "2:1", "3:1", "4:1", "5:1", "10:1", "20:1", "1:2", "1:3", "1:5", "1:10"] },
+    { "id": "l1", "nombre": "Inductancia del primario", "unidad": "H", "defecto": "10", "comunes": ["100m", "1", "5", "10", "50"] },
+    { "id": "k", "nombre": "Acoplamiento (k)", "defecto": "0.98", "comunes": ["0.9", "0.95", "0.98", "0.99", "0.999"] },
+    { "id": "dcr1", "nombre": "Resistencia del primario", "unidad": "Ω", "defecto": "1", "omitir": true, "comunes": ["0.1", "1", "5", "10"] },
+    { "id": "dcr2", "nombre": "Resistencia del secundario", "unidad": "Ω", "defecto": "1", "omitir": true, "comunes": ["0.1", "1", "5", "10"] }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "relacion",
+    "modelos": {
+      "1:1": { "n": 1 },
+      "2:1": { "n": 2 },
+      "3:1": { "n": 3 },
+      "4:1": { "n": 4 },
+      "5:1": { "n": 5 },
+      "10:1": { "n": 10 },
+      "20:1": { "n": 20 },
+      "1:2": { "n": 0.5 },
+      "1:3": { "n": 0.3333333333333333 },
+      "1:5": { "n": 0.2 },
+      "1:10": { "n": 0.1 }
+    },
+    "internas": ["pa", "sa"],
+    "medida": { "mas": "P1", "menos": "P2", "i": 0 },
+    "elementos": [
+      { "t": "R", "a": "P1", "b": "pa", "ohms": "dcr1" },
+      { "t": "R", "a": "S1", "b": "sa", "ohms": "dcr2" },
+      { "t": "T", "a1": "pa", "b1": "P2", "a2": "sa", "b2": "S2", "l1": "l1", "n": "n", "k": "k" }
+    ]
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -7 }, "valor": { "x": 0, "y": 7 } },
+  "fuentes": {
+    "1:1": "Sin hoja de datos: es el modelo de dos inductancias acopladas de SPICE (`K1 L1 L2 k`, ngspice 47, manual §3.1.1). El motor integra los dos flujos concatenados con la regla del inductor (trapezoidal) y se compara con ngspice con la misma red (`xfmr_reductor` y `xfmr_elevador`, dentro de 1 %). L2 = L1 / n² con n = Np:Ns, M = k √(L1 L2); k va de 0 a 0.9999 (con 1 el sistema de las dos inductancias es singular). La resistencia de cada devanado (omitida por omisión: 1 Ω) va en serie. El punto de cada devanado es P1 y S1. Sin saturación del núcleo, pérdidas de hierro ni capacitancia entre devanados: un transformador real de red tiene un k cercano a 0.98 y una inductancia de primario de varios henrios."
+  }
+}

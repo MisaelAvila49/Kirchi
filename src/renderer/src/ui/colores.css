@@ -1,0 +1,148 @@
+/* Color de la interfaz. Los valores son los de ui/colores.ts (la
+   prueba colores.test.ts exige que coincidan). Ninguna otra hoja ni componente escribe un color: se usan estas variables o
+   los atajos de abajo. El oscuro solo si el usuario lo elige, como en styles.css. */
+:root {
+  --azul: #2F6FBF; --azul-suave: #E4ECF7; --azul-tenue: #BCD1EB; --azul-texto: #2D69B5;
+  --ocre: #A86A12; --ocre-suave: #F4ECE0; --ocre-tenue: #E3CFB3; --ocre-texto: #935E13;
+  --violeta: #7A4FC9; --violeta-suave: #EEE8F8; --violeta-tenue: #D4C7EE; --violeta-texto: #7A4FC9;
+  --verdeazul: #00876F; --verdeazul-suave: #DEEFEC; --verdeazul-tenue: #ADD9D1; --verdeazul-texto: #027763;
+  --naranja: #C8581C; --naranja-suave: #F8E9E1; --naranja-tenue: #EDCAB6; --naranja-texto: #AB4D1C;
+  --cian: #127FA6; --cian-suave: #E0EEF3; --cian-tenue: #B3D6E3; --cian-texto: #127092;
+  --magenta: #B83C7A; --magenta-suave: #F6E6EE; --magenta-tenue: #E8C1D4; --magenta-texto: #B13A76;
+  --oliva: #5F7F1E; --oliva-suave: #EAEEE2; --oliva-tenue: #CCD6B7; --oliva-texto: #56721E;
+  --ciruela: #8B4E8F; --ciruela-suave: #F0E8F0; --ciruela-tenue: #DAC6DB; --ciruela-texto: #8B4E8F;
+  --rojo: #B42318; --rojo-suave: #FBE9E7; --rojo-tenue: #F1C4BF; --rojo-texto: #B42318;
+  --ambar: #B45309; --ambar-suave: #FBF0E1; --ambar-tenue: #EFD2AE; --ambar-texto: #96450A;
+  --gris: #6B7585; --gris-suave: #EEEFF1; --gris-tenue: #D3D6DB; --gris-texto: #5D6470;
+  --lectura-v: #C2410C; --lectura-v-suave: #FBEDE6; --lectura-v-texto: #A8380B;
+  --lectura-i: #B45309; --lectura-i-suave: #FBF0E1; --lectura-i-texto: #96450A;
+  --lectura-p: #5D6470; --lectura-p-suave: #F1EFE8; --lectura-p-texto: #4F5560;
+  --canal-a: #00876F; --canal-a-suave: #DEEFEC; --canal-a-texto: #027763;
+  --canal-b: #2F6FBF; --canal-b-suave: #E4ECF7; --canal-b-texto: #2D69B5;
+  --canal-c: #A86A12; --canal-c-suave: #F4ECE0; --canal-c-texto: #935E13;
+  --canal-d: #8B4E8F; --canal-d-suave: #F0E8F0; --canal-d-texto: #8B4E8F;
+  --negro: #15171B; --negro-suave: #E8E9EB; --negro-texto: #15171B;
+  --medidor-cuerpo: #2A2E36; --medidor-lcd: #B9CBA7; --medidor-tinta: #1D2B1C; --medidor-apagado: #AFC19D;
+  --ic-contra: #FFFFFF; --ic-gris: #6B7585; --texto-sobre-tinte: #5D6470;
+  /* Tutorial: lo que oscurece el foco y lo que aclara su interior. En oscuro el velo casi no se nota sobre un lienzo oscuro: es más denso y el objetivo se aclara. */
+  --velo-foco: #17181B52; --foco-relleno: #FFFFFF00;
+  /* Sombra del aviso breve sobre el lienzo. */
+  --sombra-aviso: #0000002E;
+}
+:root[data-tema='oscuro'] {
+  --azul: #5B8FD8; --azul-suave: #33455E; --azul-tenue: #3D587E; --azul-texto: #93B5E5;
+  --ocre: #B8842E; --ocre-suave: #4F422B; --ocre-tenue: #6A532C; --ocre-texto: #D0AE75;
+  --violeta: #9A7BD8; --violeta-suave: #463F5E; --violeta-tenue: #5C4E7E; --violeta-texto: #BCA8E5;
+  --verdeazul: #2E9E86; --verdeazul-suave: #264946; --verdeazul-tenue: #285F56; --verdeazul-texto: #75BFAF;
+  --naranja: #D4743A; --naranja-suave: #573D2F; --naranja-tenue: #774B32; --naranja-texto: #E3A37D;
+  --cian: #3D9DBF; --cian-suave: #2A4957; --cian-tenue: #2F5F72; --cian-texto: #7FBED5;
+  --magenta: #CC5E8A; --magenta-suave: #553647; --magenta-tenue: #744058; --magenta-texto: #DE98B4;
+  --oliva: #7D9B3C; --oliva-suave: #3D482F; --oliva-tenue: #4E5E33; --oliva-texto: #A7BB7A;
+  --ciruela: #B777BB; --ciruela-suave: #4F3E56; --ciruela-tenue: #684C6E; --ciruela-texto: #CEA2D1;
+  --rojo: #F97066; --rojo-suave: #4A2E2E; --rojo-tenue: #6B3735; --rojo-texto: #F98A82;
+  --ambar: #E8B931; --ambar-suave: #47402A; --ambar-tenue: #6B5B26; --ambar-texto: #F2CD5C;
+  --gris: #9AA1AC; --gris-suave: #34373D; --gris-tenue: #474B53; --gris-texto: #B9BCC2;
+  --lectura-v: #D9732B; --lectura-v-suave: #4E382A; --lectura-v-texto: #E59A64;
+  --lectura-i: #FACC15; --lectura-i-suave: #564D25; --lectura-i-texto: #F5D04A;
+  --lectura-p: #A3A7AE; --lectura-p-suave: #41444A; --lectura-p-texto: #B9BCC2;
+  --canal-a: #2E9E86; --canal-a-suave: #264946; --canal-a-texto: #75BFAF;
+  --canal-b: #5B8FD8; --canal-b-suave: #33455E; --canal-b-texto: #93B5E5;
+  --canal-c: #B8842E; --canal-c-suave: #4F422B; --canal-c-texto: #D0AE75;
+  --canal-d: #A1529B; --canal-d-suave: #48334C; --canal-d-texto: #C797C3;
+  --negro: #F2F3F5; --negro-suave: #3A3D44; --negro-texto: #F2F3F5;
+  --medidor-cuerpo: #0E0F12; --medidor-lcd: #B9CBA7; --medidor-tinta: #1D2B1C; --medidor-apagado: #AFC19D;
+  --ic-contra: #15171B; --ic-gris: #9AA1AC; --texto-sobre-tinte: #C9CDD3;
+  --velo-foco: #000000C7; --foco-relleno: #FFFFFF17;
+  --sombra-aviso: #00000080;
+}
+
+/* Un bloque teñido por su categoría o su instrumento: --t es el tono, --t-suave su tinte, --t-tenue el tinte fuerte y
+   --t-texto el texto en tono. Quien no tiene data-tono no recibe --t: las reglas que lo usan traen su respaldo. */
+[data-tono='azul'] { --t: var(--azul); --t-suave: var(--azul-suave); --t-tenue: var(--azul-tenue); --t-texto: var(--azul-texto); }
+[data-tono='ocre'] { --t: var(--ocre); --t-suave: var(--ocre-suave); --t-tenue: var(--ocre-tenue); --t-texto: var(--ocre-texto); }
+[data-tono='violeta'] { --t: var(--violeta); --t-suave: var(--violeta-suave); --t-tenue: var(--violeta-tenue); --t-texto: var(--violeta-texto); }
+[data-tono='verdeazul'] { --t: var(--verdeazul); --t-suave: var(--verdeazul-suave); --t-tenue: var(--verdeazul-tenue); --t-texto: var(--verdeazul-texto); }
+[data-tono='naranja'] { --t: var(--naranja); --t-suave: var(--naranja-suave); --t-tenue: var(--naranja-tenue); --t-texto: var(--naranja-texto); }
+[data-tono='cian'] { --t: var(--cian); --t-suave: var(--cian-suave); --t-tenue: var(--cian-tenue); --t-texto: var(--cian-texto); }
+[data-tono='magenta'] { --t: var(--magenta); --t-suave: var(--magenta-suave); --t-tenue: var(--magenta-tenue); --t-texto: var(--magenta-texto); }
+[data-tono='oliva'] { --t: var(--oliva); --t-suave: var(--oliva-suave); --t-tenue: var(--oliva-tenue); --t-texto: var(--oliva-texto); }
+[data-tono='ciruela'] { --t: var(--ciruela); --t-suave: var(--ciruela-suave); --t-tenue: var(--ciruela-tenue); --t-texto: var(--ciruela-texto); }
+[data-tono='rojo'] { --t: var(--rojo); --t-suave: var(--rojo-suave); --t-tenue: var(--rojo-tenue); --t-texto: var(--rojo-texto); }
+[data-tono='ambar'] { --t: var(--ambar); --t-suave: var(--ambar-suave); --t-tenue: var(--ambar-tenue); --t-texto: var(--ambar-texto); }
+[data-tono='gris'] { --t: var(--gris); --t-suave: var(--gris-suave); --t-tenue: var(--gris-tenue); --t-texto: var(--gris-texto); }
+
+/* Una ficha de lectura según su magnitud. */
+[data-magnitud='v'] { --m: var(--lectura-v); --m-suave: var(--lectura-v-suave); --m-texto: var(--lectura-v-texto); }
+[data-magnitud='i'] { --m: var(--lectura-i); --m-suave: var(--lectura-i-suave); --m-texto: var(--lectura-i-texto); }
+[data-magnitud='p'] { --m: var(--lectura-p); --m-suave: var(--lectura-p-suave); --m-texto: var(--lectura-p-texto); }
+
+/* Los canales del osciloscopio: la pestaña, la letra de cada medida y los cursores ponen data-canal. */
+[data-canal='A'] { --c: var(--canal-a); --c-suave: var(--canal-a-suave); --c-texto: var(--canal-a-texto); }
+[data-canal='B'] { --c: var(--canal-b); --c-suave: var(--canal-b-suave); --c-texto: var(--canal-b-texto); }
+[data-canal='C'] { --c: var(--canal-c); --c-suave: var(--canal-c-suave); --c-texto: var(--canal-c-texto); }
+[data-canal='D'] { --c: var(--canal-d); --c-suave: var(--canal-d-suave); --c-texto: var(--canal-d-texto); }
+[data-canal='M'] { --c: var(--gris); --c-suave: var(--gris-suave); --c-texto: var(--gris-texto); }
+/* Nivel de un mensaje del Registro: rojo solo para los errores, ámbar para los avisos y el gris del
+   icono del Registro para lo informativo. --n pinta el icono y el contador, --n-texto el mensaje. */
+[data-nivel='error'] { --n: var(--rojo); --n-texto: var(--rojo-texto); }
+[data-nivel='aviso'] { --n: var(--ambar); --n-texto: var(--ambar-texto); }
+[data-nivel='info'] { --n: var(--gris); --n-texto: var(--gris-texto); }
+/* Iconos de la cinta: el color de la orden (data-h) con su tinte y su contorno, y el segundo color (data-h2), que va
+   después para ganarle al --h2 que pone data-h. */
+.icono[data-h='azul'] { --h: var(--azul); --h-tenue: var(--azul-tenue); --h-borde: var(--azul-texto); --h2: var(--azul); }
+.icono[data-h='ocre'] { --h: var(--ocre); --h-tenue: var(--ocre-tenue); --h-borde: var(--ocre-texto); --h2: var(--ocre); }
+.icono[data-h='violeta'] { --h: var(--violeta); --h-tenue: var(--violeta-tenue); --h-borde: var(--violeta-texto); --h2: var(--violeta); }
+.icono[data-h='verdeazul'] { --h: var(--verdeazul); --h-tenue: var(--verdeazul-tenue); --h-borde: var(--verdeazul-texto); --h2: var(--verdeazul); }
+.icono[data-h='naranja'] { --h: var(--naranja); --h-tenue: var(--naranja-tenue); --h-borde: var(--naranja-texto); --h2: var(--naranja); }
+.icono[data-h='cian'] { --h: var(--cian); --h-tenue: var(--cian-tenue); --h-borde: var(--cian-texto); --h2: var(--cian); }
+.icono[data-h='magenta'] { --h: var(--magenta); --h-tenue: var(--magenta-tenue); --h-borde: var(--magenta-texto); --h2: var(--magenta); }
+.icono[data-h='oliva'] { --h: var(--oliva); --h-tenue: var(--oliva-tenue); --h-borde: var(--oliva-texto); --h2: var(--oliva); }
+.icono[data-h='ciruela'] { --h: var(--ciruela); --h-tenue: var(--ciruela-tenue); --h-borde: var(--ciruela-texto); --h2: var(--ciruela); }
+.icono[data-h='rojo'] { --h: var(--rojo); --h-tenue: var(--rojo-tenue); --h-borde: var(--rojo-texto); --h2: var(--rojo); }
+.icono[data-h='ambar'] { --h: var(--ambar); --h-tenue: var(--ambar-tenue); --h-borde: var(--ambar-texto); --h2: var(--ambar); }
+.icono[data-h='gris'] { --h: var(--gris); --h-tenue: var(--gris-tenue); --h-borde: var(--gris-texto); --h2: var(--gris); }
+.icono[data-h2='azul'] { --h2: var(--azul); }
+.icono[data-h2='ocre'] { --h2: var(--ocre); }
+.icono[data-h2='violeta'] { --h2: var(--violeta); }
+.icono[data-h2='verdeazul'] { --h2: var(--verdeazul); }
+.icono[data-h2='naranja'] { --h2: var(--naranja); }
+.icono[data-h2='cian'] { --h2: var(--cian); }
+.icono[data-h2='magenta'] { --h2: var(--magenta); }
+.icono[data-h2='oliva'] { --h2: var(--oliva); }
+.icono[data-h2='ciruela'] { --h2: var(--ciruela); }
+.icono[data-h2='rojo'] { --h2: var(--rojo); }
+.icono[data-h2='ambar'] { --h2: var(--ambar); }
+.icono[data-h2='gris'] { --h2: var(--gris); }
+
+/* La muestra de cada tinta del inspector de figura: el componente pone data-tinta, la hoja el color del tema. */
+.tinta-muestra[data-tinta='tinta'] { background: var(--texto-tinta); }
+.tinta-muestra[data-tinta='gris'] { background: var(--texto-gris); }
+.tinta-muestra[data-tinta='rojo'] { background: var(--texto-rojo); }
+.tinta-muestra[data-tinta='azul'] { background: var(--texto-azul); }
+.tinta-muestra[data-tinta='verde'] { background: var(--texto-verde); }
+/* Muestra de color junto a una opción de color: las tintas en los menús y los colores de un LED o un
+   display en el inspector y en el editor del doble clic. El componente pone data-color, la hoja el color del tema. */
+.muestra-color[data-color='tinta-tinta'] { background: var(--texto-tinta); }
+.muestra-color[data-color='tinta-gris'] { background: var(--texto-gris); }
+.muestra-color[data-color='tinta-rojo'] { background: var(--texto-rojo); }
+.muestra-color[data-color='tinta-azul'] { background: var(--texto-azul); }
+.muestra-color[data-color='tinta-verde'] { background: var(--texto-verde); }
+.muestra-color[data-color='led-rojo'] { background: var(--led-rojo); }
+.muestra-color[data-color='led-verde'] { background: var(--led-verde); }
+.muestra-color[data-color='led-azul'] { background: var(--led-azul); }
+.muestra-color[data-color='led-amarillo'] { background: var(--led-amarillo); }
+.muestra-color[data-color='led-blanco'] { background: var(--led-blanco); }
+
+/* Contraste alto de Windows (forced-colors): Chromium no fuerza el fill ni el stroke de un SVG, así que aquí van a colores del sistema. */
+/* Va al final para ganarle a los atajos data-h, de igual especificidad. */
+@media (forced-colors: active) {
+  .icono, .icono[data-h], .icono[data-h2] { --h: ButtonText; --h2: ButtonText; --h-borde: ButtonText; --h-tenue: ButtonFace; --ic-gris: ButtonText; --ic-contra: ButtonFace; }
+  .boton-cinta[aria-disabled='true'] > .icono:is(.plano, .linea), .herramientas button[aria-disabled='true'] > .icono:is(.plano, .linea) { --h: GrayText; --h2: GrayText; --h-borde: GrayText; --ic-gris: GrayText; filter: none; opacity: 1; }
+  .simbolo polyline, .buscador-simbolo polyline { stroke: CanvasText; }
+  .simbolo polygon, .buscador-simbolo polygon { fill: CanvasText; }
+  .region-paso.actual { outline: 2px solid Highlight; outline-offset: -2px; }
+  .pestaña[aria-selected='true']:not(:focus-visible) { outline: 1px solid Highlight; outline-offset: -1px; }
+  .marco::before { forced-color-adjust: none; background: Highlight; }
+  .contador { outline: 1px solid CanvasText; outline-offset: -1px; }
+  [data-canal] { --c: CanvasText; --c-suave: Canvas; --c-texto: CanvasText; }
+}

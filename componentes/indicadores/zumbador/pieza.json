@@ -1,0 +1,18 @@
+{
+  "id": "zumbador",
+  "nombre": { "es": "Zumbador", "en": "Buzzer" },
+  "categoria": "indicadores",
+  "prefijo": "BZ",
+  "buscar": ["zumbador", "buzzer", "chicharra", "piezo"],
+  "pines": [
+    { "id": "+", "nombre": "+", "x": -2, "y": 2 },
+    { "id": "-", "nombre": "−", "x": 2, "y": 2 }
+  ],
+  "props": [
+    { "id": "voltaje", "nombre": "Voltaje nominal", "unidad": "V", "defecto": "5", "comunes": ["3", "5", "12"] },
+    { "id": "frecuencia", "nombre": "Frecuencia", "unidad": "Hz", "defecto": "2.7k", "comunes": ["2k", "2.7k", "4k"] }
+  ],
+  "modelo": { "tipo": "zumbador", "a": "+", "b": "-", "voltaje": "voltaje", "potencia": 0.15, "umbral": 0.6 },
+  "etiquetas": { "valor": { "x": 0, "y": 4 } },
+  "animacion": { "tipo": "sonido", "frecuencia": "frecuencia", "onda": "triangular" }
+}

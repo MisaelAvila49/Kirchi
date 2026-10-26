@@ -1,0 +1,171 @@
+{
+  "id": "filtro-rc-paso-altas",
+  "nombre": "Filtro RC paso altas",
+  "descripcion": "Deja pasar las frecuencias altas y bloquea las bajas, con corte en unos 1.6 kHz.",
+  "circuito": {
+    "cables": {
+      "c_1": {
+        "id": "c_1",
+        "puntos": [
+          {
+            "x": 0,
+            "y": 6
+          },
+          {
+            "x": 0,
+            "y": 8
+          },
+          {
+            "x": 8,
+            "y": 8
+          }
+        ]
+      },
+      "c_2": {
+        "id": "c_2",
+        "puntos": [
+          {
+            "x": 12,
+            "y": -8
+          },
+          {
+            "x": 16,
+            "y": -8
+          },
+          {
+            "x": 16,
+            "y": -4
+          }
+        ]
+      },
+      "c_3": {
+        "id": "c_3",
+        "puntos": [
+          {
+            "x": 16,
+            "y": 4
+          },
+          {
+            "x": 16,
+            "y": 8
+          },
+          {
+            "x": 8,
+            "y": 8
+          }
+        ]
+      },
+      "c_4": {
+        "id": "c_4",
+        "puntos": [
+          {
+            "x": 0,
+            "y": -6
+          },
+          {
+            "x": 0,
+            "y": -8
+          },
+          {
+            "x": 4,
+            "y": -8
+          }
+        ]
+      }
+    },
+    "etiquetas": {
+      "e_1": {
+        "id": "e_1",
+        "nombre": "Entrada",
+        "rot": 180,
+        "x": 0,
+        "y": -8
+      },
+      "e_2": {
+        "id": "e_2",
+        "nombre": "Salida",
+        "rot": 0,
+        "x": 16,
+        "y": -8
+      }
+    },
+    "notas": {},
+    "piezas": {
+      "p_c1": {
+        "espejo": false,
+        "id": "p_c1",
+        "props": {
+          "valor": "100n"
+        },
+        "ref": "C1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -3
+          },
+          "valor": {
+            "x": 4.4,
+            "y": 3
+          }
+        },
+        "tipo": "capacitor",
+        "x": 8,
+        "y": -8
+      },
+      "p_g1": {
+        "espejo": false,
+        "id": "p_g1",
+        "props": {
+          "amplitud": "2",
+          "frecuencia": "1k"
+        },
+        "ref": "XFG1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 5.92,
+            "y": -2
+          },
+          "valor": {
+            "x": 7.36,
+            "y": 2
+          }
+        },
+        "tipo": "generador",
+        "x": 0,
+        "y": 0
+      },
+      "p_r1": {
+        "espejo": false,
+        "id": "p_r1",
+        "props": {
+          "valor": "1k"
+        },
+        "ref": "R1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "arriba"
+          },
+          "valor": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "resistencia",
+        "x": 16,
+        "y": 0
+      },
+      "p_t1": {
+        "espejo": false,
+        "id": "p_t1",
+        "props": {},
+        "ref": "GND1",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 8,
+        "y": 8
+      }
+    }
+  }
+}

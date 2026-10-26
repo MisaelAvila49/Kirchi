@@ -1,0 +1,12 @@
+{
+  "netlist": {
+    "nodes": 2,
+    "elements": [
+      { "type": "FUSE", "a": 1, "b": 0, "ohms": 10000, "inom": 10, "ifusion": 20, "tau": 0.125, "v": 1 },
+      { "type": "R", "a": 1, "b": 0, "ohms": 4700 }
+    ]
+  },
+  "fin": 1e-6,
+  "hmax": 1e-6,
+  "columnas": { "v(1)": { "nodo": 1 }, "i(vp)": { "corriente": 0 } }
+}

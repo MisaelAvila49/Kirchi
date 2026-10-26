@@ -1,0 +1,23 @@
+{
+  "id": "rele",
+  "nombre": { "es": "Relé", "en": "Relay" },
+  "categoria": "electromecanicos",
+  "prefijo": "K",
+  "buscar": ["k", "rele", "relé", "relay"],
+  "pines": [
+    { "id": "A1", "nombre": "bobina 1", "x": -4, "y": -4 },
+    { "id": "A2", "nombre": "bobina 2", "x": -4, "y": 4 },
+    { "id": "NC", "nombre": "normalmente cerrado", "x": 0, "y": -4 },
+    { "id": "NA", "nombre": "normalmente abierto", "x": 4, "y": -4 },
+    { "id": "COM", "nombre": "común", "x": 2, "y": 4 }
+  ],
+  "props": [
+    { "id": "voltaje", "nombre": "Voltaje de la bobina", "unidad": "V", "defecto": "5", "comunes": ["5", "12", "24"] }
+  ],
+  "modelo": {
+    "tipo": "rele", "a1": "A1", "a2": "A2", "com": "COM", "na": "NA", "nc": "NC", "voltaje": "voltaje",
+    "potencia": 0.36, "tau": 3e-3, "operar": 0.75, "liberar": 0.1
+  },
+  "etiquetas": { "ref": { "x": 6, "y": -1 }, "valor": { "x": 6, "y": 1 } },
+  "animacion": { "tipo": "contacto", "manda": "operado" }
+}

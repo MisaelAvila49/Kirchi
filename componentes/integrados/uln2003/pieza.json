@@ -1,0 +1,781 @@
+{
+  "id": "uln2003",
+  "nombre": {
+    "es": "ULN2003",
+    "en": "ULN2003"
+  },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": [
+    "u",
+    "uln2003",
+    "uln2003a",
+    "uln2803",
+    "darlington",
+    "matriz darlington",
+    "driver",
+    "relevadores"
+  ],
+  "pines": [
+    {
+      "id": "1B",
+      "nombre": "entrada 1 (1B)",
+      "x": -8,
+      "y": -6
+    },
+    {
+      "id": "1C",
+      "nombre": "salida 1 (1C)",
+      "x": 8,
+      "y": -6
+    },
+    {
+      "id": "2B",
+      "nombre": "entrada 2 (2B)",
+      "x": -8,
+      "y": -4
+    },
+    {
+      "id": "2C",
+      "nombre": "salida 2 (2C)",
+      "x": 8,
+      "y": -4
+    },
+    {
+      "id": "3B",
+      "nombre": "entrada 3 (3B)",
+      "x": -8,
+      "y": -2
+    },
+    {
+      "id": "3C",
+      "nombre": "salida 3 (3C)",
+      "x": 8,
+      "y": -2
+    },
+    {
+      "id": "4B",
+      "nombre": "entrada 4 (4B)",
+      "x": -8,
+      "y": 0
+    },
+    {
+      "id": "4C",
+      "nombre": "salida 4 (4C)",
+      "x": 8,
+      "y": 0
+    },
+    {
+      "id": "5B",
+      "nombre": "entrada 5 (5B)",
+      "x": -8,
+      "y": 2
+    },
+    {
+      "id": "5C",
+      "nombre": "salida 5 (5C)",
+      "x": 8,
+      "y": 2
+    },
+    {
+      "id": "6B",
+      "nombre": "entrada 6 (6B)",
+      "x": -8,
+      "y": 4
+    },
+    {
+      "id": "6C",
+      "nombre": "salida 6 (6C)",
+      "x": 8,
+      "y": 4
+    },
+    {
+      "id": "7B",
+      "nombre": "entrada 7 (7B)",
+      "x": -8,
+      "y": 6
+    },
+    {
+      "id": "7C",
+      "nombre": "salida 7 (7C)",
+      "x": 8,
+      "y": 6
+    },
+    {
+      "id": "E",
+      "nombre": "tierra (E)",
+      "x": 0,
+      "y": 8
+    },
+    {
+      "id": "COM",
+      "nombre": "común de los diodos (COM)",
+      "x": 0,
+      "y": -8
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "ULN2003A",
+      "opciones": [
+        "ULN2003A"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "ULN2003A": {
+        "is1": 1e-15,
+        "bf1": 100,
+        "rb1": 20,
+        "rc1": 3,
+        "re1": 1,
+        "vaf1": 50,
+        "is2": 1e-14,
+        "bf2": 100,
+        "rb2": 10,
+        "rc2": 0.5,
+        "re2": 0.8,
+        "vaf2": 50,
+        "rin": 2600,
+        "rbe2": 7200,
+        "rs": 0.001,
+        "dis": 1e-09,
+        "dn": 1.3,
+        "drs": 2.9,
+        "dbv": 100,
+        "dibv": 0.0001
+      }
+    },
+    "internas": [
+      "c1",
+      "b1",
+      "m1",
+      "b2",
+      "m2",
+      "b3",
+      "m3",
+      "b4",
+      "m4",
+      "b5",
+      "m5",
+      "b6",
+      "m6",
+      "b7",
+      "m7"
+    ],
+    "opcionales": [
+      "1B",
+      "1C",
+      "2B",
+      "2C",
+      "3B",
+      "3C",
+      "4B",
+      "4C",
+      "5B",
+      "5C",
+      "6B",
+      "6C",
+      "7B",
+      "7C",
+      "COM"
+    ],
+    "medida": {
+      "mas": "1C",
+      "menos": "E",
+      "i": 0
+    },
+    "elementos": [
+      {
+        "t": "R",
+        "a": "1C",
+        "b": "c1",
+        "ohms": "rs"
+      },
+      {
+        "t": "R",
+        "a": "1B",
+        "b": "b1",
+        "ohms": "rin"
+      },
+      {
+        "t": "Q",
+        "c": "c1",
+        "b": "b1",
+        "e": "m1",
+        "params": {
+          "is": "is1",
+          "bf": "bf1",
+          "rb": "rb1",
+          "rc": "rc1",
+          "re": "re1",
+          "vaf": "vaf1"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "c1",
+        "b": "m1",
+        "e": "E",
+        "params": {
+          "is": "is2",
+          "bf": "bf2",
+          "rb": "rb2",
+          "rc": "rc2",
+          "re": "re2",
+          "vaf": "vaf2"
+        }
+      },
+      {
+        "t": "R",
+        "a": "m1",
+        "b": "E",
+        "ohms": "rbe2"
+      },
+      {
+        "t": "D",
+        "a": "c1",
+        "b": "COM",
+        "params": {
+          "is": "dis",
+          "n": "dn",
+          "rs": "drs",
+          "bv": "dbv",
+          "ibv": "dibv"
+        }
+      },
+      {
+        "t": "R",
+        "a": "2B",
+        "b": "b2",
+        "ohms": "rin"
+      },
+      {
+        "t": "Q",
+        "c": "2C",
+        "b": "b2",
+        "e": "m2",
+        "params": {
+          "is": "is1",
+          "bf": "bf1",
+          "rb": "rb1",
+          "rc": "rc1",
+          "re": "re1",
+          "vaf": "vaf1"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "2C",
+        "b": "m2",
+        "e": "E",
+        "params": {
+          "is": "is2",
+          "bf": "bf2",
+          "rb": "rb2",
+          "rc": "rc2",
+          "re": "re2",
+          "vaf": "vaf2"
+        }
+      },
+      {
+        "t": "R",
+        "a": "m2",
+        "b": "E",
+        "ohms": "rbe2"
+      },
+      {
+        "t": "D",
+        "a": "2C",
+        "b": "COM",
+        "params": {
+          "is": "dis",
+          "n": "dn",
+          "rs": "drs",
+          "bv": "dbv",
+          "ibv": "dibv"
+        }
+      },
+      {
+        "t": "R",
+        "a": "3B",
+        "b": "b3",
+        "ohms": "rin"
+      },
+      {
+        "t": "Q",
+        "c": "3C",
+        "b": "b3",
+        "e": "m3",
+        "params": {
+          "is": "is1",
+          "bf": "bf1",
+          "rb": "rb1",
+          "rc": "rc1",
+          "re": "re1",
+          "vaf": "vaf1"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "3C",
+        "b": "m3",
+        "e": "E",
+        "params": {
+          "is": "is2",
+          "bf": "bf2",
+          "rb": "rb2",
+          "rc": "rc2",
+          "re": "re2",
+          "vaf": "vaf2"
+        }
+      },
+      {
+        "t": "R",
+        "a": "m3",
+        "b": "E",
+        "ohms": "rbe2"
+      },
+      {
+        "t": "D",
+        "a": "3C",
+        "b": "COM",
+        "params": {
+          "is": "dis",
+          "n": "dn",
+          "rs": "drs",
+          "bv": "dbv",
+          "ibv": "dibv"
+        }
+      },
+      {
+        "t": "R",
+        "a": "4B",
+        "b": "b4",
+        "ohms": "rin"
+      },
+      {
+        "t": "Q",
+        "c": "4C",
+        "b": "b4",
+        "e": "m4",
+        "params": {
+          "is": "is1",
+          "bf": "bf1",
+          "rb": "rb1",
+          "rc": "rc1",
+          "re": "re1",
+          "vaf": "vaf1"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "4C",
+        "b": "m4",
+        "e": "E",
+        "params": {
+          "is": "is2",
+          "bf": "bf2",
+          "rb": "rb2",
+          "rc": "rc2",
+          "re": "re2",
+          "vaf": "vaf2"
+        }
+      },
+      {
+        "t": "R",
+        "a": "m4",
+        "b": "E",
+        "ohms": "rbe2"
+      },
+      {
+        "t": "D",
+        "a": "4C",
+        "b": "COM",
+        "params": {
+          "is": "dis",
+          "n": "dn",
+          "rs": "drs",
+          "bv": "dbv",
+          "ibv": "dibv"
+        }
+      },
+      {
+        "t": "R",
+        "a": "5B",
+        "b": "b5",
+        "ohms": "rin"
+      },
+      {
+        "t": "Q",
+        "c": "5C",
+        "b": "b5",
+        "e": "m5",
+        "params": {
+          "is": "is1",
+          "bf": "bf1",
+          "rb": "rb1",
+          "rc": "rc1",
+          "re": "re1",
+          "vaf": "vaf1"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "5C",
+        "b": "m5",
+        "e": "E",
+        "params": {
+          "is": "is2",
+          "bf": "bf2",
+          "rb": "rb2",
+          "rc": "rc2",
+          "re": "re2",
+          "vaf": "vaf2"
+        }
+      },
+      {
+        "t": "R",
+        "a": "m5",
+        "b": "E",
+        "ohms": "rbe2"
+      },
+      {
+        "t": "D",
+        "a": "5C",
+        "b": "COM",
+        "params": {
+          "is": "dis",
+          "n": "dn",
+          "rs": "drs",
+          "bv": "dbv",
+          "ibv": "dibv"
+        }
+      },
+      {
+        "t": "R",
+        "a": "6B",
+        "b": "b6",
+        "ohms": "rin"
+      },
+      {
+        "t": "Q",
+        "c": "6C",
+        "b": "b6",
+        "e": "m6",
+        "params": {
+          "is": "is1",
+          "bf": "bf1",
+          "rb": "rb1",
+          "rc": "rc1",
+          "re": "re1",
+          "vaf": "vaf1"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "6C",
+        "b": "m6",
+        "e": "E",
+        "params": {
+          "is": "is2",
+          "bf": "bf2",
+          "rb": "rb2",
+          "rc": "rc2",
+          "re": "re2",
+          "vaf": "vaf2"
+        }
+      },
+      {
+        "t": "R",
+        "a": "m6",
+        "b": "E",
+        "ohms": "rbe2"
+      },
+      {
+        "t": "D",
+        "a": "6C",
+        "b": "COM",
+        "params": {
+          "is": "dis",
+          "n": "dn",
+          "rs": "drs",
+          "bv": "dbv",
+          "ibv": "dibv"
+        }
+      },
+      {
+        "t": "R",
+        "a": "7B",
+        "b": "b7",
+        "ohms": "rin"
+      },
+      {
+        "t": "Q",
+        "c": "7C",
+        "b": "b7",
+        "e": "m7",
+        "params": {
+          "is": "is1",
+          "bf": "bf1",
+          "rb": "rb1",
+          "rc": "rc1",
+          "re": "re1",
+          "vaf": "vaf1"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "7C",
+        "b": "m7",
+        "e": "E",
+        "params": {
+          "is": "is2",
+          "bf": "bf2",
+          "rb": "rb2",
+          "rc": "rc2",
+          "re": "re2",
+          "vaf": "vaf2"
+        }
+      },
+      {
+        "t": "R",
+        "a": "m7",
+        "b": "E",
+        "ohms": "rbe2"
+      },
+      {
+        "t": "D",
+        "a": "7C",
+        "b": "COM",
+        "params": {
+          "is": "dis",
+          "n": "dn",
+          "rs": "drs",
+          "bv": "dbv",
+          "ibv": "dibv"
+        }
+      }
+    ]
+  },
+  "limites": {
+    "compuesto": [
+      {
+        "nombre": "canal 1",
+        "elementos": [
+          2,
+          3
+        ],
+        "sentido": "positiva",
+        "max": 0.5,
+        "consejo": "reparte la carga entre canales (se pueden unir salidas en paralelo) o usa un driver de más corriente.",
+        "fuente": "Texas Instruments ULN2002A, ULN2003A y ULN2004A, SLRS027T, https://www.ti.com/lit/ds/symlink/uln2003a.pdf: corriente de colector continua de 500 mA por canal (valor máximo absoluto)."
+      },
+      {
+        "nombre": "canal 2",
+        "elementos": [
+          7,
+          8
+        ],
+        "sentido": "positiva",
+        "max": 0.5,
+        "consejo": "reparte la carga entre canales (se pueden unir salidas en paralelo) o usa un driver de más corriente.",
+        "fuente": "Texas Instruments ULN2002A, ULN2003A y ULN2004A, SLRS027T, https://www.ti.com/lit/ds/symlink/uln2003a.pdf: corriente de colector continua de 500 mA por canal (valor máximo absoluto)."
+      },
+      {
+        "nombre": "canal 3",
+        "elementos": [
+          12,
+          13
+        ],
+        "sentido": "positiva",
+        "max": 0.5,
+        "consejo": "reparte la carga entre canales (se pueden unir salidas en paralelo) o usa un driver de más corriente.",
+        "fuente": "Texas Instruments ULN2002A, ULN2003A y ULN2004A, SLRS027T, https://www.ti.com/lit/ds/symlink/uln2003a.pdf: corriente de colector continua de 500 mA por canal (valor máximo absoluto)."
+      },
+      {
+        "nombre": "canal 4",
+        "elementos": [
+          17,
+          18
+        ],
+        "sentido": "positiva",
+        "max": 0.5,
+        "consejo": "reparte la carga entre canales (se pueden unir salidas en paralelo) o usa un driver de más corriente.",
+        "fuente": "Texas Instruments ULN2002A, ULN2003A y ULN2004A, SLRS027T, https://www.ti.com/lit/ds/symlink/uln2003a.pdf: corriente de colector continua de 500 mA por canal (valor máximo absoluto)."
+      },
+      {
+        "nombre": "canal 5",
+        "elementos": [
+          22,
+          23
+        ],
+        "sentido": "positiva",
+        "max": 0.5,
+        "consejo": "reparte la carga entre canales (se pueden unir salidas en paralelo) o usa un driver de más corriente.",
+        "fuente": "Texas Instruments ULN2002A, ULN2003A y ULN2004A, SLRS027T, https://www.ti.com/lit/ds/symlink/uln2003a.pdf: corriente de colector continua de 500 mA por canal (valor máximo absoluto)."
+      },
+      {
+        "nombre": "canal 6",
+        "elementos": [
+          27,
+          28
+        ],
+        "sentido": "positiva",
+        "max": 0.5,
+        "consejo": "reparte la carga entre canales (se pueden unir salidas en paralelo) o usa un driver de más corriente.",
+        "fuente": "Texas Instruments ULN2002A, ULN2003A y ULN2004A, SLRS027T, https://www.ti.com/lit/ds/symlink/uln2003a.pdf: corriente de colector continua de 500 mA por canal (valor máximo absoluto)."
+      },
+      {
+        "nombre": "canal 7",
+        "elementos": [
+          32,
+          33
+        ],
+        "sentido": "positiva",
+        "max": 0.5,
+        "consejo": "reparte la carga entre canales (se pueden unir salidas en paralelo) o usa un driver de más corriente.",
+        "fuente": "Texas Instruments ULN2002A, ULN2003A y ULN2004A, SLRS027T, https://www.ti.com/lit/ds/symlink/uln2003a.pdf: corriente de colector continua de 500 mA por canal (valor máximo absoluto)."
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -11
+    },
+    "valor": {
+      "x": 0,
+      "y": 11
+    }
+  },
+  "rotulos": [
+    {
+      "texto": "1B",
+      "x": -4.6,
+      "y": -6,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "1C",
+      "x": 4.6,
+      "y": -6,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "2B",
+      "x": -4.6,
+      "y": -4,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "2C",
+      "x": 4.6,
+      "y": -4,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "3B",
+      "x": -4.6,
+      "y": -2,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "3C",
+      "x": 4.6,
+      "y": -2,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "4B",
+      "x": -4.6,
+      "y": 0,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "4C",
+      "x": 4.6,
+      "y": 0,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "5B",
+      "x": -4.6,
+      "y": 2,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "5C",
+      "x": 4.6,
+      "y": 2,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "6B",
+      "x": -4.6,
+      "y": 4,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "6C",
+      "x": 4.6,
+      "y": 4,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "7B",
+      "x": -4.6,
+      "y": 6,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "7C",
+      "x": 4.6,
+      "y": 6,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "E",
+      "x": 0,
+      "y": 5.8,
+      "tam": 1,
+      "alinear": "arriba"
+    },
+    {
+      "texto": "COM",
+      "x": 0,
+      "y": -5.8,
+      "tam": 1,
+      "alinear": "abajo"
+    },
+    {
+      "texto": "ULN",
+      "x": 0,
+      "y": 0,
+      "tam": 1.4
+    }
+  ],
+  "fuentes": {
+    "ULN2003A": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments ULN2002A, ULN2003A y ULN2004A, SLRS027T (dic 1976, rev. mar 2025), https://www.ti.com/lit/ds/symlink/uln2003a.pdf: VCE(sat) de 0.9 V típica y 1.1 V máx con II = 250 µA e IC = 100 mA, 1.0 y 1.3 V con 350 µA y 200 mA, 1.2 y 1.6 V con 500 µA y 350 mA; corriente de entrada de 0.93 mA típica (1.35 máx) con VI = 3.85 V; VI(on) de 2.4 V máx con IC = 200 mA y VCE = 2 V; ICEX de 50 µA máx con 50 V; diodo de bloqueo con VF de 1.7 V típica (2.0 máx) a 350 mA. Siete canales iguales, cada uno con 2.6 kΩ de entrada, un par Darlington (dos NPN con los colectores unidos a la salida; las resistencias de colector, base y emisor ajustan la caída de saturación a esas tres cifras) con 7.2 kΩ del emisor del primero a E, y su diodo al común. Con el modelo compuesto: 7 × 6 elementos y los canales sin usar quedan al aire. No limita la corriente por canal en la simulación (la vista previa avisa con más de 500 mA por canal, el máximo absoluto de la hoja) y no modela los tiempos de conmutación."
+  }
+}

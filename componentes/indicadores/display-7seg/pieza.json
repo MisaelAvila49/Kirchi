@@ -1,0 +1,47 @@
+{
+  "id": "display-7seg",
+  "nombre": { "es": "Display 7 segmentos", "en": "7-segment display" },
+  "categoria": "indicadores",
+  "prefijo": "DS",
+  "buscar": ["display", "7 segmentos", "siete segmentos", "7seg", "7-seg"],
+  "pines": [
+    { "id": "a", "nombre": "a", "x": -6, "y": -8 },
+    { "id": "b", "nombre": "b", "x": -6, "y": -6 },
+    { "id": "c", "nombre": "c", "x": -6, "y": -4 },
+    { "id": "d", "nombre": "d", "x": -6, "y": -2 },
+    { "id": "e", "nombre": "e", "x": -6, "y": 0 },
+    { "id": "f", "nombre": "f", "x": -6, "y": 2 },
+    { "id": "g", "nombre": "g", "x": -6, "y": 4 },
+    { "id": "dp", "nombre": "punto", "x": -6, "y": 6 },
+    { "id": "COM", "nombre": "común", "x": 6, "y": 0 }
+  ],
+  "props": [
+    { "id": "tipo", "nombre": "Tipo", "defecto": "cátodo común", "opciones": ["cátodo común", "ánodo común"] },
+    { "id": "color", "nombre": "Color", "defecto": "rojo", "opciones": ["rojo", "verde", "azul", "amarillo", "blanco"] }
+  ],
+  "modelo": {
+    "tipo": "display", "segmentos": ["a", "b", "c", "d", "e", "f", "g", "dp"], "comun": "COM", "conexion": "tipo", "anodo": "ánodo común", "is": 1.5e-17, "n": 2, "inom": 0.02,
+    "por": {
+      "prop": "color",
+      "valores": {
+        "amarillo": { "is": 3.18e-19, "n": 2 },
+        "verde": { "is": 4.59e-20, "n": 2 },
+        "azul": { "is": 1.83e-28, "n": 2 },
+        "blanco": { "is": 1.83e-28, "n": 2 }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -11 }, "valor": { "x": 0, "y": 9 } },
+  "rotulos": [
+    { "texto": "a", "x": -3.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "b", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "c", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "d", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "e", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "f", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "g", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "dp", "x": -3.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "COM", "x": 5, "y": -1, "tam": 1, "alinear": "centro" }
+  ],
+  "animacion": { "tipo": "brillo", "color": "color" }
+}

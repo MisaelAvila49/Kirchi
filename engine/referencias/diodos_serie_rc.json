@@ -1,0 +1,16 @@
+{
+  "netlist": {
+    "nodes": 5,
+    "elements": [
+      { "type": "V", "a": 1, "b": 0, "wave": { "kind": "dc", "v": 10 } },
+      { "type": "D", "a": 2, "b": 1, "is": 1e-14, "n": 1 },
+      { "type": "D", "a": 3, "b": 2, "is": 1e-14, "n": 1 },
+      { "type": "R", "a": 3, "b": 4, "ohms": 100 },
+      { "type": "C", "a": 4, "b": 0, "farads": 4.7e-5 },
+      { "type": "R", "a": 4, "b": 0, "ohms": 10000 }
+    ]
+  },
+  "fin": 0.02,
+  "hmax": 2e-5,
+  "columnas": { "v(2)": { "nodo": 2 }, "v(4)": { "nodo": 4 }, "i(v1)": { "corriente": 0 } }
+}

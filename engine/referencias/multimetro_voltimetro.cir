@@ -1,0 +1,16 @@
+* Voltimetro de 10 Mohm sobre un divisor de 1 Mohm y 1 Mohm a 5 V: prueba de 0 V, 10 Mohm menos el fusible y el fusible de 10 mohm
+V1 1 0 DC 5
+R1 1 2 1meg
+R2 2 0 1meg
+VP n1 0 DC 0
+RM n1 n2 9999999.99
+RF n2 2 10m
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(2) i(vp)
+.endc
+.end

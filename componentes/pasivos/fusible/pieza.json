@@ -1,0 +1,15 @@
+{
+  "id": "fusible",
+  "nombre": { "es": "Fusible", "en": "Fuse" },
+  "categoria": "pasivos",
+  "prefijo": "F",
+  "buscar": ["fusible", "fuse", "proteccion", "protección"],
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "corriente", "nombre": "Corriente nominal", "unidad": "A", "defecto": "1", "comunes": ["100m", "500m", "1", "2", "5"] }
+  ],
+  "modelo": { "tipo": "fusible", "a": "1", "b": "2", "prop": "corriente", "rPorA": 0.1, "fusion": 2, "tau": 0.125 }
+}

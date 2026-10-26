@@ -1,0 +1,16 @@
+* Rectificador de media onda con filtro: el circuito más simple de las referencias
+.include modelos.lib
+V1 1 0 PULSE(0 5 0 1p 1p 9.999999999m 20m)
+R1 1 2 100
+D1 2 3 DGEN
+C1 3 0 100u
+R2 3 0 1k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 50u 100m 0 5u uic
+wrdata salida.txt v(2) v(3) i(v1)
+.endc
+.end

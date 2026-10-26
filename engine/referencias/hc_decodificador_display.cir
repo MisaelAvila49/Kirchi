@@ -1,0 +1,47 @@
+* Contador 74HC (hasta 9) con decodificador BCD a 7 segmentos activo en alto y display de catodo comun rojo
+* (un LED por segmento con 330 ohm); el reloj de 1 MHz recorre los diez digitos
+.include modelos.lib
+.include digital.lib
+VCK ck 0 PULSE(0 5 0 1p 1p 499.999n 1u)
+AIN [ck] [dck] adc_hc5
+ACERO cero cero_d
+AU1 [cero] dck cero [q3 q2 q1 q0 co] cuenta10_hc5
+AU2 [q0 q1 q2 q3] [sa sb sc sd se sf sg] dec7_hc5
+AOa [sa] [oa] dac_hc5
+ROa oa pa 55
+Ra pa an_a 330
+Da an_a 0 DLEDROJO
+AOb [sb] [ob] dac_hc5
+ROb ob pb 55
+Rb pb an_b 330
+Db an_b 0 DLEDROJO
+AOc [sc] [oc] dac_hc5
+ROc oc pc 55
+Rc pc an_c 330
+Dc an_c 0 DLEDROJO
+AOd [sd] [od] dac_hc5
+ROd od pd 55
+Rd pd an_d 330
+Dd an_d 0 DLEDROJO
+AOe [se] [oe] dac_hc5
+ROe oe pe 55
+Re pe an_e 330
+De an_e 0 DLEDROJO
+AOf [sf] [of] dac_hc5
+ROf of pf 55
+Rf pf an_f 330
+Df an_f 0 DLEDROJO
+AOg [sg] [og] dac_hc5
+ROg og pg 55
+Rg pg an_g 330
+Dg an_g 0 DLEDROJO
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 11u 0 0.1n uic
+wrdata salida.txt v(an_a) v(an_b) v(an_c) v(an_d) v(an_e) v(an_f) v(an_g) v(pa) v(pg)
+eprint q0 q1 q2 q3 sa sb sc sd se sf sg > eventos.txt
+.endc
+.end

@@ -1,0 +1,51 @@
+{
+  "id": "osciloscopio",
+  "nombre": { "es": "Osciloscopio", "en": "Oscilloscope" },
+  "categoria": "instrumentos",
+  "prefijo": "XSC",
+  "buscar": ["osciloscopio", "scope", "oscilloscope", "xsc"],
+  "pines": [
+    { "id": "A", "nombre": "Entrada A", "x": -8, "y": -6 },
+    { "id": "B", "nombre": "Entrada B", "x": -8, "y": -2 },
+    { "id": "C", "nombre": "Entrada C", "x": -8, "y": 2 },
+    { "id": "D", "nombre": "Entrada D", "x": -8, "y": 6 }
+  ],
+  "props": [
+    { "id": "a_on", "nombre": "Canal A", "defecto": "encendido", "opciones": ["apagado", "encendido"], "casilla": true },
+    { "id": "a_vdiv", "nombre": "Canal A: voltios por división", "unidad": "V", "defecto": "1", "comunes": ["10m", "100m", "1", "2", "5"], "ajuste": true },
+    { "id": "a_pos", "nombre": "Canal A: posición (divisiones)", "defecto": "0", "ajuste": true },
+    { "id": "a_acople", "nombre": "Canal A: acoplamiento", "defecto": "DC", "opciones": ["DC", "AC", "GND"] },
+    { "id": "b_on", "nombre": "Canal B", "defecto": "encendido", "opciones": ["apagado", "encendido"], "casilla": true },
+    { "id": "b_vdiv", "nombre": "Canal B: voltios por división", "unidad": "V", "defecto": "1", "comunes": ["10m", "100m", "1", "2", "5"], "ajuste": true },
+    { "id": "b_pos", "nombre": "Canal B: posición (divisiones)", "defecto": "0", "ajuste": true },
+    { "id": "b_acople", "nombre": "Canal B: acoplamiento", "defecto": "DC", "opciones": ["DC", "AC", "GND"] },
+    { "id": "c_on", "nombre": "Canal C", "defecto": "apagado", "opciones": ["apagado", "encendido"], "casilla": true },
+    { "id": "c_vdiv", "nombre": "Canal C: voltios por división", "unidad": "V", "defecto": "1", "comunes": ["10m", "100m", "1", "2", "5"], "ajuste": true },
+    { "id": "c_pos", "nombre": "Canal C: posición (divisiones)", "defecto": "0", "ajuste": true },
+    { "id": "c_acople", "nombre": "Canal C: acoplamiento", "defecto": "DC", "opciones": ["DC", "AC", "GND"] },
+    { "id": "d_on", "nombre": "Canal D", "defecto": "apagado", "opciones": ["apagado", "encendido"], "casilla": true },
+    { "id": "d_vdiv", "nombre": "Canal D: voltios por división", "unidad": "V", "defecto": "1", "comunes": ["10m", "100m", "1", "2", "5"], "ajuste": true },
+    { "id": "d_pos", "nombre": "Canal D: posición (divisiones)", "defecto": "0", "ajuste": true },
+    { "id": "d_acople", "nombre": "Canal D: acoplamiento", "defecto": "DC", "opciones": ["DC", "AC", "GND"] },
+    { "id": "mat_on", "nombre": "Canal A − B", "defecto": "apagado", "opciones": ["apagado", "encendido"], "casilla": true },
+    { "id": "base", "nombre": "Base de tiempo (por división)", "unidad": "s", "defecto": "1m", "comunes": ["10u", "100u", "1m", "10m", "100m"], "ajuste": true },
+    { "id": "posh", "nombre": "Posición del disparo", "defecto": "10 %", "opciones": ["10 %", "Centro"] },
+    { "id": "disp_fuente", "nombre": "Disparo: fuente", "defecto": "A", "opciones": ["A", "B", "C", "D"] },
+    { "id": "disp_flanco", "nombre": "Disparo: flanco", "defecto": "Subida", "opciones": ["Subida", "Bajada"] },
+    { "id": "disp_nivel", "nombre": "Disparo: nivel", "unidad": "V", "defecto": "0", "ajuste": true },
+    { "id": "disp_modo", "nombre": "Disparo: modo", "defecto": "Rodante", "opciones": ["Automático", "Normal", "Único", "Rodante"] },
+    { "id": "modo_xy", "nombre": "Modo de pantalla", "defecto": "Y/T", "opciones": ["Y/T", "B/A", "A/B"] },
+    { "id": "medidas", "nombre": "Medidas a la vista", "defecto": "Ap Af", "texto": true },
+    { "id": "ideal", "nombre": "Instrumento ideal", "defecto": "no", "opciones": ["no", "sí"], "casilla": true },
+    { "id": "aspecto", "nombre": "Aspecto de la pantalla", "defecto": "normal", "texto": true, "largoMax": 400 },
+    { "id": "notas", "nombre": "Anotaciones de la figura", "defecto": "ninguna", "texto": true, "largoMax": 6000 }
+  ],
+  "modelo": { "tipo": "osciloscopio", "entradas": ["A", "B", "C", "D"], "ideal": "ideal" },
+  "etiquetas": { "ref": { "x": 2, "y": -10 }, "valor": { "x": 2, "y": 10 } },
+  "rotulos": [
+    { "texto": "A", "x": -5.2, "y": -6, "tam": 1.2, "alinear": "izq" },
+    { "texto": "B", "x": -5.2, "y": -2, "tam": 1.2, "alinear": "izq" },
+    { "texto": "C", "x": -5.2, "y": 2, "tam": 1.2, "alinear": "izq" },
+    { "texto": "D", "x": -5.2, "y": 6, "tam": 1.2, "alinear": "izq" }
+  ]
+}

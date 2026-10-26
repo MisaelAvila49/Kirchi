@@ -1,0 +1,26 @@
+* NE555 astable con R1 = 1 k, R2 = 10 k y C = 100 nF a 5 V: la formula da 686 Hz y 52.4 %
+.include digital.lib
+V1 vcc 0 DC 5
+R1 vcc dis 1k
+R2 dis thr 10k
+C1 thr 0 100n
+C2 cv 0 10n
+RL out 0 10k
+X1 0 thr out vcc cv thr dis vcc K555
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1u 10m 0 0.5u uic
+wrdata salida.txt v(thr) v(out) v(dis) v(cv) i(v1)
+eprint x1.q > eventos.txt
+meas tran sube1 WHEN v(out)=2.5 RISE=2
+meas tran sube2 WHEN v(out)=2.5 RISE=6
+meas tran baja WHEN v(out)=2.5 FALL=2
+let periodo=(sube2-sube1)/4
+let frecuencia=1/periodo
+let ciclo=(baja-sube1)/periodo
+print frecuencia ciclo
+.endc
+.end

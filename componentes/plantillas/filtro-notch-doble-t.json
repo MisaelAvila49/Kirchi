@@ -1,0 +1,551 @@
+{
+  "id": "filtro-notch-doble-t",
+  "nombre": "Notch de doble T",
+  "descripcion": "Una doble T pasiva anula el zumbido de 60 Hz, con 27 kΩ y 100 nF.",
+  "circuito": {
+    "cables": {
+      "c_1": {
+        "id": "c_1",
+        "puntos": [
+          {
+            "x": 22,
+            "y": -18
+          },
+          {
+            "x": 24,
+            "y": -18
+          }
+        ]
+      },
+      "c_10": {
+        "id": "c_10",
+        "puntos": [
+          {
+            "x": 34,
+            "y": -8
+          },
+          {
+            "x": 34,
+            "y": -6
+          },
+          {
+            "x": 28,
+            "y": -6
+          }
+        ]
+      },
+      "c_11": {
+        "id": "c_11",
+        "puntos": [
+          {
+            "x": 22,
+            "y": 2
+          },
+          {
+            "x": 22,
+            "y": 0
+          }
+        ]
+      },
+      "c_12": {
+        "id": "c_12",
+        "puntos": [
+          {
+            "x": 0,
+            "y": -8
+          },
+          {
+            "x": 0,
+            "y": -18
+          },
+          {
+            "x": 12,
+            "y": -18
+          }
+        ]
+      },
+      "c_13": {
+        "id": "c_13",
+        "puntos": [
+          {
+            "x": 44,
+            "y": -18
+          },
+          {
+            "x": 46,
+            "y": -18
+          },
+          {
+            "x": 46,
+            "y": 0
+          },
+          {
+            "x": 44,
+            "y": 0
+          }
+        ]
+      },
+      "c_14": {
+        "id": "c_14",
+        "puntos": [
+          {
+            "x": 20,
+            "y": 0
+          },
+          {
+            "x": 22,
+            "y": 0
+          }
+        ]
+      },
+      "c_15": {
+        "id": "c_15",
+        "puntos": [
+          {
+            "x": 34,
+            "y": 2
+          },
+          {
+            "x": 34,
+            "y": 0
+          }
+        ]
+      },
+      "c_16": {
+        "id": "c_16",
+        "puntos": [
+          {
+            "x": 22,
+            "y": -8
+          },
+          {
+            "x": 22,
+            "y": -6
+          },
+          {
+            "x": 28,
+            "y": -6
+          }
+        ]
+      },
+      "c_17": {
+        "id": "c_17",
+        "puntos": [
+          {
+            "x": 34,
+            "y": -18
+          },
+          {
+            "x": 24,
+            "y": -18
+          }
+        ]
+      },
+      "c_18": {
+        "id": "c_18",
+        "puntos": [
+          {
+            "x": 12,
+            "y": 0
+          },
+          {
+            "x": 6,
+            "y": 0
+          },
+          {
+            "x": 6,
+            "y": -8
+          },
+          {
+            "x": 0,
+            "y": -8
+          }
+        ]
+      },
+      "c_19": {
+        "id": "c_19",
+        "puntos": [
+          {
+            "x": 34,
+            "y": -16
+          },
+          {
+            "x": 34,
+            "y": -18
+          }
+        ]
+      },
+      "c_2": {
+        "id": "c_2",
+        "puntos": [
+          {
+            "x": 22,
+            "y": 0
+          },
+          {
+            "x": 24,
+            "y": 0
+          }
+        ]
+      },
+      "c_20": {
+        "id": "c_20",
+        "puntos": [
+          {
+            "x": 22,
+            "y": 10
+          },
+          {
+            "x": 22,
+            "y": 12
+          },
+          {
+            "x": 28,
+            "y": 12
+          }
+        ]
+      },
+      "c_21": {
+        "id": "c_21",
+        "puntos": [
+          {
+            "x": 34,
+            "y": 0
+          },
+          {
+            "x": 36,
+            "y": 0
+          }
+        ]
+      },
+      "c_3": {
+        "id": "c_3",
+        "puntos": [
+          {
+            "x": 20,
+            "y": -18
+          },
+          {
+            "x": 22,
+            "y": -18
+          }
+        ]
+      },
+      "c_4": {
+        "id": "c_4",
+        "puntos": [
+          {
+            "x": 24,
+            "y": 0
+          },
+          {
+            "x": 34,
+            "y": 0
+          }
+        ]
+      },
+      "c_5": {
+        "id": "c_5",
+        "puntos": [
+          {
+            "x": 0,
+            "y": 6
+          },
+          {
+            "x": 0,
+            "y": 8
+          }
+        ]
+      },
+      "c_6": {
+        "id": "c_6",
+        "puntos": [
+          {
+            "x": 34,
+            "y": 10
+          },
+          {
+            "x": 34,
+            "y": 12
+          },
+          {
+            "x": 28,
+            "y": 12
+          }
+        ]
+      },
+      "c_7": {
+        "id": "c_7",
+        "puntos": [
+          {
+            "x": 0,
+            "y": -6
+          },
+          {
+            "x": 0,
+            "y": -8
+          }
+        ]
+      },
+      "c_8": {
+        "id": "c_8",
+        "puntos": [
+          {
+            "x": 22,
+            "y": -16
+          },
+          {
+            "x": 22,
+            "y": -18
+          }
+        ]
+      },
+      "c_9": {
+        "id": "c_9",
+        "puntos": [
+          {
+            "x": 36,
+            "y": -18
+          },
+          {
+            "x": 34,
+            "y": -18
+          }
+        ]
+      }
+    },
+    "etiquetas": {
+      "e_1": {
+        "id": "e_1",
+        "nombre": "Entrada",
+        "rot": 180,
+        "x": 0,
+        "y": -8
+      },
+      "e_2": {
+        "id": "e_2",
+        "nombre": "Salida",
+        "rot": 0,
+        "x": 46,
+        "y": 0
+      }
+    },
+    "notas": {},
+    "piezas": {
+      "p_c1": {
+        "espejo": false,
+        "id": "p_c1",
+        "props": {
+          "valor": "100n"
+        },
+        "ref": "C3",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "lugar": "arriba"
+          },
+          "valor": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "capacitor",
+        "x": 16,
+        "y": 0
+      },
+      "p_c2": {
+        "espejo": false,
+        "id": "p_c2",
+        "props": {
+          "valor": "100n"
+        },
+        "ref": "C4",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "lugar": "arriba"
+          },
+          "valor": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "capacitor",
+        "x": 40,
+        "y": 0
+      },
+      "p_c3": {
+        "espejo": false,
+        "id": "p_c3",
+        "props": {
+          "valor": "100n"
+        },
+        "ref": "C1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo-izquierda"
+          },
+          "valor": {
+            "lugar": "abajo"
+          }
+        },
+        "tipo": "capacitor",
+        "x": 34,
+        "y": -12
+      },
+      "p_c4": {
+        "espejo": false,
+        "id": "p_c4",
+        "props": {
+          "valor": "100n"
+        },
+        "ref": "C2",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo-izquierda"
+          },
+          "valor": {
+            "lugar": "abajo"
+          }
+        },
+        "tipo": "capacitor",
+        "x": 22,
+        "y": -12
+      },
+      "p_g1": {
+        "espejo": false,
+        "id": "p_g1",
+        "props": {
+          "amplitud": "2",
+          "frecuencia": "58.9",
+          "ideal": "sí"
+        },
+        "ref": "XFG1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "lugar": "izquierda"
+          },
+          "valor": {
+            "lugar": "izquierda"
+          }
+        },
+        "tipo": "generador",
+        "x": 0,
+        "y": 0
+      },
+      "p_r1": {
+        "espejo": false,
+        "id": "p_r1",
+        "props": {
+          "valor": "27k"
+        },
+        "ref": "R1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "lugar": "arriba"
+          },
+          "valor": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "resistencia",
+        "x": 16,
+        "y": -18
+      },
+      "p_r2": {
+        "espejo": false,
+        "id": "p_r2",
+        "props": {
+          "valor": "27k"
+        },
+        "ref": "R2",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -4.6
+          },
+          "valor": {
+            "x": 0,
+            "y": -2.8
+          }
+        },
+        "tipo": "resistencia",
+        "x": 40,
+        "y": -18
+      },
+      "p_r3": {
+        "espejo": false,
+        "id": "p_r3",
+        "props": {
+          "valor": "27k"
+        },
+        "ref": "R3",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo"
+          },
+          "valor": {
+            "lugar": "abajo"
+          }
+        },
+        "tipo": "resistencia",
+        "x": 22,
+        "y": 6
+      },
+      "p_r4": {
+        "espejo": false,
+        "id": "p_r4",
+        "props": {
+          "valor": "27k"
+        },
+        "ref": "R4",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo"
+          },
+          "valor": {
+            "lugar": "abajo"
+          }
+        },
+        "tipo": "resistencia",
+        "x": 34,
+        "y": 6
+      },
+      "p_t1": {
+        "espejo": false,
+        "id": "p_t1",
+        "props": {},
+        "ref": "GND1",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 0,
+        "y": 8
+      },
+      "p_t2": {
+        "espejo": false,
+        "id": "p_t2",
+        "props": {},
+        "ref": "GND2",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 28,
+        "y": -6
+      },
+      "p_t3": {
+        "espejo": false,
+        "id": "p_t3",
+        "props": {},
+        "ref": "GND3",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 28,
+        "y": 12
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+* Transformador de la pieza (4:1, L1 = 1 H, k = 0.98, 0.5 y 0.2 ohm de devanado) con 10 V de pico a 60 Hz, 10 ohm en serie y 100 ohm de carga
+V1 1 0 SIN(0 10 60)
+R1 1 2 10
+RP 2 3 0.5
+L1 3 0 1
+RS 4 5 0.2
+L2 5 0 0.0625
+K1 L1 L2 0.98
+R2 4 0 100
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20u 50m 0 20u uic
+wrdata salida.txt v(2) v(4) i(v1)
+.endc
+.end

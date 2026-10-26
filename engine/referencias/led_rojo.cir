@@ -1,0 +1,14 @@
+* LED rojo con resistencia de 1 k desde 9 V
+.include modelos.lib
+V1 1 0 DC 9
+R1 1 2 1k
+D1 2 0 DLEDROJO
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(2) i(v1)
+.endc
+.end

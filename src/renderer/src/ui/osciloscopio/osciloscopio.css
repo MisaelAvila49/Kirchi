@@ -1,0 +1,144 @@
+/* Pestaña Osciloscopio de la franja. Sin colores propios: la pantalla los toma de ui/colores.ts y data-canal da los cuatro tonos. Todo con prefijo .osc-. */
+.osciloscopio { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) clamp(19rem, 30%, 26rem); gap: 14px; height: 100%; min-height: 0; font-size: 12px; }
+.osc-vista { position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; min-height: 0; }
+.osc-pantalla { flex: 1 1 auto; min-height: 96px; }
+.osc-lienzo { display: block; width: 100%; height: 100%; box-sizing: border-box; touch-action: none; }
+/* Sobre una marca de 0 V (se arrastra hacia arriba o abajo). */
+.osc-lienzo.sobre-marca { cursor: ns-resize; }
+.osc-lienzo.sobre-eje { cursor: grab; }
+.osc-lienzo.moviendo-eje, .osc-lienzo.recorriendo { cursor: grabbing; }
+.osc-lienzo.recorrible { cursor: grab; }
+.osc-lienzo.recorrible.sobre-marca { cursor: ns-resize; }
+.osc-recorrido { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0; font: 600 12px var(--fuente-cifras); color: var(--c-texto); }
+/* Sobre un cursor de tiempo (se arrastra a los lados) o de voltaje (arriba y abajo), como el potenciómetro. */
+.osc-lienzo.sobre-cursor-t { cursor: ew-resize; }
+.osc-lienzo.sobre-cursor-v { cursor: ns-resize; }
+/* Con cursores, la pantalla recibe el foco del teclado (flechas, 1 y 2): el anillo de siempre, hacia adentro para no recortarse. */
+.osc-lienzo:focus-visible { outline: 2px solid var(--seleccion); outline-offset: -2px; }
+.osc-letra { color: var(--c-texto, var(--trazo)); font-weight: 700; min-width: 1.2ch; }
+
+/* El nombre y el estado van al inicio de la barra del instrumento (ui/instrumento/barra.css). */
+.osc-nombre { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.osc-nombre b { font-size: 13px; font-stretch: 108%; }
+.osc-nombre select { height: 26px; }
+.osc-estado { display: inline-flex; flex: 0 1 auto; min-width: 0; max-width: 20rem; overflow: hidden; text-overflow: ellipsis; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 99px; background: var(--resalte); color: var(--trazo); font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.osc-barrido { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+.osc-estado-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--texto-secundario); }
+.osc-estado[data-fase='corriendo'] .osc-estado-punto { background: var(--verdeazul); }
+/* La pantalla congelada con la simulación en marcha: ámbar, para que no se confunda con lo que pasa ahora. */
+.osc-estado[data-fase='pantalla-pausada'] { background: var(--ambar-suave); color: var(--ambar-texto); }
+.osc-estado[data-fase='pantalla-pausada'] .osc-estado-punto { background: var(--ambar); }
+.osc-nota-vivo, .osc-notas { margin: 0; flex: 0 1 auto; }
+.osc-nota-vivo { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+.osc-notas { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; color: var(--texto-secundario); }
+.osc-notas.aviso { color: var(--ambar-texto); }
+
+/* Bajo la pantalla: las medidas como fichas y la pista de la rueda. */
+.osc-pie { display: flex; align-items: center; gap: 12px; min-height: 28px; min-width: 0; }
+.osc-medidas { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; flex: none; }
+.osc-ficha { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 2px 0 8px; border-radius: 6px; background: var(--c-suave); color: var(--trazo); white-space: nowrap; }
+.osc-ficha .cifra { font-size: 12.5px; font-weight: 600; }
+.osc-quitar { width: 20px; height: 20px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--texto-sobre-tinte); font-size: 14px; line-height: 1; cursor: pointer; }
+.osc-quitar:hover { background: var(--paneles); color: var(--trazo); }
+.osc-medida-nueva { color: var(--texto-secundario); }
+.osc-pista { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+
+/* La columna de mandos. Bloque contenedor de sus rótulos para lectores (position): sin eso escapaban del recorte y alargaban
+   la página. */
+.osc-lateral { position: relative; min-height: 0; overflow: auto; padding: 2px 2px 2px 14px; border-left: 1px solid var(--bordes); scrollbar-width: thin; }
+.osc-mandos { display: flex; flex-direction: column; gap: 8px; }
+.osc-mando-titulo { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 650; color: var(--texto-secundario); }
+div.osc-mando-titulo > h3 { margin: 0; font: inherit; letter-spacing: inherit; color: inherit; }
+.osc-canal-fila { display: flex; flex-direction: column; gap: 3px; padding: 4px 8px; border-radius: 8px; background: var(--c-suave); }
+.osc-canal-fila + .osc-canal-fila { margin-top: 4px; }
+.osc-canal-escala { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.osc-canal-posicion { display: flex; align-items: center; gap: 4px; padding-left: 38px; color: var(--texto-sobre-tinte); font-size: 11.5px; }
+/* El rótulo «Posición» toma el color del renglón (sobre el tinte del canal); el gris de siempre quedaba en 4.04:1 en oscuro. */
+.osc-canal-posicion .control-etiqueta { color: inherit; }
+.osc-canal-boton { width: 30px; height: 30px; flex: none; padding: 0; border: 0; border-radius: 7px; background: var(--c-texto); color: var(--ic-contra); font: 750 15px var(--fuente-interfaz); cursor: pointer; }
+.osc-canal-boton.apagado { width: 28px; height: 26px; background: transparent; color: var(--texto-secundario); border: 1.5px dashed var(--borde-campo); font-size: 13px; }
+.osc-apagados { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 11.5px; }
+.osc-acople { height: 22px; padding: 0 6px; flex: none; border: 1px solid var(--borde-campo); border-radius: 5px; background: var(--paneles); color: var(--trazo); font: 650 10.5px var(--fuente-cifras); cursor: pointer; }
+.osc-acople:hover { border-color: var(--seleccion); }
+.osc-fuente { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--texto-sobre-tinte); }
+.osc-al-centro { height: 22px; padding: 0 7px; margin-left: 4px; font-size: 11px; white-space: nowrap; }
+.osc-al-centro:disabled { opacity: 0.5; cursor: default; }
+.osc-base { display: flex; }
+.osc-disparo-estado { padding: 0 6px; border-radius: 99px; background: var(--resalte); color: var(--trazo); letter-spacing: 0; text-transform: none; font-weight: 600; font-size: 10.5px; }
+.osc-disparo-fila { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.osc-campo select { height: 26px; }
+
+/* Los controles de pasos: − valor +; en los mandos grandes, botones de 30 px y la cifra grande. */
+.control-serie { display: inline-flex; align-items: center; gap: 4px; }
+.control-etiqueta { color: var(--texto-secundario); }
+.control-valor { min-width: 7ch; padding: 1px 4px; border: 1px solid var(--borde-campo); border-radius: 3px; background: var(--paneles); text-align: right; }
+.boton-mini { min-width: 20px; height: 20px; padding: 0 4px; line-height: 1; color: var(--trazo); background: var(--paneles); border: 1px solid var(--bordes); border-radius: 4px; cursor: pointer; }
+.boton-mini:disabled { opacity: 0.5; cursor: default; }
+.control-serie.grande { gap: 6px; }
+.control-serie.grande .paso { width: 30px; height: 30px; border-color: var(--borde-campo); border-radius: 6px; font: 600 16px/1 var(--fuente-interfaz); }
+.control-serie.grande .control-valor { min-width: 74px; padding: 0 2px; border: 0; background: transparent; text-align: center; font-size: 18px; font-weight: 600; color: var(--trazo); }
+.osc-base .control-serie.grande .control-valor { min-width: 110px; font-size: 20px; }
+.osc-canal-posicion .control-valor, .osc-disparo .control-valor { min-width: 58px; border: 0; background: transparent; text-align: center; color: var(--trazo); white-space: nowrap; }
+
+/* «Más ajustes»: encima de la pantalla, bajo su botón; nunca más alto que el panel (no alarga la página). */
+.osc-mas { position: absolute; top: 32px; right: 0; z-index: 6; display: grid; grid-template-columns: minmax(0, 1fr); width: min(26rem, calc(100% - 4px)); gap: 4px 22px; padding: 8px 40px 10px 14px; background: var(--paneles); border: 1px solid var(--bordes); border-radius: 10px; box-shadow: var(--sombra); max-height: calc(100% - 36px); overflow: auto; }
+.osc-mas h4 { margin: 4px 0; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-secundario); font-weight: 650; }
+.osc-mas-cerrar { position: absolute; top: 6px; right: 6px; }
+.osc-mas-col { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.osc-tabla-medidas { border-collapse: collapse; font-size: 12px; }
+.osc-tabla-medidas th, .osc-tabla-medidas td { padding: 1px 10px 1px 0; text-align: left; font-weight: 500; }
+.osc-tabla-medidas thead th { font-weight: 650; }
+.osc-tabla-medidas input { margin: 2px 0; accent-color: var(--c-texto, var(--seleccion)); }
+.osc-nota-chica { margin: 4px 0 0; font-size: 11px; }
+.osc-fila-ajuste { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 26px; }
+.osc-segmentos { display: inline-flex; border: 1px solid var(--borde-campo); border-radius: 6px; overflow: hidden; }
+.osc-segmentos button { height: 24px; padding: 0 9px; border: 0; background: var(--paneles); color: var(--trazo); font-size: 12px; cursor: pointer; }
+.osc-segmentos button[aria-pressed='true'] { background: var(--seleccion); color: var(--sobre-seleccion); }
+.osc-fila { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.osc-cursores { margin: 2px 0 0; color: var(--c-texto, var(--trazo)); white-space: pre; }
+.osc-tabla { border-collapse: collapse; font-size: 11px; }
+.osc-tabla th, .osc-tabla td { padding: 1px 6px; text-align: right; border-bottom: 1px solid var(--bordes); }
+
+/* Ventana angosta: la columna de mandos baja y el disparo usa dos renglones. */
+@media (max-width: 1280px) {
+  .osciloscopio { grid-template-columns: minmax(0, 1fr) 20.5rem; gap: 10px; }
+  .osc-nota-vivo { display: none; }
+  .osc-canal-posicion { padding-left: 0; }
+}
+
+/* Contraste alto de Windows: los bordes y las letras con los colores del sistema; la pantalla pinta los suyos. */
+@media (forced-colors: active) {
+  .osc-ficha, .osc-canal-fila, .osc-estado, .osc-disparo-estado { border: 1px solid CanvasText; }
+  .osc-canal-boton { border: 1px solid ButtonText; }
+  .osc-segmentos button[aria-pressed='true'] { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+
+/* Los paneles del multímetro, el generador y la fuente en la pestaña Multímetro. Cada rótulo con su campo al lado (en el
+   inspector la fila se estira al ancho del panel; aquí el rótulo tiene su columna y el campo queda junto a él). */
+.panel-instrumento { display: flex; flex-direction: column; gap: 6px; font-size: 12px; max-width: 32rem; }
+.panel-instrumento .fld { grid-template-columns: 11rem auto; justify-content: start; margin: 2px 0; }
+.panel-instrumento .fld-error { grid-column: 1 / -1; }
+.multimetro-cifra { font-size: 28px; line-height: 1.1; color: var(--trazo); }
+.modos-multimetro, .formas-generador { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.modos-multimetro > legend, .formas-generador > legend { padding: 0 0 2px; color: var(--texto-secundario); }
+.opcion-modo, .opcion-forma { display: inline-flex; align-items: center; gap: 4px; }
+.alerta-instrumento { margin: 0; color: var(--rojo-texto); }
+.perilla { display: inline-flex; align-items: center; gap: 4px; }
+.fuente-estado { margin: 0; font-size: 16px; }
+.fuente-modo { padding: 0 4px; border: 1px solid var(--bordes); border-radius: 3px; }
+.filas-multimetros { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.filas-multimetros b { font-size: 18px; }
+.osc-aviso { margin: 0; color: var(--ambar-texto); }
+/* El acoplamiento que no es DC, dicho en palabras (y el cambio que hizo el ajuste automático). */
+.osc-nota { margin: 0; font-size: 12px; color: var(--texto-secundario); }
+
+/* La ventana aparte del osciloscopio: el mismo panel a toda la ventana. */
+.ventana-osc { box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; height: 100vh; padding: 8px 14px 12px; background: var(--lienzo); color: var(--trazo); }
+.ventana-osc > .osciloscopio { flex: 1 1 auto; min-height: 0; }
+#root:has(.ventana-osc) { height: 100%; }
+/* La franja mientras el osciloscopio está en su ventana: un aviso y el botón para traerlo de vuelta. */
+.osc-en-ventana { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; height: 100%; min-height: 120px; text-align: center; }
+.osc-en-ventana p { margin: 0; }
+.control-serie [hidden] { display: none !important; }
+.control-serie input.control-campo { width: 8ch; font: inherit; color: var(--tinta, inherit); text-align: center; border: 1px solid var(--borde-campo); }
+.control-serie input.control-campo[aria-invalid="true"] { border-color: var(--invalido); }

@@ -1,0 +1,17 @@
+{
+  "id": "foco",
+  "nombre": { "es": "Foco", "en": "Lamp" },
+  "categoria": "indicadores",
+  "prefijo": "LP",
+  "buscar": ["foco", "lampara", "lámpara", "bombilla", "lamp", "bulb"],
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "voltaje", "nombre": "Voltaje nominal", "unidad": "V", "defecto": "12", "comunes": ["1.5", "3", "6", "12", "127"] },
+    { "id": "potencia", "nombre": "Potencia", "unidad": "W", "defecto": "5", "comunes": ["0.5", "1", "5", "10", "60"] }
+  ],
+  "modelo": { "tipo": "foco", "a": "1", "b": "2", "voltaje": "voltaje", "potencia": "potencia", "k": 9, "tau": 0.05 },
+  "animacion": { "tipo": "filamento" }
+}

@@ -1,0 +1,581 @@
+{
+  "id": "emisor-comun",
+  "nombre": "Amplificador de emisor común",
+  "descripcion": "Un 2N2222 polarizado con divisor de base amplifica la señal del generador.",
+  "circuito": {
+    "cables": {
+      "c_1": {
+        "id": "c_1",
+        "puntos": [
+          {
+            "x": 10,
+            "y": 8
+          },
+          {
+            "x": 10,
+            "y": 6
+          },
+          {
+            "x": 2,
+            "y": 6
+          }
+        ]
+      },
+      "c_10": {
+        "id": "c_10",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 18
+          },
+          {
+            "x": 2,
+            "y": 20
+          }
+        ]
+      },
+      "c_11": {
+        "id": "c_11",
+        "puntos": [
+          {
+            "x": -24,
+            "y": 14
+          },
+          {
+            "x": -24,
+            "y": 16
+          }
+        ]
+      },
+      "c_12": {
+        "id": "c_12",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 4
+          },
+          {
+            "x": 2,
+            "y": 6
+          }
+        ]
+      },
+      "c_13": {
+        "id": "c_13",
+        "puntos": [
+          {
+            "x": 10,
+            "y": 16
+          },
+          {
+            "x": 10,
+            "y": 18
+          },
+          {
+            "x": 2,
+            "y": 18
+          }
+        ]
+      },
+      "c_14": {
+        "id": "c_14",
+        "puntos": [
+          {
+            "x": 4,
+            "y": -8
+          },
+          {
+            "x": 4,
+            "y": -6
+          }
+        ]
+      },
+      "c_15": {
+        "id": "c_15",
+        "puntos": [
+          {
+            "x": -4,
+            "y": 0
+          },
+          {
+            "x": -8,
+            "y": 0
+          }
+        ]
+      },
+      "c_16": {
+        "id": "c_16",
+        "puntos": [
+          {
+            "x": 4,
+            "y": -6
+          },
+          {
+            "x": 6,
+            "y": -6
+          }
+        ]
+      },
+      "c_17": {
+        "id": "c_17",
+        "puntos": [
+          {
+            "x": -8,
+            "y": -12
+          },
+          {
+            "x": -8,
+            "y": -10
+          }
+        ]
+      },
+      "c_18": {
+        "id": "c_18",
+        "puntos": [
+          {
+            "x": 4,
+            "y": -18
+          },
+          {
+            "x": 4,
+            "y": -16
+          }
+        ]
+      },
+      "c_19": {
+        "id": "c_19",
+        "puntos": [
+          {
+            "x": 14,
+            "y": -6
+          },
+          {
+            "x": 16,
+            "y": -6
+          },
+          {
+            "x": 16,
+            "y": -4
+          }
+        ]
+      },
+      "c_2": {
+        "id": "c_2",
+        "puntos": [
+          {
+            "x": 2,
+            "y": -4
+          },
+          {
+            "x": 2,
+            "y": -6
+          },
+          {
+            "x": 4,
+            "y": -6
+          }
+        ]
+      },
+      "c_20": {
+        "id": "c_20",
+        "puntos": [
+          {
+            "x": -8,
+            "y": 10
+          },
+          {
+            "x": -8,
+            "y": 12
+          }
+        ]
+      },
+      "c_3": {
+        "id": "c_3",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 6
+          },
+          {
+            "x": 2,
+            "y": 8
+          }
+        ]
+      },
+      "c_4": {
+        "id": "c_4",
+        "puntos": [
+          {
+            "x": 16,
+            "y": 4
+          },
+          {
+            "x": 16,
+            "y": 6
+          }
+        ]
+      },
+      "c_5": {
+        "id": "c_5",
+        "puntos": [
+          {
+            "x": -12,
+            "y": 0
+          },
+          {
+            "x": -8,
+            "y": 0
+          }
+        ]
+      },
+      "c_6": {
+        "id": "c_6",
+        "puntos": [
+          {
+            "x": -24,
+            "y": 2
+          },
+          {
+            "x": -24,
+            "y": 0
+          },
+          {
+            "x": -20,
+            "y": 0
+          }
+        ]
+      },
+      "c_7": {
+        "id": "c_7",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 16
+          },
+          {
+            "x": 2,
+            "y": 18
+          }
+        ]
+      },
+      "c_8": {
+        "id": "c_8",
+        "puntos": [
+          {
+            "x": -8,
+            "y": -2
+          },
+          {
+            "x": -8,
+            "y": 0
+          }
+        ]
+      },
+      "c_9": {
+        "id": "c_9",
+        "puntos": [
+          {
+            "x": -8,
+            "y": 2
+          },
+          {
+            "x": -8,
+            "y": 0
+          }
+        ]
+      }
+    },
+    "etiquetas": {
+      "e_1": {
+        "id": "e_1",
+        "nombre": "Entrada",
+        "rot": 180,
+        "x": -24,
+        "y": 0
+      },
+      "e_2": {
+        "id": "e_2",
+        "nombre": "Salida",
+        "rot": 0,
+        "x": 16,
+        "y": -6
+      }
+    },
+    "notas": {},
+    "piezas": {
+      "p_c1": {
+        "espejo": false,
+        "id": "p_c1",
+        "props": {
+          "valor": "10u"
+        },
+        "ref": "C2",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "lugar": "arriba-izquierda"
+          },
+          "valor": {
+            "lugar": "arriba-izquierda"
+          }
+        },
+        "tipo": "capacitor",
+        "x": -16,
+        "y": 0
+      },
+      "p_c2": {
+        "espejo": false,
+        "id": "p_c2",
+        "props": {
+          "valor": "10u"
+        },
+        "ref": "C3",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -5.2
+          },
+          "valor": {
+            "x": 0,
+            "y": -3.4
+          }
+        },
+        "tipo": "capacitor",
+        "x": 10,
+        "y": -6
+      },
+      "p_ce": {
+        "espejo": false,
+        "id": "p_ce",
+        "props": {
+          "valor": "100u"
+        },
+        "ref": "C1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "arriba"
+          },
+          "valor": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "capacitor-electrolitico",
+        "x": 10,
+        "y": 12
+      },
+      "p_g1": {
+        "espejo": false,
+        "id": "p_g1",
+        "props": {
+          "amplitud": "0.02",
+          "frecuencia": "1k"
+        },
+        "ref": "XFG1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "lugar": "izquierda"
+          },
+          "valor": {
+            "lugar": "izquierda"
+          }
+        },
+        "tipo": "generador",
+        "x": -24,
+        "y": 8
+      },
+      "p_p1": {
+        "espejo": false,
+        "id": "p_p1",
+        "props": {
+          "nombre": "+12V"
+        },
+        "ref": "PWR1",
+        "rot": 0,
+        "tipo": "alimentacion",
+        "x": -8,
+        "y": -12
+      },
+      "p_p2": {
+        "espejo": false,
+        "id": "p_p2",
+        "props": {
+          "nombre": "+12V"
+        },
+        "ref": "PWR2",
+        "rot": 0,
+        "tipo": "alimentacion",
+        "x": 4,
+        "y": -18
+      },
+      "p_q1": {
+        "espejo": false,
+        "id": "p_q1",
+        "props": {
+          "modelo": "2N2222"
+        },
+        "ref": "Q1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 4.96,
+            "y": -1
+          },
+          "valor": {
+            "x": 6.88,
+            "y": 1
+          }
+        },
+        "tipo": "npn",
+        "x": 0,
+        "y": 0
+      },
+      "p_r1": {
+        "espejo": false,
+        "id": "p_r1",
+        "props": {
+          "valor": "47k"
+        },
+        "ref": "R1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo"
+          },
+          "valor": {
+            "lugar": "abajo"
+          }
+        },
+        "tipo": "resistencia",
+        "x": -8,
+        "y": -6
+      },
+      "p_r2": {
+        "espejo": false,
+        "id": "p_r2",
+        "props": {
+          "valor": "10k"
+        },
+        "ref": "R2",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo"
+          },
+          "valor": {
+            "x": 2,
+            "y": 5.4
+          }
+        },
+        "tipo": "resistencia",
+        "x": -8,
+        "y": 6
+      },
+      "p_rc": {
+        "espejo": false,
+        "id": "p_rc",
+        "props": {
+          "valor": "2k2"
+        },
+        "ref": "R3",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo"
+          },
+          "valor": {
+            "x": 2,
+            "y": 5.88
+          }
+        },
+        "tipo": "resistencia",
+        "x": 4,
+        "y": -12
+      },
+      "p_re": {
+        "espejo": false,
+        "id": "p_re",
+        "props": {
+          "valor": "1k"
+        },
+        "ref": "R4",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "lugar": "abajo"
+          },
+          "valor": {
+            "lugar": "abajo"
+          }
+        },
+        "tipo": "resistencia",
+        "x": 2,
+        "y": 12
+      },
+      "p_rl": {
+        "espejo": false,
+        "id": "p_rl",
+        "props": {
+          "valor": "10k"
+        },
+        "ref": "R5",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "x": -0.9,
+            "y": -3.44
+          },
+          "valor": {
+            "x": 0.9,
+            "y": -4.4
+          }
+        },
+        "tipo": "resistencia",
+        "x": 16,
+        "y": 0
+      },
+      "p_t1": {
+        "espejo": false,
+        "id": "p_t1",
+        "props": {},
+        "ref": "GND1",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": -8,
+        "y": 12
+      },
+      "p_t2": {
+        "espejo": false,
+        "id": "p_t2",
+        "props": {},
+        "ref": "GND2",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 2,
+        "y": 20
+      },
+      "p_t3": {
+        "espejo": false,
+        "id": "p_t3",
+        "props": {},
+        "ref": "GND3",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 16,
+        "y": 6
+      },
+      "p_t4": {
+        "espejo": false,
+        "id": "p_t4",
+        "props": {},
+        "ref": "GND4",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": -24,
+        "y": 16
+      }
+    }
+  }
+}

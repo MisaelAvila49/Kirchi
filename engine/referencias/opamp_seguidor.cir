@@ -1,0 +1,16 @@
+* Seguidor con TL081 y escalon de 5 V: limite de velocidad de subida
+.include modelos.lib
+V1 1 0 DC 15
+V2 2 0 DC -15
+VIN 3 0 PULSE(0 5 0 1p 1p 9.999999u 20u)
+RL 4 0 10k
+XU1 3 4 4 1 2 AMPOP a0=2e5 gbw=3e6 sr=13e6 rin=1e12 rout=100 ilim=40m dhi=1.5 dlo=1.5 rq=21.4k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20n 60u 0 5n uic
+wrdata salida.txt v(4) i(v1)
+.endc
+.end

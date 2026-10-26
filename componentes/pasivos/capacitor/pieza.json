@@ -1,0 +1,16 @@
+{
+  "id": "capacitor",
+  "nombre": { "es": "Capacitor", "en": "Capacitor" },
+  "categoria": "pasivos",
+  "prefijo": "C",
+  "buscar": ["c", "cap", "capacitor", "condensador"],
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "valor", "nombre": "Capacitancia", "unidad": "F", "defecto": "100n", "serie": "elegida", "comunes": ["10n", "100n", "1u", "10u", "100u"] },
+    { "id": "esr", "nombre": "Resistencia serie (ESR)", "unidad": "Ω", "defecto": "0", "omitir": true, "comunes": ["0", "0.05", "0.1", "0.5", "1"] }
+  ],
+  "modelo": { "tipo": "C", "a": "1", "b": "2", "prop": "valor", "rserie": "esr" }
+}

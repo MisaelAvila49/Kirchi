@@ -1,0 +1,67 @@
+* Modelos digitales de Kirchi en sintaxis de XSPICE (ngspice 47): los mismos parametros que calcula
+* netlist/familias.ts con componentes/familias-logicas.json. Los puentes de entrada llevan 1 ps de retardo
+* (XSPICE no admite cero; Kirchi no tiene retardo en la entrada). Los biestables llevan clk_delay de 1 ps y
+* el resto del retardo en rise_delay y fall_delay, porque XSPICE suma los dos.
+
+* 74HC a 5 V: umbrales 0.3 y 0.7 de VCC, retardo 5 ns (tpd 8.33 ns menos la mitad de la transicion),
+* transicion 6.67 ns y resistencia de salida de 55 ohm (puntos de 4.5 y 6 V interpolados).
+.model adc_hc5 adc_bridge(in_low=1.5 in_high=3.5 rise_delay=1e-12 fall_delay=1e-12)
+.model dac_hc5 dac_bridge(out_low=0 out_high=5 out_undef=2.5 t_rise={20n/3} t_fall={20n/3})
+.model inv_hc5 d_inverter(rise_delay=5n fall_delay=5n inertial_delay=true)
+.model nand_hc5 d_nand(rise_delay=5n fall_delay=5n inertial_delay=true)
+.model and_hc5 d_and(rise_delay=5n fall_delay=5n inertial_delay=true)
+.model xor_hc5 d_xor(rise_delay=5n fall_delay=5n inertial_delay=true)
+.model dff_hc5 d_dff(clk_delay=1e-12 set_delay=1e-12 reset_delay=1e-12 rise_delay={5n-1e-12} fall_delay={5n-1e-12} ic=0)
+.model jk_hc5 d_jkff(clk_delay=1e-12 set_delay=1e-12 reset_delay=1e-12 rise_delay={5n-1e-12} fall_delay={5n-1e-12} ic=0)
+.model inv_1ps d_inverter(rise_delay=1e-12 fall_delay=1e-12)
+.model cuenta10_hc5 d_state(clk_delay=5n reset_delay=5n state_file="cuenta10.in" reset_state=0)
+* Decodificador BCD a 7 segmentos activo en alto (como CD4511): salidas a..g, 16 combinaciones cada una
+* con A como bit menos significativo; los codigos 10 a 15 apagan todo.
+.model dec7_hc5 d_genlut(rise_delay=[5n 5n 5n 5n 5n 5n 5n] fall_delay=[5n 5n 5n 5n 5n 5n 5n]
++ input_delay=[1e-12 1e-12 1e-12 1e-12]
++ table_values "1011010111000000111110011100000011011111110000001011011010000000101000101000000010001110110000000011111011000000")
+.model uno_d d_pullup(load=1e-12)
+.model cero_d d_pulldown(load=1e-12)
+
+* 74LS a 5 V: umbrales 0.8 y 2.0 V, retardos de 3 ns (sube) y 7 ns (baja), subida de 12 ns y bajada de 6 ns.
+* La salida es un Thevenin que va de 0.15 V con 25 ohm a 3.42 V con 68 ohm segun el control de 0 a 1.
+.model adc_ls adc_bridge(in_low=0.8 in_high=2.0 rise_delay=1e-12 fall_delay=1e-12)
+.model dac_ls dac_bridge(out_low=0 out_high=1 out_undef=0.5 t_rise=12n t_fall=6n)
+.model nand_ls d_nand(rise_delay=3n fall_delay=7n inertial_delay=true)
+
+* CD4000B a 12 V: umbrales 3.6 y 8.4 V, retardo 31 ns, transicion 46 ns, 170 ohm.
+.model adc_cd12 adc_bridge(in_low=3.6 in_high=8.4 rise_delay=1e-12 fall_delay=1e-12)
+.model dac_cd12 dac_bridge(out_low=0 out_high=12 out_undef=6 t_rise=46n t_fall=46n)
+.model nor_cd12 d_nor(rise_delay=31n fall_delay=31n inertial_delay=true)
+
+* Temporizador 555 como lo arma Kirchi: divisor de tres resistencias (rdiv), consumo (rq), comparadores
+* de umbral y de disparo, RESET por encima de vres, biestable con el reinicio dominante y el disparo sobre
+* el umbral (retardo td), y la etapa de salida y la descarga gobernadas por la misma rampa de 0 a 1 (tr, tf):
+* salida de vlo (respecto de GND) con rlo a vhi (respecto de VCC) con rhi; descarga de gon a goff siemens.
+.subckt K555 gnd trig out reset cv thr dis vcc rdiv=5k rq=1.8k vres=0.7 td=100n tr=100n tf=100n
++ vlo=0.025 rlo=7.5 vhi=-1.4 rhi=3 gon={1/15} goff=1e-9
+RD1 vcc cv {rdiv}
+RD2 cv tref {rdiv}
+RD3 tref gnd {rdiv}
+RQ vcc gnd {rq}
+.model comp0 adc_bridge(in_low=0 in_high=0 rise_delay=1e-12 fall_delay=1e-12)
+.model compr adc_bridge(in_low={vres} in_high={vres} rise_delay=1e-12 fall_delay=1e-12)
+ATHR [%vd thr cv] [sobre] comp0
+ATRG [%vd tref trig] [bajo] comp0
+ARES [%vd reset gnd] [resok] compr
+ANT sobre nsobre inv0
+.model inv0 d_inverter(rise_delay=1e-12 fall_delay=1e-12)
+AN1 [q nsobre] n1 and0
+.model and0 d_and(rise_delay=1e-12 fall_delay=1e-12)
+AN2 [bajo n1] n2 or0
+.model or0 d_or(rise_delay=1e-12 fall_delay=1e-12)
+AN3 [n2 resok] q andq
+.model andq d_and(rise_delay={td} fall_delay={td} inertial_delay=true)
+AOC [q] [oc] dacs
+.model dacs dac_bridge(out_low=0 out_high=1 out_undef=0.5 t_rise={tr} t_fall={tf})
+ROC oc 0 1g
+* La corriente de salida sale de VCC en la fraccion V(oc) y de GND en el resto (en alto, toda de VCC).
+BOV vcc out I = V(oc) * ((V(gnd) + {vlo})*(1 - V(oc)) + (V(vcc) + {vhi})*V(oc) - V(out)) / ({rlo}*(1 - V(oc)) + {rhi}*V(oc))
+BOG gnd out I = (1 - V(oc)) * ((V(gnd) + {vlo})*(1 - V(oc)) + (V(vcc) + {vhi})*V(oc) - V(out)) / ({rlo}*(1 - V(oc)) + {rhi}*V(oc))
+BDIS dis gnd I = V(dis, gnd) * ({gon}*(1 - V(oc)) + {goff}*V(oc))
+.ends

@@ -1,0 +1,71 @@
+{
+  "id": "regulador-negativo",
+  "nombre": { "es": "Regulador fijo negativo", "en": "Fixed negative regulator" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["u", "regulador", "regulator", "7905", "79xx", "mc7905", "voltaje negativo", "negative"],
+  "pines": [
+    { "id": "IN", "nombre": "entrada negativa (IN)", "x": -6, "y": -2 },
+    { "id": "OUT", "nombre": "salida negativa (OUT)", "x": 6, "y": -2 },
+    { "id": "GND", "nombre": "tierra (GND)", "x": 0, "y": 4 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "7905", "opciones": ["7905"] }
+  ],
+  "modelo": {
+    "tipo": "compuesto", "prop": "modelo",
+    "modelos": {
+      "7905": { "vref": -2.5003, "r1": 50000, "r2": 50000, "a0": 20000, "gbw": 1000000, "rout": 20, "ilim": 0.00082, "dhi": 0.77, "dlo": 0.07, "rq": 2353, "rf": 10000, "cf": 1e-7, "rss": 20000, "css": 1e-9 }
+    },
+    "internas": ["ref0", "ref", "fb", "g", "nx"],
+    "medida": { "mas": "OUT", "menos": "GND", "i": 8 },
+    "elementos": [
+      { "t": "OA", "mas": "ref", "menos": "fb", "sal": "g", "vmas": "GND", "vmenos": "IN", "params": { "a0": "a0", "gbw": "gbw", "sr": 300000, "rin": 1000000000, "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" } },
+      { "t": "V", "a": "ref0", "b": "GND", "volts": "vref" },
+      { "t": "R", "a": "ref0", "b": "ref", "ohms": "rss" },
+      { "t": "C", "a": "ref", "b": "GND", "farads": "css" },
+      { "t": "R", "a": "OUT", "b": "fb", "ohms": "r1" },
+      { "t": "R", "a": "fb", "b": "GND", "ohms": "r2" },
+      { "t": "R", "a": "g", "b": "nx", "ohms": "rf" },
+      { "t": "C", "a": "nx", "b": "fb", "farads": "cf" },
+      { "t": "Q", "c": "IN", "b": "g", "e": "OUT", "pnp": true, "params": { "is": 5.1e-15, "bf": 3450, "nf": 1.4, "vaf": 100, "ise": 5.52e-18, "ne": 1.5, "br": 5, "rb": 0.5, "rc": 0.0166, "re": 0.03, "vje": 0.75, "mje": 0.33, "vjc": 0.75, "mjc": 0.33 } }
+    ]
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "7905": {
+          "fuente": "Texas Instruments uA7900 series, SLVS057, Absolute Maximum Ratings (uA7905): voltaje de entrada de −35 V.",
+          "limites": [
+            {"nombre": "entrada contra tierra", "de": "GND", "a": "IN", "max": 35, "consejo": "sube la entrada (menos negativa) o pon antes un regulador de más voltaje."}
+          ]
+        }
+      }
+    },
+    "quema": {"factor": 2, "durante": 0.5, "elemento": 8},
+   
+    "compuesto": [
+      {
+        "nombre": "salida sobre la entrada",
+        "elementos": [
+          8
+        ],
+        "medida": "voltaje",
+        "sentido": "positiva",
+        "max": 0.6,
+        "consejo": "la entrada quedó en corto o más baja que la salida y el capacitor de salida se descarga hacia ella; pon un diodo de la salida a la entrada.",
+        "fuente": "Criterio de Kirchi: las hojas de onsemi MC7800/D y TI recomiendan un diodo de protección cuando la salida puede quedar por encima de la entrada y no dan un máximo; 0.6 V es el de una unión en directa. El modelo no deja pasar corriente inversa por el transistor de paso, así que el aviso mira el voltaje."
+      }
+    ]
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -6 }, "valor": { "x": 0, "y": 6 } },
+  "rotulos": [
+    { "texto": "IN", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "OUT", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "GND", "x": 0, "y": 0.8, "tam": 1, "alinear": "arriba" }
+  ],
+  "fuentes": {
+      "7905": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a onsemi MC7900/D rev. 21 (oct 2021), https://www.onsemi.com/pdf/datasheet/mc7900-d.pdf, MC7905B y MC7905C: salida de -5.0 V típica (-4.8 a -5.2 V a 25 °C), caída de entrada de 1.3 V típica a 1 A, corriente de polarización de 4.3 mA típica (8 mA máx) con -10 V de entrada y regulación de carga de 8 mV típica (50 mV máx) de 5 mA a 1.5 A. La corriente máxima de salida no se pudo leer en una cifra: se usó la del 7805 (2.2 A). Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador de una etapa con una referencia de arranque suave, un divisor en la salida, un lazo proporcional-integral lento (cruza entre 10 Hz y 20 kHz según la carga y el capacitor, y no oscila con capacitores ideales de 0 a 1000 µF) y un transistor de paso sin capacitancias (con ellas la regla trapezoidal oscilaba). No modela el pliegue de la corriente de cortocircuito, la protección térmica ni el ruido, y el arranque y la recuperación de un escalón de carga tardan unos milisegundos. Es el espejo del 7805: amplificador entre tierra y la entrada, transistor de paso PNP. El rechazo de rizado de la hoja (70 dB) no se midió."
+  }
+}

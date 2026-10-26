@@ -1,0 +1,23 @@
+* Amplificador en emisor comun con 2N2222, capacitores de acoplo y de paso
+.include modelos.lib
+V1 1 0 DC 12
+VIN 5 0 SIN(0 20m 1k)
+CIN 5 2 1u
+R1 1 2 47k
+R2 2 0 10k
+RC 1 3 2.2k
+RE 4 0 470
+CE 4 0 10u
+COUT 3 6 1u
+RL 6 0 10k
+Q1 3 2 4 Q2N2222
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+save all @q1[ic] @q1[ib]
+tran 10u 20m 0 2u uic
+wrdata salida.txt v(2) v(3) v(4) v(6) @q1[ic] @q1[ib]
+.endc
+.end

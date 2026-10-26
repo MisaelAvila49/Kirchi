@@ -1,0 +1,143 @@
+{
+  "id": "fuente-trifasica",
+  "nombre": {
+    "es": "Fuente trifásica",
+    "en": "Three-phase source"
+  },
+  "categoria": "fuentes",
+  "prefijo": "VT",
+  "buscar": [
+    "trifasica",
+    "trifásica",
+    "tres fases",
+    "three-phase",
+    "3 fases",
+    "red trifasica"
+  ],
+  "pines": [
+    {
+      "id": "A",
+      "nombre": "fase A",
+      "x": 0,
+      "y": -6
+    },
+    {
+      "id": "B",
+      "nombre": "fase B (−120°)",
+      "x": 6,
+      "y": 0
+    },
+    {
+      "id": "C",
+      "nombre": "fase C (+120°)",
+      "x": 0,
+      "y": 6
+    },
+    {
+      "id": "N",
+      "nombre": "neutro (N)",
+      "x": -6,
+      "y": 0
+    }
+  ],
+  "props": [
+    {
+      "id": "amplitud",
+      "nombre": "Amplitud (pico de cada fase)",
+      "unidad": "V",
+      "defecto": "180",
+      "comunes": [
+        "12",
+        "24",
+        "180",
+        "311"
+      ]
+    },
+    {
+      "id": "frecuencia",
+      "nombre": "Frecuencia",
+      "unidad": "Hz",
+      "defecto": "60",
+      "comunes": [
+        "50",
+        "60"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "medida": {
+      "mas": "A",
+      "menos": "N",
+      "i": 0
+    },
+    "elementos": [
+      {
+        "t": "senoidal",
+        "a": "A",
+        "b": "N",
+        "amp": "amplitud",
+        "freq": "frecuencia",
+        "fase": 0
+      },
+      {
+        "t": "senoidal",
+        "a": "B",
+        "b": "N",
+        "amp": "amplitud",
+        "freq": "frecuencia",
+        "fase": -120
+      },
+      {
+        "t": "senoidal",
+        "a": "C",
+        "b": "N",
+        "amp": "amplitud",
+        "freq": "frecuencia",
+        "fase": 120
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -9
+    },
+    "valor": {
+      "x": 0,
+      "y": 9
+    }
+  },
+  "rotulos": [
+    {
+      "texto": "3~",
+      "x": 0,
+      "y": 0,
+      "tam": 1.8
+    },
+    {
+      "texto": "A",
+      "x": 0,
+      "y": -3.4,
+      "tam": 1
+    },
+    {
+      "texto": "B",
+      "x": 3.4,
+      "y": 0,
+      "tam": 1
+    },
+    {
+      "texto": "C",
+      "x": 0,
+      "y": 3.4,
+      "tam": 1
+    },
+    {
+      "texto": "N",
+      "x": -3.4,
+      "y": 0,
+      "tam": 1
+    }
+  ]
+}

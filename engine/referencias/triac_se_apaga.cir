@@ -1,0 +1,44 @@
+* Triac BT136 con 12 V y 6 k (1.7 mA, bajo el mantenimiento) y un pulso de compuerta de 30 V por 5.8 k: se apaga al quitar la compuerta
+VS vs 0 DC 12
+RL vs a 6k
+RT0 a xm2 0.01
+DT1 xm2 xae1 DT1
+QT2 xgi1 xbn1 xae1 QT2
+QT3 xbn1 xgi1 0 QT3
+RT4 xgi1 0 330
+RT5 xae1 xbn1 330
+CT6 xgi1 0 1e-09
+CT7 xbn1 xae1 1e-09
+DT8 0 xae2 DT8
+QT9 xgi2 xbn2 xae2 QT9
+QT10 xbn2 xgi2 xm2 QT10
+RT11 xgi2 xm2 330
+RT12 xae2 xbn2 330
+CT13 xgi2 xm2 1e-09
+CT14 xbn2 xae2 1e-09
+RT15 g xgp 50
+DT16 xgp xgi1 DT16
+QT17 xbn1 0 xgp QT17
+QT18 xcb xgp 0 QT18
+DT19 xcb xgi2 DT19
+.model DT1 D(IS=1e-07 RS=0.005)
+.model QT2 PNP(IS=1e-11 BF=100 ISE=1.8e-09 NE=2 RB=0.1 RC=0.01 RE=0.01 VAF=50)
+.model QT3 NPN(IS=1e-11 BF=100 ISE=1.8e-09 NE=2 RB=0.1 RC=0.01 RE=0.01 VAF=50)
+.model DT8 D(IS=1e-07 RS=0.005)
+.model QT9 PNP(IS=1e-11 BF=100 ISE=1.8e-09 NE=2 RB=0.1 RC=0.01 RE=0.01 VAF=50)
+.model QT10 NPN(IS=1e-11 BF=100 ISE=1.8e-09 NE=2 RB=0.1 RC=0.01 RE=0.01 VAF=50)
+.model DT16 D(IS=1e-14)
+.model QT17 NPN(IS=2e-14 BF=8)
+.model QT18 PNP(IS=1e-14 BF=3)
+.model DT19 D(IS=1e-14)
+VP p 0 PULSE(0 30 1m 1p 1p 5m 10m)
+RD p g 5.8k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 5u 14m 0 2u uic
+wrdata salida.txt v(a) i(vs)
+.endc
+.end

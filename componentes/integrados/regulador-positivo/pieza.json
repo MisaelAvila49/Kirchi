@@ -1,0 +1,79 @@
+{
+  "id": "regulador-positivo",
+  "nombre": { "es": "Regulador fijo positivo", "en": "Fixed positive regulator" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["u", "regulador", "regulator", "7805", "7812", "78xx", "lm7805", "l7805", "voltaje fijo"],
+  "pines": [
+    { "id": "IN", "nombre": "entrada (IN)", "x": -6, "y": -2 },
+    { "id": "OUT", "nombre": "salida (OUT)", "x": 6, "y": -2 },
+    { "id": "GND", "nombre": "tierra (GND)", "x": 0, "y": 4 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "7805", "opciones": ["7805", "7812"] }
+  ],
+  "modelo": {
+    "tipo": "compuesto", "prop": "modelo",
+    "modelos": {
+      "7805": { "vref": 2.5003, "r1": 50000, "r2": 50000, "a0": 20000, "gbw": 1000000, "rout": 20, "ilim": 0.00082, "dhi": 0.77, "dlo": 0.1, "rq": 3175, "rf": 10000, "cf": 1e-7, "rss": 20000, "css": 1e-9 },
+      "7812": { "vref": 2.5006, "r1": 76000, "r2": 20000, "a0": 20000, "gbw": 1000000, "rout": 20, "ilim": 0.00082, "dhi": 0.77, "dlo": 0.1, "rq": 5800, "rf": 10000, "cf": 1e-7, "rss": 20000, "css": 1e-9 }
+    },
+    "internas": ["ref0", "ref", "fb", "g", "nx"],
+    "medida": { "mas": "OUT", "menos": "GND", "i": 8 },
+    "elementos": [
+      { "t": "OA", "mas": "ref", "menos": "fb", "sal": "g", "vmas": "IN", "vmenos": "GND", "params": { "a0": "a0", "gbw": "gbw", "sr": 300000, "rin": 1000000000, "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" } },
+      { "t": "V", "a": "ref0", "b": "GND", "volts": "vref" },
+      { "t": "R", "a": "ref0", "b": "ref", "ohms": "rss" },
+      { "t": "C", "a": "ref", "b": "GND", "farads": "css" },
+      { "t": "R", "a": "OUT", "b": "fb", "ohms": "r1" },
+      { "t": "R", "a": "fb", "b": "GND", "ohms": "r2" },
+      { "t": "R", "a": "g", "b": "nx", "ohms": "rf" },
+      { "t": "C", "a": "nx", "b": "fb", "farads": "cf" },
+      { "t": "Q", "c": "IN", "b": "g", "e": "OUT", "params": { "is": 5.1e-15, "bf": 3450, "nf": 1.4, "vaf": 100, "ise": 5.52e-18, "ne": 1.5, "br": 5, "rb": 0.5, "rc": 0.0166, "re": 0.03, "vje": 0.75, "mje": 0.33, "vjc": 0.75, "mjc": 0.33 } }
+    ]
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "7805": {
+          "fuente": "Texas Instruments uA7800 series, SLVS056, Absolute Maximum Ratings (uA7805): voltaje de entrada de 35 V.",
+          "limites": [
+            {"nombre": "entrada contra tierra", "de": "IN", "a": "GND", "max": 35, "consejo": "baja la entrada o pon antes un regulador de más voltaje."}
+          ]
+        },
+        "7812": {
+          "fuente": "Texas Instruments uA7800 series, SLVS056, Absolute Maximum Ratings (uA7812): voltaje de entrada de 35 V.",
+          "limites": [
+            {"nombre": "entrada contra tierra", "de": "IN", "a": "GND", "max": 35, "consejo": "baja la entrada o pon antes un regulador de más voltaje."}
+          ]
+        }
+      }
+    },
+    "quema": {"factor": 2, "durante": 0.5, "elemento": 8},
+   
+    "compuesto": [
+      {
+        "nombre": "salida sobre la entrada",
+        "elementos": [
+          8
+        ],
+        "medida": "voltaje",
+        "sentido": "negativa",
+        "max": 0.6,
+        "consejo": "la entrada quedó en corto o más baja que la salida y el capacitor de salida se descarga hacia ella; pon un diodo de la salida a la entrada.",
+        "fuente": "Criterio de Kirchi: las hojas de onsemi MC7800/D y TI recomiendan un diodo de protección cuando la salida puede quedar por encima de la entrada y no dan un máximo; 0.6 V es el de una unión en directa. El modelo no deja pasar corriente inversa por el transistor de paso, así que el aviso mira el voltaje."
+      }
+    ]
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -6 }, "valor": { "x": 0, "y": 6 } },
+  "rotulos": [
+    { "texto": "IN", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "OUT", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "GND", "x": 0, "y": 0.8, "tam": 1, "alinear": "arriba" }
+  ],
+  "fuentes": {
+      "7805": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a onsemi MC7800/D rev. 29 (nov 2021), https://www.onsemi.com/pdf/datasheet/mc7800-d.pdf, MC7805B y MC7805C: salida de 5.0 V típica (4.8 a 5.2 V a 25 °C), caída de entrada de 2.0 V típica a 1 A, corriente en reposo de 3.2 mA típica (8 mA máx) con 10 V de entrada, regulación de carga de 1.3 mV típica (25 a 100 mV máx) de 5 mA a 1 A y corriente pico de 2.2 A típica. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador de una etapa con una referencia de arranque suave, un divisor en la salida, un lazo proporcional-integral lento (cruza entre 10 Hz y 20 kHz según la carga y el capacitor, y no oscila con capacitores ideales de 0 a 1000 µF) y un transistor de paso sin capacitancias (con ellas la regla trapezoidal oscilaba). No modela el pliegue de la corriente de cortocircuito, la protección térmica ni el ruido, y el arranque y la recuperación de un escalón de carga tardan unos milisegundos. El rechazo de rizado de la hoja (62 a 78 dB a 120 Hz) no se midió.",
+      "7812": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a onsemi MC7800/D rev. 29 (nov 2021), https://www.onsemi.com/pdf/datasheet/mc7800-d.pdf, MC7812B y MC7812C: salida de 12.0 V típica (11.5 a 12.5 V a 25 °C), caída de entrada de 2.0 V típica a 1 A, corriente en reposo de 3.4 mA típica (6.5 a 8 mA máx) con 19 V de entrada, regulación de carga de 3.8 a 7.5 mV típica (24 a 240 mV máx) y corriente pico de 2.2 A típica. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador de una etapa con una referencia de arranque suave, un divisor en la salida, un lazo proporcional-integral lento (cruza entre 10 Hz y 20 kHz según la carga y el capacitor, y no oscila con capacitores ideales de 0 a 1000 µF) y un transistor de paso sin capacitancias (con ellas la regla trapezoidal oscilaba). No modela el pliegue de la corriente de cortocircuito, la protección térmica ni el ruido, y el arranque y la recuperación de un escalón de carga tardan unos milisegundos. El rechazo de rizado de la hoja (55 a 60 dB) no se midió."
+  }
+}

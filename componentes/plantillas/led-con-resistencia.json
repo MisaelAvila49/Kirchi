@@ -1,0 +1,153 @@
+{
+  "id": "led-con-resistencia",
+  "nombre": "LED con resistencia",
+  "descripcion": "La resistencia limita la corriente del LED a unos 9 mA.",
+  "circuito": {
+    "cables": {
+      "c_1": {
+        "id": "c_1",
+        "puntos": [
+          {
+            "x": 12,
+            "y": -4
+          },
+          {
+            "x": 12,
+            "y": -6
+          },
+          {
+            "x": 10,
+            "y": -6
+          }
+        ]
+      },
+      "c_2": {
+        "id": "c_2",
+        "puntos": [
+          {
+            "x": 12,
+            "y": 4
+          },
+          {
+            "x": 12,
+            "y": 6
+          },
+          {
+            "x": 6,
+            "y": 6
+          }
+        ]
+      },
+      "c_3": {
+        "id": "c_3",
+        "puntos": [
+          {
+            "x": 0,
+            "y": 4
+          },
+          {
+            "x": 0,
+            "y": 6
+          },
+          {
+            "x": 6,
+            "y": 6
+          }
+        ]
+      },
+      "c_4": {
+        "id": "c_4",
+        "puntos": [
+          {
+            "x": 0,
+            "y": -4
+          },
+          {
+            "x": 0,
+            "y": -6
+          },
+          {
+            "x": 2,
+            "y": -6
+          }
+        ]
+      }
+    },
+    "etiquetas": {},
+    "notas": {},
+    "piezas": {
+      "p_d1": {
+        "espejo": false,
+        "id": "p_d1",
+        "props": {
+          "color": "rojo"
+        },
+        "ref": "D1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -4.96
+          }
+        },
+        "tipo": "led",
+        "x": 12,
+        "y": 0
+      },
+      "p_g1": {
+        "espejo": false,
+        "id": "p_g1",
+        "props": {},
+        "ref": "GND1",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 6,
+        "y": 6
+      },
+      "p_r1": {
+        "espejo": false,
+        "id": "p_r1",
+        "props": {
+          "valor": "330"
+        },
+        "ref": "R1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -4.6
+          },
+          "valor": {
+            "x": 0,
+            "y": -2.8
+          }
+        },
+        "tipo": "resistencia",
+        "x": 6,
+        "y": -6
+      },
+      "p_v1": {
+        "espejo": false,
+        "id": "p_v1",
+        "props": {
+          "voltaje": "5"
+        },
+        "ref": "V1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 3.96,
+            "y": -1
+          },
+          "valor": {
+            "x": 4.44,
+            "y": 1
+          }
+        },
+        "tipo": "fuente-dc",
+        "x": 0,
+        "y": 0
+      }
+    }
+  }
+}

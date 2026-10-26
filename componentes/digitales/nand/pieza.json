@@ -1,0 +1,18 @@
+{
+  "id": "nand",
+  "nombre": { "es": "Compuerta NAND", "en": "NAND gate" },
+  "categoria": "digitales",
+  "prefijo": "U",
+  "buscar": ["u", "nand", "compuerta", "7400"],
+  "pines": [
+    { "id": "A", "nombre": "A", "x": -6, "y": -2 },
+    { "id": "B", "nombre": "B", "x": -6, "y": 2 },
+    { "id": "Y", "nombre": "Y", "x": 6, "y": 0 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS", "CD4000B"] },
+    { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
+  ],
+  "modelo": { "tipo": "compuerta", "funcion": "nand", "entradas": ["A", "B"], "salida": "Y", "familia": "familia", "alimentacion": "alimentacion" },
+  "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } }
+}

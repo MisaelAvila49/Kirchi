@@ -1,0 +1,27 @@
+{
+  "netlist": {
+    "nodes": 7,
+    "digital_nets": 4,
+    "elements": [
+      { "type": "V", "a": 1, "b": 0, "wave": { "kind": "dc", "v": 5 } },
+      { "type": "R", "a": 1, "b": 2, "ohms": 10000 },
+      { "type": "R", "a": 2, "b": 3, "ohms": 47000 },
+      { "type": "C", "a": 3, "b": 0, "farads": 1e-8 },
+      { "type": "R", "a": 5, "b": 0, "ohms": 10000 },
+      { "type": "R", "a": 1, "b": 4, "ohms": 100000 },
+      { "type": "R", "a": 4, "b": 6, "ohms": 100000 },
+      { "type": "R", "a": 6, "b": 0, "ohms": 100000 },
+      { "type": "R", "a": 1, "b": 0, "ohms": 33000 },
+      { "type": "ADC", "p": 3, "n": 4, "out": 0, "in_low": 0, "in_high": 0 },
+      { "type": "ADC", "p": 6, "n": 3, "out": 1, "in_low": 0, "in_high": 0 },
+      { "type": "ADC", "p": 1, "n": 0, "out": 2, "in_low": 1.1, "in_high": 1.1 },
+      { "type": "LATCH555", "trig": 1, "thr": 0, "res": 2, "q": 3, "delay": 1e-7 },
+      { "type": "OUT555", "q": 3, "out": 5, "dis": 2, "vcc": 1, "gnd": 0, "v_lo": 0, "r_lo": 26, "v_hi": 0, "r_hi": 160, "g_on": 0.08333333333333333, "g_off": 1e-9, "t_rise": 2e-8, "t_fall": 1.5e-8 }
+    ]
+  },
+  "fin": 5e-3,
+  "hmax": 5e-8,
+  "tolerancia_t": 1e-6,
+  "columnas": { "v(thr)": { "nodo": 3 }, "v(out)": { "nodo": 5 }, "v(dis)": { "nodo": 2 }, "i(v1)": { "corriente": 0 } },
+  "eventos": { "x1.q": 3 }
+}

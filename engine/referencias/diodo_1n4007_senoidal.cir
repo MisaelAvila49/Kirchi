@@ -1,0 +1,14 @@
+* Rectificador de media onda con 1N4007: 10 V pico a 1 kHz sobre 1 k
+.include modelos.lib
+V1 1 0 SIN(0 10 1k)
+D1 1 2 D1N4007
+R1 2 0 1k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 2u 3m 0 2u uic
+wrdata salida.txt v(2) i(v1)
+.endc
+.end

@@ -1,0 +1,287 @@
+# Construye los instaladores de Kirchi: Windows (NSIS y zip portátil), la Tienda de Microsoft (appx), macOS (dmg universal) y Linux (AppImage y deb).
+# Se lanza a mano (Actions > Instaladores > Run workflow, con casillas por plataforma) o al subir una etiqueta v*. No publica nada: deja los archivos
+# como artefactos de la corrida. Windows y Linux sin firma; macOS con firma ad hoc gratuita (sin notarización); el paquete de la Tienda de Microsoft lo firma la Tienda.
+# Ubuntu fijo en 24.04 para que ngspice no cambie de herramientas sin aviso.
+# Cachés: ngspice compilado (por sistema, según los scripts que lo construyen), compilación de Rust, wasm-pack,
+# y las descargas de Electron y electron-builder (según package-lock.json).
+name: Instaladores
+
+on:
+  workflow_dispatch:
+    inputs:
+      windows:
+        description: Windows (instalador, zip y Tienda)
+        type: boolean
+        default: true
+      macos:
+        description: macOS
+        type: boolean
+        default: true
+      linux:
+        description: Linux
+        type: boolean
+        default: true
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+# Una etiqueta nueva cancela la corrida anterior de etiquetas; las corridas a mano no se cancelan entre sí.
+concurrency:
+  group: instaladores-${{ github.event_name == 'push' && 'etiqueta' || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  # Decide qué plataformas corren: todas con una etiqueta; las marcadas en una corrida a mano.
+  plan:
+    name: Plataformas
+    runs-on: ubuntu-24.04
+    outputs:
+      windows: ${{ steps.p.outputs.windows }}
+      unix: ${{ steps.p.outputs.unix }}
+    steps:
+      - id: p
+        env:
+          MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
+          WINDOWS: ${{ inputs.windows }}
+          MACOS: ${{ inputs.macos }}
+          LINUX: ${{ inputs.linux }}
+        run: |
+          if [ "$MANUAL" != "true" ]; then WINDOWS=true; MACOS=true; LINUX=true; fi
+          mac='{"nombre":"macOS","os":"macos-latest","orden":"npx electron-builder --mac --publish never","artefactos":"dist/Kirchi-*-macos-*.dmg"}'
+          lin='{"nombre":"Linux","os":"ubuntu-24.04","orden":"npx electron-builder --linux --publish never","artefactos":"dist/Kirchi-*-linux-*.AppImage\ndist/Kirchi-*-linux-*.deb"}'
+          lista=""
+          [ "$MACOS" = "true" ] && lista="$mac"
+          if [ "$LINUX" = "true" ]; then [ -n "$lista" ] && lista="$lista,"; lista="$lista$lin"; fi
+          echo "windows=$WINDOWS" >> "$GITHUB_OUTPUT"
+          echo "unix=[$lista]" >> "$GITHUB_OUTPUT"
+
+  # ngspice 47 para Windows, compilado aquí con MSYS2 UCRT64 a partir del mismo código oficial (suma fijada en scripts/ngspice-fuente.mjs)
+  # que macOS y Linux. El paquete oficial de Windows traía libomp140.x86_64.dll (Microsoft la declara no redistribuible) y sndfile.dll
+  # (LGPL, con fuente no reproducible). El script comprueba que ni el ejecutable ni los .cm importen otra DLL que las del sistema, que
+  # `ngspice_con.exe -v` diga ngspice-47 y que un deck XSPICE mínimo dé el resultado esperado. Con la caché solo se revisa, sin compilar.
+  ngspice-windows:
+    name: ngspice para Windows
+    needs: plan
+    if: needs.plan.outputs.windows == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Caché de ngspice compilado
+        id: cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: herramientas/ngspice-windows
+          key: ngspice-windows-${{ hashFiles('scripts/preparar-ngspice.mjs', 'scripts/ngspice-fuente.mjs') }}
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          msystem: UCRT64
+          update: false
+          path-type: minimal
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-nodejs
+            make
+            bison
+            flex
+      - name: Compilar ngspice 47
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: msys2 {0}
+        run: node scripts/preparar-ngspice.mjs --fuentes
+      - name: Importaciones de los binarios (para el registro)
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: msys2 {0}
+        run: |
+          objdump -p herramientas/ngspice-windows/Spice64/bin/ngspice_con.exe | grep "DLL Name"
+          for f in herramientas/ngspice-windows/Spice64/lib/ngspice/*.cm; do echo "$f"; objdump -p "$f" | grep "DLL Name"; done
+      # Con la caché: dependencias de DLL (cierre transitivo), versión y deck XSPICE, con el PATH limpio de Windows.
+      - name: Revisar el ngspice de la caché
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: node scripts/preparar-ngspice.mjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kirchi-ngspice-windows
+          path: herramientas/ngspice-windows/**
+          if-no-files-found: error
+
+  # Código fuente que las licencias de terceros piden entregar junto a los instaladores (ngspice y faer, con su SHA-256).
+  # Se copia a la misma carpeta de descarga que los instaladores.
+  fuentes:
+    name: Código fuente de terceros
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: node scripts/preparar-fuentes.mjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kirchi-fuentes-terceros
+          path: dist/fuentes-terceros/**
+          if-no-files-found: error
+
+  # Una sola construcción y un solo electron-builder para los tres paquetes de Windows.
+  # El appx (Tienda de Microsoft) va sin firmar: la Tienda lo firma. Valores de Partner Center en electron-builder.yml (appx).
+  empaquetar-windows:
+    name: Windows y Tienda
+    needs: [plan, ngspice-windows]
+    if: needs.plan.outputs.windows == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: engine
+      - name: Caché de wasm-pack, Electron y electron-builder
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/AppData/Local/.wasm-pack
+            ~/AppData/Local/electron/Cache
+            ~/AppData/Local/electron-builder/Cache
+          key: herramientas-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: herramientas-${{ runner.os }}-
+      - run: npm ci
+      - run: npm run build
+      - run: node scripts/generar-licencias.mjs --revisar
+      # El ngspice del trabajo anterior (el mismo para el instalador, el zip y el appx). El script lo revisa otra vez en este equipo.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: kirchi-ngspice-windows
+          path: herramientas/ngspice-windows
+      - name: ngspice 47
+        run: node scripts/preparar-ngspice.mjs
+      - run: npx electron-builder --win nsis zip appx --publish never
+      - name: Revisar el contenido del paquete
+        run: npx vitest run src/main/paquete.test.ts
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kirchi-Windows
+          path: |
+            dist/Kirchi-*-instalador-*.exe
+            dist/Kirchi-*-portatil-*.zip
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kirchi-Tienda
+          path: dist/Kirchi-*-tienda-*.appx
+          if-no-files-found: error
+
+  empaquetar:
+    name: ${{ matrix.nombre }}
+    needs: plan
+    if: needs.plan.outputs.unix != '[]'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.unix) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: engine
+      - name: Caché de wasm-pack, Electron y electron-builder
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cache/.wasm-pack
+            ~/.cache/electron
+            ~/.cache/electron-builder
+            ~/Library/Caches/.wasm-pack
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+          key: herramientas-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: herramientas-${{ runner.os }}-
+      - run: npm ci
+      # Compila el motor a WASM (wasm-pack) y la interfaz (electron-vite).
+      - run: npm run build
+      # Las licencias de terceros y los iconos viajan ya generados en el repositorio; esto avisa si quedaron viejos.
+      - run: node scripts/generar-licencias.mjs --revisar
+      # ngspice 47 viaja dentro del instalador (resources/herramientas/ngspice) y se corre como programa aparte; nunca se descarga al usarlo.
+      # El código oficial 47, con la suma de scripts/ngspice-fuente.mjs, compilado aquí (los paquetes de brew y apt traen otras versiones
+      # y las referencias son de la 47). Con la caché no se compila: el script revisa que diga ngspice-47 (y que sea universal en macOS).
+      - name: Caché de ngspice compilado
+        id: cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: resources/herramientas/ngspice
+          key: ngspice-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/preparar-ngspice.mjs', 'scripts/ngspice-fuente.mjs') }}
+      - name: Linux, herramientas para compilar ngspice
+        if: matrix.os == 'ubuntu-24.04' && steps.cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+      - name: ngspice 47
+        run: node scripts/preparar-ngspice.mjs --fuentes --reutilizar
+      # Licencia de Electron y avisos de Chromium para el dmg: del zip oficial de Electron, con su SHA-256 (falla si faltan).
+      - name: Licencias de Electron (macOS)
+        if: matrix.os == 'macos-latest'
+        run: node scripts/preparar-licencias-electron.mjs
+      - run: ${{ matrix.orden }}
+      # Los avisos de Electron y Chromium tienen que quedar junto al ejecutable (electron-builder los conserva en Linux; en macOS los pone electron-builder.yml).
+      - name: Revisar los avisos de Electron y Chromium (Linux)
+        if: matrix.os == 'ubuntu-24.04'
+        run: |
+          test -s dist/linux-unpacked/LICENSE.electron.txt
+          test -s dist/linux-unpacked/LICENSES.chromium.html
+      # Firma ad hoc (gratuita): todo el paquete, ngspice y sus modelos incluidos, debe quedar firmado y universal.
+      - name: Revisar la firma ad hoc (macOS)
+        if: matrix.os == 'macos-latest'
+        run: bash scripts/revisar-firma-mac.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kirchi-${{ matrix.nombre }}
+          path: ${{ matrix.artefactos }}
+          if-no-files-found: error
+
+  # Borrador de la página de Releases con los instaladores y el código fuente de terceros (lo que piden la GPL, la LGPL y la MPL).
+  # Solo con una etiqueta y con todas las plataformas en verde. La Tienda (appx) y ngspice suelto no se publican.
+  publicar:
+    name: Borrador de la release
+    needs: [plan, fuentes, empaquetar-windows, empaquetar]
+    if: github.event_name == 'push' && needs.empaquetar-windows.result == 'success' && needs.empaquetar.result == 'success' && needs.fuentes.result == 'success'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: kirchi-@(Windows|macOS|Linux|fuentes-terceros)
+          path: release
+          merge-multiple: true
+      - name: Crear el borrador
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ETIQUETA: ${{ github.ref_name }}
+        run: |
+          version="${ETIQUETA#v}"
+          node -e '
+            const t = require("fs").readFileSync("CHANGELOG.md", "utf8").split(/\r?\n/)
+            const i = t.findIndex((l) => l.trim() === "## " + process.argv[1])
+            if (i < 0) { console.error("CHANGELOG.md no tiene la sección " + process.argv[1]); process.exit(1) }
+            const f = t.findIndex((l, j) => j > i && l.startsWith("## "))
+            console.log(t.slice(i + 1, f < 0 ? undefined : f).join("\n").trim())
+          ' "$version" > notas.md
+          test -s notas.md
+          find release -type f
+          gh release create "$ETIQUETA" release/* --draft --title "Kirchi $version" --notes-file notas.md

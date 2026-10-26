@@ -1,0 +1,17 @@
+{
+  "id": "bateria",
+  "nombre": { "es": "Batería", "en": "Battery" },
+  "categoria": "fuentes",
+  "prefijo": "B",
+  "buscar": ["b", "bateria", "batería", "pila", "battery"],
+  "pines": [
+    { "id": "+", "nombre": "+", "x": 0, "y": -4 },
+    { "id": "-", "nombre": "−", "x": 0, "y": 4 }
+  ],
+  "props": [
+    { "id": "voltaje", "nombre": "Voltaje", "unidad": "V", "defecto": "9", "comunes": ["1.5", "3", "5", "9", "12"] },
+    { "id": "rint", "nombre": "Resistencia interna", "unidad": "Ω", "defecto": "0", "omitir": true, "comunes": ["0", "0.1", "0.5", "1", "2"] }
+  ],
+  "modelo": { "tipo": "V", "a": "+", "b": "-", "prop": "voltaje", "rserie": "rint" },
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } }
+}

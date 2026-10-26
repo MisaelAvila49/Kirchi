@@ -1,0 +1,17 @@
+{
+  "netlist": {
+    "nodes": 4,
+    "elements": [
+      { "type": "PSU", "a": 1, "b": 0, "v": 12, "ilim": 0.1, "vk": 0.005 },
+      { "type": "C", "a": 1, "b": 0, "farads": 1e-7 },
+      { "type": "R", "a": 1, "b": 0, "ohms": 1000 },
+      { "type": "R", "a": 1, "b": 2, "ohms": 10 },
+      { "type": "M", "d": 2, "g": 3, "s": 0, "pmos": false, "model": { "vto": 3, "kp": 18, "lambda": 0.01, "rd": 0.004, "rs": 0.002, "cbd": 1.55e-9, "pb": 0.8, "mj": 0.5, "fc": 0.5, "is": 2e-14, "cgso": 1.38e-9, "cgdo": 8.8e-11, "w": 1, "l": 1 } },
+      { "type": "V", "a": 3, "b": 0, "wave": { "kind": "pulse", "low": 0, "high": 10, "freq": 100, "rise": 1e-6, "fall": 1e-6, "width": 0.002, "phase": 0.8 } }
+    ]
+  },
+  "fin": 0.006,
+  "hmax": 1e-6,
+  "tolerancia_t": 2e-6,
+  "columnas": { "v(sal)": { "nodo": 1 }, "v(d)": { "nodo": 2 } }
+}

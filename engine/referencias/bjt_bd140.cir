@@ -1,0 +1,15 @@
+* PNP BD140 con unos 0.2 A
+.include modelos.lib
+V1 1 0 DC 12
+RB 2 0 5.6k
+RC 3 0 47
+Q1 3 2 1 QBD140
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(2) v(3) i(v1)
+.endc
+.end

@@ -1,0 +1,141 @@
+/* El editor de la figura que se exporta: herramientas a la izquierda, la figura al centro, propiedades a la derecha
+   y, abajo, tramo, formato, tamaño y Exportar. Sin colores propios: todo con las variables de la interfaz y los tonos de la tabla de colores. */
+.dialogo.exportar-editor { width: min(1360px, 100%); height: min(calc(100vh - 32px), 900px); display: flex; flex-direction: column; overflow: hidden; }
+.dialogo.exportar-editor .dialogo-cabeza { flex: 0 0 auto; justify-content: flex-start; gap: 14px; padding: 10px 14px 10px 18px; border-bottom: 1px solid var(--bordes); }
+.dialogo.exportar-editor .dialogo-cabeza h2 { margin-right: auto; font-size: 16px; }
+.dialogo.exportar-editor .dialogo-cuerpo { flex: 1 1 auto; min-height: 0; padding: 0; display: flex; }
+.editor { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
+.editor-cuerpo { display: grid; grid-template-columns: 52px minmax(0, 1fr) 300px; flex: 1 1 auto; min-height: 0; }
+.editor-historial { display: inline-flex; gap: 2px; }
+.editor-historial .boton-icono:disabled { opacity: 0.4; cursor: default; }
+
+/* Herramientas */
+.editor-herramientas { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 6px; border-right: 1px solid var(--bordes); }
+.editor-herramienta { width: 34px; height: 34px; border-radius: 8px; }
+.editor-herramienta .icono { width: 18px; height: 18px; }
+.editor-herramienta[aria-pressed='true'] { background: var(--seleccion-fondo); color: var(--seleccion); box-shadow: inset 0 0 0 1px var(--seleccion); }
+.editor-herramienta:disabled { opacity: 0.4; cursor: default; }
+
+/* La vista previa */
+.editor-centro { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--resalte); }
+.editor-pista { position: absolute; top: 10px; left: 12px; z-index: 3; margin: 0; padding: 4px 10px; max-width: calc(100% - 24px); border: 1px solid var(--bordes); border-radius: 6px; background: var(--paneles); color: var(--texto-secundario); font-size: 12px; pointer-events: none; }
+.editor-vista-caja { position: relative; flex: 1 1 auto; min-height: 0; }
+.editor-vista { position: absolute; inset: 0; overflow: hidden; touch-action: none; user-select: none; }
+.editor-vista:focus-visible { outline: 2px solid var(--seleccion); outline-offset: -2px; }
+.editor-vista canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.editor-hoja { position: absolute; border: 1px solid var(--bordes); box-shadow: var(--sombra); box-sizing: border-box; background: var(--paneles); }
+.editor-capa { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.editor-traza-sel { fill: none; stroke: var(--seleccion); stroke-opacity: 0.35; stroke-width: 7; stroke-linejoin: round; stroke-linecap: round; }
+.editor-previo { stroke: var(--seleccion); stroke-width: 2; stroke-dasharray: 5 4; }
+.editor-previo.fantasma { stroke-opacity: 0.55; }
+.editor-guia { stroke-dasharray: 3 3; stroke-opacity: 0.8; }
+.editor-previo-punto { fill: none; stroke: var(--seleccion); stroke-width: 2; }
+.editor-previo-texto { position: absolute; z-index: 2; transform: translateX(-50%); padding: 1px 6px; border: 1px solid var(--seleccion); border-radius: 4px; background: var(--paneles); color: var(--texto-tinta); font: 11px/1.3 var(--fuente-cifras); white-space: nowrap; pointer-events: none; }
+.editor-previo-globo { transform: none; display: flex; flex-direction: column; opacity: 0.85; }
+.editor-sel { position: absolute; box-sizing: border-box; border: 1.5px dashed var(--seleccion); border-radius: 3px; pointer-events: none; }
+.editor-asa { position: absolute; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; box-sizing: border-box; border: 2px solid var(--seleccion); border-radius: 50%; background: var(--paneles); pointer-events: none; }
+.editor-asa-mueve { pointer-events: auto; cursor: grab; width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px; }
+.editor-rango { position: absolute; box-sizing: border-box; border-left: 2px solid var(--seleccion); border-right: 2px solid var(--seleccion); background: var(--seleccion-fondo); opacity: 0.7; pointer-events: none; }
+.editor-barra-lugar { position: absolute; z-index: 5; transform: translate(-50%, -100%); }
+.editor-barra-lugar.debajo { transform: translate(-50%, 0); }
+.editor-barra { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border: 1px solid var(--bordes); border-radius: 10px; background: var(--paneles); box-shadow: var(--sombra); white-space: nowrap; }
+.editor-barra .boton-icono[aria-pressed='true'] { background: var(--seleccion-fondo); color: var(--seleccion); }
+.editor-barra .tono-figura { width: 18px; height: 18px; }
+.editor-zoom { position: absolute; right: 14px; bottom: 12px; z-index: 4; display: flex; align-items: center; gap: 2px; padding: 3px 6px; border: 1px solid var(--bordes); border-radius: 999px; background: var(--paneles); box-shadow: var(--sombra); }
+.editor-zoom output { min-width: 3.4rem; text-align: center; }
+
+/* Propiedades */
+.editor-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; border-left: 1px solid var(--bordes); background: var(--paneles); }
+.editor-objeto { margin: 0; padding: 10px 14px 8px; border-bottom: 1px solid var(--bordes); }
+.editor-propiedades { position: relative; flex: 1 1 auto; min-height: 0; overflow: auto; padding: 4px 14px 14px; }
+.editor-campo { display: grid; grid-template-columns: 6rem minmax(0, 1fr); align-items: center; gap: 8px; margin: 8px 0; }
+.editor-campo select, .editor-campo input[type='text'] { width: 100%; min-width: 0; height: 28px; font-size: 12px; }
+.editor-rotulo { color: var(--texto-secundario); font-size: 12px; }
+.editor-control { min-width: 0; }
+.editor-deslizador { grid-template-columns: 6rem minmax(0, 1fr) 3.6rem; }
+.editor-deslizador input[type='range'] { width: 100%; accent-color: var(--seleccion); }
+.editor-deslizador output { text-align: right; }
+.editor-interruptor { grid-template-columns: minmax(0, 1fr) auto; }
+.editor-interruptor input[type='checkbox'] { appearance: none; width: 34px; height: 20px; margin: 0; border-radius: 999px; background: var(--borde-campo); position: relative; cursor: pointer; transition: background 0.12s; }
+.editor-interruptor input[type='checkbox']::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--paneles); transition: transform 0.12s; }
+.editor-interruptor input[type='checkbox']:checked { background: var(--seleccion); }
+.editor-interruptor input[type='checkbox']:checked::after { transform: translateX(14px); }
+.editor-interruptor input[type='checkbox']:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 2px; }
+.editor-interruptor input[type='checkbox']:disabled { opacity: 0.5; cursor: not-allowed; }
+.editor-seccion-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 0 4px; }
+.editor-seccion-titulo { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--trazo); }
+.editor-nota { margin: 8px 0; color: var(--texto-secundario); font-size: 12px; }
+.editor-lectura { display: grid; gap: 2px; margin: 8px 0; padding: 8px 10px; border-radius: 6px; background: var(--resalte); font-size: 12px; }
+.editor-pastillas { display: flex; flex-wrap: wrap; gap: 4px; }
+.editor-tonos { align-items: center; }
+.editor-escalonador { display: inline-flex; align-items: center; gap: 2px; }
+.editor-escalonador output { min-width: 2.4rem; text-align: center; }
+.editor-restablecer { margin-top: 10px; }
+.editor-propiedades .bloque { margin-top: 4px; }
+.editor-propiedades .bloque-cuerpo { padding-left: 4px; }
+.editor-propiedades .opciones { margin: 0 0 6px; padding: 0; border: 0; min-width: 0; }
+.editor-propiedades .opciones > legend { padding: 0; font-weight: 650; }
+.editor-propiedades .asp-campo { margin: 6px 0; }
+
+/* Pie: tramo, formato, tamaño y Exportar */
+.editor-pie { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; gap: 8px 22px; padding: 10px 16px; border-top: 1px solid var(--bordes); background: var(--paneles); }
+.editor-pie-rango { display: flex; align-items: center; flex: 1 1 520px; gap: 12px; min-width: 240px; flex-wrap: wrap; }
+.editor-pie-rotulo { color: var(--texto-secundario); font-size: 12px; }
+.editor-pie-rango .rango-doble { flex: 1 1 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; min-width: 0; }
+.editor-pie-rango .rango-doble-pista { min-width: 160px; }
+.editor-pie-rango .rango-doble-campos { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px 10px; margin: 0; }
+.editor-pie-rango .campo-rango { gap: 4px; font-size: 12px; color: var(--texto-secundario); }
+.editor-pie-rango .campo-rango .entrada-valor .campo { width: 7ch; height: 26px; }
+.editor-pie-rango .rango-doble-pista { flex: 1 1 auto; }
+.editor-pie-rango .rango-doble-todo { margin: 0; height: 26px; padding: 0 8px; font-size: 12px; }
+.editor-pie-tramo { min-width: 9.5rem; font-size: 12px; color: var(--texto-secundario); }
+.editor-pie-formato .campo-formato { margin: 0; padding: 0; border: 0; }
+.editor-pie-formato .nota-dialogo { display: none; }
+.editor-pie .casilla-formato { min-width: 54px; padding: 3px 10px; }
+.editor-pie-tamano { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.editor-escala select { height: 28px; }
+.editor-pie-acciones { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.editor-aviso { margin: 0 8px 0 0; max-width: 28rem; color: var(--texto-secundario); font-size: 12px; }
+
+@media (max-width: 1100px) {
+  .editor-cuerpo { grid-template-columns: 48px minmax(0, 1fr) 264px; }
+}
+/* Exportar el esquema: el mismo marco sin herramientas de dibujo, con la lámina en una imagen y, en «Área», un recuadro con asas. */
+.exportar-esquema .editor-cuerpo { grid-template-columns: 52px minmax(0, 1fr) 300px; }
+.exportar-esquema .editor-pie-formato { flex: 0 1 auto; }
+.marco-vista { cursor: grab; }
+.marco-vista.con-recuadro { cursor: crosshair; }
+.marco-imagen { position: absolute; max-width: none; height: auto; pointer-events: none; user-select: none; }
+.marco-mensaje { position: absolute; top: 50%; left: 50%; margin: 0; transform: translate(-50%, -50%); }
+.editor-recuadro { position: absolute; box-sizing: border-box; border: 1.5px dashed var(--seleccion); pointer-events: none; }
+/* Lo de fuera del área: el papel de la interfaz al 55 %, así el área se ve clara y el resto, atrás. */
+.editor-atenuado { position: absolute; background: color-mix(in srgb, var(--lienzo) 55%, transparent); pointer-events: none; }
+.editor-atenuado.oscura { background: color-mix(in srgb, var(--medidor-cuerpo) 55%, transparent); }
+.editor-medida-area { position: absolute; padding: 1px 6px; border-radius: 4px; background: var(--seleccion); color: var(--ic-contra); font-size: 11px; white-space: nowrap; pointer-events: none; }
+.editor-numero { grid-template-columns: 6rem minmax(0, 1fr) auto; }
+.editor-numero input[type='number'] { width: 100%; min-width: 0; height: 28px; font-size: 12px; }
+.asp-pastilla.deshabilitada { opacity: 0.5; }
+.asp-pastilla.deshabilitada input { cursor: not-allowed; }
+@media (max-width: 1100px) {
+  .exportar-esquema .editor-cuerpo { grid-template-columns: 48px minmax(0, 1fr) 264px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-interruptor input[type='checkbox'], .editor-interruptor input[type='checkbox']::after { transition: none; }
+}
+@media (forced-colors: active) {
+  .editor-herramienta[aria-pressed='true'], .editor-barra .boton-icono[aria-pressed='true'] { outline: 2px solid Highlight; }
+  .editor-sel, .editor-asa { forced-color-adjust: none; border-color: Highlight; }
+}
+
+/* Iconos de las herramientas a color (R1): el tono de su orden llega por data-h (colores.css pone --h). */
+.editor-herramienta .icono.color { color: var(--h); }
+
+/* Las opciones de fondo con sol o luna (Tema claro, Tema oscuro): icono y texto en una fila. */
+.fondo-opcion { display: inline-flex; align-items: center; gap: 6px; }
+.fondo-opcion .icono { width: 14px; height: 14px; }
+
+/* Anotaciones del esquema: el SVG de las notas sobre la imagen, la vista previa de lo que se dibuja y el relleno del resalte. */
+.marco-notas { position: absolute; pointer-events: none; overflow: visible; }
+.editor-previo-caja { border: 1.5px dashed var(--seleccion); }
+.editor-relleno { display: block; width: 12px; height: 9px; border: 1.5px solid currentColor; border-radius: 2px; background: color-mix(in srgb, currentColor 22%, transparent); }

@@ -1,0 +1,14 @@
+{
+  "id": "boton",
+  "nombre": { "es": "Botón", "en": "Push button" },
+  "categoria": "interruptores",
+  "prefijo": "SW",
+  "buscar": ["boton", "botón", "pulsador", "button"],
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 0 }
+  ],
+  "props": [{ "id": "presionado", "nombre": "Presionado", "defecto": "no", "opciones": ["no", "sí"] }],
+  "modelo": { "tipo": "interruptor", "a": "1", "b": "2", "prop": "presionado", "cerrado": "sí", "momentaneo": true },
+  "etiquetas": { "ref": { "x": 0, "y": -4 } }
+}

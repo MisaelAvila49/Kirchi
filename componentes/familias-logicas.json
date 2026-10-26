@@ -1,0 +1,38 @@
+{
+  "nota": "Familias lógicas de Kirchi. Cada punto da los datos típicos de la hoja de datos a una alimentación: tplh y tphl son los retardos de propagación (s) medidos a la mitad de la salida, t_rise y t_fall los tiempos de transición (s) y r_lo y r_hi la resistencia de salida (Ω) en bajo y en alto. Entre dos puntos se interpola en línea recta. Los umbrales y niveles con relativa: true son fracciones de la alimentación.",
+  "omision": "74HC",
+  "familias": {
+    "74HC": {
+      "nombre": "74HC (CMOS)",
+      "fuente": "Retardos y transiciones típicos del 74HC00 de Philips (NXP) con CL = 50 pF a 2, 4.5 y 6 V. Resistencia de salida de la librería 74HC de los ejemplos de ngspice, 60 Ω · 4 V / (VCC - 0.5 V), redondeada.",
+      "alimentacion": { "min": 2, "max": 6, "omision": 5 },
+      "entrada": { "vil": 0.3, "vih": 0.7, "relativa": true, "al_aire": "X" },
+      "salida": { "vol": 0, "voh": 1, "relativa": true },
+      "puntos": [
+        { "vcc": 2, "tplh": 25e-9, "tphl": 25e-9, "t_rise": 19e-9, "t_fall": 19e-9, "r_lo": 160, "r_hi": 160 },
+        { "vcc": 4.5, "tplh": 9e-9, "tphl": 9e-9, "t_rise": 7e-9, "t_fall": 7e-9, "r_lo": 60, "r_hi": 60 },
+        { "vcc": 6, "tplh": 7e-9, "tphl": 7e-9, "t_rise": 6e-9, "t_fall": 6e-9, "r_lo": 45, "r_hi": 45 }
+      ]
+    },
+    "74LS": {
+      "nombre": "74LS (TTL)",
+      "fuente": "SN74LS00 de TI: tplh 9 ns y tphl 10 ns típicos con CL = 15 pF y RL = 2 kΩ; VIL 0.8 V y VIH 2.0 V; IIL de -0.4 mA a 0.4 V e IIH de 20 µA a 2.7 V (de ahí 5.5 kΩ a 2.6 V); VOL de 0.25 V a 4 mA y 0.35 V a 8 mA (0.15 V y 25 Ω); VOH de 3.4 V a -0.4 mA con unos 50 mA en corto (3.42 V y 68 Ω). La hoja de datos no da los tiempos de transición: 12 ns de subida y 6 ns de bajada, de las curvas típicas de la familia.",
+      "alimentacion": { "min": 5, "max": 5, "omision": 5 },
+      "entrada": { "vil": 0.8, "vih": 2.0, "relativa": false, "al_aire": "1", "r_in": 5500, "v_in": 2.6 },
+      "salida": { "vol": 0.15, "voh": 3.42, "relativa": false },
+      "puntos": [{ "vcc": 5, "tplh": 9e-9, "tphl": 10e-9, "t_rise": 12e-9, "t_fall": 6e-9, "r_lo": 25, "r_hi": 68 }]
+    },
+    "CD4000B": {
+      "nombre": "CD4000B (CMOS)",
+      "fuente": "CD4011B de TI: retardos típicos de 125, 60 y 45 ns y transiciones de 100, 50 y 40 ns a 5, 10 y 15 V con CL = 50 pF; resistencia de salida de la corriente típica en bajo (1 mA a 0.4 V y 5 V, 2.6 mA a 0.5 V y 10 V; a 15 V se estimó de la curva típica).",
+      "alimentacion": { "min": 3, "max": 18, "omision": 5 },
+      "entrada": { "vil": 0.3, "vih": 0.7, "relativa": true, "al_aire": "X" },
+      "salida": { "vol": 0, "voh": 1, "relativa": true },
+      "puntos": [
+        { "vcc": 5, "tplh": 125e-9, "tphl": 125e-9, "t_rise": 100e-9, "t_fall": 100e-9, "r_lo": 400, "r_hi": 400 },
+        { "vcc": 10, "tplh": 60e-9, "tphl": 60e-9, "t_rise": 50e-9, "t_fall": 50e-9, "r_lo": 190, "r_hi": 190 },
+        { "vcc": 15, "tplh": 45e-9, "tphl": 45e-9, "t_rise": 40e-9, "t_fall": 40e-9, "r_lo": 140, "r_hi": 140 }
+      ]
+    }
+  }
+}

@@ -1,0 +1,26 @@
+* Reloj con rampas de 100 ns: entre 1.5 y 3.5 V la entrada lee X, y el biestable D, el JK y el contador disparan al pasar de
+* X al nivel del flanco, como XSPICE (el JK recibe el reloj negado por un inversor de 1 ps)
+.include digital.lib
+VCK c0 0 PULSE(0 5 0 1p 1p 499.999n 1u)
+AIN [c0] [d0] adc_hc5
+ARAMPA [d0] [o1] dac_lento
+.model dac_lento dac_bridge(out_low=0 out_high=5 out_undef=2.5 t_rise=100n t_fall=100n)
+RO o1 ck 55
+R1 ck 0 10k
+ACK [ck] [dck] adc_hc5
+ACERO cero cero_d
+AUNO uno uno_d
+AU1 qn dck cero cero q qn dff_hc5
+AN dck nck inv_1ps
+AU2 uno uno nck cero cero qj qjn jk_hc5
+AU3 [cero] dck cero [q3 q2 q1 q0 co] cuenta10_hc5
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 4u 0 0.1n uic
+wrdata salida.txt v(ck)
+eprint dck q qj q0 q1 > eventos.txt
+.endc
+.end

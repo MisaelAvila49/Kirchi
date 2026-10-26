@@ -1,0 +1,20 @@
+* Fusible de 1 A con carga de 1 ohm a 5 V: se funde a los 27 ms
+.include modelos.lib
+V1 1 0 DC 5
+VS 1 2 DC 0
+RF 2 3 0.1
+S1 3 4 s 0 SFUS
+RL 4 0 1
+BS 0 s I=I(VS)*I(VS)
+RS s 0 1
+CS s 0 0.125
+.model SFUS sw(vt=1.5 vh=2.5 ron=1e9 roff=1u)
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20u 60m 0 5u uic
+wrdata salida.txt i(v1) v(s)
+.endc
+.end

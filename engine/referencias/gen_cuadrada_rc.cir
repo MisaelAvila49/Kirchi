@@ -1,0 +1,14 @@
+* Generador cuadrado de 1 kHz al 25 %, 2 Vpp sin desplazamiento, con sus 50 ohm sobre un RC de 1 kohm y 100 nF
+V1 1 0 PULSE(-1 1 0 1p 1p 249.999999u 1m)
+RS 1 2 50
+R1 2 3 1k
+C1 3 0 100n
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 2u 5m 0 1u uic
+wrdata salida.txt v(2) v(3) i(v1)
+.endc
+.end

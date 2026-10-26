@@ -1,0 +1,386 @@
+{
+  "id": "triac",
+  "nombre": {
+    "es": "Triac",
+    "en": "Triac"
+  },
+  "categoria": "semiconductores",
+  "prefijo": "Q",
+  "buscar": [
+    "triac",
+    "q",
+    "bt136",
+    "bt137",
+    "tiristor bidireccional",
+    "regulador de luz",
+    "dimmer",
+    "mt1",
+    "mt2"
+  ],
+  "pines": [
+    {
+      "id": "MT2",
+      "nombre": "terminal principal 2 (MT2)",
+      "x": 0,
+      "y": -4
+    },
+    {
+      "id": "MT1",
+      "nombre": "terminal principal 1 (MT1)",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "id": "G",
+      "nombre": "compuerta (G, contra MT1)",
+      "x": 4,
+      "y": 2
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "BT136",
+      "opciones": [
+        "BT136",
+        "BT137"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "BT136": {
+        "ra": 0.01,
+        "rg": 50,
+        "rgk": 330,
+        "nis": 1e-11,
+        "nbf": 100,
+        "nise": 1.8e-09,
+        "nne": 2,
+        "nrb": 0.1,
+        "nrc": 0.01,
+        "nre": 0.01,
+        "pis": 1e-11,
+        "pbf": 100,
+        "pise": 1.8e-09,
+        "pne": 2,
+        "prb": 0.1,
+        "prc": 0.01,
+        "pre": 0.01,
+        "cl": 1e-09,
+        "qbf": 3,
+        "dis": 1e-14,
+        "rae": 330,
+        "drs": 0.005,
+        "qm": 8,
+        "qmis": 2e-14,
+        "das": 1e-07
+      },
+      "BT137": {
+        "ra": 0.005,
+        "rg": 50,
+        "rgk": 330,
+        "nis": 1e-11,
+        "nbf": 100,
+        "nise": 1.8e-09,
+        "nne": 2,
+        "nrb": 0.1,
+        "nrc": 0.01,
+        "nre": 0.01,
+        "pis": 1e-11,
+        "pbf": 100,
+        "pise": 1.8e-09,
+        "pne": 2,
+        "prb": 0.1,
+        "prc": 0.01,
+        "pre": 0.01,
+        "cl": 1e-09,
+        "qbf": 3,
+        "dis": 1e-14,
+        "rae": 330,
+        "drs": 0.005,
+        "qm": 8,
+        "qmis": 2e-14,
+        "das": 1e-07
+      }
+    },
+    "internas": [
+      "m2",
+      "ae1",
+      "bn1",
+      "gi1",
+      "ae2",
+      "bn2",
+      "gi2",
+      "gp",
+      "cb"
+    ],
+    "medida": {
+      "mas": "MT2",
+      "menos": "MT1",
+      "i": 0
+    },
+    "elementos": [
+      {
+        "t": "R",
+        "a": "MT2",
+        "b": "m2",
+        "ohms": "ra"
+      },
+      {
+        "t": "D",
+        "a": "m2",
+        "b": "ae1",
+        "params": {
+          "is": "das",
+          "rs": "drs"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "gi1",
+        "b": "bn1",
+        "e": "ae1",
+        "pnp": true,
+        "params": {
+          "is": "pis",
+          "bf": "pbf",
+          "ise": "pise",
+          "ne": "pne",
+          "rb": "prb",
+          "rc": "prc",
+          "re": "pre",
+          "vaf": 50
+        }
+      },
+      {
+        "t": "Q",
+        "c": "bn1",
+        "b": "gi1",
+        "e": "MT1",
+        "params": {
+          "is": "nis",
+          "bf": "nbf",
+          "ise": "nise",
+          "ne": "nne",
+          "rb": "nrb",
+          "rc": "nrc",
+          "re": "nre",
+          "vaf": 50
+        }
+      },
+      {
+        "t": "R",
+        "a": "gi1",
+        "b": "MT1",
+        "ohms": "rgk"
+      },
+      {
+        "t": "R",
+        "a": "ae1",
+        "b": "bn1",
+        "ohms": "rae"
+      },
+      {
+        "t": "C",
+        "a": "gi1",
+        "b": "MT1",
+        "farads": "cl"
+      },
+      {
+        "t": "C",
+        "a": "bn1",
+        "b": "ae1",
+        "farads": "cl"
+      },
+      {
+        "t": "D",
+        "a": "MT1",
+        "b": "ae2",
+        "params": {
+          "is": "das",
+          "rs": "drs"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "gi2",
+        "b": "bn2",
+        "e": "ae2",
+        "pnp": true,
+        "params": {
+          "is": "pis",
+          "bf": "pbf",
+          "ise": "pise",
+          "ne": "pne",
+          "rb": "prb",
+          "rc": "prc",
+          "re": "pre",
+          "vaf": 50
+        }
+      },
+      {
+        "t": "Q",
+        "c": "bn2",
+        "b": "gi2",
+        "e": "m2",
+        "params": {
+          "is": "nis",
+          "bf": "nbf",
+          "ise": "nise",
+          "ne": "nne",
+          "rb": "nrb",
+          "rc": "nrc",
+          "re": "nre",
+          "vaf": 50
+        }
+      },
+      {
+        "t": "R",
+        "a": "gi2",
+        "b": "m2",
+        "ohms": "rgk"
+      },
+      {
+        "t": "R",
+        "a": "ae2",
+        "b": "bn2",
+        "ohms": "rae"
+      },
+      {
+        "t": "C",
+        "a": "gi2",
+        "b": "m2",
+        "farads": "cl"
+      },
+      {
+        "t": "C",
+        "a": "bn2",
+        "b": "ae2",
+        "farads": "cl"
+      },
+      {
+        "t": "R",
+        "a": "G",
+        "b": "gp",
+        "ohms": "rg"
+      },
+      {
+        "t": "D",
+        "a": "gp",
+        "b": "gi1",
+        "params": {
+          "is": "dis"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "bn1",
+        "b": "MT1",
+        "e": "gp",
+        "params": {
+          "is": "qmis",
+          "bf": "qm"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "cb",
+        "b": "gp",
+        "e": "MT1",
+        "pnp": true,
+        "params": {
+          "is": "dis",
+          "bf": "qbf"
+        }
+      },
+      {
+        "t": "D",
+        "a": "cb",
+        "b": "gi2",
+        "params": {
+          "is": "dis"
+        }
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -6
+    },
+    "valor": {
+      "x": 0,
+      "y": 7
+    }
+  },
+  "rotulos": [
+    {
+      "texto": "MT2",
+      "x": -2.2,
+      "y": -4,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "MT1",
+      "x": -2.2,
+      "y": 4,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "G",
+      "x": 4,
+      "y": 3.6,
+      "tam": 1,
+      "alinear": "centro"
+    }
+  ],
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "BT136": {
+          "fuente": "NXP/WeEn BT136 series (BT136-600), Limiting values: voltaje de pico repetitivo en bloqueo VDRM de 600 V, IT(RMS) de 4 A.",
+          "limites": [
+            {
+              "nombre": "voltaje entre MT2 y MT1",
+              "de": "MT2",
+              "a": "MT1",
+              "abs": true,
+              "max": 600,
+              "consejo": "elige un triac de más voltaje o limita el voltaje de la red."
+            }
+          ]
+        },
+        "BT137": {
+          "fuente": "NXP/WeEn BT137 series (BT137-600), Limiting values: voltaje de pico repetitivo en bloqueo VDRM de 600 V, IT(RMS) de 8 A.",
+          "limites": [
+            {
+              "nombre": "voltaje entre MT2 y MT1",
+              "de": "MT2",
+              "a": "MT1",
+              "abs": true,
+              "max": 600,
+              "consejo": "elige un triac de más voltaje o limita el voltaje de la red."
+            }
+          ]
+        }
+      }
+    },
+    "quema": {
+      "factor": 2,
+      "durante": 0.5,
+      "elemento": 0
+    }
+  },
+  "fuentes": {
+    "BT136": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a NXP/WeEn BT136-600D, rev. 03 (2011) en los puntos que se pudieron leer: IGT de 2 mA típica y 5 mA máx en los cuadrantes T2+ G+, T2+ G− y T2− G−, IH de 1.2 mA típica y 10 mA máx a VD = 12 V, VDRM de 600 V, IT(RMS) de 4 A. No se pudo leer la tabla de IL ni la de VT: el modelo da VT de 1.64 V a 5 A (los distribuidores publican 1.5 a 1.7 V máx) y se dice sin validar. Cada mitad es un SCR de dos transistores como el del 2N5060 (PNP y NPN realimentados con 1 nF en sus dos nodos internos) con un diodo en el ánodo que lo hace bloquear al revés; la compuerta se mide contra MT1: en T2+ G+ la corriente entra a la base del NPN (330 Ω de compuerta a cátodo), y con compuerta negativa un NPN o un PNP sensores dan la ganancia (IGT medida: 1.5 mA, 2.5 mA y 3 mA en T2+ G+, T2+ G− y T2− G−). Con 400 V la fuga es de 0.1 µA. Mantenimiento medido: 3.4 mA. El cuadrante T2− G+ (IGT de 5 mA típica y 10 mA máx en la hoja) no se modela: ahí la compuerta no dispara. Tampoco dv/dt, di/dt, el tiempo de apagado ni la temperatura.",
+    "BT137": "Como el BT136 (mismos puntos de compuerta y mantenimiento) con la resistencia de conducción a la mitad para que a 8 A caiga cerca de 1.9 V; NXP/WeEn BT137 series (BT137-600): IT(RMS) de 8 A, VDRM de 600 V. Esa caída no se pudo contrastar con la hoja."
+  }
+}

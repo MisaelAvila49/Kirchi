@@ -1,0 +1,128 @@
+{
+  "id": "cristal",
+  "nombre": {
+    "es": "Cristal de cuarzo",
+    "en": "Quartz crystal"
+  },
+  "categoria": "pasivos",
+  "prefijo": "Y",
+  "buscar": [
+    "y",
+    "xtal",
+    "cristal",
+    "cuarzo",
+    "crystal",
+    "quartz",
+    "oscilador",
+    "resonador"
+  ],
+  "pines": [
+    {
+      "id": "1",
+      "nombre": "1",
+      "x": -4,
+      "y": 0
+    },
+    {
+      "id": "2",
+      "nombre": "2",
+      "x": 4,
+      "y": 0
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Frecuencia",
+      "mostrar": true,
+      "defecto": "8 MHz",
+      "opciones": [
+        "32.768 kHz",
+        "4 MHz",
+        "8 MHz",
+        "16 MHz"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "32.768 kHz": {
+        "l1": 6938.43,
+        "c1": 3.4e-15,
+        "r1": 55000,
+        "c0": 1e-12
+      },
+      "4 MHz": {
+        "l1": 0.0791572,
+        "c1": 2e-14,
+        "r1": 100,
+        "c0": 4e-12
+      },
+      "8 MHz": {
+        "l1": 0.0197893,
+        "c1": 2e-14,
+        "r1": 60,
+        "c0": 4e-12
+      },
+      "16 MHz": {
+        "l1": 0.00494732,
+        "c1": 2e-14,
+        "r1": 40,
+        "c0": 4e-12
+      }
+    },
+    "internas": [
+      "a",
+      "b"
+    ],
+    "medida": {
+      "mas": "1",
+      "menos": "2",
+      "i": 2
+    },
+    "elementos": [
+      {
+        "t": "L",
+        "a": "1",
+        "b": "a",
+        "henries": "l1"
+      },
+      {
+        "t": "C",
+        "a": "a",
+        "b": "b",
+        "farads": "c1"
+      },
+      {
+        "t": "R",
+        "a": "b",
+        "b": "2",
+        "ohms": "r1"
+      },
+      {
+        "t": "C",
+        "a": "1",
+        "b": "2",
+        "farads": "c0"
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -4
+    },
+    "valor": {
+      "x": 0,
+      "y": 4
+    }
+  },
+  "fuentes": {
+    "32.768 kHz": "Parámetros de la rama motional (L1, C1, R1) y de la capacitancia en paralelo (C0) del modelo de Butterworth y Van Dyke, con L1 calculada de la frecuencia de resonancia serie y de C1: fs = 1 / (2π √(L1 C1)). Cifras de la hoja del Epson FC-135 (el resonador de reloj de 32.768 kHz con 12.5 pF de carga): C1 de 3.4 fF típica, C0 de 1 pF típica y ESR de 55 kΩ típica (70 kΩ máx), leídas en listados y copias de la hoja (https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/156/FC_2D00_135.pdf), no en la revisión original de Epson. Con Q de unos 26,000 solo se ve su efecto con simulaciones de varios segundos.",
+    "4 MHz": "Parámetros de la rama motional (L1, C1, R1) y de la capacitancia en paralelo (C0) del modelo de Butterworth y Van Dyke, con L1 calculada de la frecuencia de resonancia serie y de C1: fs = 1 / (2π √(L1 C1)). Cristal HC-49/US de uso general: C0 de 4 pF (la hoja da 7 pF máx, Mouser HC49US Series). La hoja no publica C1 ni la ESR de esta banda: C1 de 20 fF y R1 de 100 Ω son valores típicos de un corte AT fundamental, sin validar contra una hoja.",
+    "8 MHz": "Parámetros de la rama motional (L1, C1, R1) y de la capacitancia en paralelo (C0) del modelo de Butterworth y Van Dyke, con L1 calculada de la frecuencia de resonancia serie y de C1: fs = 1 / (2π √(L1 C1)). Cristal HC-49/US de uso general: C0 de 4 pF (7 pF máx) y ESR de 60 Ω (80 Ω máx en la banda de 7 a 8.9 MHz, según la hoja de la serie HC49US de Mouser). C1 de 20 fF es un valor típico de un corte AT fundamental que la hoja no publica.",
+    "16 MHz": "Parámetros de la rama motional (L1, C1, R1) y de la capacitancia en paralelo (C0) del modelo de Butterworth y Van Dyke, con L1 calculada de la frecuencia de resonancia serie y de C1: fs = 1 / (2π √(L1 C1)). Cristal HC-49/US de uso general: C0 de 4 pF (7 pF máx). La ESR de la banda de 16 MHz no se pudo leer: R1 de 40 Ω y C1 de 20 fF son valores típicos sin validar. La resonancia serie va a 16 MHz exactos, pero una fuente a esa frecuencia ya queda por debajo de los 20 pasos por periodo que la vista previa puede dar (paso mínimo de 10 ns) y lo avisa."
+  }
+}

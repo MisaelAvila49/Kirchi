@@ -1,0 +1,23 @@
+* Medio sumador 74HC: XOR para la suma y AND para el acarreo, con dos fuentes de pulso
+.include digital.lib
+VA a 0 PULSE(0 5 0 1p 1p 249.999n 500n)
+VB b 0 PULSE(0 5 0 1p 1p 499.999n 1u)
+AIN [a b] [da db] adc_hc5
+AU1 [da db] ds xor_hc5
+AU2 [da db] dc and_hc5
+AS [ds] [o1] dac_hc5
+AC [dc] [o2] dac_hc5
+RO1 o1 suma 55
+RO2 o2 acarreo 55
+R1 suma 0 1k
+R2 acarreo 0 1k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 3u 0 0.1n uic
+wrdata salida.txt v(suma) v(acarreo)
+eprint da db ds dc > eventos.txt
+.endc
+.end

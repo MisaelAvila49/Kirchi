@@ -1,0 +1,26 @@
+* NAND 74LS como inversor con abanico de cinco entradas 74LS: cada entrada es 5.5 k a 2.6 V, y la salida pasa
+* de 0.15 V con 25 ohm a 3.42 V con 68 ohm con la rampa del control (12 ns de subida, 6 ns de bajada)
+.include digital.lib
+V1 in 0 PULSE(0 5 0 1p 1p 499.999n 1u)
+AIN [in] [din] adc_ls
+AU1 [din din] dout nand_ls
+AOC [dout] [oc] dac_ls
+ROC oc 0 1g
+BOUT out 0 I = (V(out) - (0.15*(1 - V(oc)) + 3.42*V(oc))) / (25*(1 - V(oc)) + 68*V(oc))
+VIN vin 0 DC 2.6
+RI1 out vin 5.5k
+RI2 out vin 5.5k
+RI3 out vin 5.5k
+RI4 out vin 5.5k
+RI5 out vin 5.5k
+AE [out] [dl] adc_ls
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 3u 0 0.1n uic
+wrdata salida.txt v(out) i(vin)
+eprint din dout dl > eventos.txt
+.endc
+.end

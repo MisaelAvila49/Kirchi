@@ -1,0 +1,97 @@
+{
+  "id": "npn",
+  "nombre": { "es": "Transistor NPN", "en": "NPN transistor" },
+  "categoria": "semiconductores",
+  "prefijo": "Q",
+  "buscar": ["q", "npn", "bjt", "transistor", "2n2222", "2n3904", "bc547", "tip31", "tip120", "bd139"],
+  "pines": [
+    { "id": "B", "nombre": "base", "x": -4, "y": 0 },
+    { "id": "C", "nombre": "colector", "x": 2, "y": -4 },
+    { "id": "E", "nombre": "emisor", "x": 2, "y": 4 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "2N2222", "opciones": ["2N2222", "2N3904", "BC547", "TIP31", "TIP120", "BD139"] }
+  ],
+  "modelo": {
+    "tipo": "bjt", "c": "C", "b": "B", "e": "E", "pnp": false, "prop": "modelo",
+    "modelos": {
+      "2N2222": { "is": 1.286e-14, "bf": 214, "nf": 1, "vaf": 100, "ikf": 0.264, "ise": 3.418e-13, "ne": 1.5, "br": 5, "rb": 5.476, "rc": 0.4575, "re": 0.1366, "cje": 2.219e-11, "vje": 0.75, "mje": 0.33, "tf": 4.017e-10, "cjc": 1.445e-11, "vjc": 0.75, "mjc": 0.33, "tr": 2.5e-7 },
+      "2N3904": { "is": 7.791e-15, "bf": 500, "nf": 1, "vaf": 100, "ikf": 0.01887, "ise": 2.086e-13, "ne": 1.5, "br": 5, "rb": 3.402, "rc": 0.9771, "re": 0.5144, "cje": 7.102e-12, "vje": 0.75, "mje": 0.33, "tf": 4.099e-10, "cjc": 7.223e-12, "vjc": 0.75, "mjc": 0.33, "tr": 2.5e-7 },
+      "BC547": { "is": 7.851e-14, "bf": 359.6, "nf": 1, "vaf": 100, "ikf": 0.09625, "ise": 1.64e-13, "ne": 1.5, "br": 5, "rb": 47.89, "rc": 1.072, "re": 0.5292, "cje": 1.184e-11, "vje": 0.75, "mje": 0.33, "tf": 4.684e-10, "cjc": 4.093e-12, "vjc": 0.75, "mjc": 0.33, "tr": 1e-7 },
+      "TIP31": { "is": 1.35e-12, "bf": 97, "nf": 1, "vaf": 100, "ikf": 0.98, "ise": 1.19e-12, "ne": 1.5, "br": 5, "rb": 1.33, "rc": 0.043, "re": 0.118, "cje": 3e-10, "vje": 0.75, "mje": 0.33, "tf": 4e-08, "cjc": 1.2e-10, "vjc": 0.75, "mjc": 0.33, "tr": 5e-07 },
+      "TIP120": { "is": 5.1e-15, "bf": 3450, "nf": 1.4, "vaf": 100, "ise": 5.52e-18, "ne": 1.5, "br": 5, "rb": 4.03, "rc": 0.0166, "re": 0.2547, "cje": 5e-10, "vje": 0.75, "mje": 0.33, "tf": 3e-08, "cjc": 4.8e-10, "vjc": 0.75, "mjc": 0.33, "tr": 5e-07 },
+      "BD139": { "is": 2.19e-13, "bf": 115.7, "nf": 1, "vaf": 100, "ikf": 0.89, "ise": 7.07e-14, "ne": 1.5, "br": 5, "rb": 5.84, "rc": 0.171, "re": 0.126, "cje": 6e-11, "vje": 0.75, "mje": 0.33, "tf": 1.6e-09, "cjc": 2e-11, "vjc": 0.75, "mjc": 0.33, "tr": 1e-07 }
+    }
+  },
+  "etiquetas": { "ref": { "x": 4, "y": -1 }, "valor": { "x": 4, "y": 1 } },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "2N2222": {
+          "fuente": "ON Semiconductor, P2N2222A/D, Maximum Ratings: VCEO 40 Vdc, VEBO 6.0 Vdc.",
+          "limites": [
+            {"nombre": "Vce", "de": "C", "a": "E", "abs": true, "max": 40, "consejo": "baja el voltaje que soporta el transistor o elige uno de más voltaje."},
+            {"nombre": "Vbe inverso", "de": "E", "a": "B", "max": 6, "escala": 6, "consejo": "evita polarizar la base al revés con más voltaje del que admite."}
+          ]
+        },
+        "2N3904": {
+          "fuente": "ON Semiconductor, 2N3904/D, Maximum Ratings: VCEO 40 Vdc, VEBO 6.0 Vdc.",
+          "limites": [
+            {"nombre": "Vce", "de": "C", "a": "E", "abs": true, "max": 40, "consejo": "baja el voltaje que soporta el transistor o elige uno de más voltaje."},
+            {"nombre": "Vbe inverso", "de": "E", "a": "B", "max": 6, "escala": 6, "consejo": "evita polarizar la base al revés con más voltaje del que admite."}
+          ]
+        },
+        "BC547": {
+          "fuente": "ON Semiconductor, BC546/D, Maximum Ratings (BC547): VCEO 45 Vdc, VEBO 6.0 Vdc.",
+          "limites": [
+            {"nombre": "Vce", "de": "C", "a": "E", "abs": true, "max": 45, "consejo": "baja el voltaje que soporta el transistor o elige uno de más voltaje."},
+            {"nombre": "Vbe inverso", "de": "E", "a": "B", "max": 6, "escala": 6, "consejo": "evita polarizar la base al revés con más voltaje del que admite."}
+          ]
+        },
+        "TIP31": {
+          "fuente": "onsemi, TIP31/D rev. 17 (jun 2024), Maximum Ratings (TIP31): VCEO 40 Vdc, VEBO 5.0 Vdc.",
+          "limites": [
+            {"nombre": "Vce", "de": "C", "a": "E", "abs": true, "max": 40, "consejo": "baja el voltaje que soporta el transistor o elige uno de más voltaje."},
+            {"nombre": "Vbe inverso", "de": "E", "a": "B", "max": 5, "escala": 5, "consejo": "evita polarizar la base al revés con más voltaje del que admite."}
+          ]
+        },
+        "TIP120": {
+          "fuente": "onsemi, TIP120/D rev. 10 (jun 2024), Maximum Ratings (TIP120): VCEO 60 Vdc, VEBO 5.0 Vdc.",
+          "limites": [
+            {"nombre": "Vce", "de": "C", "a": "E", "abs": true, "max": 60, "consejo": "baja el voltaje que soporta el transistor o elige uno de más voltaje."},
+            {"nombre": "Vbe inverso", "de": "E", "a": "B", "max": 5, "escala": 5, "consejo": "evita polarizar la base al revés con más voltaje del que admite."}
+          ]
+        },
+        "BD139": {
+          "fuente": "onsemi, BD139/D, Absolute Maximum Ratings (BD139): VCEO 80 V, VEBO 5 V.",
+          "limites": [
+            {"nombre": "Vce", "de": "C", "a": "E", "abs": true, "max": 80, "consejo": "baja el voltaje que soporta el transistor o elige uno de más voltaje."},
+            {"nombre": "Vbe inverso", "de": "E", "a": "B", "max": 5, "escala": 5, "consejo": "evita polarizar la base al revés con más voltaje del que admite."}
+          ]
+        }
+      }
+    },
+   
+    "por": {
+      "prop": "modelo",
+      "valores": {
+        "2N2222": { "corriente": 0.6, "potencia": 0.625, "fuente": "ON Semiconductor, P2N2222A/D, Maximum Ratings: IC 600 mAdc, PD 625 mW a 25 °C" },
+        "2N3904": { "corriente": 0.2, "potencia": 0.625, "fuente": "ON Semiconductor, 2N3904/D, Maximum Ratings: IC 200 mAdc, PD 625 mW a 25 °C" },
+        "BC547": { "corriente": 0.1, "potencia": 0.625, "fuente": "ON Semiconductor, BC546/D, Maximum Ratings: IC 100 mAdc, PD 625 mW a 25 °C" },
+        "TIP31": { "corriente": 3, "potencia": 40, "fuente": "onsemi, TIP31/D rev. 17 (jun 2024), Maximum Ratings: IC 3.0 Adc continua, PD 40 W a TC = 25 °C" },
+        "TIP120": { "corriente": 5, "potencia": 65, "fuente": "onsemi, TIP120/D rev. 10 (jun 2024), Maximum Ratings: IC 5.0 Adc continua, PD 65 W a TC = 25 °C" },
+        "BD139": { "corriente": 1.5, "potencia": 12.5, "fuente": "onsemi, BD139/D, Absolute Maximum Ratings: IC 1.5 A, PC 12.5 W a TC = 25 °C" }
+      }
+    },
+    "quema": { "factor": 2, "durante": 0.5 }
+  },
+  "fuentes": {
+    "2N2222": "Parámetros ajustados por Kirchi (no copiados) a ON Semiconductor, P2N2222A/D rev. 7 (ene 2013), https://www.onsemi.com/pdf/datasheet/p2n2222a-d.pdf: hFE 35, 50 y 75 mín a 0.1, 1 y 10 mA, 100 a 300 a 150 mA y 40 mín a 500 mA (VCE = 10 V), VCE(sat) 0.3 V máx a 150 mA con IB = 15 mA y 1.0 V a 500 mA con 50 mA, VBE(sat) 0.6 a 1.2 V a 150 mA y 2.0 V máx a 500 mA, fT 300 MHz mín (20 mA, 20 V), Cobo 8 pF máx y Cibo 25 pF máx. Donde la hoja da solo un mínimo o un máximo, el modelo se fijó en 1.6 a 1.8 veces el mínimo de hFE (media geométrica si da un intervalo), 0.4 veces el máximo de VCE(sat), el punto medio de un intervalo de VBE(sat) (o el máximo menos 0.1 V; a 500 mA, donde la hoja da solo 2.0 V o 2.6 V máx, se estimó 1.2 V y 1.8 V), 1.15 veces el fT mínimo y 0.75 veces la capacitancia máxima; esas cifras típicas no vienen en la hoja. Se midió con ngspice 47 y el modelo cae dentro de todos los límites de la hoja. VAF (100 V), NE, BR, las uniones y TR (estimado de ts) no vienen en la hoja: son órdenes de magnitud sin validar.",
+    "2N3904": "Parámetros ajustados por Kirchi (no copiados) a onsemi 2N3904/D rev. 3 (oct 2024), https://www.onsemi.com/pdf/datasheet/2n3904-d.pdf: hFE 40, 70, 60 y 30 mín a 0.1, 1, 50 y 100 mA y 100 a 300 a 10 mA (VCE = 1 V), VCE(sat) 0.2 V máx a 10 mA con IB = 1 mA y 0.3 V a 50 mA con 5 mA, VBE(sat) 0.65 a 0.85 V a 10 mA y 0.95 V máx a 50 mA, fT 300 MHz mín (10 mA, 20 V), Cobo 4 pF máx y Cibo 8 pF máx. Donde la hoja da solo un mínimo o un máximo, el modelo se fijó en 1.6 a 1.8 veces el mínimo de hFE (media geométrica si da un intervalo), 0.4 veces el máximo de VCE(sat), el punto medio de un intervalo de VBE(sat) (o el máximo menos 0.1 V; a 500 mA, donde la hoja da solo 2.0 V o 2.6 V máx, se estimó 1.2 V y 1.8 V), 1.15 veces el fT mínimo y 0.75 veces la capacitancia máxima; esas cifras típicas no vienen en la hoja. Se midió con ngspice 47 y el modelo cae dentro de todos los límites de la hoja. VAF (100 V), NE, BR, las uniones y TR (estimado de ts) no vienen en la hoja: son órdenes de magnitud sin validar.",
+    "BC547": "Parámetros ajustados por Kirchi (no copiados) a onsemi BC546/D rev. 8 (ago 2021), https://www.onsemi.com/pdf/datasheet/bc546-d.pdf, con las cifras típicas del grupo B: hFE 150, 290 y 180 a 10 µA, 2 mA y 100 mA (VCE = 5 V), VCE(sat) 0.09 V a 10 mA con IB = 0.5 mA y 0.2 V a 100 mA con 5 mA, VBE(sat) 0.7 V a 10 mA, VBE(on) 0.55 a 0.7 V a 2 mA, fT 300 MHz típico (10 mA, 5 V), Cobo 1.7 pF y Cibo 10 pF típicos. Las cifras se tomaron tal cual de la columna típica (no se escalaron). VAF (100 V), NE, BR, las uniones y TR (1e-7 s, sin dato de conmutación en la hoja) no vienen en la hoja: son órdenes de magnitud sin validar.",
+    "TIP31": "Parámetros ajustados por Kirchi (no copiados) a onsemi TIP31/D rev. 17 (jun 2024), https://www.onsemi.com/pdf/datasheet/tip31a-d.pdf: hFE 25 mín a 1 A y 10 a 50 a 3 A (VCE = 4 V), VCE(sat) 1.2 V máx a 3 A con IB = 375 mA, VBE(on) 1.8 V máx a 3 A, fT 3 MHz mín. La hoja da solo mínimos y máximos: el modelo se fijó en hFE 50 y 25, VBE 1.3 V y VCE(sat) 0.6 V. Las capacitancias, tr y el resto no vienen en la hoja: son órdenes de magnitud sin validar.",
+    "TIP120": "Darlington modelado como un solo transistor, con parámetros ajustados por Kirchi (no copiados) a onsemi TIP120/D rev. 10 (jun 2024), https://www.onsemi.com/pdf/datasheet/tip120-d.pdf: hFE 2500 típico a 4 A y 1000 mín a 0.5 y 3 A (VCE = 3 V), VCE(sat) 2.0 V máx a 3 A con IB = 12 mA y 4.0 V a 5 A con 20 mA, VBE(on) 2.5 V máx a 3 A, Cob 200 pF máx. El modelo se fijó en hFE 2500, VBE 2.0 V, VCE(sat) 1.3 y 1.8 V. Sin el diodo ni las resistencias internas del Darlington real.",
+    "BD139": "Parámetros ajustados por Kirchi (no copiados) a onsemi BD135/137/139, BD139/D, https://www.onsemi.com/pdf/datasheet/bd139-d.pdf: hFE 40 a 250 a 150 mA y 25 mín a 5 mA y 500 mA (VCE = 2 V), VCE(sat) 0.5 V máx a 500 mA con IB = 50 mA, VBE(on) 1 V máx a 0.5 A. El modelo se fijó en hFE 100 (150 mA) y 75 (500 mA), VBE 0.85 V y VCE(sat) 0.2 V. La hoja no da fT ni capacitancias: tf y las uniones son órdenes de magnitud sin validar."
+  }
+}

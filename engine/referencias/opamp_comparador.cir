@@ -1,0 +1,17 @@
+* Comparador con LM358 de una sola alimentacion. Referencia convergida (reltol 1e-6, paso maximo 0.05 us): el flanco de salida
+* sigue la velocidad de subida y con reltol 1e-4 su instante depende de la tolerancia de cada programa.
+.include modelos.lib
+V1 1 0 DC 5
+VIN 3 0 SIN(2.5 1 1k)
+VREF 4 0 DC 2.5
+RL 5 0 10k
+XU1 3 4 5 1 0 AMPOP a0=1e5 gbw=1e6 sr=0.3e6 rin=10meg rout=50 ilim=40m dhi=1.5 dlo=5m rq=14.3k
+.options reltol=1e-6 abstol=1e-14 vntol=1e-9
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 0.05u 3m 0 0.02u uic
+wrdata salida.txt v(5)
+.endc
+.end

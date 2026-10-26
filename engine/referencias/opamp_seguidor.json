@@ -1,0 +1,73 @@
+{
+  "netlist": {
+    "nodes": 5,
+    "elements": [
+      {
+        "type": "V",
+        "a": 1,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 15
+        }
+      },
+      {
+        "type": "V",
+        "a": 2,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": -15
+        }
+      },
+      {
+        "type": "V",
+        "a": 3,
+        "b": 0,
+        "wave": {
+          "kind": "square",
+          "low": 0,
+          "high": 5,
+          "freq": 50000,
+          "duty": 0.5
+        }
+      },
+      {
+        "type": "R",
+        "a": 4,
+        "b": 0,
+        "ohms": 10000
+      },
+      {
+        "type": "OA",
+        "p": 3,
+        "n": 4,
+        "out": 4,
+        "vp": 1,
+        "vn": 2,
+        "model": {
+          "a0": 200000,
+          "gbw": 3000000,
+          "sr": 13000000,
+          "rin": 1000000000000,
+          "rout": 100,
+          "ilim": 0.04,
+          "dhi": 1.5,
+          "dlo": 1.5,
+          "rq": 21400
+        }
+      }
+    ]
+  },
+  "fin": 0.00006,
+  "hmax": 5e-9,
+  "tolerancia_t": 5e-9,
+  "columnas": {
+    "v(4)": {
+      "nodo": 4
+    },
+    "i(v1)": {
+      "corriente": 0
+    }
+  }
+}

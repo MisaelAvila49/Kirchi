@@ -1,0 +1,22 @@
+* SCR 2N5060 con 7 V, 100 ohm y un pulso de compuerta de 5 V por 10 k durante 5 ms: se queda encendido
+.include modelos.lib
+VS vs 0 DC 7
+RL vs a 100
+RA a ae 0.1
+Q2 gi bn ae QSCRP
+Q1 bn gi 0 QSCRN
+VP p 0 PULSE(0 5 0 1p 1p 5m 10m)
+RD p g 10k
+RG g gi 50
+RGK gi 0 47000
+CL1 gi 0 1n
+CL2 bn ae 1n
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 5u 14m 0 2u uic
+wrdata salida.txt v(a) i(vs)
+.endc
+.end

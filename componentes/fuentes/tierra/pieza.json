@@ -1,0 +1,11 @@
+{
+  "id": "tierra",
+  "nombre": { "es": "Tierra", "en": "Ground" },
+  "categoria": "fuentes",
+  "prefijo": "GND",
+  "buscar": ["g", "gnd", "tierra", "ground", "0"],
+  "pines": [{ "id": "1", "nombre": "GND", "x": 0, "y": 0 }],
+  "props": [],
+  "modelo": { "tipo": "tierra", "pin": "1" },
+  "etiquetas": { "ref": { "x": 0, "y": 4 }, "valor": { "x": 0, "y": 4 } }
+}

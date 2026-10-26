@@ -1,0 +1,225 @@
+{
+  "id": "puente-rectificador",
+  "nombre": {
+    "es": "Puente rectificador",
+    "en": "Bridge rectifier"
+  },
+  "categoria": "semiconductores",
+  "prefijo": "BR",
+  "buscar": [
+    "br",
+    "puente",
+    "puente rectificador",
+    "bridge",
+    "rectifier",
+    "db107",
+    "w10m",
+    "kbpc",
+    "rectificador"
+  ],
+  "pines": [
+    {
+      "id": "AC1",
+      "nombre": "entrada alterna 1 (~)",
+      "x": -6,
+      "y": 0
+    },
+    {
+      "id": "AC2",
+      "nombre": "entrada alterna 2 (~)",
+      "x": 6,
+      "y": 0
+    },
+    {
+      "id": "+",
+      "nombre": "salida positiva (+)",
+      "x": 0,
+      "y": -6
+    },
+    {
+      "id": "-",
+      "nombre": "salida negativa (−)",
+      "x": 0,
+      "y": 6
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Diodos",
+      "mostrar": true,
+      "defecto": "1N4007",
+      "opciones": [
+        "Genérico",
+        "1N4148",
+        "1N4007",
+        "1N5819"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "Genérico": {
+        "is": 1e-14,
+        "n": 1,
+        "rs": 0,
+        "bv": 1000000.0,
+        "ibv": 0.001,
+        "cjo": 0,
+        "vj": 0.75,
+        "m": 0.5,
+        "tt": 0
+      },
+      "1N4148": {
+        "is": 2.2e-09,
+        "n": 1.8,
+        "rs": 0.6,
+        "bv": 100,
+        "ibv": 0.0001,
+        "cjo": 4e-12,
+        "vj": 0.6,
+        "m": 0.4,
+        "tt": 2e-09
+      },
+      "1N4007": {
+        "is": 7.5e-09,
+        "n": 1.8,
+        "rs": 0.03,
+        "bv": 1000,
+        "ibv": 5e-06,
+        "cjo": 3.8e-11,
+        "vj": 0.75,
+        "m": 0.5,
+        "tt": 3e-06
+      },
+      "1N5819": {
+        "is": 2.7e-06,
+        "n": 1.05,
+        "rs": 0.1,
+        "bv": 40,
+        "ibv": 0.001,
+        "cjo": 3.3e-10,
+        "vj": 0.5,
+        "m": 0.5,
+        "tt": 1e-10
+      }
+    },
+    "medida": {
+      "mas": "+",
+      "menos": "-",
+      "i": 0
+    },
+    "elementos": [
+      {
+        "t": "D",
+        "a": "AC1",
+        "b": "+",
+        "params": {
+          "is": "is",
+          "n": "n",
+          "rs": "rs",
+          "bv": "bv",
+          "ibv": "ibv",
+          "cjo": "cjo",
+          "vj": "vj",
+          "m": "m",
+          "tt": "tt"
+        }
+      },
+      {
+        "t": "D",
+        "a": "AC2",
+        "b": "+",
+        "params": {
+          "is": "is",
+          "n": "n",
+          "rs": "rs",
+          "bv": "bv",
+          "ibv": "ibv",
+          "cjo": "cjo",
+          "vj": "vj",
+          "m": "m",
+          "tt": "tt"
+        }
+      },
+      {
+        "t": "D",
+        "a": "-",
+        "b": "AC1",
+        "params": {
+          "is": "is",
+          "n": "n",
+          "rs": "rs",
+          "bv": "bv",
+          "ibv": "ibv",
+          "cjo": "cjo",
+          "vj": "vj",
+          "m": "m",
+          "tt": "tt"
+        }
+      },
+      {
+        "t": "D",
+        "a": "-",
+        "b": "AC2",
+        "params": {
+          "is": "is",
+          "n": "n",
+          "rs": "rs",
+          "bv": "bv",
+          "ibv": "ibv",
+          "cjo": "cjo",
+          "vj": "vj",
+          "m": "m",
+          "tt": "tt"
+        }
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -9
+    },
+    "valor": {
+      "x": 0,
+      "y": 9
+    }
+  },
+  "rotulos": [
+    {
+      "texto": "~",
+      "x": -5,
+      "y": -1.4,
+      "tam": 1.6
+    },
+    {
+      "texto": "~",
+      "x": 5,
+      "y": -1.4,
+      "tam": 1.6
+    },
+    {
+      "texto": "+",
+      "x": 1.4,
+      "y": -5,
+      "tam": 1.4,
+      "alinear": "izq"
+    },
+    {
+      "texto": "−",
+      "x": 1.4,
+      "y": 5,
+      "tam": 1.4,
+      "alinear": "izq"
+    }
+  ],
+  "fuentes": {
+    "Genérico": "Cuatro diodos iguales en puente (AC1 y AC2 al positivo, el negativo a AC1 y AC2): El diodo de siempre de Kirchi (IS = 10 fA, N = 1), sin hoja de datos: es el modelo por omisión y el de los .kir anteriores.",
+    "1N4148": "Cuatro diodos iguales en puente (AC1 y AC2 al positivo, el negativo a AC1 y AC2): Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Vishay 1N4148, doc. 81857 rev. 1.6 (7 nov 2024), https://www.vishay.com/docs/81857/1n4148.pdf: V(BR) 100 V a 100 µA, CD 4 pF (VR = 0), IR 25 nA a 20 V (máx), VF 1 V máx a 10 mA. La hoja solo da el máximo de VF: la curva se fijó en 0.72 V a 10 mA. tt = 2 ns sale del trr de 4 ns y no se validó.",
+    "1N4007": "Cuatro diodos iguales en puente (AC1 y AC2 al positivo, el negativo a AC1 y AC2): Parámetros ajustados por Kirchi (no copiados) a Diodes Inc. 1N4001-1N4007, ds28002 (julio 2024), https://www.diodes.com/assets/Datasheets/ds28002.pdf: VFM 1.0 V máx a 1 A, IR 5 µA, Cj 15 pF a 4 V, VRRM 1000 V. La curva se fijó en 0.90 V a 1 A. La hoja no da el tiempo de recuperación: tt = 3 µs es un orden de magnitud típico de un rectificador de 1 A y no se validó.",
+    "1N5819": "Cuatro diodos iguales en puente (AC1 y AC2 al positivo, el negativo a AC1 y AC2): Parámetros ajustados por Kirchi (no copiados) a Vishay 1N5817/1N5818/1N5819, doc. 88525, https://www.vishay.com/docs/88525/1n5817.pdf: VF máx 0.60 V a 1 A y 0.90 V a 3.1 A, IR máx 1 mA a 25 °C, CJ 110 pF a 4 V, VRRM 40 V. La hoja solo da máximos: la curva se fijó en 0.45 V a 1 A y 0.69 V a 3.1 A."
+  }
+}

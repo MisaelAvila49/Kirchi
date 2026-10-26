@@ -1,0 +1,77 @@
+{
+  "id": "zener",
+  "nombre": { "es": "Diodo Zener", "en": "Zener diode" },
+  "categoria": "semiconductores",
+  "prefijo": "D",
+  "buscar": ["zener", "dz", "regulador zener", "1n4728", "1n4733", "bzx55"],
+  "pines": [
+    { "id": "A", "nombre": "ánodo", "x": -4, "y": 0 },
+    { "id": "K", "nombre": "cátodo", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "1N47xxA", "opciones": ["1N47xxA", "BZX55C"] },
+    { "id": "voltaje", "nombre": "Voltaje Zener", "unidad": "V", "defecto": "5.1", "catalogo": true, "comunes": ["2.7", "3.3", "3.9", "4.7", "5.1", "5.6", "6.2", "6.8", "8.2", "9.1", "10", "12", "15", "18", "24", "27", "33", "39", "47", "56", "68"] }
+  ],
+  "modelo": {
+    "tipo": "zener", "a": "A", "b": "K", "prop": "voltaje", "is": 2.5e-15, "n": 1, "cjo": 1e-10, "vj": 0.75, "m": 0.33,
+    "serie": {
+      "3.3": { "izt": 0.076, "zzt": 10 }, "3.6": { "izt": 0.069, "zzt": 10 }, "3.9": { "izt": 0.064, "zzt": 9 },
+      "4.3": { "izt": 0.058, "zzt": 9 }, "4.7": { "izt": 0.053, "zzt": 8 }, "5.1": { "izt": 0.049, "zzt": 7 },
+      "5.6": { "izt": 0.045, "zzt": 5 }, "6.2": { "izt": 0.041, "zzt": 2 }, "6.8": { "izt": 0.037, "zzt": 3.5 },
+      "7.5": { "izt": 0.034, "zzt": 4 }, "8.2": { "izt": 0.031, "zzt": 4.5 }, "9.1": { "izt": 0.028, "zzt": 5 },
+      "10": { "izt": 0.025, "zzt": 7 }, "11": { "izt": 0.023, "zzt": 8 }, "12": { "izt": 0.021, "zzt": 9 },
+      "13": { "izt": 0.019, "zzt": 10 }, "15": { "izt": 0.017, "zzt": 14 }, "16": { "izt": 0.0155, "zzt": 16 },
+      "18": { "izt": 0.014, "zzt": 20 }, "20": { "izt": 0.0125, "zzt": 22 }, "22": { "izt": 0.0115, "zzt": 23 },
+      "24": { "izt": 0.0105, "zzt": 25 }, "27": { "izt": 0.0095, "zzt": 35 }, "30": { "izt": 0.0085, "zzt": 40 },
+      "33": { "izt": 0.0075, "zzt": 45 }, "36": { "izt": 0.007, "zzt": 50 }, "39": { "izt": 0.0065, "zzt": 60 },
+      "43": { "izt": 0.006, "zzt": 70 }, "47": { "izt": 0.0055, "zzt": 80 }, "51": { "izt": 0.005, "zzt": 95 },
+      "56": { "izt": 0.0045, "zzt": 110 }, "62": { "izt": 0.004, "zzt": 125 }, "68": { "izt": 0.0037, "zzt": 150 },
+      "75": { "izt": 0.0033, "zzt": 175 }
+    },
+    "sinFamiliaHasta": 24,
+    "por": {
+      "prop": "familia",
+      "valores": {
+        "BZX55C": {
+          "2.4": { "izt": 0.005, "zzt": 85 }, "2.7": { "izt": 0.005, "zzt": 85 }, "3": { "izt": 0.005, "zzt": 85 },
+          "3.3": { "izt": 0.005, "zzt": 85 }, "3.6": { "izt": 0.005, "zzt": 85 }, "3.9": { "izt": 0.005, "zzt": 85 },
+          "4.3": { "izt": 0.005, "zzt": 75 }, "4.7": { "izt": 0.005, "zzt": 60 }, "5.1": { "izt": 0.005, "zzt": 35 },
+          "5.6": { "izt": 0.005, "zzt": 25 }, "6.2": { "izt": 0.005, "zzt": 10 }, "6.8": { "izt": 0.005, "zzt": 8 },
+          "7.5": { "izt": 0.005, "zzt": 7 }, "8.2": { "izt": 0.005, "zzt": 7 }, "9.1": { "izt": 0.005, "zzt": 10 },
+          "10": { "izt": 0.005, "zzt": 15 }, "11": { "izt": 0.005, "zzt": 20 }, "12": { "izt": 0.005, "zzt": 20 },
+          "13": { "izt": 0.005, "zzt": 26 }, "15": { "izt": 0.005, "zzt": 30 }, "16": { "izt": 0.005, "zzt": 40 },
+          "18": { "izt": 0.005, "zzt": 50 }, "20": { "izt": 0.005, "zzt": 55 }, "22": { "izt": 0.005, "zzt": 55 },
+          "24": { "izt": 0.005, "zzt": 80 }, "27": { "izt": 0.005, "zzt": 80 }, "30": { "izt": 0.005, "zzt": 80 },
+          "33": { "izt": 0.005, "zzt": 80 }, "36": { "izt": 0.005, "zzt": 80 }, "39": { "izt": 0.0025, "zzt": 90 },
+          "43": { "izt": 0.0025, "zzt": 90 }, "47": { "izt": 0.0025, "zzt": 110 }, "51": { "izt": 0.0025, "zzt": 125 },
+          "56": { "izt": 0.0025, "zzt": 135 }, "62": { "izt": 0.0025, "zzt": 150 }, "68": { "izt": 0.0025, "zzt": 200 },
+          "75": { "izt": 0.0025, "zzt": 250 }
+        }
+      }
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "familia",
+      "valores": {
+        "1N47xxA": {
+          "fuente": "onsemi, 1N4728A a 1N4764A (1N4728A/D), Maximum Ratings: disipación de potencia en CC de 1 W a TA = 50 °C.",
+          "limites": [
+            {"nombre": "potencia", "medida": "potencia", "max": 1.0, "consejo": "agrega una resistencia en serie que limite la corriente del Zener."}
+          ]
+        },
+        "BZX55C": {
+          "fuente": "Vishay, BZX55 series (doc. 85604), Absolute Maximum Ratings: potencia total Ptot de 500 mW a Tamb = 25 °C.",
+          "limites": [
+            {"nombre": "potencia", "medida": "potencia", "max": 0.5, "consejo": "agrega una resistencia en serie que limite la corriente del Zener."}
+          ]
+        }
+      }
+    },
+    "quema": {"factor": 2, "durante": 0.5}
+  },
+  "fuentes": {
+    "1N47xxA": "Vishay 1N4728A a 1N4761A (1 W), doc. 85816 rev. 2.7 (7 nov 2024), https://www.vishay.com/docs/85816/1n4728a.pdf, tabla de características eléctricas: VZ nominal, corriente de prueba IZT y ZZT a IZT. Se copian IZT y ZZT; rs = ZZT - 0.0259 V / IZT y bv = VZ - IZT·rs salen de ahí. Las piezas de 82, 91 y 100 V (1N4762A a 1N4764A) quedan fuera: no se pudo leer su hoja.",
+    "BZX55C": "Vishay BZX55 (500 mW), doc. 85604 rev. 1.5 (5 jul 2007), copia en https://static.chipdip.ru/lib/224/DOC000224555.pdf (vishay.com ya no la sirve en esa ruta). IZT = 5 mA hasta 36 V y 2.5 mA desde 39 V. La hoja da la resistencia dinámica rzj como máximo («<»), y esa cifra es la ZZT del modelo: el Zener simulado es algo menos preciso que uno típico."
+  }
+}

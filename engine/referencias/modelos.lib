@@ -1,0 +1,91 @@
+* Modelos de Kirchi en sintaxis de ngspice: los mismos parametros que los pieza.json.
+* Las piezas sin modelo propio en SPICE (amplificador operacional, foco, fusible, motor y rele)
+* se escriben con fuentes B en cada circuito, con las mismas ecuaciones que el motor.
+
+* Transistores NPN (parametros ajustados por Kirchi a las hojas de datos, los mismos de componentes/semiconductores/npn y pnp)
+.model Q2N2222 NPN(IS=1.286e-14 BF=214 NF=1 VAF=100 IKF=0.264 ISE=3.418e-13 NE=1.5 BR=5 RB=5.476 RC=0.4575 RE=0.1366 CJE=2.219e-11 VJE=0.75 MJE=0.33 TF=4.017e-10 CJC=1.445e-11 VJC=0.75 MJC=0.33 TR=2.5e-7)
+.model Q2N3904 NPN(IS=7.791e-15 BF=500 NF=1 VAF=100 IKF=0.01887 ISE=2.086e-13 NE=1.5 BR=5 RB=3.402 RC=0.9771 RE=0.5144 CJE=7.102e-12 VJE=0.75 MJE=0.33 TF=4.099e-10 CJC=7.223e-12 VJC=0.75 MJC=0.33 TR=2.5e-7)
+.model QBC547 NPN(IS=7.851e-14 BF=359.6 NF=1 VAF=100 IKF=0.09625 ISE=1.64e-13 NE=1.5 BR=5 RB=47.89 RC=1.072 RE=0.5292 CJE=1.184e-11 VJE=0.75 MJE=0.33 TF=4.684e-10 CJC=4.093e-12 VJC=0.75 MJC=0.33 TR=1e-7)
+
+* Transistores PNP
+.model Q2N2907 PNP(IS=1e-12 BF=211.3 NF=1 VAF=100 IKF=0.3408 ISE=1.506e-12 NE=1.5 BR=5 RB=16.16 RC=0.5521 RE=0.3998 CJE=2.663e-11 VJE=0.75 MJE=0.33 TF=6.264e-10 CJC=1.445e-11 VJC=0.75 MJC=0.33 TR=2.9e-7)
+.model Q2N3906 PNP(IS=1.537e-14 BF=500 NF=1 VAF=100 IKF=0.01732 ISE=2.71e-13 NE=1.5 BR=5 RB=9.96 RC=2.403 RE=0.214 CJE=8.877e-12 VJE=0.75 MJE=0.33 TF=4.825e-10 CJC=8.186e-12 VJC=0.75 MJC=0.33 TR=2.7e-7)
+.model QBC557 PNP(IS=7.316e-14 BF=354.1 NF=1 VAF=100 IKF=0.1018 ISE=1.54e-13 NE=1.5 BR=5 RB=41.72 RC=1.974 RE=0.4361 CJE=1.184e-11 VJE=0.75 MJE=0.33 TF=4.25e-10 CJC=7.223e-12 VJC=0.75 MJC=0.33 TR=1e-7)
+
+* Transistores de potencia de la serie: los mismos parametros de componentes/semiconductores/npn y pnp.
+.model QTIP31 NPN(IS=1.35e-12 BF=97 NF=1 VAF=100 IKF=0.98 ISE=1.19e-12 NE=1.5 BR=5 RB=1.33 RC=0.043 RE=0.118 CJE=3e-10 VJE=0.75 MJE=0.33 TF=4e-08 CJC=1.2e-10 VJC=0.75 MJC=0.33 TR=5e-07)
+.model QTIP120 NPN(IS=5.1e-15 BF=3450 NF=1.4 VAF=100 ISE=5.52e-18 NE=1.5 BR=5 RB=4.03 RC=0.0166 RE=0.2547 CJE=5e-10 VJE=0.75 MJE=0.33 TF=3e-08 CJC=4.8e-10 VJC=0.75 MJC=0.33 TR=5e-07)
+.model QBD139 NPN(IS=2.19e-13 BF=115.7 NF=1 VAF=100 IKF=0.89 ISE=7.07e-14 NE=1.5 BR=5 RB=5.84 RC=0.171 RE=0.126 CJE=6e-11 VJE=0.75 MJE=0.33 TF=1.6e-09 CJC=2e-11 VJC=0.75 MJC=0.33 TR=1e-07)
+.model QTIP32 PNP(IS=1.35e-12 BF=97 NF=1 VAF=100 IKF=0.98 ISE=1.19e-12 NE=1.5 BR=5 RB=1.33 RC=0.043 RE=0.118 CJE=3e-10 VJE=0.75 MJE=0.33 TF=4e-08 CJC=1.2e-10 VJC=0.75 MJC=0.33 TR=5e-07)
+.model QTIP125 PNP(IS=5.1e-15 BF=3450 NF=1.4 VAF=100 ISE=5.52e-18 NE=1.5 BR=5 RB=4.03 RC=0.0166 RE=0.2547 CJE=5e-10 VJE=0.75 MJE=0.33 TF=3e-08 CJC=7.2e-10 VJC=0.75 MJC=0.33 TR=5e-07)
+.model QBD140 PNP(IS=2.19e-13 BF=115.7 NF=1 VAF=100 IKF=0.89 ISE=7.07e-14 NE=1.5 BR=5 RB=5.84 RC=0.171 RE=0.126 CJE=6e-11 VJE=0.75 MJE=0.33 TF=1.6e-09 CJC=2e-11 VJC=0.75 MJC=0.33 TR=1e-07)
+
+* MOSFET de nivel 1, con W y L de 1 m en la instancia: CGSO y CGDO quedan en faradios y KP es la beta.
+.model M2N7000 NMOS(LEVEL=1 VTO=2.1 KP=0.18 LAMBDA=0.02 RD=0.3 RS=0.2 CBD=34p PB=0.8 MJ=0.5 FC=0.5
++ IS=1e-15 CGSO=15p CGDO=5p)
+.model MIRFZ44N NMOS(LEVEL=1 VTO=3 KP=18 LAMBDA=0.01 RD=4m RS=2m CBD=1.55n PB=0.8 MJ=0.5 FC=0.5
++ IS=2e-14 CGSO=1.38n CGDO=88p)
+.model MBS250 PMOS(LEVEL=1 VTO=-2.1 KP=0.0115 LAMBDA=0.02 RD=2 RS=1 CBD=114p PB=0.8 MJ=0.5 FC=0.5
++ IS=1e-15 CGSO=40p CGDO=10p)
+.model MIRF9540 PMOS(LEVEL=1 VTO=-3 KP=2.1 LAMBDA=0.01 RD=30m RS=20m CBD=909p PB=0.8 MJ=0.5 FC=0.5
++ IS=2e-14 CGSO=1.06n CGDO=240p)
+
+* MOSFET de la serie: los mismos parametros de componentes/semiconductores/mosfet-n y mosfet-p.
+.model MIRF540N NMOS(LEVEL=1 VTO=3 KP=20 LAMBDA=0.01 RD=0.017 RS=0.0111 CBD=1.19e-09 PB=0.8 MJ=0.5 FC=0.5 IS=2e-14 CGSO=1.92e-09 CGDO=4e-11)
+.model MIRLZ44N NMOS(LEVEL=1 VTO=1.5 KP=70 LAMBDA=0.01 RD=0.01 RS=0.0059 CBD=1.42e-09 PB=0.8 MJ=0.5 FC=0.5 IS=2e-14 CGSO=1.55e-09 CGDO=1.5e-10)
+.model MIRF520 NMOS(LEVEL=1 VTO=3 KP=1.2 LAMBDA=0.01 RD=0.053 RS=0.0344 CBD=6.59e-10 PB=0.8 MJ=0.5 FC=0.5 IS=2e-14 CGSO=3.26e-10 CGDO=3.4e-11)
+.model MIRF4905 PMOS(LEVEL=1 VTO=-3 KP=12 LAMBDA=0.01 RD=0.0025 RS=0.0016 CBD=4.32e-09 PB=0.8 MJ=0.5 FC=0.5 IS=2e-14 CGSO=2.76e-09 CGDO=6.4e-10)
+
+* Diodos: el de la libreria, el LED rojo y el zener 1N4733A (5.1 V a 49 mA, 7 ohm): rs = zzt - vt/izt y
+* bv = vz - izt rs, para que en las terminales haya 5.1 V con 49 mA y la impedancia sea la de la hoja de datos.
+.model DGEN D(IS=1e-14 N=1)
+.model DLEDROJO D(IS=1.5e-17 N=2)
+.model D1N4733A D(IS=2.5e-15 N=1 RS=6.47214 BV=4.782865 IBV=49m NBV=1 CJO=100p VJ=0.75 M=0.33)
+
+* Diodos de la serie: parametros ajustados a las hojas de datos, los mismos de componentes/semiconductores/diodo/pieza.json.
+.model D1N4148 D(IS=2.2n N=1.8 RS=0.6 CJO=4p VJ=0.6 M=0.4 TT=2n BV=100 IBV=100u)
+.model D1N4007 D(IS=7.5n N=1.8 RS=0.03 CJO=38p VJ=0.75 M=0.5 TT=3u BV=1000 IBV=5u)
+.model D1N5819 D(IS=2.7u N=1.05 RS=0.1 CJO=330p VJ=0.5 M=0.5 TT=0.1n BV=40 IBV=1m)
+
+* Zener de la serie 1N47xxA (Vishay 85816) y BZX55C (Vishay 85604): rs = zzt - vt/izt y bv = vz - izt rs, como el motor.
+.model D1N4747A D(IS=2.5e-15 N=1 RS=19.9308 BV=19.75086 IBV=12.5m NBV=1 CJO=100p VJ=0.75 M=0.33)
+.model D1N4761A D(IS=2.5e-15 N=1 RS=167.162 BV=74.44836 IBV=3.3m NBV=1 CJO=100p VJ=0.75 M=0.33)
+.model DBZX55C6V2 D(IS=2.5e-15 N=1 RS=4.82702 BV=6.175865 IBV=5m NBV=1 CJO=100p VJ=0.75 M=0.33)
+
+* Transistor de salida de los comparadores LM393 y LM311 (componentes/integrados/comparador): el amplificador es AMPOP y su resistencia de base va en el circuito.
+.model QCMP393 NPN(IS=1e-14 BF=60 RC=23 CJE=2e-12 CJC=2e-12 TF=5e-09 TR=1e-07)
+.model QCMP311 NPN(IS=1e-14 BF=60 RC=12 CJE=2e-12 CJC=2e-12 TF=3e-09 TR=1e-09)
+
+* Amplificador operacional de una etapa (el mismo que el motor): ganancia a0, polo dominante a0/gbw,
+* velocidad de subida sr, salida acotada a dhi y dlo de las alimentaciones y corriente limitada a ilim.
+.subckt AMPOP mas menos sal vp vn params: a0=2e5 gbw=1e6 sr=0.5e6 rin=2e6 rout=75 ilim=25m dhi=1 dlo=1 rq=17.6k
+.param r1=1e6
+.param gm={a0/r1}
+.param c1={a0/(2*3.141592653589793*gbw*r1)}
+.param imax={sr*c1}
+.param gc={1000*imax}
+RIN mas menos {rin}
+RQ vp vn {rq}
+BG 0 x I={imax}*tanh({gm}*V(mas,menos)/{imax})
+R1 x 0 {r1}
+C1 x 0 {c1}
+BCL x 0 I={gc}*(max(V(x)-V(vp)+{dhi},0)+min(V(x)-V(vn)-{dlo},0))
+BOP vp sal I=0.5*({ilim}*tanh((V(x)-V(sal))/({rout}*{ilim}))+sqrt(({ilim}*tanh((V(x)-V(sal))/({rout}*{ilim})))^2+1e-12))
+BON vn sal I=0.5*({ilim}*tanh((V(x)-V(sal))/({rout}*{ilim}))-sqrt(({ilim}*tanh((V(x)-V(sal))/({rout}*{ilim})))^2+1e-12))
+.ends
+
+* Transistor de paso de los reguladores 7805, 7812, 7905 y LM317 (componentes/integrados/regulador-*): los mismos parametros de sus pieza.json.
+.model QREGN NPN(IS=5.1e-15 BF=3450 NF=1.4 VAF=100 ISE=5.52e-18 NE=1.5 BR=5 RB=0.5 RC=0.0166 RE=0.03 VJE=0.75 MJE=0.33 VJC=0.75 MJC=0.33)
+.model QREGP PNP(IS=5.1e-15 BF=3450 NF=1.4 VAF=100 ISE=5.52e-18 NE=1.5 BR=5 RB=0.5 RC=0.0166 RE=0.03 VJE=0.75 MJE=0.33 VJC=0.75 MJC=0.33)
+
+* Transistores del SCR y del diac (componentes/semiconductores/scr y diac): los mismos parametros de sus pieza.json.
+.model QSCRN NPN(IS=1e-14 BF=100 VAF=50 ISE=1.8e-9 NE=2 RB=0.5 RC=0.05 RE=0.05)
+.model QSCRP PNP(IS=1e-14 BF=100 VAF=50 ISE=1.8e-9 NE=2 RB=0.5 RC=0.05 RE=0.05)
+.model DZS3 D(IS=1e-14 N=1 RS=1 BV=24.5 IBV=1e-4)
+.model DZS4 D(IS=1e-14 N=1 RS=1 BV=32.5 IBV=1e-4)
+.model DZT D(IS=1e-14 N=1 RS=1 BV=6.5 IBV=1e-4)
+
+* Un canal del ULN2003A (componentes/integrados/uln2003): los mismos parametros de su pieza.json.
+.model QULN1 NPN(IS=1e-15 BF=100 VAF=50 RB=20 RC=3 RE=1)
+.model QULN2 NPN(IS=1e-14 BF=100 VAF=50 RB=10 RC=0.5 RE=0.8)
+.model DULN D(IS=1e-9 N=1.3 RS=2.9 BV=100 IBV=1e-4)

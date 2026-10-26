@@ -1,0 +1,32 @@
+{
+  "id": "contador",
+  "nombre": { "es": "Contador de 4 bits", "en": "4-bit counter" },
+  "categoria": "digitales",
+  "prefijo": "U",
+  "buscar": ["u", "contador", "counter", "4 bits", "74390", "74393", "74163", "4518"],
+  "pines": [
+    { "id": "CLK", "nombre": "reloj (CLK)", "x": -6, "y": -4 },
+    { "id": "RST", "nombre": "reinicio (RST, activo en alto)", "x": -6, "y": 2 },
+    { "id": "Q0", "nombre": "Q0", "x": 6, "y": -6 },
+    { "id": "Q1", "nombre": "Q1", "x": 6, "y": -4 },
+    { "id": "Q2", "nombre": "Q2", "x": 6, "y": -2 },
+    { "id": "Q3", "nombre": "Q3", "x": 6, "y": 0 },
+    { "id": "CO", "nombre": "acarreo (CO)", "x": 6, "y": 4 }
+  ],
+  "props": [
+    { "id": "hasta", "nombre": "Cuenta hasta", "defecto": "9", "opciones": ["9", "15"] },
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS", "CD4000B"] },
+    { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
+  ],
+  "modelo": { "tipo": "contador", "clk": "CLK", "rst": "RST", "q": ["Q0", "Q1", "Q2", "Q3"], "co": "CO", "hasta": "hasta", "familia": "familia", "alimentacion": "alimentacion" },
+  "etiquetas": { "ref": { "x": 0, "y": -10 }, "valor": { "x": 0, "y": 8 } },
+  "rotulos": [
+    { "texto": "CLK", "x": -2.6, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "RST", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "Q0", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "Q1", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "Q2", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "Q3", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "CO", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" }
+  ]
+}

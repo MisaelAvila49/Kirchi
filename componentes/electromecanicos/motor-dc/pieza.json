@@ -1,0 +1,23 @@
+{
+  "id": "motor-dc",
+  "nombre": { "es": "Motor DC", "en": "DC motor" },
+  "categoria": "electromecanicos",
+  "prefijo": "M",
+  "buscar": ["motor", "motor dc", "dc motor"],
+  "pines": [
+    { "id": "+", "nombre": "+", "x": -4, "y": 0 },
+    { "id": "-", "nombre": "−", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "voltaje", "nombre": "Voltaje nominal", "unidad": "V", "defecto": "6", "comunes": ["3", "5", "6", "9", "12"] }
+  ],
+  "modelo": {
+    "tipo": "motor", "a": "+", "b": "-", "voltaje": "voltaje",
+    "referencia": { "v": 6, "r": 3, "l": 1.5e-3, "ke": 6.05e-3, "j": 2.4e-7, "bm": 6.4e-7 }
+  },
+  "rotulos": [
+    { "texto": "M", "x": 0, "y": 0.1, "tam": 2 }
+  ],
+  "animacion": { "tipo": "giro", "vueltasMax": 2 },
+  "limites": { "voltaje": { "prop": "voltaje", "aviso": 1.5 }, "quema": { "factor": 2, "durante": 0.5 } }
+}

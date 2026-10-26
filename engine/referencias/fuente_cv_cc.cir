@@ -1,0 +1,19 @@
+* Referencia convergida (reltol 1e-6, paso maximo 0.05 us): en los cambios de carga el instante del flanco del MOSFET depende
+* de la tolerancia de cada programa con reltol 1e-4.
+* Fuente variable de 12 V con limite de 100 mA (dos tramos: I = ilim tanh((V - Vsal)/5 mV), 100 nF de salida): 1 kohm de carga y, de 2 ms a 4 ms, 10 ohm en paralelo
+.include modelos.lib
+BPS 0 sal I = 100m*tanh((12 - V(sal))/5m)
+CO sal 0 100n
+RL sal 0 1k
+RC sal d 10
+M1 d g 0 0 MIRFZ44N W=1 L=1
+VG g 0 PULSE(0 10 2m 1u 1u 2m 10m)
+.options reltol=1e-6 abstol=1e-14 vntol=1e-9
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 2u 6m 0 0.05u uic
+wrdata salida.txt v(sal) v(d)
+.endc
+.end

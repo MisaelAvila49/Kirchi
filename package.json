@@ -1,0 +1,59 @@
+{
+  "name": "kirchi",
+  "version": "1.2.2",
+  "description": "Simulador de circuitos libre y sin conexión",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "main": "out/main/index.js",
+  "scripts": {
+    "build:engine": "wasm-pack build engine --release --target web --out-dir ../src/renderer/src/sim/pkg --out-name kirchi_engine",
+    "dev": "npm run build:engine && node scripts/electron-vite.mjs dev",
+    "build": "npm run build:engine && node scripts/electron-vite.mjs build",
+    "start": "node scripts/electron-vite.mjs preview --skipBuild",
+    "pretypecheck": "npm run build:engine",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.test.json",
+    "pretest": "npm run build:engine",
+    "test": "vitest run && vitest run -c vitest.componentes.config.ts && vitest run -c vitest.rendimiento.config.ts",
+    "test:engine": "cargo test --manifest-path engine/Cargo.toml",
+    "bench:engine": "cargo run --release --manifest-path engine/Cargo.toml --features faer --example bench",
+    "e2e": "npm run build && playwright test",
+    "licencias": "node scripts/generar-licencias.mjs",
+    "iconos": "node scripts/generar-iconos.mjs",
+    "preparar:ngspice": "node scripts/preparar-ngspice.mjs",
+    "dist": "npm run build && node scripts/preparar-ngspice.mjs && electron-builder --win",
+    "dist:todo": "npm run build && node scripts/preparar-ngspice.mjs && node scripts/preparar-licencias-electron.mjs && electron-builder --win --mac --linux",
+    "dist:tienda": "npm run build && node scripts/preparar-ngspice.mjs && electron-builder --win appx --publish never",
+    "dist:dir": "npm run build && node scripts/preparar-ngspice.mjs && electron-builder --win --dir"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "@fontsource-variable/mona-sans": "5.3.0",
+    "@fontsource-variable/source-serif-4": "5.3.1",
+    "earcut": "^3.2.4",
+    "fflate": "^0.8.3",
+    "rbush": "^4.0.1",
+    "solid-js": "^1.9.17"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.5",
+    "@types/rbush": "^4.0.0",
+    "axe-core": "^4.14.0",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "happy-dom": "^21.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.7",
+    "vite-plugin-solid": "^2.11.14",
+    "vitest": "^5.0.4",
+    "wasm-pack": "^0.15.0"
+  },
+  "author": {
+    "name": "Misael Saúl Avila López",
+    "email": "misaelavila49@gmail.com"
+  }
+}

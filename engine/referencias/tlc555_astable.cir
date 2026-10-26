@@ -1,0 +1,22 @@
+* TLC555 astable con R1 = 10 k, R2 = 47 k y C = 10 nF a 5 V: la formula da 1.38 kHz
+.include digital.lib
+V1 vcc 0 DC 5
+R1 vcc dis 10k
+R2 dis thr 47k
+C1 thr 0 10n
+RL out 0 10k
+X1 0 thr out vcc cv thr dis vcc K555 rdiv=100k rq=33k vres=1.1 td=100n tr=20n tf=15n vlo=0 rlo=26 vhi=0 rhi=160 gon={1/12}
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1u 5m 0 0.05u uic
+wrdata salida.txt v(thr) v(out) v(dis) i(v1)
+eprint x1.q > eventos.txt
+meas tran sube1 WHEN v(out)=2.5 RISE=2
+meas tran sube2 WHEN v(out)=2.5 RISE=6
+let periodo=(sube2-sube1)/4
+print 1/periodo
+.endc
+.end

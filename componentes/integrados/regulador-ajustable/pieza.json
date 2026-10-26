@@ -1,0 +1,72 @@
+{
+  "id": "regulador-ajustable",
+  "nombre": { "es": "Regulador ajustable LM317", "en": "Adjustable regulator LM317" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["u", "regulador", "regulator", "lm317", "317", "ajustable", "adjustable"],
+  "pines": [
+    { "id": "IN", "nombre": "entrada (IN)", "x": -6, "y": -2 },
+    { "id": "OUT", "nombre": "salida (OUT)", "x": 6, "y": -2 },
+    { "id": "ADJ", "nombre": "ajuste (ADJ)", "x": 0, "y": 4, "ayuda": "R1 de OUT a ADJ y R2 de ADJ a tierra · Vout = 1.25 V · (1 + R2/R1) · con R1 = 240 Ω, R2 = 720 Ω da 5 V · carga mínima de 10 mA" }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "LM317", "opciones": ["LM317"] }
+  ],
+  "modelo": {
+    "tipo": "compuesto", "prop": "modelo",
+    "modelos": {
+      "LM317": { "vref": 1.25, "iadj": 0.00005, "a0": 20000, "gbw": 1000000, "rout": 20, "ilim": 0.00082, "dhi": 0.77, "dlo": 0.1, "rq": 1000000000000, "rq3": 2857, "r1": 50000, "rf": 10000, "cf": 1e-7, "rss": 20000, "css": 1e-9 }
+    },
+    "internas": ["ref0", "ref", "fb", "g", "nx"],
+    "medida": { "mas": "OUT", "menos": "ADJ", "i": 9 },
+    "elementos": [
+      { "t": "OA", "mas": "ref", "menos": "fb", "sal": "g", "vmas": "IN", "vmenos": "ADJ", "params": { "a0": "a0", "gbw": "gbw", "sr": 300000, "rin": 1000000000, "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" } },
+      { "t": "V", "a": "ref0", "b": "ADJ", "volts": "vref" },
+      { "t": "R", "a": "ref0", "b": "ref", "ohms": "rss" },
+      { "t": "C", "a": "ref", "b": "ADJ", "farads": "css" },
+      { "t": "R", "a": "OUT", "b": "fb", "ohms": "r1" },
+      { "t": "R", "a": "g", "b": "nx", "ohms": "rf" },
+      { "t": "C", "a": "nx", "b": "fb", "farads": "cf" },
+      { "t": "I", "a": "IN", "b": "ADJ", "amps": "iadj" },
+      { "t": "R", "a": "IN", "b": "OUT", "ohms": "rq3" },
+      { "t": "Q", "c": "IN", "b": "g", "e": "OUT", "params": { "is": 5.1e-15, "bf": 3450, "nf": 1.4, "vaf": 100, "ise": 5.52e-18, "ne": 1.5, "br": 5, "rb": 0.5, "rc": 0.0166, "re": 0.03, "vje": 0.75, "mje": 0.33, "vjc": 0.75, "mjc": 0.33 } }
+    ]
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "LM317": {
+          "fuente": "Texas Instruments LM317, SLVS044, Absolute Maximum Ratings: voltaje diferencial entre entrada y salida de 40 V.",
+          "limites": [
+            {"nombre": "entrada menos salida", "de": "IN", "a": "OUT", "max": 40, "consejo": "baja la entrada o pon antes un regulador de más voltaje."}
+          ]
+        }
+      }
+    },
+    "quema": {"factor": 2, "durante": 0.5, "elemento": 9},
+   
+    "compuesto": [
+      {
+        "nombre": "salida sobre la entrada",
+        "elementos": [
+          9
+        ],
+        "medida": "voltaje",
+        "sentido": "negativa",
+        "max": 0.6,
+        "consejo": "la entrada quedó en corto o más baja que la salida y el capacitor de salida se descarga hacia ella; pon un diodo de la salida a la entrada.",
+        "fuente": "Criterio de Kirchi: las hojas de onsemi MC7800/D y TI recomiendan un diodo de protección cuando la salida puede quedar por encima de la entrada y no dan un máximo; 0.6 V es el de una unión en directa. El modelo no deja pasar corriente inversa por el transistor de paso, así que el aviso mira el voltaje."
+      }
+    ]
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -6 }, "valor": { "x": 0, "y": 6 } },
+  "rotulos": [
+    { "texto": "IN", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "OUT", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "ADJ", "x": 0, "y": 0.8, "tam": 1, "alinear": "arriba" }
+  ],
+  "fuentes": {
+      "LM317": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments LM317, SLVS044Z (sep 1997, rev. abr 2025), https://www.ti.com/lit/ds/symlink/lm317.pdf: referencia de 1.25 V típica entre OUT y ADJ (1.2 a 1.3 V), corriente de ajuste de 50 µA típica (100 µA máx), regulación de carga de 0.1 % típica (0.5 % máx), de línea de 0.01 %/V típica, carga mínima de 3.5 mA típica (10 mA máx) y límite de corriente de 2.2 A típico (1.5 A mín). La caída de entrada sale de una curva de la hoja (figura 6-18) que no se leyó: se usaron los 2.0 V del 7805. El amplificador va entre IN y ADJ, la corriente de ajuste sale de IN hacia ADJ y una resistencia entre IN y OUT da la corriente en reposo (3.5 mA con 10 V): con menos carga que esa la salida sube, como en un LM317 real. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador de una etapa con una referencia de arranque suave, un divisor en la salida, un lazo proporcional-integral lento (cruza entre 10 Hz y 20 kHz según la carga y el capacitor, y no oscila con capacitores ideales de 0 a 1000 µF) y un transistor de paso sin capacitancias (con ellas la regla trapezoidal oscilaba). No modela el pliegue de la corriente de cortocircuito, la protección térmica ni el ruido, y el arranque y la recuperación de un escalón de carga tardan unos milisegundos."
+  }
+}

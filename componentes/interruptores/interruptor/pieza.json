@@ -1,0 +1,13 @@
+{
+  "id": "interruptor",
+  "nombre": { "es": "Interruptor", "en": "Switch" },
+  "categoria": "interruptores",
+  "prefijo": "S",
+  "buscar": ["s", "sw", "switch", "interruptor", "apagador"],
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 0 }
+  ],
+  "props": [{ "id": "estado", "nombre": "Estado", "defecto": "abierto", "opciones": ["abierto", "cerrado"] }],
+  "modelo": { "tipo": "interruptor", "a": "1", "b": "2", "prop": "estado", "cerrado": "cerrado" }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "decodificador-7seg",
+  "nombre": { "es": "Decodificador BCD", "en": "BCD decoder" },
+  "categoria": "digitales",
+  "prefijo": "U",
+  "buscar": ["u", "decodificador", "decoder", "bcd", "4511", "7447", "74ls47"],
+  "pines": [
+    { "id": "A", "nombre": "A (bit 0)", "x": -6, "y": -6 },
+    { "id": "B", "nombre": "B (bit 1)", "x": -6, "y": -4 },
+    { "id": "C", "nombre": "C (bit 2)", "x": -6, "y": -2 },
+    { "id": "D", "nombre": "D (bit 3)", "x": -6, "y": 0 },
+    { "id": "a", "nombre": "a", "x": 6, "y": -8 },
+    { "id": "b", "nombre": "b", "x": 6, "y": -6 },
+    { "id": "c", "nombre": "c", "x": 6, "y": -4 },
+    { "id": "d", "nombre": "d", "x": 6, "y": -2 },
+    { "id": "e", "nombre": "e", "x": 6, "y": 0 },
+    { "id": "f", "nombre": "f", "x": 6, "y": 2 },
+    { "id": "g", "nombre": "g", "x": 6, "y": 4 }
+  ],
+  "props": [
+    { "id": "salidas", "nombre": "Salidas", "defecto": "activas en alto", "opciones": ["activas en alto", "activas en bajo"] },
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS", "CD4000B"] },
+    { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
+  ],
+  "modelo": { "tipo": "decodificador", "entradas": ["A", "B", "C", "D"], "salidas": ["a", "b", "c", "d", "e", "f", "g"], "polaridad": "salidas", "bajo": "activas en bajo", "familia": "familia", "alimentacion": "alimentacion" },
+  "etiquetas": { "ref": { "x": 0, "y": -12 }, "valor": { "x": 0, "y": 8 } },
+  "rotulos": [
+    { "texto": "A", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "C", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "D", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "a", "x": 3.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "b", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "c", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "d", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "e", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "f", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "g", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" }
+  ]
+}

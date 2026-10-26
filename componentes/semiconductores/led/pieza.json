@@ -1,0 +1,27 @@
+{
+  "id": "led",
+  "nombre": { "es": "LED", "en": "LED" },
+  "categoria": "semiconductores",
+  "prefijo": "D",
+  "buscar": ["led", "luz", "diodo emisor"],
+  "pines": [
+    { "id": "A", "nombre": "ánodo", "x": -4, "y": 0 },
+    { "id": "K", "nombre": "cátodo", "x": 4, "y": 0 }
+  ],
+  "props": [{ "id": "color", "nombre": "Color", "defecto": "rojo", "opciones": ["rojo", "verde", "azul", "amarillo", "blanco"] }],
+  "modelo": {
+    "tipo": "D", "a": "A", "b": "K", "is": 1.5e-17, "n": 2, "inom": 0.02,
+    "por": {
+      "prop": "color",
+      "valores": {
+        "amarillo": { "is": 3.18e-19, "n": 2 },
+        "verde": { "is": 4.59e-20, "n": 2 },
+        "azul": { "is": 1.83e-28, "n": 2 },
+        "blanco": { "is": 1.83e-28, "n": 2 }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -4 } },
+  "animacion": { "tipo": "brillo", "color": "color" },
+  "limites": { "quema": { "factor": 2, "durante": 0.5 } }
+}

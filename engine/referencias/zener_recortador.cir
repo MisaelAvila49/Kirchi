@@ -1,0 +1,14 @@
+* Zener 1N4733A que recorta una senoidal de 10 V
+.include modelos.lib
+V1 1 0 SIN(0 10 50)
+R1 1 2 1k
+D1 0 2 D1N4733A
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20u 40m 0 5u uic
+wrdata salida.txt v(2) i(v1)
+.endc
+.end

@@ -1,0 +1,20 @@
+{
+  "netlist": {
+    "nodes": 4,
+    "digital_nets": 7,
+    "elements": [
+      { "type": "V", "a": 1, "b": 0, "wave": { "kind": "square", "low": 0, "high": 5, "freq": 1e6 } },
+      { "type": "V", "a": 2, "b": 0, "wave": { "kind": "square", "low": 0, "high": 5, "freq": 80645.16129032258, "duty": 0.06048387096774194 } },
+      { "type": "ADC", "p": 1, "n": 0, "out": 0, "in_low": 1.5, "in_high": 3.5 },
+      { "type": "ADC", "p": 2, "n": 0, "out": 1, "in_low": 1.5, "in_high": 3.5 },
+      { "type": "COUNTER", "clk": 0, "rst": 1, "q": [2, 3, 4, 5], "co": 6, "modulo": 10, "rise_delay": 5e-9, "fall_delay": 5e-9 },
+      { "type": "DAC", "input": 6, "out": 3, "v_lo": 0, "v_hi": 5, "r_lo": 55, "r_hi": 55, "t_rise": 6.666666666666667e-9, "t_fall": 6.666666666666667e-9 },
+      { "type": "R", "a": 3, "b": 0, "ohms": 10000 }
+    ]
+  },
+  "fin": 1.6e-5,
+  "hmax": 1e-10,
+  "tolerancia_t": 5e-10,
+  "columnas": { "v(out)": { "nodo": 3 } },
+  "eventos": { "dck": 0, "dr": 1, "q0": 2, "q1": 3, "q2": 4, "q3": 5, "co": 6 }
+}

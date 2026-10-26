@@ -1,0 +1,9 @@
+/* Aviso breve sobre el lienzo: abajo al centro del área, encima del lienzo y bajo los menús. */
+.aviso-lienzo-zona { position: absolute; left: 12px; right: 190px; bottom: 14px; display: flex; justify-content: center; pointer-events: none; z-index: 6; }
+.aviso-lienzo { pointer-events: auto; display: flex; align-items: center; gap: 10px; max-width: 520px; margin: 0; padding: 8px 8px 8px 14px; background: var(--paneles); color: var(--trazo); border: 1px solid var(--bordes); border-radius: 8px; box-shadow: 0 4px 14px var(--sombra-aviso); font: 13px/1.35 var(--fuente-interfaz); }
+.aviso-lienzo-cerrar { flex: none; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--texto-secundario); font-size: 18px; line-height: 1; cursor: pointer; }
+.aviso-lienzo-cerrar:hover { background: var(--chip); color: var(--trazo); }
+@media (prefers-reduced-motion: no-preference) {
+  .aviso-lienzo { animation: aviso-lienzo-entra 0.18s ease-out; }
+}
+@keyframes aviso-lienzo-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }

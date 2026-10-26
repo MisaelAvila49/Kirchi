@@ -1,0 +1,210 @@
+/* Editor de valores «Ficha compacta»: el inspector y el doble clic de toda pieza, con
+   renglones de rótulo y valor, conmutadores segmentados, cifras derivadas a la vista y «Más ajustes» plegable. Solo variables:
+   los colores viven en ui/colores.css y styles.css. */
+
+/* ---------- Conmutador segmentado (grupo de botones de radio) ---------- */
+.conmutador { display: inline-flex; min-width: 0; margin: 0; padding: 2px; gap: 2px; border: 0; border-radius: 7px; background: var(--chip); }
+.conmutador-op { position: relative; display: inline-flex; }
+.conmutador-op input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.conmutador-op > span:not(.solo-lectores) { padding: 4px 9px; border-radius: 5px; font-size: 11.5px; line-height: 1.2; color: var(--texto-secundario); white-space: nowrap; }
+.conmutador-op input:checked + span { background: var(--seleccion); color: var(--sobre-seleccion); font-weight: 600; }
+.conmutador-op input:focus-visible + span { outline: 2px solid var(--seleccion); outline-offset: 1px; }
+.conmutador-op input:checked:focus-visible + span { outline-color: var(--trazo); }
+.conmutador:disabled { opacity: 0.55; }
+
+/* ---------- Referencia arriba a la derecha, en un recuadro que se nota editable ---------- */
+.caja-referencia-envoltura { position: relative; flex: none; margin-left: auto; }
+.caja-referencia { display: inline-flex; align-items: center; gap: 4px; padding: 0 6px 0 8px; border: 1px solid var(--borde-campo); border-radius: 6px; background: var(--lienzo); }
+.caja-referencia:focus-within { outline: 2px solid var(--seleccion); outline-offset: 0; }
+.caja-referencia.invalida { border-color: var(--invalido); }
+.caja-referencia input { width: 6ch; min-width: 0; height: 24px; padding: 0; border: 0; background: transparent; color: var(--trazo); font-size: 12px; font-weight: 600; outline: none; }
+/* La caja crece con la referencia, hasta las 24 letras que admite (`MAX_REFERENCIA`): con un ancho fijo recortaba las largas. `field-sizing`
+   solo actúa con el ancho en auto, así que va aparte; un motor que no lo conozca se queda con los 6ch. */
+@supports (field-sizing: content) {
+  .caja-referencia input { width: auto; field-sizing: content; min-width: 6ch; max-width: 24ch; }
+}
+.caja-referencia input:disabled, .caja-referencia input[readonly] { color: var(--texto-secundario); }
+.caja-referencia-lapiz { width: 12px; height: 12px; flex: none; fill: none; stroke: var(--texto-secundario); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.caja-referencia-error { position: absolute; right: 0; top: calc(100% + 2px); z-index: 2; width: max-content; max-width: 220px; margin: 0; padding: 3px 6px; border-radius: 5px; background: var(--paneles); box-shadow: var(--sombra); font-size: 11.5px; text-align: right; }
+.caja-referencia-error:empty { display: none; }
+/* La nota de la referencia fija (al simular) flota bajo la caja como el error: en el flujo ensanchaba la envoltura y la caja quedaba corrida sobre el título. */
+.caja-referencia-envoltura > .en-linea-nota { position: absolute; right: 0; top: calc(100% + 2px); z-index: 2; width: max-content; max-width: 220px; margin: 0; padding: 3px 6px; border-radius: 5px; background: var(--paneles); box-shadow: var(--sombra); text-align: right; }
+.caja-referencia-envoltura > .en-linea-nota[hidden] { display: none; }
+/* La cabecera del inspector deja el nombre a la izquierda y la referencia a la derecha. */
+.inspector .panel-cabeza .caja-referencia-envoltura { margin-left: auto; }
+.inspector .panel-cabeza.de-pieza h2 { white-space: normal; overflow: visible; }
+.inspector .panel-cabeza.de-pieza .titulo-pieza { min-width: 0; flex: 1 1 auto; }
+.inspector .panel-cabeza.de-pieza .caja-referencia-envoltura + .boton-icono { margin-left: 0; }
+.inspector .categoria-pieza { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Renglones de rótulo y valor ---------- */
+.inspector .fld-campo, .en-linea-ficha .en-linea-fila { grid-template-columns: minmax(0, 1fr) auto; }
+.entrada-valor { display: inline-flex; align-items: baseline; gap: 4px; min-width: 0; padding: 0 8px; border: 1px solid var(--borde-campo); border-radius: 6px; background: var(--lienzo); }
+.entrada-valor:focus-within { outline: 2px solid var(--seleccion); outline-offset: 0; }
+.entrada-valor:has(input[aria-invalid='true']) { border-color: var(--invalido); }
+.entrada-valor .campo { width: 9ch; min-width: 0; height: 28px; padding: 0; border: 0; border-radius: 0; background: transparent; text-align: right; outline: none; font-weight: 500; }
+.entrada-valor .campo[readonly] { border: 0; color: var(--texto-secundario); }
+.entrada-valor.con-unidad-lista { align-items: center; gap: 0; padding-right: 2px; }
+.entrada-valor.con-unidad-lista .campo { padding-right: 4px; }
+.unidad-lista { position: relative; display: inline-flex; align-items: center; }
+.unidad-valor { appearance: none; min-width: 4.4ch; height: 24px; padding: 0 15px 0 5px; border: 0; border-radius: 4px; background: transparent; color: var(--trazo); font: 600 12.5px var(--fuente-cifras); cursor: pointer; }
+.unidad-valor:hover:not(:disabled) { background: var(--chip); color: var(--trazo); }
+.unidad-valor:focus-visible { outline: none; background: var(--chip); }
+.unidad-valor:disabled { cursor: not-allowed; }
+.unidad-valor option { background: var(--paneles); color: var(--trazo); }
+.unidad-flecha { position: absolute; right: 4px; width: 8px; height: 5px; fill: none; stroke: var(--texto-secundario); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.fld .entrada-unidad { padding: 0; border: 0; border-radius: 0; background: none; min-width: 2ch; color: var(--texto-secundario); font-size: 11.5px; font-weight: 500; }
+.fld-campo > label, .fld-lista > span, .fld-perilla > label { color: var(--texto-secundario); font-size: 12px; }
+.fld-campo .campo-lista { justify-self: end; }
+.fld-campo select.campo { height: 28px; font-size: 12px; }
+.fld-campo .campo-ayuda { font-family: var(--fuente-cifras); }
+.deriv { font: 11.5px var(--fuente-cifras); font-variant-numeric: tabular-nums; color: var(--texto-secundario); }
+
+/* Más ajustes: plegable, con su resumen. */
+.mas-ajustes { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--bordes); }
+.mas-ajustes > summary { display: flex; align-items: center; min-height: 28px; color: var(--seleccion); font-size: 12px; font-weight: 600; cursor: pointer; }
+.mas-ajustes > summary:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 2px; border-radius: 4px; }
+.mas-ajustes[open] > summary { margin-bottom: 4px; }
+
+/* ---------- Ficha del generador ---------- */
+.ficha-gen { display: flex; flex-direction: column; gap: 6px; font-size: 12px; min-width: 0; }
+.formas-tira { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; margin: 0; padding: 3px; border: 0; border-radius: 8px; background: var(--chip); }
+.forma-op { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 40px; padding: 3px 2px; border-radius: 6px; color: var(--texto-secundario); cursor: pointer; }
+.forma-op input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.forma-nombre { font-size: 10.5px; line-height: 1.1; white-space: nowrap; }
+.ficha-aviso { margin: 0; }
+.forma-op svg { width: 100%; max-width: 30px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round; }
+.forma-op:has(input:checked) { background: var(--seleccion); color: var(--sobre-seleccion); }
+.forma-op:has(input:focus-visible) { outline: 2px solid var(--seleccion); outline-offset: 1px; }
+.forma-op:has(input:checked:focus-visible) { outline-color: var(--trazo); }
+.forma-op:has(input:disabled) { opacity: 0.55; cursor: not-allowed; }
+.ficha-forma { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin: 2px 0 0; font-size: 12.5px; }
+.ficha-forma b { font-weight: 650; }
+.ficha-grupo { display: grid; gap: 4px; margin-top: 6px; }
+.ficha-grupo > .conmutador { justify-self: start; }
+.ficha-deriv { margin: -2px 0 2px; text-align: right; }
+.ficha-gen .fld { margin: 2px 0; }
+.ficha-gen .fld-perilla { grid-template-columns: minmax(0, 1fr) auto; }
+.ficha-gen .fld-perilla .perilla input { width: 8ch; }
+.ficha-gen .fld-perilla .fld-error { grid-column: 1 / -1; justify-self: end; color: var(--invalido); font-size: 11.5px; }
+.ficha-gen .fld-lista { grid-template-columns: minmax(0, 1fr) auto; }
+.ficha-gen .fld-lista select { width: 9.5rem; height: 28px; font-size: 12px; }
+.ficha-casillas { display: grid; gap: 2px; margin-top: 6px; }
+.ficha-casillas .casilla { display: flex; align-items: center; gap: 6px; min-height: 24px; }
+.previa-onda { width: 100%; height: auto; display: block; background: var(--lienzo); border: 1px solid var(--bordes); border-radius: 8px; }
+.previa-onda .previa-trazo { fill: none; stroke: var(--t-texto, var(--seleccion)); stroke-width: 1.8; stroke-linejoin: round; }
+.previa-onda .previa-cero { stroke: var(--borde-campo); stroke-width: 1; stroke-dasharray: 3 3; }
+.previa-onda text { fill: var(--texto-secundario); font: 10px var(--fuente-cifras); }
+.previa-onda .previa-marca { stroke: var(--borde-campo); stroke-width: 1; }
+.panel-generador { max-width: 22rem; font-size: 12px; }
+
+/* ---------- Doble clic: la ficha sobre el lienzo ---------- */
+.en-linea-ficha { width: 330px; padding: 10px 12px; }
+.en-linea-cabeza { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.en-linea-cabeza .en-linea-encabezado { flex: 1 1 auto; min-width: 0; margin: 4px 0 0; font-size: 13px; }
+.en-linea-ficha .en-linea-fila { display: grid; align-items: center; gap: 2px 10px; margin: 6px 0; }
+.en-linea-ficha .en-linea-fila .en-linea-titulo { margin: 0; color: var(--texto-secundario); }
+.en-linea-ficha .en-linea-fila .en-linea-campo { width: 11rem; min-width: 0; }
+.en-linea-ficha .en-linea-fila .en-linea-lista { justify-self: end; }
+.en-linea-ficha .en-linea-fila .en-linea-lista > select { width: 11rem; }
+.en-linea-ficha .en-linea-fila > :is(.en-linea-error, .en-linea-nota) { grid-column: 1 / -1; max-width: none; }
+.en-linea-ficha .en-linea-error:empty { display: none; }
+.en-linea-pie { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin: 10px 0 0; font-size: 11.5px; color: var(--texto-secundario); }
+.en-linea-pie kbd { padding: 0 5px; border: 1px solid var(--borde-campo); border-radius: 4px; font: 500 11px var(--fuente-cifras); }
+.ficha-linea .fld-perilla .perilla input { width: 8ch; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .conmutador-op > span, .forma-op { transition: background 0.12s, color 0.12s; }
+}
+@media (forced-colors: active) {
+  .conmutador-op input:checked + span, .forma-op:has(input:checked) { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+
+/* ---------- Series, catálogo y tabla de modelos ---------- */
+.fld-campo > :is(.ficha-serie, .ficha-catalogo, .tabla-modelos, .campo-ayuda, .campo-error) { grid-column: 1 / -1; }
+.fld-campo > .fld-rotulo { color: var(--texto-secundario); font-size: 12px; }
+.fld-tabla, .fld-catalogo { grid-template-columns: minmax(0, 1fr); }
+.ficha-serie { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ficha-serie-fila { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ficha-serie-rotulo { color: var(--texto-secundario); font-size: 12px; }
+.valor-filas { display: flex; flex-direction: column; max-height: 9.5rem; overflow-y: auto; padding: 2px 0; }
+.valor-fila { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 26px; padding: 2px 8px; border: 0; border-radius: 5px; background: transparent; color: var(--trazo); font-size: 12px; text-align: left; cursor: pointer; }
+.valor-fila:hover:not(:disabled) { background: var(--chip); }
+.valor-fila[aria-pressed='true'] { color: var(--azul-texto); font-weight: 600; }
+.valor-fila:focus-visible { outline: 2px solid var(--seleccion); outline-offset: -2px; }
+.valor-fila:disabled { opacity: 0.55; cursor: not-allowed; }
+.valor-fila-marca { flex: none; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nota-serie { display: flex; align-items: flex-start; gap: 6px; padding: 6px 8px; border-radius: 6px; background: var(--gris-suave); color: var(--trazo); font-size: 12px; line-height: 1.35; }
+.nota-serie > p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.nota-serie.aviso { background: var(--ambar-suave); }
+.nota-serie-icono { flex: none; width: 14px; height: 14px; margin-top: 1px; fill: none; stroke: var(--verdeazul-texto); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.nota-serie.aviso .nota-serie-icono { stroke: var(--ambar-texto); }
+.nota-serie-usar { display: block; margin: 6px 0 0 0; padding: 2px 10px; min-height: 26px; font-size: 12px; }
+.ficha-catalogo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ficha-catalogo-nota { margin: 0; }
+.ficha-catalogo .mas-ajustes { margin-top: 4px; }
+.ficha-personalizado { display: flex; align-items: flex-start; gap: 8px; margin: 2px 0 6px; font-size: 12px; }
+.ficha-catalogo .entrada-valor { justify-self: start; }
+.tabla-modelos { display: flex; flex-direction: column; gap: 2px; min-width: 0; border: 1px solid var(--bordes); border-radius: 8px; overflow: hidden; background: var(--lienzo); }
+.tabla-modelos-cabeza, .tabla-modelos-fila { display: grid; grid-template-columns: minmax(0, 1.3fr) repeat(auto-fit, minmax(0, 1fr)); gap: 6px; align-items: center; padding: 5px 8px; text-align: left; }
+.tabla-modelos-cabeza { color: var(--texto-secundario); font-size: 11px; background: var(--chip); }
+.tabla-modelos-fila { min-height: 30px; border: 0; background: transparent; color: var(--trazo); font-size: 12px; cursor: pointer; }
+.tabla-modelos-fila:hover:not(:disabled) { background: var(--chip); }
+.tabla-modelos-fila[aria-pressed='true'] { background: var(--azul-suave); color: var(--azul-texto); font-weight: 600; }
+.tabla-modelos-fila:focus-visible { outline: 2px solid var(--seleccion); outline-offset: -2px; }
+.tabla-modelos-fila:disabled { opacity: 0.55; cursor: not-allowed; }
+.en-linea-ficha .en-linea-fila.fila-ancha { grid-template-columns: minmax(0, 1fr); }
+@media (forced-colors: active) {
+  .valor-fila[aria-pressed='true'], .tabla-modelos-fila[aria-pressed='true'] { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+.en-linea-ficha .en-linea-fila > :is(.ficha-serie, .ficha-catalogo, .tabla-modelos) { grid-column: 1 / -1; }
+.en-linea-ficha .en-linea-fila.fila-ancha .en-linea-titulo { color: var(--texto-secundario); font-size: 12px; }
+.ficha-personalizado-nombre { font-weight: 650; }
+
+/* Modelo «Personalizado»: la casilla y el campo de parámetros de SPICE. */
+.ficha-spice-texto {
+  display: block;
+  width: 100%;
+  min-height: 7.5rem;
+  margin-top: 0.4rem;
+  resize: vertical;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+/* ---------- Un solo diseño para todas las fichas: el de la resistencia y el capacitor ---------- */
+/* Un renglón sin texto de ayuda no deja hueco: el cuadro de ayuda sigue en el documento (región viva) pero sin alto. */
+.fld-campo > p:empty { height: 0; min-height: 0; margin: -6px 0 0; overflow: hidden; }
+.en-linea-ficha .en-linea-fila > :is(.en-linea-error, .en-linea-nota):empty { height: 0; min-height: 0; margin: -2px 0 0; overflow: hidden; }
+/* Los renglones de una lista o un catálogo: el rótulo a la izquierda y lo elegido a la derecha, como «Valor [4.7k Ω]». */
+.fld-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.fld-cabeza > :is(.fld-rotulo, .en-linea-titulo) { margin: 0; color: var(--texto-secundario); font-size: 12px; }
+.entrada-solo { align-items: center; max-width: 60%; min-height: 28px; font-size: 12px; font-weight: 500; color: var(--trazo); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.en-linea-ficha .en-linea-fila.fila-ancha > .fld-cabeza { grid-column: 1 / -1; }
+/* El nombre de la categoría de la cabecera puede ocupar dos renglones: «Circuitos integrados» ya no se corta. */
+.inspector .panel-cabeza.de-pieza .categoria-pieza { white-space: normal; overflow: visible; text-overflow: clip; }
+/* La lista plegable de valores comerciales o comunes: cerrada, con su título y su cifra. */
+.lista-valores { min-width: 0; border: 1px solid var(--bordes); border-radius: 8px; background: var(--lienzo); }
+.lista-valores > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 30px; padding: 0 10px; color: var(--seleccion); font-size: 12px; font-weight: 600; cursor: pointer; }
+.lista-valores > summary:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 1px; border-radius: 6px; }
+.lista-valores-detalle { color: var(--texto-secundario); font-weight: 500; }
+.lista-valores-cuerpo { display: flex; flex-direction: column; gap: 6px; padding: 0 10px 10px; }
+.lista-valores-cuerpo > .conmutador { align-self: flex-start; }
+/* Los dos conmutadores del generador son renglones como el de la serie: rótulo a la izquierda, opciones a la derecha. */
+.ficha-fila { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px; }
+.ficha-fila > .ficha-serie-rotulo { font-size: 12px; }
+.buscador-detalles .chip[aria-pressed='true'] { border-color: var(--azul); background: var(--azul-suave); color: var(--azul-texto); font-weight: 600; }
+.buscador-nota { display: block; }
+
+/* Ficha de texto del inspector: el texto, el formato como borrador y Aplicar / Cancelar. */
+.ficha-texto-campo { display: grid; gap: 4px; margin: 4px 0 6px; }
+.ficha-texto-campo > label { color: var(--texto-secundario); font-size: 12px; }
+.ficha-texto-campo > :is(textarea, input) { width: 100%; box-sizing: border-box; resize: vertical; font: inherit; font-size: 13px; }
+.ficha-texto-campo > .campo-error:empty { display: none; }
+.ficha-texto-pie { display: flex; gap: 6px; margin: 10px 0 4px; }
+.ficha-texto-pie .boton { flex: 1 1 0; height: 28px; font-size: 12px; }
+.ficha-texto-pie .boton:disabled { opacity: 0.55; cursor: not-allowed; }
+.ficha-texto-ayuda { margin: 2px 0 0; font-size: 11.5px; }
+.ficha-texto-ayuda kbd { padding: 0 5px; border: 1px solid var(--borde-campo); border-radius: 4px; font: 500 11px var(--fuente-cifras); }
+.en-linea-botones { display: flex; gap: 6px; margin: 8px 0 0; }
+.en-linea-botones .boton { flex: 1 1 0; height: 28px; font-size: 12px; }

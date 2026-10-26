@@ -1,0 +1,21 @@
+* contador de 0 a 9: salidas q3 q2 q1 q0 co, entrada (sin uso)
+0 0s 0s 0s 0s 0s 0 -> 1
+0 0s 0s 0s 0s 0s 1 -> 1
+1 0s 0s 0s 1s 0s 0 -> 2
+1 0s 0s 0s 1s 0s 1 -> 2
+2 0s 0s 1s 0s 0s 0 -> 3
+2 0s 0s 1s 0s 0s 1 -> 3
+3 0s 0s 1s 1s 0s 0 -> 4
+3 0s 0s 1s 1s 0s 1 -> 4
+4 0s 1s 0s 0s 0s 0 -> 5
+4 0s 1s 0s 0s 0s 1 -> 5
+5 0s 1s 0s 1s 0s 0 -> 6
+5 0s 1s 0s 1s 0s 1 -> 6
+6 0s 1s 1s 0s 0s 0 -> 7
+6 0s 1s 1s 0s 0s 1 -> 7
+7 0s 1s 1s 1s 0s 0 -> 8
+7 0s 1s 1s 1s 0s 1 -> 8
+8 1s 0s 0s 0s 0s 0 -> 9
+8 1s 0s 0s 0s 0s 1 -> 9
+9 1s 0s 0s 1s 1s 0 -> 0
+9 1s 0s 0s 1s 1s 1 -> 0

@@ -1,0 +1,28 @@
+* Rele de 5 V movido por un 2N2222 con diodo de proteccion
+.include modelos.lib
+V1 1 0 DC 5
+VP 4 0 PULSE(0 5 0 1p 1p 19.999999999m 40m)
+RB 4 2 4.7k
+Q1 3 2 0 Q2N2222
+VS 1 7 DC 0
+RK 7 8 69.444444
+LK 8 3 0.20833333
+D1 3 1 DGEN
+W1 1 5 VS WNA
+W2 1 6 VS WNC
+RNA 5 0 100
+RNC 6 0 100
+.model WNA csw(it=30.6m ih=23.4m ron=1m roff=1e9)
+.model WNC csw(it=30.6m ih=23.4m ron=1e9 roff=1m)
+* Con la integracion trapezoidal, ngspice oscila en el colector cuando la corriente de la bobina se acaba y el
+* diodo deja de conducir (pasos de 5 us contra una constante de nanosegundos): la referencia saldria con +-0.7 V
+* que no son del circuito. Gear amortigua esa oscilacion y deja la curva fisica, la que sigue el motor.
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 method=gear
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20u 100m 0 5u uic
+wrdata salida.txt v(3) v(5) v(6) i(vs)
+.endc
+.end

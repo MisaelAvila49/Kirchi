@@ -1,0 +1,17 @@
+{
+  "id": "fuente-ac",
+  "nombre": { "es": "Fuente de voltaje AC", "en": "AC voltage source" },
+  "categoria": "fuentes",
+  "prefijo": "V",
+  "buscar": ["ac", "ca", "alterna", "senoidal", "sine", "fuente ac"],
+  "pines": [
+    { "id": "+", "nombre": "+", "x": 0, "y": -4 },
+    { "id": "-", "nombre": "−", "x": 0, "y": 4 }
+  ],
+  "props": [
+    { "id": "amplitud", "nombre": "Amplitud (pico)", "unidad": "V", "defecto": "5", "comunes": ["1", "5", "10", "12", "180"] },
+    { "id": "frecuencia", "nombre": "Frecuencia", "unidad": "Hz", "defecto": "60", "comunes": ["50", "60", "100", "1k", "10k"] }
+  ],
+  "modelo": { "tipo": "senoidal", "a": "+", "b": "-", "amplitud": "amplitud", "frecuencia": "frecuencia" },
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } }
+}

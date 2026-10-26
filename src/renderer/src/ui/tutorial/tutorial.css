@@ -1,0 +1,80 @@
+/* Tutorial «Aprende Kirchi». Ningún color propio: todo sale de los tokens de
+   styles.css y colores.css. El foco y el globo no capturan el puntero (el foco) o solo lo capturan en su propia caja (el globo):
+   la aplicación responde en toda la ventana. */
+
+/* El foco: un marco con borde redondeado cuya sombra gigante oscurece todo lo demás, también la cinta (35). Los menús (40) y
+   los diálogos (50) quedan encima. El globo va a 36. Lo que el paso pide abrir (el buscador, el editor del doble clic y la barra
+   de formato) sube a 37 mientras hay un tutorial en marcha, para que no quede oscurecido ni tapado por el globo. */
+.tutorial-velo { position: fixed; left: 0; top: 0; z-index: 35; pointer-events: none; }
+.tutorial-velo-relleno { fill: var(--velo-foco); }
+.tutorial-foco-marco { fill: var(--foco-relleno); stroke: var(--seleccion); stroke-width: 2; }
+.tutorial-velo.cumplido .tutorial-foco-marco { stroke: var(--texto-verde); }
+.marco:has(.tutorial-globo) :is(.buscador, .en-linea, .barra-formato) { z-index: 37; }
+
+.tutorial-globo { position: fixed; z-index: 36; padding: 12px 14px; border-radius: 12px; background: var(--paneles); color: var(--trazo); border: 1px solid var(--bordes); box-shadow: var(--sombra); font: 13px/1.45 var(--fuente-interfaz); transition: left 0.18s ease, top 0.18s ease; }
+.tutorial-globo::before { content: ''; position: absolute; width: 12px; height: 12px; transform: rotate(45deg); background: var(--paneles); }
+.tutorial-globo[data-lado='abajo']::before { left: calc(var(--flecha) - 6px); top: -7px; border-left: 1px solid var(--bordes); border-top: 1px solid var(--bordes); }
+.tutorial-globo[data-lado='arriba']::before { left: calc(var(--flecha) - 6px); bottom: -7px; border-right: 1px solid var(--bordes); border-bottom: 1px solid var(--bordes); }
+.tutorial-globo[data-lado='derecha']::before { top: calc(var(--flecha) - 6px); left: -7px; border-left: 1px solid var(--bordes); border-bottom: 1px solid var(--bordes); }
+.tutorial-globo[data-lado='izquierda']::before { top: calc(var(--flecha) - 6px); right: -7px; border-right: 1px solid var(--bordes); border-top: 1px solid var(--bordes); }
+.tutorial-globo[data-lado='centro']::before { display: none; }
+
+.tutorial-tope { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; white-space: nowrap; }
+.tutorial-cap { color: var(--texto-secundario); font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+.tutorial-puntos { display: flex; gap: 5px; align-items: center; }
+.tutorial-puntos i { width: 8px; height: 8px; border-radius: 50%; background: var(--gris-tenue); }
+.tutorial-puntos i.h { background: var(--texto-verde); }
+.tutorial-puntos i.a { width: 18px; border-radius: 4px; background: var(--seleccion); }
+.tutorial-puntos i.ok { width: 18px; border-radius: 4px; background: var(--texto-verde); }
+.tutorial-texto { margin: 4px 0 10px; }
+.tutorial-texto kbd { margin: 0 1px; font-size: 11px; }
+.tutorial-pista { margin: -4px 0 10px; color: var(--texto-secundario); font-size: 12px; }
+.tutorial-pista.tutorial-fuera { color: var(--trazo); font-weight: 600; }
+.tutorial-listo { display: inline-flex; align-items: center; gap: 6px; color: var(--texto-verde); font-weight: 700; }
+.tutorial-barra { height: 4px; margin-bottom: 10px; border-radius: 4px; background: var(--gris-tenue); overflow: hidden; }
+.tutorial-barra b { display: block; width: 0; height: 100%; background: var(--texto-verde); animation: tutorial-llenar linear forwards; }
+@keyframes tutorial-llenar { from { width: 0; } to { width: 100%; } }
+.tutorial-pie { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.tutorial-pie div { display: flex; gap: 4px; }
+.tutorial-pie .boton:focus-visible, .tutorial-selector .boton:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 2px; }
+.tutorial-texto-boton { border-color: transparent; background: transparent; color: var(--texto-secundario); }
+.tutorial-texto-boton:hover:not(:disabled) { color: var(--trazo); border-color: var(--bordes); }
+
+/* Selector de capítulos. */
+.dialogo.tutorial-selector { width: min(600px, 100%); }
+.tutorial-selector-intro { margin: 0 0 12px; color: var(--texto-secundario); font-size: 13px; }
+.tutorial-capitulos { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.tutorial-capitulos li { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--bordes); border-radius: 10px; background: var(--lienzo); }
+.tutorial-capitulos li.en-curso { border-color: var(--seleccion); background: var(--seleccion-fondo); }
+.tutorial-numero { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--t-suave, var(--gris-suave)); color: var(--t-texto, var(--gris-texto)); font-weight: 700; font-size: 15px; }
+.tutorial-capitulo-texto h3 { margin: 0; font-size: 14px; }
+.tutorial-meta { margin: 0; color: var(--texto-secundario); font-size: 12px; }
+.tutorial-estado { display: inline-flex; margin: 2px 0 0; color: var(--texto-secundario); font-size: 12px; }
+.tutorial-estado[data-estado='hecho'] { color: var(--texto-verde); font-weight: 700; }
+.tutorial-estado[data-estado='curso'] { color: var(--seleccion); font-weight: 700; }
+.tutorial-mini { height: 4px; width: 120px; margin-top: 4px; border-radius: 4px; background: var(--gris-tenue); overflow: hidden; }
+.tutorial-mini b { display: block; height: 100%; background: var(--seleccion); }
+.tutorial-selector-pie { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 14px; color: var(--texto-secundario); font-size: 12px; }
+
+/* Oferta del primer arranque. */
+.dialogo.tutorial-oferta { width: min(460px, 100%); }
+.dialogo.tutorial-oferta p { margin: 0 0 4px; color: var(--texto-secundario); font-size: 13px; }
+.tutorial-oferta-botones { justify-content: flex-start; }
+.tutorial-oferta-casilla { display: flex; gap: 6px; align-items: center; margin-top: 12px; color: var(--texto-secundario); font-size: 12px; cursor: pointer; }
+.tutorial-oferta-casilla input { accent-color: var(--seleccion); margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-globo { transition: none; }
+  .tutorial-barra b { animation: none; width: 100%; }
+}
+@media (max-width: 760px) {
+  .tutorial-capitulos li { grid-template-columns: 36px minmax(0, 1fr); }
+  .tutorial-capitulos li .boton { grid-column: 2; justify-self: start; }
+}
+
+.tutorial-gesto { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; white-space: nowrap; }
+.tutorial-gesto-icono { flex: none; color: var(--seleccion); }
+
+/* Icono de gesto dentro del texto: del tamaño de la letra y sobre su línea base, sin abrir el interlineado. */
+.tutorial-gesto { display: inline; line-height: inherit; }
+.tutorial-gesto-icono { display: inline-block; width: 1em; height: 1em; vertical-align: middle; margin: -0.15em 0.2em 0 0; }

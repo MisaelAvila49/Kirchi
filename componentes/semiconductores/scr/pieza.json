@@ -1,0 +1,162 @@
+{
+  "id": "scr",
+  "nombre": {
+    "es": "Tiristor SCR",
+    "en": "SCR thyristor"
+  },
+  "categoria": "semiconductores",
+  "prefijo": "Q",
+  "buscar": [
+    "scr",
+    "tiristor",
+    "thyristor",
+    "2n5060",
+    "c106",
+    "tyn612"
+  ],
+  "pines": [
+    {
+      "id": "A",
+      "nombre": "ánodo",
+      "x": -4,
+      "y": 0
+    },
+    {
+      "id": "K",
+      "nombre": "cátodo",
+      "x": 4,
+      "y": 0
+    },
+    {
+      "id": "G",
+      "nombre": "compuerta",
+      "x": 2,
+      "y": 4
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "2N5060",
+      "opciones": [
+        "2N5060"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "2N5060": {
+        "ra": 0.1,
+        "rg": 50,
+        "rgk": 47000,
+        "nis": 1e-14,
+        "nbf": 100,
+        "nise": 1.8e-09,
+        "nne": 2,
+        "nrb": 0.5,
+        "nrc": 0.05,
+        "nre": 0.05,
+        "pis": 1e-14,
+        "pbf": 100,
+        "pise": 1.8e-09,
+        "pne": 2,
+        "prb": 0.5,
+        "prc": 0.05,
+        "pre": 0.05,
+        "cl": 1e-09
+      }
+    },
+    "internas": [
+      "ae",
+      "bn",
+      "gi"
+    ],
+    "medida": {
+      "mas": "A",
+      "menos": "K",
+      "i": 0
+    },
+    "elementos": [
+      {
+        "t": "R",
+        "a": "A",
+        "b": "ae",
+        "ohms": "ra"
+      },
+      {
+        "t": "Q",
+        "c": "gi",
+        "b": "bn",
+        "e": "ae",
+        "pnp": true,
+        "params": {
+          "is": "pis",
+          "bf": "pbf",
+          "ise": "pise",
+          "ne": "pne",
+          "rb": "prb",
+          "rc": "prc",
+          "re": "pre",
+          "vaf": 50
+        }
+      },
+      {
+        "t": "Q",
+        "c": "bn",
+        "b": "gi",
+        "e": "K",
+        "params": {
+          "is": "nis",
+          "bf": "nbf",
+          "ise": "nise",
+          "ne": "nne",
+          "rb": "nrb",
+          "rc": "nrc",
+          "re": "nre",
+          "vaf": 50
+        }
+      },
+      {
+        "t": "R",
+        "a": "G",
+        "b": "gi",
+        "ohms": "rg"
+      },
+      {
+        "t": "R",
+        "a": "gi",
+        "b": "K",
+        "ohms": "rgk"
+      },
+      {
+        "t": "C",
+        "a": "gi",
+        "b": "K",
+        "farads": "cl"
+      },
+      {
+        "t": "C",
+        "a": "bn",
+        "b": "ae",
+        "farads": "cl"
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -4
+    },
+    "valor": {
+      "x": 6,
+      "y": 4
+    }
+  },
+  "fuentes": {
+    "2N5060": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a onsemi 2N5060 a 2N5064, 2N5060/D rev. 11 (oct 2024), https://www.onsemi.com/download/data-sheet/pdf/2n5060-d.pdf: corriente de disparo de la compuerta de 200 µA máx (VAK = 7 V, RL = 100 Ω), voltaje de disparo de 0.8 V máx, corriente de mantenimiento de 5 mA máx, VTM de 1.7 V máx a 1.2 A y corriente de bloqueo de 10 µA máx a 25 °C. Es el par clásico de dos transistores (un PNP y un NPN realimentados) con una resistencia de compuerta de 50 Ω y una de compuerta a cátodo de 47 kΩ: con 1 nF de capacitancia en sus dos nodos internos (el disparo sin ella no siempre converge) el modelo da 110 µA de disparo, 2.0 mA de mantenimiento, 1.4 V a 1 A y menos de 1 nA de fuga a 30 V. La ganancia a poca corriente la fija la corriente de fuga de base (ise = 1.8 nA con ne = 2). No modela dv/dt, di/dt, el tiempo de apagado ni la temperatura."
+  }
+}

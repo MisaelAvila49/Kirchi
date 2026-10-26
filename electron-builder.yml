@@ -1,0 +1,134 @@
+# Empaquetado de Kirchi (electron-builder, MIT). Las pruebas de `src/main/paquete.test.ts` leen este archivo.
+appId: com.kirchi.simulador
+productName: Kirchi
+copyright: Copyright (c) 2026 Misael Saúl Avila López
+directories:
+  output: dist
+  buildResources: build
+# Todo lo que usa la interfaz (fuentes, WASM, componentes, plantillas) ya viene empaquetado por Vite dentro de out/;
+# el proceso principal no importa ningún módulo de node_modules, así que no viaja ninguno.
+files:
+  - out/**
+  - package.json
+  - '!node_modules/**'
+asar: true
+# Se instala junto al ejecutable (resources/herramientas): ahí va ngspice.
+extraResources:
+  - from: resources/herramientas
+    to: herramientas
+    filter:
+      - '**/*'
+# La licencia MIT de Kirchi va junto al ejecutable en Windows y Linux (`extraFiles`). En macOS va en Contents/Resources (mac.extraResources): un archivo suelto en Contents/ rompe la firma del paquete.
+# Sin descargas ni actualizaciones automáticas; sin firma de código.
+publish: null
+electronLanguages:
+  - es
+  - en-US
+# Fusibles: el ejecutable empaquetado no acepta --inspect, NODE_OPTIONS ni ELECTRON_RUN_AS_NODE.
+electronFuses:
+  runAsNode: false
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  onlyLoadAppFromAsar: true
+  # El asar lleva su suma de comprobación: un asar alterado no arranca.
+  enableEmbeddedAsarIntegrityValidation: true
+  # La interfaz solo usa app://; la única página file:// es el HTML temporal del PDF, que no necesita privilegios extra.
+  grantFileProtocolExtraPrivileges: false
+# El icono del documento sale por omisión de build/kir.ico (Windows) y build/kir.icns (macOS).
+fileAssociations:
+  - ext: kir
+    name: Circuito de Kirchi
+    description: Circuito de Kirchi
+    mimeType: application/x-kirchi
+    role: Editor
+win:
+  icon: build/icon.ico
+  extraFiles:
+    - from: LICENSE
+      to: LICENSE.txt
+  target:
+    - target: nsis
+      arch: x64
+    - target: zip
+      arch: x64
+  artifactName: Kirchi-${version}-portatil-${arch}.${ext}
+nsis:
+  artifactName: Kirchi-${version}-instalador-${arch}.${ext}
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createStartMenuShortcut: true
+  createDesktopShortcut: false
+  deleteAppDataOnUninstall: false
+  # Sin .blockmap: solo sirve para actualizaciones diferenciales y la aplicación no se actualiza sola.
+  differentialPackage: false
+  # Instalador en español (LCID 1034).
+  language: '1034'
+  include: build/instalador.nsh
+# Paquete MSIX/APPX para la Tienda de Microsoft: `npm run dist:tienda`. Se sube sin firmar a Partner Center, que lo firma.
+# La identidad sale de Partner Center (Product management > Product identity) y se copia tal cual: si no coincide, la Tienda
+# rechaza el paquete. Los logos viven en build/appx/ (npm run iconos).
+appx:
+  artifactName: Kirchi-${version}-tienda-${arch}.${ext}
+  # «Package/Identity/Name». Sin ú ni ó a propósito: la identidad solo admite letras ASCII, cifras, punto y guion.
+  identityName: MisaelSalAvilaLpez.Kirchi
+  # «Package/Identity/Publisher».
+  publisher: CN=A93BB8CE-3B2A-4067-A412-824655D2E225
+  # «Package/Properties/PublisherDisplayName», con acentos: es el nombre que se muestra.
+  publisherDisplayName: Misael Saúl Avila López
+  applicationId: Kirchi
+  displayName: Kirchi
+  backgroundColor: '#0E7C66'
+  # Idiomas del paquete y de la ficha (la interfaz solo existe en español).
+  languages:
+    - es-MX
+    - es-ES
+  # runFullTrust es obligatoria para una aplicación de escritorio de Electron; la Tienda pide justificarla en «Opciones de envío».
+  capabilities:
+    - runFullTrust
+  # Windows 10 1809 (Electron 44 ya no corre en versiones anteriores).
+  minVersion: 10.0.17763.0
+  maxVersionTested: 10.0.26100.0
+  # Los .kir se asocian por la entrada `fileAssociations` de arriba (windows.fileTypeAssociation en el manifiesto).
+mac:
+  icon: build/icon.icns
+  category: public.app-category.education
+  target:
+    - target: dmg
+      arch: universal
+  artifactName: Kirchi-${version}-macos-${arch}.${ext}
+  # Grabar la pantalla de Kirchi: macOS pregunta por el micrófono y la grabación de pantalla con estos textos.
+  extendInfo:
+    NSMicrophoneUsageDescription: Kirchi usa el micrófono solo cuando grabas la pantalla con voz.
+    NSScreenCaptureUsageDescription: Kirchi graba su propia ventana solo cuando tú lo pides.
+  # ngspice y sus modelos de código ya se compilan universales (scripts/preparar-ngspice.mjs): se copian tal cual al dmg universal.
+  x64ArchFiles: Contents/Resources/herramientas/ngspice/**
+  # electron-builder borra LICENSE y LICENSES.chromium.html del paquete de macOS, y la MIT de Electron y los avisos de Chromium piden viajar con el programa. Se copian a Contents/Resources desde resources/licencias-electron (scripts/preparar-licencias-electron.mjs) y se suman a los extraResources de arriba.
+  # Nada suelto en Contents/, o la firma del paquete falla.
+  extraResources:
+    - from: resources/licencias-electron/LICENSE
+      to: LICENSE.electron.txt
+    - from: resources/licencias-electron/LICENSES.chromium.html
+      to: LICENSES.chromium.html
+    - from: LICENSE
+      to: LICENSE.txt
+  # Firma ad hoc gratuita ("-"), sin certificado de Apple ni notarización: lo mínimo que exige macOS en Apple Silicon (Gatekeeper avisa la primera vez, ver README).
+  # Sin runtime endurecido: su validación de bibliotecas rechaza los marcos de Electron (otro Team ID) y sin notarización no aporta nada.
+  identity: '-'
+  hardenedRuntime: false
+  gatekeeperAssess: false
+linux:
+  icon: build/icons
+  extraFiles:
+    - from: LICENSE
+      to: LICENSE.txt
+  category: Education
+  maintainer: Misael Saúl Avila López <misaelavila49@gmail.com>
+  synopsis: Simulador de circuitos libre y sin conexión
+  target:
+    - AppImage
+    - deb
+  artifactName: Kirchi-${version}-linux-${arch}.${ext}
+  mimeTypes:
+    - application/x-kirchi

@@ -1,0 +1,15 @@
+* Regulador con zener 1N4733A de 5.1 V y carga de 1 k
+.include modelos.lib
+V1 1 0 DC 12
+RS 1 2 470
+D1 0 2 D1N4733A
+RL 2 0 1k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(2) i(v1)
+.endc
+.end

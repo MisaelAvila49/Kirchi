@@ -1,0 +1,293 @@
+{
+  "id": "diac",
+  "nombre": {
+    "es": "Diac",
+    "en": "Diac"
+  },
+  "categoria": "semiconductores",
+  "prefijo": "D",
+  "buscar": [
+    "d",
+    "diac",
+    "db3",
+    "db4",
+    "trigger diode",
+    "diodo de disparo"
+  ],
+  "pines": [
+    {
+      "id": "A1",
+      "nombre": "terminal 1 (A1)",
+      "x": -4,
+      "y": 0
+    },
+    {
+      "id": "A2",
+      "nombre": "terminal 2 (A2)",
+      "x": 4,
+      "y": 0
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "DB3",
+      "opciones": [
+        "DB3",
+        "DB4"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "DB3": {
+        "nis": 1e-14,
+        "nbf": 100,
+        "nise": 1.8e-09,
+        "nne": 2,
+        "nrb": 0.5,
+        "nrc": 0.05,
+        "nre": 0.05,
+        "pis": 1e-14,
+        "pbf": 100,
+        "pise": 1.8e-09,
+        "pne": 2,
+        "prb": 0.5,
+        "prc": 0.05,
+        "pre": 0.05,
+        "rgk": 2000000.0,
+        "zrs": 1,
+        "zibv": 0.0001,
+        "bvs": 24.5,
+        "bvt": 6.5,
+        "rt": 0.01,
+        "cl": 1e-09
+      },
+      "DB4": {
+        "nis": 1e-14,
+        "nbf": 100,
+        "nise": 1.8e-09,
+        "nne": 2,
+        "nrb": 0.5,
+        "nrc": 0.05,
+        "nre": 0.05,
+        "pis": 1e-14,
+        "pbf": 100,
+        "pise": 1.8e-09,
+        "pne": 2,
+        "prb": 0.5,
+        "prc": 0.05,
+        "pre": 0.05,
+        "rgk": 2000000.0,
+        "zrs": 1,
+        "zibv": 0.0001,
+        "bvs": 32.5,
+        "bvt": 6.5,
+        "rt": 0.01,
+        "cl": 1e-09
+      }
+    },
+    "internas": [
+      "n1",
+      "x1",
+      "bn1",
+      "gi1",
+      "x2",
+      "bn2",
+      "gi2"
+    ],
+    "medida": {
+      "mas": "A1",
+      "menos": "A2",
+      "i": 0
+    },
+    "elementos": [
+      {
+        "t": "R",
+        "a": "A1",
+        "b": "n1",
+        "ohms": "rt"
+      },
+      {
+        "t": "D",
+        "a": "x1",
+        "b": "n1",
+        "params": {
+          "is": 1e-14,
+          "n": 1,
+          "rs": "zrs",
+          "bv": "bvs",
+          "ibv": "zibv"
+        }
+      },
+      {
+        "t": "D",
+        "a": "gi1",
+        "b": "x1",
+        "params": {
+          "is": 1e-14,
+          "n": 1,
+          "rs": "zrs",
+          "bv": "bvt",
+          "ibv": "zibv"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "gi1",
+        "b": "bn1",
+        "e": "x1",
+        "pnp": true,
+        "params": {
+          "is": "pis",
+          "bf": "pbf",
+          "ise": "pise",
+          "ne": "pne",
+          "rb": "prb",
+          "rc": "prc",
+          "re": "pre",
+          "vaf": 50
+        }
+      },
+      {
+        "t": "Q",
+        "c": "bn1",
+        "b": "gi1",
+        "e": "A2",
+        "params": {
+          "is": "nis",
+          "bf": "nbf",
+          "ise": "nise",
+          "ne": "nne",
+          "rb": "nrb",
+          "rc": "nrc",
+          "re": "nre",
+          "vaf": 50
+        }
+      },
+      {
+        "t": "R",
+        "a": "gi1",
+        "b": "A2",
+        "ohms": "rgk"
+      },
+      {
+        "t": "C",
+        "a": "gi1",
+        "b": "A2",
+        "farads": "cl"
+      },
+      {
+        "t": "C",
+        "a": "bn1",
+        "b": "x1",
+        "farads": "cl"
+      },
+      {
+        "t": "D",
+        "a": "x2",
+        "b": "A2",
+        "params": {
+          "is": 1e-14,
+          "n": 1,
+          "rs": "zrs",
+          "bv": "bvs",
+          "ibv": "zibv"
+        }
+      },
+      {
+        "t": "D",
+        "a": "gi2",
+        "b": "x2",
+        "params": {
+          "is": 1e-14,
+          "n": 1,
+          "rs": "zrs",
+          "bv": "bvt",
+          "ibv": "zibv"
+        }
+      },
+      {
+        "t": "Q",
+        "c": "gi2",
+        "b": "bn2",
+        "e": "x2",
+        "pnp": true,
+        "params": {
+          "is": "pis",
+          "bf": "pbf",
+          "ise": "pise",
+          "ne": "pne",
+          "rb": "prb",
+          "rc": "prc",
+          "re": "pre",
+          "vaf": 50
+        }
+      },
+      {
+        "t": "Q",
+        "c": "bn2",
+        "b": "gi2",
+        "e": "n1",
+        "params": {
+          "is": "nis",
+          "bf": "nbf",
+          "ise": "nise",
+          "ne": "nne",
+          "rb": "nrb",
+          "rc": "nrc",
+          "re": "nre",
+          "vaf": 50
+        }
+      },
+      {
+        "t": "R",
+        "a": "gi2",
+        "b": "n1",
+        "ohms": "rgk"
+      },
+      {
+        "t": "C",
+        "a": "gi2",
+        "b": "n1",
+        "farads": "cl"
+      },
+      {
+        "t": "C",
+        "a": "bn2",
+        "b": "x2",
+        "farads": "cl"
+      },
+      {
+        "t": "R",
+        "a": "bn1",
+        "b": "gi1",
+        "ohms": 1000000000.0
+      },
+      {
+        "t": "R",
+        "a": "bn2",
+        "b": "gi2",
+        "ohms": 1000000000.0
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -4
+    },
+    "valor": {
+      "x": 0,
+      "y": 4
+    }
+  },
+  "fuentes": {
+    "DB3": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a STMicroelectronics DB3, DB4 y SMDB3, https://www.st.com/resource/en/datasheet/db3.pdf (las cifras de la tabla de características se leyeron en un listado de la hoja, no en el PDF completo, así que su revisión no está confirmada): VBO de 32 V típico (28 a 36 V), ΔV de 5 V mín, IBO de 50 µA máx y simetría de 3 V máx. El modelo rompe cerca de 32 V y cae a 25.4 V (ΔV de unos 6 V). Dos ramas antiparalelas, cada una el tiristor de dos transistores del SCR 2N5060 disparado por un Zener de 6.5 V desde otro Zener en serie, con 2 MΩ de compuerta a terminal, 1 nF en sus nodos internos para que el disparo converja y 1 GΩ entre las dos bases de cada tiristor, que da un camino de continua a los nodos que de otro modo solo cuelgan de capacitores y fugas de femtoamperes (sin él, la rama bloqueada no converge con reltol 1e-4). Es simétrico, da menos de 10 µA de fuga a 20 V y se queda encendido con unos 8 mA. No modela el tiempo de conmutación ni el voltaje de pulso VO de la hoja.",
+    "DB4": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a STMicroelectronics DB3, DB4 y SMDB3, https://www.st.com/resource/en/datasheet/db3.pdf (las cifras de la tabla de características se leyeron en un listado de la hoja, no en el PDF completo, así que su revisión no está confirmada): VBO de 40 V típico (35 a 45 V), ΔV de 5 V mín, IBO de 50 µA máx y simetría de 3 V máx. El modelo rompe cerca de 40 V y cae a 33.4 V (ΔV de unos 7 V). Dos ramas antiparalelas, cada una el tiristor de dos transistores del SCR 2N5060 disparado por un Zener de 6.5 V desde otro Zener en serie, con 2 MΩ de compuerta a terminal, 1 nF en sus nodos internos para que el disparo converja y 1 GΩ entre las dos bases de cada tiristor, que da un camino de continua a los nodos que de otro modo solo cuelgan de capacitores y fugas de femtoamperes (sin él, la rama bloqueada no converge con reltol 1e-4). Es simétrico, da menos de 10 µA de fuga a 20 V y se queda encendido con unos 8 mA. No modela el tiempo de conmutación ni el voltaje de pulso VO de la hoja."
+  }
+}

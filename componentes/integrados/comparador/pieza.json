@@ -1,0 +1,60 @@
+{
+  "id": "comparador",
+  "nombre": { "es": "Comparador", "en": "Comparator" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["u", "comparador", "comparator", "colector abierto", "open collector", "lm393", "lm311", "lm339"],
+  "pines": [
+    { "id": "-", "nombre": "entrada inversora (−)", "x": -6, "y": -2 },
+    { "id": "+", "nombre": "entrada no inversora (+)", "x": -6, "y": 2 },
+    { "id": "OUT", "nombre": "salida (colector abierto)", "x": 6, "y": 0 },
+    { "id": "V+", "nombre": "alimentación V+", "x": 0, "y": -4 },
+    { "id": "V-", "nombre": "alimentación V− (tierra)", "x": 0, "y": 4 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "LM393", "opciones": ["LM393", "LM311"] }
+  ],
+  "modelo": {
+    "tipo": "comparador", "mas": "+", "menos": "-", "sal": "OUT", "vmas": "V+", "vmenos": "V-", "prop": "modelo",
+    "modelos": {
+      "LM393": { "a0": 2e5, "gbw": 1.15e8, "sr": 20e6, "rin": 1e8, "rout": 100, "ilim": 30e-3, "dhi": 0.05, "dlo": 1e-3, "rq": 22.2e3, "rbase": 2200, "is": 1e-14, "bf": 60, "rc": 23, "tf": 5e-9, "tr": 100e-9, "cje": 2e-12, "cjc": 2e-12 },
+      "LM311": { "a0": 2e5, "gbw": 2e10, "sr": 220e6, "rin": 5e7, "rout": 100, "ilim": 30e-3, "dhi": 0.05, "dlo": 1e-3, "rq": 5.9e3, "rbase": 10000, "is": 1e-14, "bf": 60, "rc": 12, "tf": 3e-9, "tr": 1e-9, "cje": 2e-12, "cjc": 2e-12 }
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "LM393": {
+          "fuente": "Texas Instruments LM193/LM293/LM393, SLCS005, Absolute Maximum Ratings: alimentación de 36 V, voltaje diferencial de entrada ±36 V, entrada de −0.3 V a 36 V.",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 36, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada sobre V−", "de": ["+", "-"], "a": "V-", "max": 36, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "voltaje entre las entradas", "de": "+", "a": "-", "abs": true, "sinQuema": true, "max": 36, "consejo": "pon una resistencia en serie con la entrada o limita la diferencia entre las dos entradas."}
+          ]
+        },
+        "LM311": {
+          "fuente": "Texas Instruments LM111/LM211/LM311, SNOSBJ3, Absolute Maximum Ratings (LM311): alimentación de 36 V entre V+ y V−, voltaje diferencial de entrada ±30 V, entrada de ±15 V o la alimentación si es menor, salida a 40 V sobre V−.",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 36, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada sobre V+", "de": ["+", "-"], "a": "V+", "max": 0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "voltaje entre las entradas", "de": "+", "a": "-", "abs": true, "sinQuema": true, "max": 30, "consejo": "pon una resistencia en serie con la entrada o limita la diferencia entre las dos entradas."},
+            {"nombre": "salida sobre V−", "de": "OUT", "a": "V-", "max": 40, "consejo": "baja el voltaje al que está conectada la resistencia de la salida."}
+          ]
+        }
+      }
+    },
+    "quema": {"factor": 2, "durante": 0.5}
+  },
+  "etiquetas": { "ref": { "x": 2, "y": -5 }, "valor": { "x": 2, "y": 5 } },
+  "rotulos": [
+    { "texto": "−", "x": -2.6, "y": -2, "tam": 2 },
+    { "texto": "+", "x": -2.6, "y": 2, "tam": 2 }
+  ],
+  "fuentes": {
+    "LM393": "Texas Instruments LM193/LM293/LM393, SLCS005AH (oct 1979, rev. abr 2025), https://www.ti.com/lit/ds/symlink/lm393.pdf: ganancia 200 V/mV, VOL de 130 mV típico (400 máx) a 4 mA, IOL de 6 mA mín con VOL = 1.5 V, fuga de salida 0.1 nA típica, respuesta de 1.3 µs con escalón de 100 mV y 5 mV de sobreexcitación (RL = 5.1 kΩ a 5 V), ICC de 0.45 mA típica con dos comparadores (rq sale de 0.225 mA por uno a 5 V). Composición de Kirchi (amplificador + resistencia de base + transistor NPN de colector abierto) ajustada a la hoja, no copiada: rc fija el VOL, gbw fija el flanco de subida de 1.3 µs (el de bajada sale en 0.3 µs, como los 300 ns del LM393B con entrada TTL) y rbase da la corriente de base. rin, rout, ilim y las capacitancias no vienen en la hoja: valores de orden de magnitud sin validar. Sin voltaje de offset (5 mV típicos) ni corriente de polarización: el modelo no los tiene.",
+    "LM311": "Texas Instruments LM111/LM211/LM311, SLCS007K (sep 1973, rev. mar 2017), https://www.ti.com/lit/ds/symlink/lm311.pdf: ganancia 200 V/mV, VOL de 0.23 V típico a 8 mA (VCC+ = 4.5 V) y 0.75 V a 50 mA, fuga de salida 0.2 nA, respuesta de 115 ns (a nivel alto) y 165 ns (a nivel bajo) con escalón de 100 mV y 5 mV de sobreexcitación (500 Ω a 5 V, CL = 5 pF), ICC+ de 5.1 mA con la salida baja (de ahí rq). Composición de Kirchi ajustada a la hoja, no copiada: el modelo reproduce los 115 ns de la subida (111 ns) pero no los 165 ns de la bajada, que sale en 59 ns (desviación conocida de la hoja, fijada en la prueba): el transistor de la composición enciende más rápido que la etapa de salida del dispositivo. El emisor de la salida va a V−: la patilla EMIT OUT y las de balance y habilitación del LM311 no existen en esta pieza. Sin voltaje de offset (2 mV típicos) ni corriente de polarización."
+  }
+}

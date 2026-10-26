@@ -1,0 +1,21 @@
+* Anillo de una NAND y dos inversores 74HC con habilitacion que sube a 50 ns: oscila con 6 retardos de 5 ns
+* por periodo (unos 33 MHz). Un anillo sin habilitacion no tiene punto de operacion en XSPICE
+.include digital.lib
+VEN en 0 PULSE(0 5 50n 1p 1p 1 2)
+AEN [en] [den] adc_hc5
+AU1 [den n3] n1 nand_hc5
+AU2 n1 n2 inv_hc5
+AU3 n2 n3 inv_hc5
+AOUT [n1] [o1] dac_hc5
+RO o1 out 55
+R1 out 0 10k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 400n 0 0.1n uic
+wrdata salida.txt v(out)
+eprint den n1 n2 n3 > eventos.txt
+.endc
+.end

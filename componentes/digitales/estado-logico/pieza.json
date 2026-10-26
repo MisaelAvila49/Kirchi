@@ -1,0 +1,16 @@
+{
+  "id": "estado-logico",
+  "nombre": { "es": "Estado lógico", "en": "Logic state" },
+  "categoria": "digitales",
+  "prefijo": "E",
+  "buscar": ["estado lógico", "estado logico", "logicstate", "entrada lógica", "nivel lógico", "0 1"],
+  "pines": [{ "id": "S", "nombre": "salida", "x": 4, "y": 0 }],
+  "props": [
+    { "id": "estado", "nombre": "Estado", "defecto": "0", "opciones": ["0", "1"] },
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS", "CD4000B"] },
+    { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
+  ],
+  "modelo": { "tipo": "estado-logico", "salida": "S", "prop": "estado", "familia": "familia", "alimentacion": "alimentacion" },
+  "etiquetas": { "ref": { "x": 0, "y": -4 }, "valor": { "x": 0, "y": 4 } },
+  "rotulos": [{ "prop": "estado", "x": 0, "y": 0, "tam": 1.6, "alinear": "centro" }]
+}

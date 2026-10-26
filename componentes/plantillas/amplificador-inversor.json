@@ -1,0 +1,367 @@
+{
+  "id": "amplificador-inversor",
+  "nombre": "Amplificador inversor",
+  "descripcion": "Un LM741 con realimentación invierte la señal, con ganancia −10.",
+  "circuito": {
+    "cables": {
+      "c_1": {
+        "id": "c_1",
+        "puntos": [
+          {
+            "x": -6,
+            "y": 2
+          },
+          {
+            "x": -8,
+            "y": 2
+          },
+          {
+            "x": -8,
+            "y": 4
+          }
+        ]
+      },
+      "c_10": {
+        "id": "c_10",
+        "puntos": [
+          {
+            "x": -20,
+            "y": 8
+          },
+          {
+            "x": -20,
+            "y": 10
+          }
+        ]
+      },
+      "c_11": {
+        "id": "c_11",
+        "puntos": [
+          {
+            "x": -10,
+            "y": -2
+          },
+          {
+            "x": -8,
+            "y": -2
+          }
+        ]
+      },
+      "c_12": {
+        "id": "c_12",
+        "puntos": [
+          {
+            "x": 0,
+            "y": -6
+          },
+          {
+            "x": 0,
+            "y": -4
+          }
+        ]
+      },
+      "c_2": {
+        "id": "c_2",
+        "puntos": [
+          {
+            "x": 10,
+            "y": 10
+          },
+          {
+            "x": 10,
+            "y": 12
+          }
+        ]
+      },
+      "c_3": {
+        "id": "c_3",
+        "puntos": [
+          {
+            "x": 4,
+            "y": -14
+          },
+          {
+            "x": 8,
+            "y": -14
+          },
+          {
+            "x": 8,
+            "y": 0
+          }
+        ]
+      },
+      "c_4": {
+        "id": "c_4",
+        "puntos": [
+          {
+            "x": 0,
+            "y": 6
+          },
+          {
+            "x": 0,
+            "y": 4
+          }
+        ]
+      },
+      "c_5": {
+        "id": "c_5",
+        "puntos": [
+          {
+            "x": -8,
+            "y": -2
+          },
+          {
+            "x": -6,
+            "y": -2
+          }
+        ]
+      },
+      "c_6": {
+        "id": "c_6",
+        "puntos": [
+          {
+            "x": 8,
+            "y": 0
+          },
+          {
+            "x": 10,
+            "y": 0
+          },
+          {
+            "x": 10,
+            "y": 2
+          }
+        ]
+      },
+      "c_7": {
+        "id": "c_7",
+        "puntos": [
+          {
+            "x": 6,
+            "y": 0
+          },
+          {
+            "x": 8,
+            "y": 0
+          }
+        ]
+      },
+      "c_8": {
+        "id": "c_8",
+        "puntos": [
+          {
+            "x": -20,
+            "y": 0
+          },
+          {
+            "x": -20,
+            "y": -2
+          },
+          {
+            "x": -18,
+            "y": -2
+          }
+        ]
+      },
+      "c_9": {
+        "id": "c_9",
+        "puntos": [
+          {
+            "x": -4,
+            "y": -14
+          },
+          {
+            "x": -8,
+            "y": -14
+          },
+          {
+            "x": -8,
+            "y": -2
+          }
+        ]
+      }
+    },
+    "etiquetas": {
+      "e_1": {
+        "id": "e_1",
+        "nombre": "Entrada",
+        "rot": 180,
+        "x": -20,
+        "y": -2
+      },
+      "e_2": {
+        "id": "e_2",
+        "nombre": "Salida",
+        "rot": 0,
+        "x": 10,
+        "y": 0
+      }
+    },
+    "notas": {},
+    "piezas": {
+      "p_g1": {
+        "espejo": false,
+        "id": "p_g1",
+        "props": {},
+        "ref": "GND1",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": -20,
+        "y": 10
+      },
+      "p_g2": {
+        "espejo": false,
+        "id": "p_g2",
+        "props": {},
+        "ref": "GND2",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": -8,
+        "y": 4
+      },
+      "p_g3": {
+        "espejo": false,
+        "id": "p_g3",
+        "props": {},
+        "ref": "GND3",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 10,
+        "y": 12
+      },
+      "p_p1": {
+        "espejo": false,
+        "id": "p_p1",
+        "props": {
+          "nombre": "+15V"
+        },
+        "ref": "PWR1",
+        "rot": 0,
+        "tipo": "alimentacion",
+        "x": 0,
+        "y": -6
+      },
+      "p_p2": {
+        "espejo": false,
+        "id": "p_p2",
+        "props": {
+          "nombre": "-15V"
+        },
+        "ref": "PWR2",
+        "rot": 180,
+        "tipo": "alimentacion",
+        "x": 0,
+        "y": 6
+      },
+      "p_r1": {
+        "espejo": false,
+        "id": "p_r1",
+        "props": {
+          "valor": "1k"
+        },
+        "ref": "R1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -4.6
+          },
+          "valor": {
+            "x": 0,
+            "y": -2.8
+          }
+        },
+        "tipo": "resistencia",
+        "x": -14,
+        "y": -2
+      },
+      "p_r2": {
+        "espejo": false,
+        "id": "p_r2",
+        "props": {
+          "valor": "10k"
+        },
+        "ref": "R2",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -5
+          },
+          "valor": {
+            "lugar": "arriba"
+          }
+        },
+        "tipo": "resistencia",
+        "x": 0,
+        "y": -14
+      },
+      "p_rl": {
+        "espejo": false,
+        "id": "p_rl",
+        "props": {
+          "valor": "10k"
+        },
+        "ref": "R3",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "x": -0.9,
+            "y": -3.44
+          },
+          "valor": {
+            "x": 0.9,
+            "y": -4.4
+          }
+        },
+        "tipo": "resistencia",
+        "x": 10,
+        "y": 6
+      },
+      "p_u1": {
+        "espejo": false,
+        "id": "p_u1",
+        "props": {
+          "modelo": "LM741"
+        },
+        "ref": "U1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 2.96,
+            "y": -5
+          },
+          "valor": {
+            "x": 4.4,
+            "y": 5
+          }
+        },
+        "tipo": "amp-op",
+        "x": 0,
+        "y": 0
+      },
+      "p_v1": {
+        "espejo": false,
+        "id": "p_v1",
+        "props": {
+          "voltaje": "0.5"
+        },
+        "ref": "V1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 3.96,
+            "y": -1
+          },
+          "valor": {
+            "x": 5.88,
+            "y": 1
+          }
+        },
+        "tipo": "fuente-dc",
+        "x": -20,
+        "y": 4
+      }
+    }
+  }
+}

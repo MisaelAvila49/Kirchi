@@ -1,0 +1,17 @@
+{
+  "id": "resistencia",
+  "nombre": { "es": "Resistencia", "en": "Resistor" },
+  "categoria": "pasivos",
+  "prefijo": "R",
+  "buscar": ["r", "res", "resistor", "resistencia"],
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "valor", "nombre": "Valor", "unidad": "Ω", "defecto": "1k", "serie": "elegida", "comunes": ["220", "330", "1k", "4.7k", "10k", "100k"] },
+    { "id": "potencia", "nombre": "Potencia nominal", "defecto": "0.25 W", "opciones": ["0.125 W", "0.25 W", "0.5 W", "1 W", "2 W", "5 W"], "omitir": true }
+  ],
+  "modelo": { "tipo": "R", "a": "1", "b": "2", "prop": "valor" },
+  "limites": { "potencia": "potencia", "quema": { "factor": 2, "durante": 0.5 } }
+}

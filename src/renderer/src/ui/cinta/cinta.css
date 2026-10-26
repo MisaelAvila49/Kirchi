@@ -1,0 +1,183 @@
+/* Barra superior, dirección B (cinta compacta como MATLAB): fila de 30 px con la marca, las pestañas, el nombre del
+   archivo, el acceso rápido, el buscador de comandos y los iconos fijos; cuerpo de 64 px con grupos rotulados. Solo
+   tokens de styles.css: esta hoja no escribe ningún color. Cambiar a la dirección A o C es sobre todo cambiar esta hoja. */
+
+/* Fila de título: marca y nombre a la izquierda, el buscador al centro y el acceso rápido con los iconos fijos a la
+   derecha. Debajo, la fila de pestañas. Plegada (Ctrl+F1), quedan las dos filas. */
+.barra .fila-titulo { display: flex; align-items: center; gap: 6px; height: 30px; min-width: 0; padding: 0 8px 0 12px; background: var(--lienzo); }
+.barra .fila-pestañas { display: flex; align-items: stretch; height: 28px; min-width: 0; padding: 0 8px 0 8px; background: var(--lienzo); border-bottom: 1px solid var(--bordes); }
+.barra.plegada:not(.flotante) .fila-pestañas { border-bottom: 0; }
+.barra .marca { margin: 0; white-space: nowrap; }
+.barra .fila-titulo [role='toolbar'] { display: flex; align-items: center; gap: 2px; flex: none; }
+.barra .fila-titulo .nombre-archivo { flex: 1 1 0; min-width: 0; margin-left: 0; padding-left: 10px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra .fila-titulo .derecha { display: flex; flex: 1 1 0; align-items: center; justify-content: flex-end; gap: 2px; min-width: 0; }
+.barra .separador { width: 1px; height: 18px; margin: 0 4px; background: var(--bordes); flex: none; }
+
+/* Pestañas como se escriben; con la clase mayusculas, como MATLAB. */
+.pestañas-cinta { display: flex; align-self: stretch; gap: 2px; margin-left: 0; flex: none; }
+.pestañas-cinta [role='tab'] { position: relative; height: 100%; padding: 0 10px; border: 0; background: transparent; color: var(--texto-secundario); font: 600 12px/1 var(--fuente-interfaz); cursor: pointer; white-space: nowrap; }
+.pestañas-cinta [role='tab']:hover, .pestañas-cinta [role='tab'][aria-selected='true'] { color: var(--trazo); }
+.pestañas-cinta [role='tab'][aria-selected='true']::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 2px; border-radius: 2px 2px 0 0; background: var(--seleccion); }
+.barra.plegada:not(.flotante) .pestañas-cinta [role='tab'][aria-selected='true']::after { display: none; }
+.pestañas-cinta [role='tab']:focus-visible { outline-offset: -3px; }
+.barra.mayusculas .pestañas-cinta [role='tab'] { font-size: 10.5px; font-weight: 650; letter-spacing: 0.07em; text-transform: uppercase; }
+
+/* Iconos solos de la fila (Guardar, Deshacer, Rehacer, Atajos, Tema, Configuración y Plegar): 28 × 28, el mínimo de WCAG 2.5.8. */
+.boton-cinta.solo-icono { position: relative; width: 28px; height: 28px; display: inline-grid; place-items: center; padding: 0; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--trazo); cursor: pointer; flex: none; }
+.boton-cinta.solo-icono .icono { width: 16px; height: 16px; stroke-width: 1.6; }
+.boton-cinta.solo-icono:hover:not([aria-disabled='true']) { background: var(--resalte); border-color: var(--bordes); }
+.boton-cinta.solo-icono[aria-pressed='true'] { background: var(--seleccion-fondo); color: var(--seleccion); }
+/* Deshabilitado: nombre en gris e icono atenuado, para distinguirlo a simple vista (WCAG no pide contraste a lo deshabilitado). */
+.boton-cinta[aria-disabled='true'] { color: var(--texto-secundario); cursor: default; }
+.boton-cinta[aria-disabled='true'] > .icono { opacity: 0.45; }
+
+/* Simular, la acción principal de la ventana (relleno con el color de selección), y Detener junto a él. */
+.acceso-rapido .principal { height: 26px; margin-left: 2px; padding: 0 10px 0 8px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--seleccion); border-radius: 7px; background: var(--seleccion); color: var(--sobre-seleccion); font-weight: 650; cursor: pointer; white-space: nowrap; }
+.acceso-rapido .principal .icono { width: 12px; height: 12px; }
+.acceso-rapido .principal:hover { filter: brightness(1.08); }
+.acceso-rapido .principal:focus-visible { outline-offset: 2px; }
+.acceso-rapido .principal[aria-disabled='true'] { color: var(--sobre-seleccion); }
+.acceso-rapido .principal[aria-disabled='true'] > .icono { opacity: 1; }
+.acceso-rapido .secundaria { height: 26px; margin-left: 4px; padding: 0 8px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--bordes); border-radius: 7px; background: var(--paneles); color: var(--trazo); cursor: pointer; white-space: nowrap; }
+.acceso-rapido .secundaria:hover:not([aria-disabled='true']) { border-color: var(--seleccion); }
+.acceso-rapido .secundaria .icono { width: 11px; height: 11px; }
+.acceso-rapido .secundaria[aria-disabled='true'] { color: var(--texto-secundario); cursor: default; }
+/* Voltajes (dirección A): un interruptor; encendido, en el color de selección como lo pulsado de la cinta. */
+.acceso-rapido .secundaria[aria-pressed='true'] { background: var(--seleccion-fondo); border-color: var(--seleccion); color: var(--seleccion); }
+.acceso-rapido .secundaria[data-comando='voltajes'] .icono { width: 13px; height: 13px; }
+@media (forced-colors: active) {
+  .acceso-rapido .secundaria[aria-pressed='true'] { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+
+/* Buscador de comandos (Ctrl+K): una sola caja para encontrar cualquier orden con su atajo. */
+.buscar-comando { position: relative; flex: 0 1 min(460px, 36vw); min-width: 120px; }
+.buscar-comando > .icono { position: absolute; left: 8px; top: 6px; width: 13px; height: 13px; color: var(--texto-secundario); pointer-events: none; }
+.buscar-comando input { width: 100%; height: 24px; padding: 0 44px 0 27px; border: 1px solid var(--borde-campo); border-radius: 7px; background: var(--paneles); color: var(--trazo); font-size: 12px; }
+.buscar-comando > kbd { position: absolute; right: 5px; top: 4px; margin: 0; font-size: 9.5px; line-height: 13px; color: var(--texto-secundario); border-bottom-width: 1px; pointer-events: none; }
+.buscar-comando input:focus + kbd, .buscar-comando input:not(:placeholder-shown) + kbd { display: none; }
+.comandos-hallados { position: absolute; top: calc(100% + 4px); left: 50%; z-index: 80; width: 320px; margin: 0 0 0 -160px; padding: 5px; list-style: none; background: var(--paneles); color: var(--trazo); border: 1px solid var(--bordes); border-radius: 10px; box-shadow: var(--sombra); }
+.comandos-hallados[hidden] { display: none; }
+.comandos-vacio { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.comandos-vacio.visible { top: calc(100% + 4px); right: 0; z-index: 80; width: auto; height: auto; margin: 0; padding: 8px 12px; overflow: visible; clip: auto; font-size: 12px; color: var(--texto-secundario); background: var(--paneles); border: 1px solid var(--bordes); border-radius: 10px; box-shadow: var(--sombra); }
+.comandos-hallados li { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border-radius: 6px; cursor: default; }
+.comandos-hallados li[aria-selected='true'] { background: var(--seleccion-fondo); color: var(--seleccion); }
+.comandos-hallados .cmd-donde { margin-left: auto; font-size: 11px; color: var(--texto-secundario); }
+.comandos-hallados li[aria-selected='true'] .cmd-donde { color: var(--seleccion); }
+.comandos-hallados li[aria-disabled='true'] .cmd-nombre { color: var(--texto-secundario); }
+
+/* Cuerpo: una pestaña a la vez; plegada, una pestaña lo abre encima del lienzo, con sombra, sin mover el dibujo. */
+.cinta-cuerpo { position: relative; background: var(--barra); }
+.barra.plegada:not(.flotante) .cinta-cuerpo { display: none; }
+.barra.plegada.flotante .cinta-cuerpo { position: absolute; left: 0; right: 0; top: 100%; border-bottom: 1px solid var(--bordes); box-shadow: var(--sombra); }
+.cinta-cuerpo [role='tabpanel'][hidden] { display: none; }
+.herramientas { display: flex; align-items: stretch; height: 64px; min-width: 0; overflow: hidden; padding: 3px 4px 0; }
+.barra.sin-rotulos .herramientas { height: 51px; }
+.grupo { position: relative; display: flex; flex-direction: column; justify-content: space-between; flex: none; padding: 0 6px 1px; }
+.grupo + .grupo { border-left: 1px solid var(--bordes); }
+.grupo-contenido { display: flex; align-items: flex-start; gap: 2px; height: 48px; }
+/* Rótulos de grupo; las rayas entre grupos son decorativas. */
+.grupo-nombre { display: block; text-align: center; font-size: 10px; line-height: 13px; letter-spacing: 0.03em; color: var(--texto-secundario); white-space: nowrap; }
+.barra.sin-rotulos .grupo-nombre { display: none; }
+.pila { display: flex; flex-direction: column; }
+/* Grupo crecido: sobra ancho y nada está plegado, y sus pilas pasan a botones grandes. */
+.grupo.amplio > .grupo-contenido { gap: 2px; }
+.pila.amplia { flex-direction: row; gap: 2px; }
+
+/* Botones del cuerpo: sin caja; el fondo aparece al pasar el ratón y lo activo queda en el color de selección. */
+.herramientas button { display: inline-flex; align-items: center; gap: 6px; padding: 0 7px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--trazo); cursor: pointer; white-space: nowrap; }
+.herramientas button:hover:not([aria-disabled='true']):not(:disabled) { background: var(--resalte); border-color: var(--bordes); }
+.herramientas button[aria-pressed='true'], .herramientas button[aria-expanded='true'] { background: var(--seleccion-fondo); color: var(--seleccion); border-color: transparent; }
+.herramientas button[aria-disabled='true'] { color: var(--texto-secundario); cursor: default; }
+.herramientas button[aria-disabled='true'] > .icono { opacity: 0.45; }
+.herramientas button:focus-visible { outline: 2px solid var(--seleccion); outline-offset: -2px; }
+.herramientas .chico { height: 24px; }
+.herramientas .grande { position: relative; flex-direction: column; justify-content: flex-start; gap: 3px; min-width: 46px; height: 48px; padding: 5px 7px 3px; font-size: 11.5px; line-height: 1.2; text-align: center; white-space: normal; }
+.herramientas .grande .icono { width: 20px; height: 20px; stroke-width: 1.5; }
+.herramientas .grande[data-comando='simular']:not([aria-disabled='true']) { color: var(--seleccion); }
+.herramientas .flecha { width: 9px; height: 9px; stroke-width: 2; margin-left: -2px; }
+
+/* Iconos a todo color: el plano pinta cada capa con las variables de su orden (colores.css) y la línea
+   (R3) toma el color de su orden. Lo pulsado conserva su color sobre el azul claro. Deshabilitado, pierde el color y se
+   atenúa: así se distingue aunque el icono sea de colores. */
+.icono.linea { color: var(--h); }
+.herramientas .chico .icono.linea, .fila-pestañas .icono.linea { stroke-width: 1.9; }
+.herramientas .grande .icono.plano, .herramientas .grupo.plegado .boton-grupo .icono.plano:first-child { width: 22px; height: 22px; }
+.boton-cinta[aria-disabled='true'] > .icono:is(.plano, .linea), .herramientas button[aria-disabled='true'] > .icono:is(.plano, .linea) { filter: grayscale(1); opacity: 0.5; }
+
+/* El tamaño de la interfaz (Vista › Ventana, dirección A): «Interfaz − 150 % +»; la cifra vuelve al 100 %. */
+.herramientas .control-tamano { display: flex; align-items: center; gap: 2px; height: 24px; padding-left: 7px; }
+.herramientas .rotulo-tamano { margin-right: 4px; font-size: 12px; color: var(--trazo); }
+.herramientas .control-tamano .paso-tamano { width: 24px; height: 24px; min-width: 24px; padding: 0; justify-content: center; border-color: var(--bordes); }
+.herramientas .control-tamano .cifra-tamano { height: 24px; min-width: 52px; padding: 0 6px; justify-content: center; font-size: 12px; }
+
+/* El control de zoom de hoy dentro de una pila (Vista › Zoom). */
+.herramientas .control-zoom { height: 24px; }
+.herramientas .control-zoom .boton { width: 24px; height: 24px; min-width: 24px; padding: 0; justify-content: center; border-color: var(--bordes); }
+.herramientas .campo-zoom { height: 24px; }
+
+/* Grupo plegado por falta de ancho: un solo botón con su icono y su nombre; lo de adentro se abre debajo, encima del lienzo. */
+.herramientas .boton-grupo { display: none; }
+.herramientas .grupo.plegado .boton-grupo { position: relative; display: inline-flex; flex-direction: column; justify-content: flex-start; gap: 3px; height: 48px; padding: 5px 7px 3px; font-size: 11.5px; }
+.herramientas .grupo.plegado .boton-grupo .icono:first-child { width: 20px; height: 20px; stroke-width: 1.5; }
+.herramientas .grupo.plegado .boton-grupo .flechita { position: absolute; right: 2px; top: 4px; width: 9px; height: 9px; stroke-width: 2; }
+.grupo.plegado > .grupo-contenido { display: none; }
+.grupo.plegado.abierto > .grupo-contenido { position: fixed; z-index: 70; display: flex; height: auto; padding: 6px; background: var(--paneles); border: 1px solid var(--bordes); border-radius: 10px; box-shadow: var(--sombra); }
+
+/* Globo de la cinta: nombre, tecla y razón; el puntero puede pasar encima sin que se cierre. */
+.globo-cinta { position: fixed; z-index: 90; max-width: 300px; padding: 5px 9px; border-radius: 5px; background: var(--paneles); color: var(--trazo); border: 1px solid var(--bordes); font: 12px/1.35 var(--fuente-interfaz); box-shadow: var(--sombra); }
+.globo-cinta b { font-weight: 650; }
+.globo-cinta .globo-atajo { margin-left: 6px; font: 11px var(--fuente-cifras); }
+.globo-cinta .globo-razon { display: block; margin-top: 2px; }
+
+/* A menos de 1100 px se quita la tecla dibujada del buscador, y a menos de 920 px el buscador pasa a icono. */
+/* Por debajo de 1300 px los botones se juntan para que Inicio entre completo en 1280 px. */
+@media (max-width: 1300px) {
+  .herramientas button { padding: 0 5px; }
+  .grupo { padding: 0 4px 1px; }
+}
+@media (max-width: 1100px) {
+  .buscar-comando > kbd { display: none; }
+  .buscar-comando input { padding-right: 8px; }
+  .pestañas-cinta [role='tab'] { padding: 0 8px; }
+}
+@media (max-width: 920px) {
+  .buscar-comando { flex: 0 0 28px; min-width: 28px; }
+  .buscar-comando input { padding: 0; color: transparent; cursor: pointer; }
+  .buscar-comando input::placeholder { color: transparent; }
+  .buscar-comando > .icono { left: 7px; }
+  .buscar-comando input:focus { position: absolute; right: 0; top: 0; z-index: 5; width: 260px; padding: 0 8px; color: var(--trazo); cursor: text; }
+  .buscar-comando input:focus::placeholder { color: var(--texto-secundario); }
+  .pestañas-cinta [role='tab'] { padding: 0 6px; }
+  .barra .fijos [data-comando='atajos'] { display: none; }
+  .acceso-rapido .txt-sec { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .acceso-rapido .secundaria { width: 28px; padding: 0; justify-content: center; }
+  .barra .marca { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+/* Un botón grande con menú (Figura): la flecha va arriba a la derecha, con ancho de sobra para que no se encime con el icono. */
+.boton-cinta.grande[data-menu-boton] { position: relative; min-width: 58px; }
+.boton-cinta.grande[data-menu-boton] > .flecha { position: absolute; right: 4px; top: 5px; margin: 0; }
+/* Botón partido (Grabar): el botón grande y, pegada a su derecha, la flecha de las opciones. */
+.boton-partido { display: inline-flex; align-items: stretch; }
+.herramientas .boton-partido > .grande { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.herramientas .boton-partido > .flecha-partida { align-self: stretch; width: 16px; min-width: 16px; height: 48px; padding: 0; justify-content: center; border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-color: var(--bordes); }
+.herramientas .boton-partido > .flecha-partida .flecha { margin: 0; }
+/* Pausar / Continuar entre el tiempo y la flecha: cuadrado, del alto del botón. */
+.herramientas .boton-partido > .pausa-partida { align-self: stretch; width: 30px; min-width: 30px; height: 48px; padding: 0; justify-content: center; border-radius: 0; border-left-color: var(--bordes); }
+.herramientas .boton-partido:has(> .pausa-partida) > .flecha-partida { border-left-color: var(--bordes); }
+/* «● 00:42»: el punto es rojo mientras graba y gris en pausa. Las cifras no bailan. */
+.punto-grabando { color: var(--rojo-texto); }
+.punto-grabando.pausado { color: var(--texto-secundario); }
+.boton-cinta .txt { font-variant-numeric: tabular-nums; }
+.pila:empty { display: none; }
+/* Avanzar en el tiempo (menú) con Retroceder y Avanzar lado a lado debajo; el grupo crecido no los reparte en fila. */
+.pila.par { flex-direction: column; }
+.pila.par > .fila-par { display: flex; gap: 2px; }
+.pila.par > .fila-par .boton-cinta.solo-icono { width: 26px; height: 24px; border-radius: 6px; }
+
+/* Cuadrícula de iconos (Editar y piezas menores de Colocar): botones solo con icono, en columnas de `--filas` alto. */
+.cuadricula { display: grid; grid-auto-flow: column; grid-template-rows: repeat(var(--filas, 2), 24px); gap: 0; align-content: start; }
+.herramientas .cuadricula .boton-cinta.solo-icono { width: 26px; height: 24px; border-radius: 6px; }
+.herramientas .cuadricula .boton-cinta.solo-icono .icono { width: 16px; height: 16px; }
+/* Texto de un grupo que dice qué hacer (el último de Inicio sin selección). */
+.herramientas .texto-grupo { align-self: center; width: 150px; margin: 0; padding: 0 6px; font-size: 11.5px; line-height: 1.35; color: var(--texto-secundario); white-space: normal; }

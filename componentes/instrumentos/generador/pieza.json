@@ -1,0 +1,27 @@
+{
+  "id": "generador",
+  "nombre": { "es": "Generador de funciones", "en": "Function generator" },
+  "categoria": "instrumentos",
+  "prefijo": "XFG",
+  "buscar": ["generador", "función", "funcion", "generador de funciones", "señal", "xfg"],
+  "pines": [
+    { "id": "+", "nombre": "salida", "x": 0, "y": -6 },
+    { "id": "COM", "nombre": "COM", "x": 0, "y": 6 }
+  ],
+  "props": [
+    { "id": "frecuencia", "nombre": "Frecuencia", "unidad": "Hz", "defecto": "1k", "comunes": ["50", "60", "100", "1k", "10k"] },
+    { "id": "forma", "nombre": "Forma", "defecto": "Senoidal", "opciones": ["Senoidal", "Cuadrada", "Triangular", "Diente de sierra", "Pulso", "Escalón", "Escalera"] },
+    { "id": "amplitud", "nombre": "Amplitud (pico a pico)", "unidad": "V", "defecto": "2", "comunes": ["0.1", "1", "2", "5", "10", "20"], "ajuste": true },
+    { "id": "desplazamiento", "nombre": "Offset", "unidad": "V", "defecto": "0", "comunes": ["0", "1", "2.5", "5"], "ajuste": true },
+    { "id": "simetria", "nombre": "Simetría (triangular)", "defecto": "50 %", "opciones": ["0 %", "10 %", "20 %", "25 %", "30 %", "40 %", "50 %", "60 %", "70 %", "75 %", "80 %", "90 %", "100 %"] },
+    { "id": "ciclo", "nombre": "Ciclo de trabajo (pulso)", "defecto": "25 %", "opciones": ["1 %", "5 %", "10 %", "20 %", "25 %", "30 %", "40 %", "50 %", "60 %", "70 %", "75 %", "80 %", "90 %", "95 %", "99 %"] },
+    { "id": "desfase", "nombre": "Desfase (grados)", "defecto": "0", "comunes": ["0", "90", "180", "270"], "ajuste": true, "omitir": true },
+    { "id": "retardo", "nombre": "Retardo del escalón", "unidad": "s", "defecto": "0", "comunes": ["0", "1m", "10m", "100m"], "ajuste": true, "omitir": true },
+    { "id": "pasos", "nombre": "Pasos de la escalera", "defecto": "4", "comunes": ["2", "4", "8", "16"], "ajuste": true, "omitir": true },
+    { "id": "salida", "nombre": "Salida", "defecto": "encendida", "opciones": ["apagada", "encendida"], "casilla": true },
+    { "id": "ideal", "nombre": "Instrumento ideal", "defecto": "no", "opciones": ["no", "sí"], "casilla": true }
+  ],
+  "modelo": { "tipo": "generador", "sal": "+", "com": "COM", "forma": "forma", "frecuencia": "frecuencia", "amplitud": "amplitud", "desplazamiento": "desplazamiento", "simetria": "simetria", "ciclo": "ciclo", "desfase": "desfase", "retardo": "retardo", "pasos": "pasos", "salida": "salida", "ideal": "ideal" },
+  "etiquetas": { "ref": { "x": 4, "y": -2 }, "valor": { "x": 4, "y": 2 } },
+  "variantes": { "prop": "forma", "simbolos": { "Senoidal": "simbolo-senoidal.svg", "Cuadrada": "simbolo-cuadrada.svg", "Triangular": "simbolo-triangular.svg", "Diente de sierra": "simbolo-sierra.svg", "Pulso": "simbolo-pulso.svg", "Escalón": "simbolo-escalon.svg", "Escalera": "simbolo-escalera.svg" } }
+}

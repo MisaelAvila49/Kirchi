@@ -1,0 +1,16 @@
+* Seguidor con TLV9002 y escalon de 2 V: velocidad de subida
+.include modelos.lib
+V1 1 0 DC 2.5
+V2 2 0 DC -2.5
+VIN 3 0 PULSE(0 2 0 1p 1p 5e-06 1e-05)
+RL 4 0 10k
+XU1 3 4 4 1 2 AMPOP a0=710000 gbw=1e6 sr=2e6 rin=1e+12 rout=1200 ilim=0.055 dhi=0.02 dlo=0.02 rq=91700
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 4e-09 2e-05 0 2e-09 uic
+wrdata salida.txt v(4)
+.endc
+.end

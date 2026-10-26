@@ -1,0 +1,22 @@
+{
+  "id": "fuente-pulso",
+  "nombre": { "es": "Fuente de pulso", "en": "Pulse source" },
+  "categoria": "fuentes",
+  "prefijo": "V",
+  "buscar": ["pulso", "pulse", "cuadrada", "reloj", "clock", "pwm"],
+  "pines": [
+    { "id": "+", "nombre": "+", "x": 0, "y": -4 },
+    { "id": "-", "nombre": "−", "x": 0, "y": 4 }
+  ],
+  "props": [
+    { "id": "alto", "nombre": "Voltaje alto", "unidad": "V", "defecto": "5", "comunes": ["3.3", "5", "9", "12"] },
+    { "id": "frecuencia", "nombre": "Frecuencia", "unidad": "Hz", "defecto": "1k", "comunes": ["1", "10", "100", "1k", "10k"] },
+    { "id": "ciclo", "nombre": "Ciclo de trabajo", "defecto": "50 %", "opciones": ["10 %", "25 %", "50 %", "75 %", "90 %"] },
+    { "id": "ancho", "nombre": "Ancho del pulso", "unidad": "s", "defecto": "0", "comunes": ["0", "10u", "100u", "1m"], "omitir": true },
+    { "id": "subida", "nombre": "Tiempo de subida", "unidad": "s", "defecto": "0", "comunes": ["0", "1u", "10u", "100u"], "omitir": true },
+    { "id": "bajada", "nombre": "Tiempo de bajada", "unidad": "s", "defecto": "0", "comunes": ["0", "1u", "10u", "100u"], "omitir": true },
+    { "id": "retardo", "nombre": "Retardo", "unidad": "s", "defecto": "0", "comunes": ["0", "100u", "1m", "10m"], "omitir": true }
+  ],
+  "modelo": { "tipo": "pulso", "a": "+", "b": "-", "alto": "alto", "frecuencia": "frecuencia", "ciclo": "ciclo", "ancho": "ancho", "subida": "subida", "bajada": "bajada", "retardo": "retardo" },
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } }
+}

@@ -1,0 +1,21 @@
+* Comparador LM311 con 15 V, 500 ohm a 5 V y 5 pF
+.include modelos.lib
+V1 1 0 DC 15
+V2 2 0 DC 0
+VIN 3 0 PULSE(0 5 0 1p 1p 0.999999u 2u)
+V4 4 0 DC 2.5
+V8 8 0 DC 5
+RL 8 5 500
+CL 5 0 5p
+XU1 3 4 6 1 2 AMPOP a0=200000 gbw=2e+10 sr=2.2e+08 rin=5e+07 rout=100 ilim=0.03 dhi=0.05 dlo=0.001 rq=5900
+RB 6 7 10000
+Q1 5 7 2 QCMP311
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 3u 0 0.5n uic
+wrdata salida.txt v(5)
+.endc
+.end

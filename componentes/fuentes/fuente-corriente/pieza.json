@@ -1,0 +1,16 @@
+{
+  "id": "fuente-corriente",
+  "nombre": { "es": "Fuente de corriente", "en": "Current source" },
+  "categoria": "fuentes",
+  "prefijo": "I",
+  "buscar": ["i", "corriente", "current", "fuente de corriente"],
+  "pines": [
+    { "id": "entrada", "nombre": "entrada", "x": 0, "y": 4 },
+    { "id": "salida", "nombre": "salida", "x": 0, "y": -4 }
+  ],
+  "props": [
+    { "id": "corriente", "nombre": "Corriente", "unidad": "A", "defecto": "1m", "comunes": ["100u", "1m", "10m", "100m", "1"] }
+  ],
+  "modelo": { "tipo": "I", "a": "entrada", "b": "salida", "prop": "corriente" },
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } }
+}

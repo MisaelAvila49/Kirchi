@@ -1,0 +1,16 @@
+* Seguidor con OP07 y escalon de 5 V: velocidad de subida
+.include modelos.lib
+V1 1 0 DC 15
+V2 2 0 DC -15
+VIN 3 0 PULSE(0 5 0 1p 1p 4.99999e-05 0.0001)
+RL 4 0 10k
+XU1 3 4 4 1 2 AMPOP a0=400000 gbw=600000 sr=300000 rin=3.3e7 rout=60 ilim=0.025 dhi=2.2 dlo=2.2 rq=11250
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 4e-08 0.0002 0 2e-08 uic
+wrdata salida.txt v(4)
+.endc
+.end

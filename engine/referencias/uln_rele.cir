@@ -1,0 +1,21 @@
+* Un canal del ULN2003A con un relevador de 10 mH y 47 ohm a 12 V y su diodo al comun: pulso de 5 V a 1 kHz en la entrada
+.include modelos.lib
+VCC vcc 0 DC 12
+VIN b 0 PULSE(0 5 0 1p 1p 0.5m 1m)
+L1 vcc x 10m
+RL x 1c 47
+RS 1c c1 0.001
+RIN b b1 2600
+Q1 c1 b1 m1 QULN1
+Q2 c1 m1 0 QULN2
+RBE2 m1 0 7200
+DC1 c1 vcc DULN
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 2u 3m 1u 1u uic
+wrdata salida.txt v(1c) i(vcc)
+.endc
+.end

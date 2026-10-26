@@ -1,0 +1,30 @@
+* Diac 3 con un pulso de 38 V y 1 k: se dispara en el voltaje de ruptura y cae al de conduccion
+.include modelos.lib
+VS vs 0 PULSE(0 38 1u 2u 2u 5m 10m)
+RL vs a 1k
+RT a n1 0.01
+DZS1 x1 n1 DZS3
+DZT1 gi1 x1 DZT
+Q2A gi1 bn1 x1 QSCRP
+Q1A bn1 gi1 0 QSCRN
+RGK1 gi1 0 2000000
+CA1 gi1 0 1n
+CB1 bn1 x1 1n
+DZS2 x2 0 DZS3
+DZT2 gi2 x2 DZT
+Q2B gi2 bn2 x2 QSCRP
+Q1B bn2 gi2 n1 QSCRN
+RGK2 gi2 n1 2000000
+CA2 gi2 n1 1n
+CB2 bn2 x2 1n
+RB1 bn1 gi1 1e9
+RB2 bn2 gi2 1e9
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 itl4=200 gmin=1e-10
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 5u 12m 0 2u uic
+wrdata salida.txt v(a) i(vs)
+.endc
+.end

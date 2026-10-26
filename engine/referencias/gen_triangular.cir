@@ -1,0 +1,13 @@
+* Generador triangular de 1 kHz, 2 Vpp, simetria de 50 %, con sus 50 ohm sobre 1 kohm
+V1 1 0 PULSE(-1 1 0 0.5m 0.5m 0 1m)
+RS 1 2 50
+RL 2 0 1k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 2u 3m 0 1u uic
+wrdata salida.txt v(2) i(v1)
+.endc
+.end

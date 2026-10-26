@@ -1,0 +1,65 @@
+{
+  "id": "mosfet-p",
+  "nombre": { "es": "MOSFET canal P", "en": "P-channel MOSFET" },
+  "categoria": "semiconductores",
+  "prefijo": "Q",
+  "buscar": ["mosfet", "pmos", "fet", "canal p", "bs250", "irf9540", "irf4905"],
+  "pines": [
+    { "id": "G", "nombre": "compuerta", "x": -4, "y": 0 },
+    { "id": "S", "nombre": "fuente", "x": 2, "y": -4 },
+    { "id": "D", "nombre": "drenador", "x": 2, "y": 4 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "BS250", "opciones": ["BS250", "IRF9540", "IRF4905"] }
+  ],
+  "modelo": {
+    "tipo": "mosfet", "d": "D", "g": "G", "s": "S", "pmos": true, "prop": "modelo",
+    "modelos": {
+      "BS250": { "vto": -2.1, "kp": 0.0115, "lambda": 0.02, "rd": 2, "rs": 1, "cbd": 114e-12, "pb": 0.8, "mj": 0.5, "fc": 0.5, "is": 1e-15, "cgso": 40e-12, "cgdo": 10e-12, "w": 1, "l": 1 },
+      "IRF9540": { "vto": -3, "kp": 2.1, "lambda": 0.01, "rd": 30e-3, "rs": 20e-3, "cbd": 909e-12, "pb": 0.8, "mj": 0.5, "fc": 0.5, "is": 2e-14, "cgso": 1.06e-9, "cgdo": 240e-12, "w": 1, "l": 1 },
+      "IRF4905": { "vto": -3, "kp": 12, "lambda": 0.01, "rd": 0.0025, "rs": 0.0016, "cbd": 4.32e-09, "pb": 0.8, "mj": 0.5, "fc": 0.5, "is": 2e-14, "cgso": 2.76e-09, "cgdo": 6.4e-10, "w": 1, "l": 1 }
+    }
+  },
+  "etiquetas": { "ref": { "x": 4, "y": -1 }, "valor": { "x": 4, "y": 1 } },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "BS250": {
+          "fuente": "Diodes Incorporated, BS250P DS11106, Maximum Ratings: VDSS −45 V, VGS ±20 V.",
+          "limites": [
+            {"nombre": "Vds", "de": "D", "a": "S", "abs": true, "max": 45, "consejo": "baja el voltaje que soporta el MOSFET o elige uno de más voltaje."},
+            {"nombre": "Vgs", "de": "G", "a": "S", "abs": true, "max": 20, "consejo": "limita el voltaje de la compuerta con un divisor o un Zener."}
+          ]
+        },
+        "IRF9540": {
+          "fuente": "Vishay, IRF9540 (91078), Absolute Maximum Ratings: VDS −100 V, VGS ±20 V.",
+          "limites": [
+            {"nombre": "Vds", "de": "D", "a": "S", "abs": true, "max": 100, "consejo": "baja el voltaje que soporta el MOSFET o elige uno de más voltaje."},
+            {"nombre": "Vgs", "de": "G", "a": "S", "abs": true, "max": 20, "consejo": "limita el voltaje de la compuerta con un divisor o un Zener."}
+          ]
+        },
+        "IRF4905": {
+          "fuente": "Infineon, IRF4905PbF datasheet (irf4905pbf.pdf, Rev. 2.1), Absolute Maximum Ratings: VDS −55 V, VGS ±20 V.",
+          "limites": [
+            {"nombre": "Vds", "de": "D", "a": "S", "abs": true, "max": 55, "consejo": "baja el voltaje que soporta el MOSFET o elige uno de más voltaje."},
+            {"nombre": "Vgs", "de": "G", "a": "S", "abs": true, "max": 20, "consejo": "limita el voltaje de la compuerta con un divisor o un Zener."}
+          ]
+        }
+      }
+    },
+   
+    "por": {
+      "prop": "modelo",
+      "valores": {
+        "BS250": { "corriente": 0.23, "potencia": 0.7, "fuente": "Diodes Incorporated, BS250P DS11106, Maximum Ratings: ID −230 mA, PD 700 mW a 25 °C" },
+        "IRF9540": { "corriente": 19, "potencia": 150, "fuente": "Vishay, IRF9540 (91078), Absolute Maximum Ratings: ID −19 A, PD 150 W a TC = 25 °C" },
+        "IRF4905": { "corriente": 74, "potencia": 200, "fuente": "Infineon, IRF4905PbF datasheet (irf4905pbf.pdf, Rev. 2.1), Absolute Maximum Ratings: ID -74 A, PD 200 W a TC = 25 °C" }
+      }
+    },
+    "quema": { "factor": 2, "durante": 0.5 }
+  },
+  "fuentes": {
+    "IRF4905": "Parámetros ajustados por Kirchi (no copiados) a Infineon IRF4905PbF Rev. 2.1, https://www.infineon.com/dgdl/irf4905.pdf?fileId=5546d462533600a4015355e32165197c: RDS(on) 20 mΩ máx a VGS = -10 V e ID = -38 A (el modelo da 16.5 mΩ), VGS(th) de -2 a -4 V (-3 V), gfs 21 S mín (el nivel 1 da 30 S), Ciss 3400 pF, Coss 1400 pF y Crss 640 pF a 25 V."
+  }
+}

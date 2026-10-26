@@ -1,0 +1,16 @@
+* Transformador (dos inductores acoplados): xfmr_elevador
+V1 1 0 SIN(0 5 400)
+R1 1 2 20
+L1 2 0 0.5
+L2 3 0 12.5
+K1 L1 L2 0.9
+R2 3 0 10000
+.options reltol=1e-6 abstol=1e-14 vntol=1e-9
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20u 0.01 0 2u uic
+wrdata salida.txt v(2) v(3) i(v1)
+.endc
+.end

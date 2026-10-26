@@ -1,0 +1,20 @@
+* NOR CD4000B a 12 V con carga de 10 k y 50 pF: umbrales de 3.6 y 8.4 V, 31 ns de retardo y 46 ns de transicion
+.include digital.lib
+VA a 0 PULSE(0 12 0 1p 1p 1.999999u 4u)
+VB b 0 PULSE(0 12 0 1p 1p 3.999999u 8u)
+AIN [a b] [da db] adc_cd12
+AU1 [da db] dy nor_cd12
+AOUT [dy] [o1] dac_cd12
+RO o1 out 170
+R1 out c 10k
+C1 c 0 50p
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 12u 0 1n uic
+wrdata salida.txt v(out) v(c)
+eprint da db dy > eventos.txt
+.endc
+.end

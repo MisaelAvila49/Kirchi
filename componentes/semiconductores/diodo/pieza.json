@@ -1,0 +1,61 @@
+{
+  "id": "diodo",
+  "nombre": { "es": "Diodo", "en": "Diode" },
+  "categoria": "semiconductores",
+  "prefijo": "D",
+  "buscar": ["d", "diodo", "diode", "1n4148", "1n4007", "1n5819", "schottky", "rectificador"],
+  "pines": [
+    { "id": "A", "nombre": "ánodo", "x": -4, "y": 0 },
+    { "id": "K", "nombre": "cátodo", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "defecto": "Genérico", "opciones": ["Genérico", "1N4148", "1N4007", "1N5819"] }
+  ],
+  "modelo": {
+    "tipo": "D", "a": "A", "b": "K", "is": 1e-14, "n": 1,
+    "por": {
+      "prop": "modelo",
+      "valores": {
+        "Genérico": { "is": 1e-14, "n": 1 },
+        "1N4148": { "is": 2.2e-9, "n": 1.8, "rs": 0.6, "cjo": 4e-12, "vj": 0.6, "m": 0.4, "tt": 2e-9, "bv": 100, "ibv": 1e-4 },
+        "1N4007": { "is": 7.5e-9, "n": 1.8, "rs": 0.03, "cjo": 38e-12, "vj": 0.75, "m": 0.5, "tt": 3e-6, "bv": 1000, "ibv": 5e-6 },
+        "1N5819": { "is": 2.7e-6, "n": 1.05, "rs": 0.1, "cjo": 330e-12, "vj": 0.5, "m": 0.5, "tt": 1e-10, "bv": 40, "ibv": 1e-3 }
+      }
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "1N4148": {
+          "fuente": "onsemi (Fairchild), 1N4148 / 1N4448, Absolute Maximum Ratings: voltaje inverso repetitivo 100 V, corriente directa media rectificada 200 mA.",
+          "limites": [
+            {"nombre": "voltaje inverso", "de": "K", "a": "A", "max": 100, "consejo": "elige un diodo de más voltaje inverso o limita el voltaje que le llega."},
+            {"nombre": "corriente directa media", "medida": "corriente", "max": 0.2, "consejo": "agrega una resistencia en serie o elige un diodo de más corriente."}
+          ]
+        },
+        "1N4007": {
+          "fuente": "onsemi, 1N4001 a 1N4007 (1N4001/D), Maximum Ratings: VRRM 1000 V, IO corriente directa media rectificada 1.0 A.",
+          "limites": [
+            {"nombre": "voltaje inverso", "de": "K", "a": "A", "max": 1000, "consejo": "elige un diodo de más voltaje inverso o limita el voltaje que le llega."},
+            {"nombre": "corriente directa media", "medida": "corriente", "max": 1.0, "consejo": "agrega una resistencia en serie o elige un diodo de más corriente."}
+          ]
+        },
+        "1N5819": {
+          "fuente": "onsemi, 1N5817 a 1N5819 (1N5817/D), Maximum Ratings (1N5819): VRRM 40 V, IO corriente directa media rectificada 1.0 A.",
+          "limites": [
+            {"nombre": "voltaje inverso", "de": "K", "a": "A", "max": 40, "consejo": "elige un diodo de más voltaje inverso o limita el voltaje que le llega."},
+            {"nombre": "corriente directa media", "medida": "corriente", "max": 1.0, "consejo": "agrega una resistencia en serie o elige un diodo de más corriente."}
+          ]
+        }
+      }
+    },
+    "quema": {"factor": 2, "durante": 0.5}
+  },
+  "fuentes": {
+    "Genérico": "El diodo de siempre de Kirchi (IS = 10 fA, N = 1), sin hoja de datos: es el modelo por omisión y el de los .kir anteriores.",
+    "1N4148": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Vishay 1N4148, doc. 81857 rev. 1.6 (7 nov 2024), https://www.vishay.com/docs/81857/1n4148.pdf: V(BR) 100 V a 100 µA, CD 4 pF (VR = 0), IR 25 nA a 20 V (máx), VF 1 V máx a 10 mA. La hoja solo da el máximo de VF: la curva se fijó en 0.72 V a 10 mA. tt = 2 ns sale del trr de 4 ns y no se validó.",
+    "1N4007": "Parámetros ajustados por Kirchi (no copiados) a Diodes Inc. 1N4001-1N4007, ds28002 (julio 2024), https://www.diodes.com/assets/Datasheets/ds28002.pdf: VFM 1.0 V máx a 1 A, IR 5 µA, Cj 15 pF a 4 V, VRRM 1000 V. La curva se fijó en 0.90 V a 1 A. La hoja no da el tiempo de recuperación: tt = 3 µs es un orden de magnitud típico de un rectificador de 1 A y no se validó.",
+    "1N5819": "Parámetros ajustados por Kirchi (no copiados) a Vishay 1N5817/1N5818/1N5819, doc. 88525, https://www.vishay.com/docs/88525/1n5817.pdf: VF máx 0.60 V a 1 A y 0.90 V a 3.1 A, IR máx 1 mA a 25 °C, CJ 110 pF a 4 V, VRRM 40 V. La hoja solo da máximos: la curva se fijó en 0.45 V a 1 A y 0.69 V a 3.1 A."
+  }
+}

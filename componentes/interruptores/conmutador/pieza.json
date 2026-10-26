@@ -1,0 +1,14 @@
+{
+  "id": "conmutador",
+  "nombre": { "es": "Conmutador SPDT", "en": "SPDT switch" },
+  "categoria": "interruptores",
+  "prefijo": "S",
+  "buscar": ["conmutador", "spdt", "palanca", "dos posiciones", "selector", "switch", "sw"],
+  "pines": [
+    { "id": "COM", "nombre": "COM", "x": -4, "y": 0 },
+    { "id": "1", "nombre": "1", "x": 4, "y": -2 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 2 }
+  ],
+  "props": [{ "id": "posicion", "nombre": "Posición", "defecto": "1", "opciones": ["1", "2"] }],
+  "modelo": { "tipo": "interruptor", "a": "COM", "b": "2", "c": "1", "prop": "posicion", "cerrado": "2" }
+}

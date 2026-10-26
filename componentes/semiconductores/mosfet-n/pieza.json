@@ -1,0 +1,85 @@
+{
+  "id": "mosfet-n",
+  "nombre": { "es": "MOSFET canal N", "en": "N-channel MOSFET" },
+  "categoria": "semiconductores",
+  "prefijo": "Q",
+  "buscar": ["mosfet", "nmos", "fet", "canal n", "2n7000", "irfz44n", "irf540n", "irlz44n", "irf520"],
+  "pines": [
+    { "id": "G", "nombre": "compuerta", "x": -4, "y": 0 },
+    { "id": "D", "nombre": "drenador", "x": 2, "y": -4 },
+    { "id": "S", "nombre": "fuente", "x": 2, "y": 4 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "2N7000", "opciones": ["2N7000", "IRFZ44N", "IRF540N", "IRLZ44N", "IRF520"] }
+  ],
+  "modelo": {
+    "tipo": "mosfet", "d": "D", "g": "G", "s": "S", "pmos": false, "prop": "modelo",
+    "modelos": {
+      "2N7000": { "vto": 2.1, "kp": 0.18, "lambda": 0.02, "rd": 0.3, "rs": 0.2, "cbd": 34e-12, "pb": 0.8, "mj": 0.5, "fc": 0.5, "is": 1e-15, "cgso": 15e-12, "cgdo": 5e-12, "w": 1, "l": 1 },
+      "IRFZ44N": { "vto": 3, "kp": 18, "lambda": 0.01, "rd": 4e-3, "rs": 2e-3, "cbd": 1.55e-9, "pb": 0.8, "mj": 0.5, "fc": 0.5, "is": 2e-14, "cgso": 1.38e-9, "cgdo": 88e-12, "w": 1, "l": 1 },
+      "IRF540N": { "vto": 3, "kp": 20, "lambda": 0.01, "rd": 0.017, "rs": 0.0111, "cbd": 1.19e-09, "pb": 0.8, "mj": 0.5, "fc": 0.5, "is": 2e-14, "cgso": 1.92e-09, "cgdo": 4e-11, "w": 1, "l": 1 },
+      "IRLZ44N": { "vto": 1.5, "kp": 70, "lambda": 0.01, "rd": 0.01, "rs": 0.0059, "cbd": 1.42e-09, "pb": 0.8, "mj": 0.5, "fc": 0.5, "is": 2e-14, "cgso": 1.55e-09, "cgdo": 1.5e-10, "w": 1, "l": 1 },
+      "IRF520": { "vto": 3, "kp": 1.2, "lambda": 0.01, "rd": 0.053, "rs": 0.0344, "cbd": 6.59e-10, "pb": 0.8, "mj": 0.5, "fc": 0.5, "is": 2e-14, "cgso": 3.26e-10, "cgdo": 3.4e-11, "w": 1, "l": 1 }
+    }
+  },
+  "etiquetas": { "ref": { "x": 4, "y": -1 }, "valor": { "x": 4, "y": 1 } },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "2N7000": {
+          "fuente": "ON Semiconductor, 2N7000/D, Maximum Ratings: VDSS 60 Vdc, VGS ±20 Vdc continuo.",
+          "limites": [
+            {"nombre": "Vds", "de": "D", "a": "S", "abs": true, "max": 60, "consejo": "baja el voltaje que soporta el MOSFET o elige uno de más voltaje."},
+            {"nombre": "Vgs", "de": "G", "a": "S", "abs": true, "max": 20, "consejo": "limita el voltaje de la compuerta con un divisor o un Zener."}
+          ]
+        },
+        "IRFZ44N": {
+          "fuente": "Infineon (International Rectifier), IRFZ44N PD-94053, Absolute Maximum Ratings: VDSS 55 V, VGS ±20 V.",
+          "limites": [
+            {"nombre": "Vds", "de": "D", "a": "S", "abs": true, "max": 55, "consejo": "baja el voltaje que soporta el MOSFET o elige uno de más voltaje."},
+            {"nombre": "Vgs", "de": "G", "a": "S", "abs": true, "max": 20, "consejo": "limita el voltaje de la compuerta con un divisor o un Zener."}
+          ]
+        },
+        "IRF540N": {
+          "fuente": "Infineon, IRF540NPbF datasheet (irf540npbf.pdf, Rev. 2.1), Absolute Maximum Rating: VDSS 100 V, VGS ±20 V.",
+          "limites": [
+            {"nombre": "Vds", "de": "D", "a": "S", "abs": true, "max": 100, "consejo": "baja el voltaje que soporta el MOSFET o elige uno de más voltaje."},
+            {"nombre": "Vgs", "de": "G", "a": "S", "abs": true, "max": 20, "consejo": "limita el voltaje de la compuerta con un divisor o un Zener."}
+          ]
+        },
+        "IRLZ44N": {
+          "fuente": "Infineon (International Rectifier), IRLZ44NPbF PD-94831, Absolute Maximum Ratings: VDSS 55 V, VGS ±16 V.",
+          "limites": [
+            {"nombre": "Vds", "de": "D", "a": "S", "abs": true, "max": 55, "consejo": "baja el voltaje que soporta el MOSFET o elige uno de más voltaje."},
+            {"nombre": "Vgs", "de": "G", "a": "S", "abs": true, "max": 16, "consejo": "limita el voltaje de la compuerta con un divisor o un Zener."}
+          ]
+        },
+        "IRF520": {
+          "fuente": "Vishay, IRF520 doc. 91017 rev. C (2 ago 2021), Absolute Maximum Ratings: VDS 100 V, VGS ±20 V.",
+          "limites": [
+            {"nombre": "Vds", "de": "D", "a": "S", "abs": true, "max": 100, "consejo": "baja el voltaje que soporta el MOSFET o elige uno de más voltaje."},
+            {"nombre": "Vgs", "de": "G", "a": "S", "abs": true, "max": 20, "consejo": "limita el voltaje de la compuerta con un divisor o un Zener."}
+          ]
+        }
+      }
+    },
+   
+    "por": {
+      "prop": "modelo",
+      "valores": {
+        "2N7000": { "corriente": 0.2, "potencia": 0.35, "fuente": "ON Semiconductor, 2N7000/D, Maximum Ratings: ID 200 mAdc, PD 350 mW a 25 °C" },
+        "IRFZ44N": { "corriente": 49, "potencia": 94, "fuente": "Infineon (International Rectifier), IRFZ44N PD-94053, Absolute Maximum Ratings: ID 49 A, PD 94 W a TC = 25 °C" },
+        "IRF540N": { "corriente": 33, "potencia": 130, "fuente": "Infineon, IRF540NPbF datasheet (irf540npbf.pdf, Rev. 2.1), Absolute Maximum Rating: ID 33 A, PD 130 W a TC = 25 °C" },
+        "IRLZ44N": { "corriente": 47, "potencia": 110, "fuente": "Infineon (International Rectifier), IRLZ44NPbF PD-94831, Absolute Maximum Ratings: ID 47 A, PD 110 W a TC = 25 °C" },
+        "IRF520": { "corriente": 9.2, "potencia": 60, "fuente": "Vishay, IRF520 doc. 91017 rev. C (2 ago 2021), Absolute Maximum Ratings: ID 9.2 A, PD 60 W a TC = 25 °C" }
+      }
+    },
+    "quema": { "factor": 2, "durante": 0.5 }
+  },
+  "fuentes": {
+    "IRF540N": "Parámetros ajustados por Kirchi (no copiados) a Infineon IRF540NPbF Rev. 2.1, https://www.infineon.com/dgdl/irf540npbf.pdf?fileId=5546d462533600a4015355e39d7d1930: RDS(on) 44 mΩ máx a VGS = 10 V e ID = 16 A (el modelo da 35 mΩ, 0.8 del máximo), VGS(th) de 2 a 4 V (3 V), gfs 21 S mín a 16 A (el nivel 1 da 25 S), Ciss 1960 pF, Coss 250 pF y Crss 40 pF a 25 V (cgdo = Crss, cgso = Ciss - Crss, cbd = (Coss - Crss) por 5.68, el factor de la unión a 25 V).",
+    "IRLZ44N": "Parámetros ajustados por Kirchi (no copiados) a Infineon (International Rectifier) IRLZ44NPbF PD-94831, https://www.infineon.com/dgdl/irlz44npbf.pdf?fileId=5546d462533600a4015356b2f38a1d6b: RDS(on) 22 mΩ máx a 10 V y 25 A, 25 mΩ a 5 V y 25 A, 35 mΩ a 4 V y 21 A (el modelo da 17.6, 20.2 y 22.1 mΩ), VGS(th) de 1 a 2 V (1.5 V), gfs 21 S mín, Ciss 1700 pF, Coss 400 pF y Crss 150 pF a 25 V. Un solo kp no sigue las tres resistencias a la vez: se ajustó a 10 V y 5 V y el punto de 4 V queda por debajo del máximo.",
+    "IRF520": "Parámetros ajustados por Kirchi (no copiados) a Vishay IRF520, doc. 91017 rev. C (2 ago 2021), https://www.vishay.com/docs/91017/irf520.pdf: RDS(on) 0.27 Ω máx a VGS = 10 V e ID = 5.5 A (el modelo da 0.216 Ω), VGS(th) de 2 a 4 V (3 V), gfs 2.7 S mín a 5.5 A (el nivel 1 da 3.6 S), Ciss 360 pF, Coss 150 pF y Crss 34 pF a 25 V."
+  }
+}

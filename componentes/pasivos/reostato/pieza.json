@@ -1,0 +1,19 @@
+{
+  "id": "reostato",
+  "nombre": { "es": "Reóstato", "en": "Rheostat" },
+  "categoria": "pasivos",
+  "prefijo": "RV",
+  "buscar": ["rv", "reostato", "reóstato", "rheostat"],
+  "pines": [
+    { "id": "1", "nombre": "extremo", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "cursor", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "valor", "nombre": "Valor", "unidad": "Ω", "defecto": "10k", "serie": "elegida", "comunes": ["100", "1k", "5k", "10k", "50k", "100k"] },
+    { "id": "posicion", "nombre": "Posición del cursor", "defecto": "50 %", "opciones": ["0 %", "10 %", "25 %", "50 %", "75 %", "90 %", "100 %"] },
+    { "id": "ley", "nombre": "Ley de variación", "defecto": "lineal", "opciones": ["lineal", "logarítmica", "antilogarítmica"], "omitir": true }
+  ],
+  "modelo": { "tipo": "pot", "a": "1", "c": "2", "prop": "valor", "posicion": "posicion", "ley": "ley", "reostato": true },
+  "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 3 } },
+  "animacion": { "tipo": "cursor", "prop": "posicion", "desde": -2.5, "hasta": 2.5, "codo": -3.3 }
+}
