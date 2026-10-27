@@ -13,5 +13,19 @@
     { "id": "rint", "nombre": "Resistencia interna", "unidad": "Ω", "defecto": "0", "omitir": true, "comunes": ["0", "0.1", "0.5", "1", "2"] }
   ],
   "modelo": { "tipo": "V", "a": "+", "b": "-", "prop": "voltaje", "rserie": "rint" },
-  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } }
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
+  "datos": {
+    "equivalencias": { "kicad": "Device:Battery", "ltspice": "battery", "falstad": "v", "proteus": "BATTERY", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "*": {
+        "pendiente": {
+          "presentaciones": "depende de la pila (9 V PP3 con broche, AA con portapilas, CR2032 con soporte)",
+          "parte": "depende de la pila",
+          "hoja": "depende del fabricante",
+          "lcsc": "depende de la pila"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "Sin presentación común única; no se eligió una para no inventarla" }
+      }
+    }
+  }
 }

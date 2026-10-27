@@ -1,0 +1,169 @@
+{
+  "id": "bufer-244",
+  "nombre": { "es": "Búfer octal de tres estados (74244)", "en": "Octal tri-state buffer (74244)" },
+  "categoria": "digitales",
+  "grupo": "Registros y búferes",
+  "prefijo": "U",
+  "buscar": ["u", "bufer", "buffer", "búfer", "octal", "tres estados", "tri-state", "bus", "74244", "74hc244", "74ls244", "oe"],
+  "pines": [
+    { "id": "1OE", "nombre": "1OE (habilitación, activa en bajo)", "x": -8, "y": -10 },
+    { "id": "2OE", "nombre": "2OE (habilitación, activa en bajo)", "x": -8, "y": 2 },
+    { "id": "1A1", "nombre": "1A1", "x": -8, "y": -8 },
+    { "id": "1Y1", "nombre": "1Y1", "x": 8, "y": -8 },
+    { "id": "1A2", "nombre": "1A2", "x": -8, "y": -6 },
+    { "id": "1Y2", "nombre": "1Y2", "x": 8, "y": -6 },
+    { "id": "1A3", "nombre": "1A3", "x": -8, "y": -4 },
+    { "id": "1Y3", "nombre": "1Y3", "x": 8, "y": -4 },
+    { "id": "1A4", "nombre": "1A4", "x": -8, "y": -2 },
+    { "id": "1Y4", "nombre": "1Y4", "x": 8, "y": -2 },
+    { "id": "2A1", "nombre": "2A1", "x": -8, "y": 4 },
+    { "id": "2Y1", "nombre": "2Y1", "x": 8, "y": 4 },
+    { "id": "2A2", "nombre": "2A2", "x": -8, "y": 6 },
+    { "id": "2Y2", "nombre": "2Y2", "x": 8, "y": 6 },
+    { "id": "2A3", "nombre": "2A3", "x": -8, "y": 8 },
+    { "id": "2Y3", "nombre": "2Y3", "x": 8, "y": 8 },
+    { "id": "2A4", "nombre": "2A4", "x": -8, "y": 10 },
+    { "id": "2Y4", "nombre": "2Y4", "x": 8, "y": 10 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": [],
+    "rebanadas": [
+      { "OE": "1OE", "A": "1A1", "Y": "1Y1" },
+      { "OE": "1OE", "A": "1A2", "Y": "1Y2" },
+      { "OE": "1OE", "A": "1A3", "Y": "1Y3" },
+      { "OE": "1OE", "A": "1A4", "Y": "1Y4" },
+      { "OE": "2OE", "A": "2A1", "Y": "2Y1" },
+      { "OE": "2OE", "A": "2A2", "Y": "2Y2" },
+      { "OE": "2OE", "A": "2A3", "Y": "2Y3" },
+      { "OE": "2OE", "A": "2A4", "Y": "2Y4" }
+    ],
+    "tabla": { "columnas": ["OE", "A"], "salidas": ["Y"], "filas": ["1 X > Z", "0 X > A"] },
+    "retardos": { "74HC": { "vcc": 4.5, "*": [1.3e-8, 1.3e-8] }, "74LS": { "vcc": 5, "*": [1.2e-8, 1.2e-8] } }
+  },
+  "caja": {
+    "titulo": "BUF",
+    "forma": "funcional",
+    "izquierda": ["!1OE", "1A1", "1A2", "1A3", "1A4", null, "!2OE", "2A1", "2A2", "2A3", "2A4"],
+    "derecha": [null, "1Y1", "1Y2", "1Y3", "1Y4", null, null, "2Y1", "2Y2", "2Y3", "2Y4"],
+    "marcas": { "1Y1": ["z"], "1Y2": ["z"], "1Y3": ["z"], "1Y4": ["z"], "2Y1": ["z"], "2Y2": ["z"], "2Y3": ["z"], "2Y4": ["z"] }
+  },
+  "fuentes": {
+    "74HC": "TI SN74HC244 (SCLS130I): tabla de función p. 15 y retardo típico de 13 ns de A a Y (p. 7, 4.5 V, CL 50 pF). El modelo pasa de y a alta impedancia con el retardo de subida, y la hoja da 15 ns.",
+    "74LS": "TI SN54LS240/241/244 (SDLS144D): tabla de función p. 13 y retardo típico de 12 ns de A a Y (p. 6, 5 V, CL 45 pF). El modelo pasa de y a alta impedancia con el retardo de subida, y la hoja da de 10 a 20 ns."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC244N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc244.pdf",
+        "equivalencias": { "kicad": "74xx:74HC244" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-20",
+            "patillas": {
+              "1A1": "2",
+              "1Y1": "18",
+              "1A2": "4",
+              "1Y2": "16",
+              "1A3": "6",
+              "1Y3": "14",
+              "1A4": "8",
+              "1Y4": "12",
+              "2A1": "11",
+              "2Y1": "9",
+              "2A2": "13",
+              "2Y2": "7",
+              "2A3": "15",
+              "2Y3": "5",
+              "2A4": "17",
+              "2Y4": "3",
+              "1OE": "1",
+              "2OE": "19"
+            },
+            "alimentacion": { "VCC": "20", "GND": "10" },
+            "parte": "SN74HC244N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de SN74HC244N de TI en DIP (solo uno de HGSEMI)" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SN74HC244 (SCLS130I, feb 2026), p. 3, fig. 4-1; KiCad 74xx:74HC244 (9.0.0; rotula 1A0 a 1A3 y 1Y0 a 1Y3, mismo orden)"
+        }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS244N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls244.pdf",
+        "equivalencias": { "kicad": "74xx:74LS244" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-20",
+            "patillas": {
+              "1A1": "2",
+              "1Y1": "18",
+              "1A2": "4",
+              "1Y2": "16",
+              "1A3": "6",
+              "1Y3": "14",
+              "1A4": "8",
+              "1Y4": "12",
+              "2A1": "11",
+              "2Y1": "9",
+              "2A2": "13",
+              "2Y2": "7",
+              "2A3": "15",
+              "2Y3": "5",
+              "2A4": "17",
+              "2Y4": "3",
+              "1OE": "1",
+              "2OE": "19"
+            },
+            "alimentacion": { "VCC": "20", "GND": "10" },
+            "parte": "SN74LS244N",
+            "lcsc": { "numero": "C352965", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SNx4LS240/241/244 (SDLS144D, oct 2016), p. 3, Pin Configuration (DB, DW, J, N, NS, W); KiCad 74xx:74LS244"
+        }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -16 }, "valor": { "x": 0, "y": 16 } },
+  "rotulos": [
+    { "texto": "1OE", "x": -5.2, "y": -10, "tam": 1, "alinear": "izq" },
+    { "texto": "1A1", "x": -5.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "1A2", "x": -5.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "1A3", "x": -5.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "1A4", "x": -5.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "2OE", "x": -5.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "2A1", "x": -5.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "2A2", "x": -5.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "2A3", "x": -5.2, "y": 8, "tam": 1, "alinear": "izq" },
+    { "texto": "2A4", "x": -5.2, "y": 10, "tam": 1, "alinear": "izq" },
+    { "texto": "1Y1", "x": 3.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "1Y2", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "1Y3", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "1Y4", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "2Y1", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "2Y2", "x": 3.2, "y": 6, "tam": 1, "alinear": "der" },
+    { "texto": "2Y3", "x": 3.2, "y": 8, "tam": 1, "alinear": "der" },
+    { "texto": "2Y4", "x": 3.2, "y": 10, "tam": 1, "alinear": "der" },
+    { "texto": "BUF", "x": 0, "y": -13, "tam": 1, "alinear": "centro" }
+  ]
+}

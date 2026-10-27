@@ -1,0 +1,150 @@
+{
+  "id": "multiplexor-153",
+  "nombre": { "es": "Doble multiplexor de 4 a 1 (74153)", "en": "Dual 4-to-1 multiplexer (74153)" },
+  "categoria": "digitales",
+  "grupo": "Decodificadores y multiplexores",
+  "prefijo": "U",
+  "buscar": ["u", "multiplexor", "multiplexer", "mux", "4 a 1", "74153", "74hc153", "74ls153", "doble", "dual"],
+  "pines": [
+    { "id": "A", "nombre": "A", "x": -6, "y": -12 },
+    { "id": "B", "nombre": "B", "x": -6, "y": -10 },
+    { "id": "1G", "nombre": "1G (estrobo, activo en bajo)", "x": -6, "y": 2 },
+    { "id": "1C0", "nombre": "1C0", "x": -6, "y": -6 },
+    { "id": "1C1", "nombre": "1C1", "x": -6, "y": -4 },
+    { "id": "1C2", "nombre": "1C2", "x": -6, "y": -2 },
+    { "id": "1C3", "nombre": "1C3", "x": -6, "y": 0 },
+    { "id": "1Y", "nombre": "1Y", "x": 6, "y": -2 },
+    { "id": "2G", "nombre": "2G (estrobo, activo en bajo)", "x": -6, "y": 14 },
+    { "id": "2C0", "nombre": "2C0", "x": -6, "y": 6 },
+    { "id": "2C1", "nombre": "2C1", "x": -6, "y": 8 },
+    { "id": "2C2", "nombre": "2C2", "x": -6, "y": 10 },
+    { "id": "2C3", "nombre": "2C3", "x": -6, "y": 12 },
+    { "id": "2Y", "nombre": "2Y", "x": 6, "y": 10 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": ["B", "A"],
+    "rebanadas": [
+      { "G": "1G", "C0": "1C0", "C1": "1C1", "C2": "1C2", "C3": "1C3", "Y": "1Y" },
+      { "G": "2G", "C0": "2C0", "C1": "2C1", "C2": "2C2", "C3": "2C3", "Y": "2Y" }
+    ],
+    "tabla": {
+      "columnas": ["B", "A", "G", "C0", "C1", "C2", "C3"],
+      "salidas": ["Y"],
+      "filas": [
+        "X X 1 X X X X > 0",
+        "0 0 0 X X X X > C0",
+        "0 1 0 X X X X > C1",
+        "1 0 0 X X X X > C2",
+        "1 1 0 X X X X > C3"
+      ]
+    },
+    "retardos": { "74HC": { "vcc": 4.5, "*": [2.1e-8, 2.1e-8] }, "74LS": { "vcc": 5, "*": [1.9e-8, 2.5e-8] } }
+  },
+  "caja": {
+    "titulo": "MUX",
+    "forma": "funcional",
+    "izquierda": ["A", "B", null, "1C0", "1C1", "1C2", "1C3", "!1G", null, "2C0", "2C1", "2C2", "2C3", "!2G"],
+    "derecha": [null, null, null, null, null, "1Y", null, null, null, null, null, "2Y"]
+  },
+  "fuentes": {
+    "74HC": "TI SN74HC153 (SCLS112E): tabla de función p. 9 y retardo típico de 21 ns de A o B a Y (p. 5, 4.5 V, CL 50 pF). Los datos (17 ns) y el estrobo (11 ns) usan este mismo valor.",
+    "74LS": "TI SN74LS153 (SDLS055A): tabla de función p. 1 y retardo típico del select a Y, 19 ns de subida y 25 de bajada (p. 5, 5 V, CL 15 pF). Los datos y el estrobo usan estos mismos valores."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC153N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc153.pdf",
+        "equivalencias": { "kicad": "74xx:74LS153" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "1G": "1",
+              "B": "2",
+              "1C3": "3",
+              "1C2": "4",
+              "1C1": "5",
+              "1C0": "6",
+              "1Y": "7",
+              "2Y": "9",
+              "2C0": "10",
+              "2C1": "11",
+              "2C2": "12",
+              "2C3": "13",
+              "A": "14",
+              "2G": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74HC153N",
+            "lcsc": { "numero": "C157529", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC153 (SCLS112E, feb 2022), p. 3; KiCad 74xx:74LS153 (misma función y orden)" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS153N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls153.pdf",
+        "equivalencias": { "kicad": "74xx:74LS153" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "1G": "1",
+              "B": "2",
+              "1C3": "3",
+              "1C2": "4",
+              "1C1": "5",
+              "1C0": "6",
+              "1Y": "7",
+              "2Y": "9",
+              "2C0": "10",
+              "2C1": "11",
+              "2C2": "12",
+              "2C3": "13",
+              "A": "14",
+              "2G": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS153N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de SN74LS153N de TI en DIP (solo un clon de otro fabricante)" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74LS153 (SDLS055A, may 2007), p. 1, TOP VIEW; KiCad 74xx:74LS153" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -18 }, "valor": { "x": 0, "y": 18 } },
+  "rotulos": [
+    { "texto": "A", "x": -3.2, "y": -12, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -3.2, "y": -10, "tam": 1, "alinear": "izq" },
+    { "texto": "1C0", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "1C1", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "1C2", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "1C3", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "1G", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "2C0", "x": -3.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "2C1", "x": -3.2, "y": 8, "tam": 1, "alinear": "izq" },
+    { "texto": "2C2", "x": -3.2, "y": 10, "tam": 1, "alinear": "izq" },
+    { "texto": "2C3", "x": -3.2, "y": 12, "tam": 1, "alinear": "izq" },
+    { "texto": "2G", "x": -3.2, "y": 14, "tam": 1, "alinear": "izq" },
+    { "texto": "1Y", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "2Y", "x": 3.2, "y": 10, "tam": 1, "alinear": "der" },
+    { "texto": "MUX", "x": 0, "y": -15, "tam": 1, "alinear": "centro" }
+  ]
+}

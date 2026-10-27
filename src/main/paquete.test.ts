@@ -66,8 +66,19 @@ describe('configuración de electron-builder.yml', () => {
     expect(flujo).toMatch(/name: kirchi-ngspice-windows/)
     expect(readFileSync(join(raiz, 'scripts', 'revisar-firma-mac.sh'), 'utf8')).toContain('LICENSES.chromium.html')
   })
-  it('la versión de package.json es la de la versión 1.2.2', () => {
-    expect(JSON.parse(readFileSync(join(raiz, 'package.json'), 'utf8')).version).toBe('1.2.2')
+  it('los instaladores se llaman Kirchi-versión-Sistema-tipo, sin arquitectura', () => {
+    // Sección de primer nivel (hasta la siguiente clave sin sangría).
+    const sec = (clave: string): string => config.slice(config.indexOf(`\n${clave}:`) + 1).split(/\r?\n(?=\S)/)[0]
+    const nombre = (clave: string): string => sec(clave).match(/artifactName: (.+?)\r?$/m)![1]
+    expect(nombre('nsis')).toBe('Kirchi-${version}-Windows-instalador.${ext}')
+    expect(nombre('win')).toBe('Kirchi-${version}-Windows-portable.${ext}')
+    expect(nombre('dmg')).toBe('Kirchi-${version}-macOS.${ext}')
+    expect(nombre('appImage')).toBe('Kirchi-${version}-Linux.${ext}')
+    expect(nombre('deb')).toBe('Kirchi-${version}-Linux.${ext}')
+    expect(nombre('appx')).toBe('Kirchi-${version}-tienda-${arch}.${ext}')
+  })
+  it('la versión de package.json es la de la versión 2.0.0', () => {
+    expect(JSON.parse(readFileSync(join(raiz, 'package.json'), 'utf8')).version).toBe('2.0.0')
   })
 })
 
@@ -99,6 +110,23 @@ describe('paquete de la Tienda de Microsoft (appx)', () => {
       for (const e of [100, 125, 150, 200, 400]) expect(ihdr(`${n}.scale-${e}.png`), `${n} ${e}`).toEqual({ ancho: Math.round((w * e) / 100), alto: Math.round((h * e) / 100) })
     }
     for (const t of [16, 24, 32, 48, 256]) expect(ihdr(`Square44x44Logo.targetsize-${t}_altform-unplated.png`)).toEqual({ ancho: t, alto: t })
+  })
+  it('declara el alias de ejecución para que un cliente MCP lance «kirchi --mcp» desde la Tienda', () => {
+    expect(bloque).toMatch(/customExtensionsPath: build\/appx\/alias\.xml\r?$/m)
+    const xml = readFileSync(join(raiz, 'build', 'appx', 'alias.xml'), 'utf8')
+    expect(xml).toContain('xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"')
+    expect(xml).toContain('Category="windows.appExecutionAlias"')
+    expect(xml).toContain('Executable="app\\Kirchi.exe"')
+    expect(xml).toContain('EntryPoint="Windows.FullTrustApplication"')
+    expect(xml).toMatch(/<desktop:ExecutionAlias Alias="kirchi\.exe"\s*\/>/)
+    // Sin capacidades nuevas ni fusibles cambiados: el alias no afloja nada.
+    expect(bloque.match(/^ {4}- \w+\r?$/gm)?.map((l) => l.trim())).toEqual(['- runFullTrust'])
+    expect(config).toMatch(/runAsNode: false/)
+  })
+  it('si ya se construyó el appx, su AppxManifest.xml lleva el alias', () => {
+    const dist = join(raiz, 'dist')
+    const manifiestos = existsSync(dist) ? readdirSync(dist).map((d) => join(dist, d, 'AppxManifest.xml')).filter((m) => existsSync(m)) : []
+    for (const m of manifiestos) expect(readFileSync(m, 'utf8'), m).toContain('Alias="kirchi.exe"')
   })
   it('`dist:tienda` prepara ngspice y construye solo el appx, sin publicar', () => {
     const scripts = JSON.parse(readFileSync(join(raiz, 'package.json'), 'utf8')).scripts as Record<string, string>

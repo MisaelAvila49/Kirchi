@@ -77,6 +77,9 @@ export function conUnidad(v: number, unidad: string): string {
   return `${Number((v / escala).toPrecision(4))} ${prefijo}${unidad}`
 }
 
+/** `V(Salida)`; un nombre que ya viene como `V(...)` o `I(...)` se deja tal cual, para no dar `V(V(Salida))`. */
+const envolver = (letra: 'V' | 'I', nombre: string): string => (/^[VI]\(.*\)$/i.test(nombre.trim()) ? nombre.trim() : `${letra}(${nombre})`)
+
 const unidadFisica = (u: string): 'V' | 'A' => (u === 'current' ? 'A' : 'V')
 
 interface Elegido {
@@ -99,7 +102,7 @@ function elegir(g: GraficoResultado, nombres: Nombres, sel: Seleccion, avisos: s
   for (const vector of g.vectores) {
     const r = vector.referencia
     if (r.tipo === 'nodo') {
-      const e: Elegido = { id: `v:${r.nodo}`, etiqueta: `V(${nombreRed(r.nodo)})`, magnitud: 'V', vector }
+      const e: Elegido = { id: `v:${r.nodo}`, etiqueta: envolver('V', nombreRed(r.nodo)), magnitud: 'V', vector }
       // Un riel de alimentación con nombre (+15V, VCC) no es lo que se quiere ver: solo sale si se pide.
       if ((nombres.redes.has(r.nodo) && !nombres.rieles?.has(r.nodo)) || redPedida.has(r.nodo)) nodos.push(e)
       else candidatosAlternos.push(e)
@@ -108,7 +111,7 @@ function elegir(g: GraficoResultado, nombres: Nombres, sel: Seleccion, avisos: s
       if (s && s.tipo !== 'd') sondas.push({ id: `s:${r.indice}`, etiqueta: s.nombre, magnitud: s.tipo === 'i' ? 'A' : 'V', vector })
     } else if (r.tipo === 'elemento') {
       const ref = nombres.elementos[r.indice] ?? `elemento ${r.indice + 1}`
-      if (corrientePedida.has(r.indice)) elementos.push({ id: `i:${r.indice}`, etiqueta: `I(${ref})`, magnitud: 'A', vector })
+      if (corrientePedida.has(r.indice)) elementos.push({ id: `i:${r.indice}`, etiqueta: envolver('I', ref), magnitud: 'A', vector })
     }
   }
   const todos = [...nodos, ...sondas, ...elementos]

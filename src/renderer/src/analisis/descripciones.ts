@@ -49,6 +49,7 @@ export const PISTAS: Readonly<Record<string, string>> = {
   'ac.puntos': 'Con 20 puntos por década las curvas salen suaves y con 100 se ven picos angostos.',
   'ac.desde': 'La frecuencia más baja del barrido.',
   'ac.hasta': 'La frecuencia más alta del barrido.',
+  'ac.incluir': 'Frecuencias en Hz, separadas por comas, que el barrido calcula exactamente además de su rejilla, como 60 para la red eléctrica.',
   'tran.fin': 'Cuánto tiempo se simula, contado desde el instante 0.',
   'tran.maximo': 'Un paso menor sigue mejor los cambios rápidos y tarda más.',
   'tran.inicio': 'Descarta lo anterior a este instante, útil si solo interesa el régimen estable.',
@@ -71,7 +72,7 @@ export const PISTAS: Readonly<Record<string, string>> = {
 export const AJUSTES_DE_FICHA: Readonly<Record<TipoFicha, readonly string[]>> = {
   op: [],
   dc: ['dc.fuente', 'dc.desde', 'dc.hasta', 'dc.paso', 'dc.segunda', 'dc.fuente2'],
-  ac: ['ac.fuente', 'ac.magnitud', 'ac.barrido', 'ac.puntos', 'ac.desde', 'ac.hasta'],
+  ac: ['ac.fuente', 'ac.magnitud', 'ac.barrido', 'ac.puntos', 'ac.desde', 'ac.hasta', 'ac.incluir'],
   tran: ['tran.fin', 'tran.maximo', 'tran.inicio', 'tran.uic'],
   fourier: ['fourier.fundamental', 'fourier.armonicos', 'fourier.periodos', 'fourier.descarte', 'fourier.ventana'],
   param: ['param.pieza', 'param.modo', 'param.desde', 'param.hasta', 'param.puntos', 'param.valores', 'param.base']

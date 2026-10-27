@@ -1,3 +1,4 @@
+pub mod canales;
 pub mod dense;
 pub mod devices;
 pub mod digital;

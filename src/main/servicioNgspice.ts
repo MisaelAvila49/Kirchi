@@ -6,7 +6,8 @@ import { spawn, type ChildProcess } from 'node:child_process'
 import { closeSync, existsSync, mkdirSync, mkdtempSync, openSync, readdirSync, readSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { clasificarVector, type GraficoResultado, type ResultadoAnalisis } from '../compartido/ngspice'
+import { clasificarVector, type GraficoResultado, type PeticionAnalisis, type ResultadoAnalisis } from '../compartido/ngspice'
+import { unirBarridosAc } from '../compartido/spice/unirAc'
 import { ARCHIVO_MAZO, ARCHIVO_RAW, ARCHIVO_REGISTRO, armarMazo, validarPeticion } from '../compartido/spice/mazo'
 import { ErrorExportacion } from '../compartido/spice/exportar'
 import { leerRawAsciiLineas, TOPES_RAW, type TopesRaw } from '../compartido/spice/rawAscii'
@@ -74,10 +75,11 @@ function entornoMinimo(dirTrabajo: string): NodeJS.ProcessEnv {
   return env
 }
 
-/** El `spinit` compilado lleva rutas absolutas de la máquina que lo construyó. Con la instalación empaquetada se escribe en la carpeta temporal uno que carga los modelos de código desde donde están. Devuelve la carpeta para `SPICE_LIB_DIR`, o null si no hace falta. */
-function rutaSpinit(r: string): string {
-  const p = r.replace(/[\\]/g, '/')
-  return /\s/.test(p) ? `"${p}"` : p
+/** El lector de ngspice deja las comillas dobles pegadas a la ruta. En Windows va relativa (ngspice la resuelve desde su ejecutable) y no pasa por él; en los demás, entre comillas simples o, con un apóstrofo, por una variable de `set`. */
+export function lineaCodemodel(modelos: string, cm: string, plataforma: NodeJS.Platform = process.platform): string {
+  if (plataforma === 'win32') return ` codemodel ../lib/ngspice/${cm}`
+  const ruta = `${modelos}/${cm}`
+  return ruta.includes("'") ? ` set kirchi_cm = "${ruta}"\n codemodel $kirchi_cm` : ` codemodel '${ruta}'`
 }
 
 /** ngspice lee el `spinit` con la página de códigos ANSI, no UTF-8: una ruta con acentos llega rota. En Windows se escribe en latin1 (cp1252 coincide hasta U+00FF). */
@@ -86,6 +88,7 @@ export function codificarSpinit(texto: string, plataforma: NodeJS.Platform = pro
   return Buffer.from(texto, plataforma === 'win32' && cabe ? 'latin1' : 'utf8')
 }
 
+/** El `spinit` compilado lleva rutas de la máquina que lo construyó. Se escribe en la carpeta temporal uno que carga los modelos de código que hay en `lib/ngspice`, junto a `bin`. Devuelve la carpeta para `SPICE_LIB_DIR`, o null si no hay modelos. */
 export function escribirSpinit(dir: string, ejecutable: string, plataforma: NodeJS.Platform = process.platform): string | null {
   const modelos = join(dirname(dirname(ejecutable)), 'lib', 'ngspice')
   if (!existsSync(modelos)) return null
@@ -93,7 +96,7 @@ export function escribirSpinit(dir: string, ejecutable: string, plataforma: Node
   if (cm.length === 0) return null
   const scripts = join(dir, 'spice', 'scripts')
   mkdirSync(scripts, { recursive: true })
-  const texto = ['if $?xspice_enabled', ...cm.map((m) => ` codemodel ${rutaSpinit(join(modelos, m))}`), 'end', ''].join('\n')
+  const texto = ['if $?xspice_enabled', ...cm.map((m) => lineaCodemodel(modelos, m, plataforma)), 'end', ''].join('\n')
   writeFileSync(join(scripts, 'spinit'), codificarSpinit(texto, plataforma))
   return join(dir, 'spice')
 }
@@ -332,9 +335,11 @@ export class ServicioNgspice {
 
   private async unTrabajo(w: Ventana, trabajo: Trabajo): Promise<ResultadoAnalisis> {
     const t0 = Date.now()
+    let validada: PeticionAnalisis | undefined
     const mazo = (() => {
       try {
-        return armarMazo(validarPeticion(trabajo.peticion))
+        validada = validarPeticion(trabajo.peticion)
+        return armarMazo(validada)
       } catch (e) {
         if (e instanceof ErrorExportacion) return e
         throw e
@@ -422,7 +427,9 @@ export class ServicioNgspice {
         puntos: g.puntos,
         vectores: g.variables.map((x, i) => ({ nombre: x.nombre, unidad: x.tipo, referencia: clasificarVector(x.nombre, mazo.exportacion.tabla, i === 0 && !/operating point/i.test(g.nombre)), re: x.re, im: x.im }))
       }))
-      return { ok: true, graficos: salida, avisos: [...avisos, ...mazo.exportacion.avisos], duracionMs: Date.now() - t0 }
+      const a = (validada as PeticionAnalisis | undefined)?.analisis
+      const grupo = a?.tipo === 'ac' ? 1 + (a.incluir?.length ?? 0) : 1
+      return { ok: true, graficos: unirBarridosAc(salida, grupo), avisos: [...avisos, ...mazo.exportacion.avisos], duracionMs: Date.now() - t0 }
     } finally {
       if (hijo) matarArbol(hijo)
       // En Windows el proceso puede tardar unos milisegundos en soltar la carpeta tras matarlo.

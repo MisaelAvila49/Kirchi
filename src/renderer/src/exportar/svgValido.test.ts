@@ -21,8 +21,8 @@ const CSS = cssDeCaras([CARA, { ...CARA, estilo: 'italic', url: '/i.woff2' }, { 
 /** Una pieza de cada tipo de la librería, en una rejilla, unidas por cables, con textos de todos los formatos. */
 function documentoRico(): Documento {
   const d = documentoVacio()
-  const tipos = [...lib.keys()]
-  expect(tipos).toHaveLength(58)
+  const tipos = [...lib.values()].filter((d) => !d.oculta).map((d) => d.id)
+  expect(tipos).toHaveLength(102)
   tipos.forEach((tipo, i) => {
     const p: Pieza = { id: `p${i}`, tipo, ref: `X${i + 1}`, x: (i % 7) * 30, y: Math.floor(i / 7) * 30, rot: ([0, 90, 180, 270] as const)[i % 4], espejo: i % 5 === 0, props: {} }
     d.piezas[p.id] = p

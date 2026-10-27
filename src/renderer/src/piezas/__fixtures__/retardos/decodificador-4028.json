@@ -1,0 +1,45 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "CD4000B": {
+   "cl_pF": 50,
+   "documento": "TI CD4028B (SCHS033C)",
+   "paginas": "2, Dynamic Electrical Characteristics (TA = 25 C, tr = tf = 20 ns, RL = 200 kOhm)",
+   "caminos": [
+    {
+     "vdd": 5,
+     "tPLH_tPHL": {
+      "tip": 175,
+      "max": 350
+     },
+     "tt": {
+      "tip": 100,
+      "max": 200
+     }
+    },
+    {
+     "vdd": 10,
+     "tPLH_tPHL": {
+      "tip": 80,
+      "max": 160
+     },
+     "tt": {
+      "tip": 50,
+      "max": 100
+     }
+    },
+    {
+     "vdd": 15,
+     "tPLH_tPHL": {
+      "tip": 60,
+      "max": 120
+     },
+     "tt": {
+      "tip": 40,
+      "max": 80
+     }
+    }
+   ]
+  }
+ }
+}

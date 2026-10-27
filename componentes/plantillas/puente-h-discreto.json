@@ -1,0 +1,735 @@
+{
+  "id": "puente-h-discreto",
+  "nombre": "Puente H discreto",
+  "descripcion": "Dos pares TIP31 y TIP32 manejan un motor en los dos sentidos y lo detienen con las dos entradas iguales.",
+  "circuito": {
+    "cables": {
+      "c_1": {
+        "id": "c_1",
+        "puntos": [
+          {
+            "x": -22,
+            "y": -4
+          },
+          {
+            "x": -16,
+            "y": -4
+          },
+          {
+            "x": -16,
+            "y": 0
+          }
+        ]
+      },
+      "c_10": {
+        "id": "c_10",
+        "puntos": [
+          {
+            "x": 8,
+            "y": 14
+          },
+          {
+            "x": 8,
+            "y": 18
+          }
+        ]
+      },
+      "c_11": {
+        "id": "c_11",
+        "puntos": [
+          {
+            "x": -22,
+            "y": 4
+          },
+          {
+            "x": -22,
+            "y": 8
+          }
+        ]
+      },
+      "c_12": {
+        "id": "c_12",
+        "puntos": [
+          {
+            "x": -22,
+            "y": 42
+          },
+          {
+            "x": -16,
+            "y": 42
+          },
+          {
+            "x": -16,
+            "y": 46
+          }
+        ]
+      },
+      "c_13": {
+        "id": "c_13",
+        "puntos": [
+          {
+            "x": -8,
+            "y": 46
+          },
+          {
+            "x": -8,
+            "y": 36
+          },
+          {
+            "x": -4,
+            "y": 36
+          }
+        ]
+      },
+      "c_14": {
+        "id": "c_14",
+        "puntos": [
+          {
+            "x": -8,
+            "y": 46
+          },
+          {
+            "x": -8,
+            "y": 56
+          },
+          {
+            "x": -4,
+            "y": 56
+          }
+        ]
+      },
+      "c_15": {
+        "id": "c_15",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 32
+          },
+          {
+            "x": 2,
+            "y": 28
+          }
+        ]
+      },
+      "c_16": {
+        "id": "c_16",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 40
+          },
+          {
+            "x": 2,
+            "y": 52
+          }
+        ]
+      },
+      "c_17": {
+        "id": "c_17",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 40
+          },
+          {
+            "x": 8,
+            "y": 40
+          }
+        ]
+      },
+      "c_18": {
+        "id": "c_18",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 52
+          },
+          {
+            "x": 8,
+            "y": 52
+          }
+        ]
+      },
+      "c_19": {
+        "id": "c_19",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 60
+          },
+          {
+            "x": 2,
+            "y": 64
+          }
+        ]
+      },
+      "c_2": {
+        "id": "c_2",
+        "puntos": [
+          {
+            "x": -8,
+            "y": 0
+          },
+          {
+            "x": -8,
+            "y": -10
+          },
+          {
+            "x": -4,
+            "y": -10
+          }
+        ]
+      },
+      "c_20": {
+        "id": "c_20",
+        "puntos": [
+          {
+            "x": 8,
+            "y": 32
+          },
+          {
+            "x": 8,
+            "y": 28
+          }
+        ]
+      },
+      "c_21": {
+        "id": "c_21",
+        "puntos": [
+          {
+            "x": 8,
+            "y": 60
+          },
+          {
+            "x": 8,
+            "y": 64
+          }
+        ]
+      },
+      "c_22": {
+        "id": "c_22",
+        "puntos": [
+          {
+            "x": -22,
+            "y": 50
+          },
+          {
+            "x": -22,
+            "y": 54
+          }
+        ]
+      },
+      "c_23": {
+        "id": "c_23",
+        "puntos": [
+          {
+            "x": 2,
+            "y": -6
+          },
+          {
+            "x": 22,
+            "y": -6
+          },
+          {
+            "x": 22,
+            "y": 19
+          }
+        ]
+      },
+      "c_24": {
+        "id": "c_24",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 40
+          },
+          {
+            "x": 22,
+            "y": 40
+          },
+          {
+            "x": 22,
+            "y": 27
+          }
+        ]
+      },
+      "c_3": {
+        "id": "c_3",
+        "puntos": [
+          {
+            "x": -8,
+            "y": 0
+          },
+          {
+            "x": -8,
+            "y": 10
+          },
+          {
+            "x": -4,
+            "y": 10
+          }
+        ]
+      },
+      "c_4": {
+        "id": "c_4",
+        "puntos": [
+          {
+            "x": 2,
+            "y": -14
+          },
+          {
+            "x": 2,
+            "y": -18
+          }
+        ]
+      },
+      "c_5": {
+        "id": "c_5",
+        "puntos": [
+          {
+            "x": 2,
+            "y": -6
+          },
+          {
+            "x": 2,
+            "y": 6
+          }
+        ]
+      },
+      "c_6": {
+        "id": "c_6",
+        "puntos": [
+          {
+            "x": 2,
+            "y": -6
+          },
+          {
+            "x": 8,
+            "y": -6
+          }
+        ]
+      },
+      "c_7": {
+        "id": "c_7",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 6
+          },
+          {
+            "x": 8,
+            "y": 6
+          }
+        ]
+      },
+      "c_8": {
+        "id": "c_8",
+        "puntos": [
+          {
+            "x": 2,
+            "y": 14
+          },
+          {
+            "x": 2,
+            "y": 18
+          }
+        ]
+      },
+      "c_9": {
+        "id": "c_9",
+        "puntos": [
+          {
+            "x": 8,
+            "y": -14
+          },
+          {
+            "x": 8,
+            "y": -18
+          }
+        ]
+      }
+    },
+    "etiquetas": {},
+    "notas": {},
+    "piezas": {
+      "p_da1": {
+        "espejo": false,
+        "id": "p_da1",
+        "props": {
+          "modelo": "1N4007"
+        },
+        "ref": "D1",
+        "rot": 270,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -3.96
+          }
+        },
+        "tipo": "diodo",
+        "x": 8,
+        "y": -10
+      },
+      "p_da2": {
+        "espejo": false,
+        "id": "p_da2",
+        "props": {
+          "modelo": "1N4007"
+        },
+        "ref": "D2",
+        "rot": 270,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -3.96
+          }
+        },
+        "tipo": "diodo",
+        "x": 8,
+        "y": 10
+      },
+      "p_db1": {
+        "espejo": false,
+        "id": "p_db1",
+        "props": {
+          "modelo": "1N4007"
+        },
+        "ref": "D3",
+        "rot": 270,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -3.96
+          }
+        },
+        "tipo": "diodo",
+        "x": 8,
+        "y": 36
+      },
+      "p_db2": {
+        "espejo": false,
+        "id": "p_db2",
+        "props": {
+          "modelo": "1N4007"
+        },
+        "ref": "D4",
+        "rot": 270,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -3.96
+          }
+        },
+        "tipo": "diodo",
+        "x": 8,
+        "y": 56
+      },
+      "p_ga1": {
+        "espejo": false,
+        "id": "p_ga1",
+        "props": {},
+        "ref": "GND1",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 2,
+        "y": 18
+      },
+      "p_ga2": {
+        "espejo": false,
+        "id": "p_ga2",
+        "props": {},
+        "ref": "GND2",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 8,
+        "y": 18
+      },
+      "p_ga3": {
+        "espejo": false,
+        "id": "p_ga3",
+        "props": {},
+        "ref": "GND3",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": -22,
+        "y": 8
+      },
+      "p_gb1": {
+        "espejo": false,
+        "id": "p_gb1",
+        "props": {},
+        "ref": "GND4",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 2,
+        "y": 64
+      },
+      "p_gb2": {
+        "espejo": false,
+        "id": "p_gb2",
+        "props": {},
+        "ref": "GND5",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": 8,
+        "y": 64
+      },
+      "p_gb3": {
+        "espejo": false,
+        "id": "p_gb3",
+        "props": {},
+        "ref": "GND6",
+        "rot": 0,
+        "tipo": "tierra",
+        "x": -22,
+        "y": 54
+      },
+      "p_m1": {
+        "espejo": false,
+        "id": "p_m1",
+        "props": {
+          "voltaje": "6"
+        },
+        "ref": "M1",
+        "rot": 90,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -3.96
+          },
+          "valor": {
+            "x": 0,
+            "y": 4.44
+          }
+        },
+        "tipo": "motor-dc",
+        "x": 22,
+        "y": 23
+      },
+      "p_pa1": {
+        "espejo": false,
+        "id": "p_pa1",
+        "props": {
+          "nombre": "+6V"
+        },
+        "ref": "PWR1",
+        "rot": 0,
+        "tipo": "alimentacion",
+        "x": 2,
+        "y": -18
+      },
+      "p_pa2": {
+        "espejo": false,
+        "id": "p_pa2",
+        "props": {
+          "nombre": "+6V"
+        },
+        "ref": "PWR2",
+        "rot": 0,
+        "tipo": "alimentacion",
+        "x": 8,
+        "y": -18
+      },
+      "p_pb1": {
+        "espejo": false,
+        "id": "p_pb1",
+        "props": {
+          "nombre": "+6V"
+        },
+        "ref": "PWR3",
+        "rot": 0,
+        "tipo": "alimentacion",
+        "x": 2,
+        "y": 28
+      },
+      "p_pb2": {
+        "espejo": false,
+        "id": "p_pb2",
+        "props": {
+          "nombre": "+6V"
+        },
+        "ref": "PWR4",
+        "rot": 0,
+        "tipo": "alimentacion",
+        "x": 8,
+        "y": 28
+      },
+      "p_qa1": {
+        "espejo": false,
+        "id": "p_qa1",
+        "props": {
+          "modelo": "TIP31"
+        },
+        "ref": "Q1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": -2.2,
+            "y": 4.4
+          },
+          "valor": {
+            "x": -2.2,
+            "y": 6.2
+          }
+        },
+        "tipo": "npn",
+        "x": 0,
+        "y": -10
+      },
+      "p_qa2": {
+        "espejo": false,
+        "id": "p_qa2",
+        "props": {
+          "modelo": "TIP32"
+        },
+        "ref": "Q2",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": -2.2,
+            "y": -6.2
+          },
+          "valor": {
+            "x": -2.2,
+            "y": -4.4
+          }
+        },
+        "tipo": "pnp",
+        "x": 0,
+        "y": 10
+      },
+      "p_qb1": {
+        "espejo": false,
+        "id": "p_qb1",
+        "props": {
+          "modelo": "TIP31"
+        },
+        "ref": "Q3",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": -2.2,
+            "y": 4.4
+          },
+          "valor": {
+            "x": -2.2,
+            "y": 6.2
+          }
+        },
+        "tipo": "npn",
+        "x": 0,
+        "y": 36
+      },
+      "p_qb2": {
+        "espejo": false,
+        "id": "p_qb2",
+        "props": {
+          "modelo": "TIP32"
+        },
+        "ref": "Q4",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": -2.2,
+            "y": -6.2
+          },
+          "valor": {
+            "x": -2.2,
+            "y": -4.4
+          }
+        },
+        "tipo": "pnp",
+        "x": 0,
+        "y": 56
+      },
+      "p_ra": {
+        "espejo": false,
+        "id": "p_ra",
+        "props": {
+          "valor": "10"
+        },
+        "ref": "R1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -3
+          },
+          "valor": {
+            "x": 0,
+            "y": 3
+          }
+        },
+        "tipo": "resistencia",
+        "x": -12,
+        "y": 0
+      },
+      "p_rb": {
+        "espejo": false,
+        "id": "p_rb",
+        "props": {
+          "valor": "10"
+        },
+        "ref": "R2",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 0,
+            "y": -3
+          },
+          "valor": {
+            "x": 0,
+            "y": 3
+          }
+        },
+        "tipo": "resistencia",
+        "x": -12,
+        "y": 46
+      },
+      "p_va": {
+        "espejo": false,
+        "id": "p_va",
+        "props": {
+          "voltaje": "6"
+        },
+        "ref": "V1",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 3.96,
+            "y": -1
+          },
+          "valor": {
+            "x": 4.44,
+            "y": 3
+          }
+        },
+        "tipo": "fuente-dc",
+        "x": -22,
+        "y": 0
+      },
+      "p_vb": {
+        "espejo": false,
+        "id": "p_vb",
+        "props": {
+          "voltaje": "0"
+        },
+        "ref": "V2",
+        "rot": 0,
+        "textos": {
+          "ref": {
+            "x": 3.96,
+            "y": -1
+          },
+          "valor": {
+            "x": 4.44,
+            "y": 3
+          }
+        },
+        "tipo": "fuente-dc",
+        "x": -22,
+        "y": 46
+      }
+    }
+  }
+}

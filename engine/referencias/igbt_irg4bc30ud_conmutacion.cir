@@ -1,0 +1,22 @@
+* IRG4BC30UD que conmuta 12 A con 100 V y 8.3 ohm, compuerta de 15 V por 10 ohm a 20 kHz
+.include modelos.lib
+V1 vin 0 DC 100
+R1 vin c 8.3
+V2 gin 0 PULSE(0 15 2u 1p 1p 24.999999u 50u)
+RG gin g 10
+M1 b g 0 0 MIGBT1 W=1 L=1
+Q1 0 b ce QIGBT1
+RE c ce 0.016174
+D1 0 c DIGBT1
+CGE g 0 1.086n
+CGC g c 14p
+CCE c 0 59p
+.options reltol=1e-6 abstol=1e-14 vntol=1e-9
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 10n 100u 0 10n uic
+wrdata salida.txt v(c) v(g) i(v1)
+.endc
+.end

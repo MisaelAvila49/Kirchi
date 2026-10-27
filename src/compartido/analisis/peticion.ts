@@ -52,7 +52,7 @@ export function peticionDe(a: AnalisisDoc, ctx: ContextoPeticion, o: OpcionesPet
     case 'ac': {
       const f = fuente(c.fuente, 'La entrada de CA')
       if (typeof f === 'string') return { ok: false, error: f }
-      analisis = { tipo: 'ac', barrido: c.barrido, puntos: c.puntos, desde: c.desde, hasta: c.hasta, fuente: f, magnitud: c.magnitud }
+      analisis = { tipo: 'ac', barrido: c.barrido, puntos: c.puntos, desde: c.desde, hasta: c.hasta, fuente: f, magnitud: c.magnitud, ...(c.incluir?.length ? { incluir: c.incluir } : {}) }
       break
     }
     case 'tran': {

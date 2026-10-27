@@ -9,7 +9,7 @@ describe('columnasDeModelos', () => {
   it('NPN: Bf y corriente máxima de cada modelo, de la hoja de datos de su pieza.json', () => {
     const t = columnasDeModelos(lib.get('npn')!)!
     expect(t.columnas).toEqual(['Bf', 'Ic máx'])
-    expect(t.filas.map((f) => f.modelo)).toEqual(['2N2222', '2N3904', 'BC547', 'TIP31', 'TIP120', 'BD139'])
+    expect(t.filas.map((f) => f.modelo)).toEqual(['2N2222', '2N3904', 'BC547', 'TIP31', 'TIP120', 'BD139', 'BC337', '2N5551', '2N3055'])
     expect(t.filas[0].celdas).toEqual(['214', '600 mA'])
     expect(t.filas[1].celdas).toEqual(['500', '200 mA'])
   })

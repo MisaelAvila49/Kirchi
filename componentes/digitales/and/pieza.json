@@ -2,6 +2,7 @@
   "id": "and",
   "nombre": { "es": "Compuerta AND", "en": "AND gate" },
   "categoria": "digitales",
+  "grupo": "Compuertas",
   "prefijo": "U",
   "buscar": ["u", "and", "compuerta", "puerta and", "7408"],
   "pines": [
@@ -9,10 +10,212 @@
     { "id": "B", "nombre": "B", "x": -6, "y": 2 },
     { "id": "Y", "nombre": "Y", "x": 6, "y": 0 }
   ],
+  "entradas": { "max": 8 },
   "props": [
+    { "id": "entradas", "nombre": "Entradas", "defecto": "2", "opciones": ["2", "3", "4", "5", "6", "7", "8"] },
     { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS", "CD4000B"] },
     { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
   ],
   "modelo": { "tipo": "compuerta", "funcion": "and", "entradas": ["A", "B"], "salida": "Y", "familia": "familia", "alimentacion": "alimentacion" },
-  "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } }
+  "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } },
+  "datos": {
+    "por": ["familia", "entradas"],
+    "equivalencias": { "ltspice": "Digital\\and", "falstad": "150", "sinVerificar": ["ltspice"] },
+    "valores": {
+      "74HC|2": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC08N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc08.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "Y": "3" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "Y": "3" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "4", "B": "5", "Y": "6" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "9", "B": "10", "Y": "8" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "12", "B": "13", "Y": "11" } }
+            ],
+            "parte": "SN74HC08N",
+            "lcsc": { "numero": "C2887", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC08 (SCLS081J), p. 3, fig. 5-1 y tabla Pin Functions; KiCad 74xx:74LS08 (misma función)" }
+      },
+      "74LS|2": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS08N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls08.pdf",
+        "equivalencias": { "kicad": "74xx:74LS08" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "Y": "3" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "Y": "3" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "4", "B": "5", "Y": "6" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "9", "B": "10", "Y": "8" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "12", "B": "13", "Y": "11" } }
+            ],
+            "parte": "SN74LS08N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS08; TI SN74HC08 (misma función, texto)" }
+      },
+      "CD4000B|2": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4081BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4081b.pdf",
+        "equivalencias": { "kicad": "4xxx:4081" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "Y": "3" },
+            "alimentacion": { "VDD": "14", "VSS": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "Y": "3" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "5", "B": "6", "Y": "4" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "8", "B": "9", "Y": "10" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "12", "B": "13", "Y": "11" } }
+            ],
+            "parte": "CD4081BE",
+            "lcsc": { "numero": "C5205", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4073B/4081B/4082B (SCHS057C), diagrama funcional p. 1 (imagen); KiCad 4xxx:4081" }
+      },
+      "74HC|3": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC11N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc11.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "C": "13", "Y": "12" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "C": "13", "Y": "12" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "3", "B": "4", "C": "5", "Y": "6" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "9", "B": "10", "C": "11", "Y": "8" } }
+            ],
+            "parte": "SN74HC11N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC11, pinout p. 3; KiCad 74xx:74LS11 (misma función)" }
+      },
+      "74LS|3": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS11N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls11.pdf",
+        "equivalencias": { "kicad": "74xx:74LS11" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "C": "13", "Y": "12" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "C": "13", "Y": "12" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "3", "B": "4", "C": "5", "Y": "6" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "9", "B": "10", "C": "11", "Y": "8" } }
+            ],
+            "parte": "SN74LS11N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS11; TI SN74HC11 (misma función)" }
+      },
+      "CD4000B|3": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4073BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4073b.pdf",
+        "equivalencias": { "kicad": "4xxx:4073" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "C": "8", "Y": "9" },
+            "alimentacion": { "VDD": "14", "VSS": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "C": "8", "Y": "9" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "3", "B": "4", "C": "5", "Y": "6" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "11", "B": "12", "C": "13", "Y": "10" } }
+            ],
+            "parte": "CD4073BE"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4073B/4081B/4082B, diagrama funcional del CD4073B p. 1 (imagen); KiCad 4xxx:4073" }
+      },
+      "74HC|4": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC21N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc21.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "C": "4", "D": "5", "Y": "6" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "sinModelo": { "3": "NC (sin conexión)", "11": "NC (sin conexión)" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "C": "4", "D": "5", "Y": "6" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "9", "B": "10", "C": "12", "D": "13", "Y": "8" } }
+            ],
+            "parte": "SN74HC21N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC21, pinout p. 3; KiCad 74xx:74LS21 (misma función)" }
+      },
+      "74LS|4": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS21N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls21.pdf",
+        "equivalencias": { "kicad": "74xx:74LS21" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "C": "4", "D": "5", "Y": "6" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "sinModelo": { "3": "NC (sin conexión)", "11": "NC (sin conexión)" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "C": "4", "D": "5", "Y": "6" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "9", "B": "10", "C": "12", "D": "13", "Y": "8" } }
+            ],
+            "parte": "SN74LS21N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS21; TI SN74HC21 (misma función)" }
+      },
+      "CD4000B|4": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4082BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4082b.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "2", "B": "3", "C": "4", "D": "5", "Y": "1" },
+            "alimentacion": { "VDD": "14", "VSS": "7" },
+            "sinModelo": { "6": "NC (sin conexión)", "8": "NC (sin conexión)" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "2", "B": "3", "C": "4", "D": "5", "Y": "1" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "9", "B": "10", "C": "11", "D": "12", "Y": "13" } }
+            ],
+            "parte": "CD4082BE",
+            "lcsc": { "numero": "C5228", "comprobado": "2026-10-26" }
+          }
+        ],
+        "pendiente": {
+          "patillas": "una sola fuente (hoja de TI, imagen); KiCad 9 no tiene el símbolo. Las patillas del primer grupo quedan como lectura de la hoja y falta la segunda fuente"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI CD4073B/4081B/4082B, diagrama funcional del CD4082B p. 1 (imagen); segunda fuente solo parcial (KiCad no tiene el símbolo)"
+        }
+      }
+    }
+  }
 }

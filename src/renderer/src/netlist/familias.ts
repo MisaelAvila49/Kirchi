@@ -15,12 +15,19 @@ export interface PuntoFamilia {
   r_hi: number
 }
 
+/** Umbrales de disparo de una entrada con histéresis a una alimentación (V): sube a 1 al pasar vt_pos y baja a 0 al bajar de vt_neg. */
+export interface PuntoSchmitt {
+  vcc: number
+  vt_pos: number
+  vt_neg: number
+}
+
 export interface Familia {
   nombre: string
   fuente: string
   alimentacion: { min: number; max: number; omision: number }
   /** Umbrales de entrada; con `relativa`, fracciones de la alimentación. Una entrada al aire se lee X o 1. Con `r_in`, la entrada toma corriente (74LS). */
-  entrada: { vil: number; vih: number; relativa: boolean; al_aire: 'X' | '1'; r_in?: number; v_in?: number }
+  entrada: { vil: number; vih: number; relativa: boolean; al_aire: 'X' | '1'; r_in?: number; v_in?: number; schmitt?: PuntoSchmitt[] }
   /** Niveles de salida sin carga; con `relativa`, fracciones de la alimentación. */
   salida: { vol: number; voh: number; relativa: boolean }
   /** De menor a mayor alimentación; entre dos puntos se interpola en línea recta y fuera de ellos se toma el más cercano. */
@@ -46,6 +53,9 @@ export interface ParametrosLogicos {
   t_rise: number
   t_fall: number
   z_como: 'x' | 'uno'
+  /** Disparo de una entrada con histéresis a esta alimentación; ausentes si la familia no los da. */
+  vt_pos?: number
+  vt_neg?: number
   r_in?: number
   v_in?: number
 }
@@ -71,7 +81,7 @@ const CAMPOS = {
   raiz: ['nota', 'omision', 'familias'],
   familia: ['nombre', 'fuente', 'nota', 'alimentacion', 'entrada', 'salida', 'puntos'],
   alimentacion: ['min', 'max', 'omision'],
-  entrada: ['vil', 'vih', 'relativa', 'al_aire', 'r_in', 'v_in'],
+  entrada: ['vil', 'vih', 'relativa', 'al_aire', 'r_in', 'v_in', 'schmitt'],
   salida: ['vol', 'voh', 'relativa'],
   punto: ['vcc', 'tplh', 'tphl', 't_rise', 't_fall', 'r_lo', 'r_hi']
 } as const
@@ -119,6 +129,16 @@ export function validarFamilias(json: unknown): { ok: true; familias: Familias }
     } else if (e.relativa === true && !(e.vil >= 0 && e.vih <= 1)) {
       err(`${c}.entrada`, 'con relativa: true lleva vil y vih entre 0 y 1')
     }
+    const sch = esObjeto(e) ? e.schmitt : undefined
+    if (sch !== undefined) {
+      if (!Array.isArray(sch) || sch.length === 0) err(`${c}.entrada.schmitt`, 'debe ser una lista con al menos un punto')
+      else
+        sch.forEach((p: unknown, k: number) => {
+          llaves(p, ['vcc', 'vt_pos', 'vt_neg'], `${c}.entrada.schmitt[${k}]`)
+          if (!esObjeto(p) || !esNumero(p.vcc) || !esNumero(p.vt_pos) || !esNumero(p.vt_neg) || !(p.vcc > 0 && p.vt_neg > 0 && p.vt_neg < p.vt_pos && p.vt_pos < p.vcc)) err(`${c}.entrada.schmitt[${k}]`, 'debe tener vcc, vt_neg y vt_pos con 0 < vt_neg < vt_pos < vcc')
+          else if (k > 0 && !(p.vcc > (sch[k - 1] as PuntoSchmitt).vcc)) err(`${c}.entrada.schmitt[${k}].vcc`, 'debe crecer de un punto al siguiente')
+        })
+    }
     const s = f.salida as Record<string, unknown> | undefined
     if (!esObjeto(s) || !esNumero(s.vol) || !esNumero(s.voh) || typeof s.relativa !== 'boolean' || !(s.vol < s.voh)) err(`${c}.salida`, 'debe tener vol menor que voh y relativa')
     else if (s.relativa === true && !(s.vol >= 0 && s.voh <= 1)) err(`${c}.salida`, 'con relativa: true lleva vol y voh entre 0 y 1')
@@ -152,6 +172,17 @@ function interpolar(puntos: PuntoFamilia[], vcc: number): PuntoFamilia {
   return { vcc, tplh: m(a.tplh, b.tplh), tphl: m(a.tphl, b.tphl), t_rise: m(a.t_rise, b.t_rise), t_fall: m(a.t_fall, b.t_fall), r_lo: m(a.r_lo, b.r_lo), r_hi: m(a.r_hi, b.r_hi) }
 }
 
+/** Umbrales de disparo a `vcc`: interpolados en línea recta entre los dos puntos que la rodean y, fuera de ellos, los del más cercano. */
+function disparo(puntos: PuntoSchmitt[], vcc: number): { vt_pos: number; vt_neg: number } {
+  if (vcc <= puntos[0].vcc) return puntos[0]
+  const ultimo = puntos[puntos.length - 1]
+  if (vcc >= ultimo.vcc) return ultimo
+  const k = puntos.findIndex((p) => p.vcc > vcc)
+  const [a, b] = [puntos[k - 1], puntos[k]]
+  const x = (vcc - a.vcc) / (b.vcc - a.vcc)
+  return { vt_pos: a.vt_pos + (b.vt_pos - a.vt_pos) * x, vt_neg: a.vt_neg + (b.vt_neg - a.vt_neg) * x }
+}
+
 /** Retardo mínimo del motor (1 ps): un retardo de propagación más corto que media transición no lo deja en cero. */
 const RETARDO_MIN = 1e-12
 
@@ -172,6 +203,16 @@ export function parametrosDeFamilia(f: Familia, vcc: number): ParametrosLogicos 
     t_rise: p.t_rise,
     t_fall: p.t_fall,
     z_como: f.entrada.al_aire === '1' ? 'uno' : 'x',
+    ...(f.entrada.schmitt ? disparo(f.entrada.schmitt, vcc) : {}),
     ...(f.entrada.r_in !== undefined ? { r_in: f.entrada.r_in, v_in: f.entrada.v_in ?? 0 } : {})
   }
+}
+
+/** El retardo de propagación de un chip, dado a la alimentación `vHoja` de su hoja, a la alimentación `vcc`: se escala con
+ * la curva de la familia, t(V) = t_chip(V_hoja) · t_familia(V) / t_familia(V_hoja), y se le quita media transición como a
+ * las compuertas (el retardo del motor es hasta el principio de la rampa de salida). `[subida, bajada]` en segundos. */
+export function retardoDeChip(f: Familia, vcc: number, vHoja: number, retardo: [number, number]): [number, number] {
+  const p = interpolar(f.puntos, vcc)
+  const h = interpolar(f.puntos, vHoja)
+  return [Math.max(RETARDO_MIN, (retardo[0] * p.tplh) / h.tplh - p.t_rise / 2), Math.max(RETARDO_MIN, (retardo[1] * p.tphl) / h.tphl - p.t_fall / 2)]
 }

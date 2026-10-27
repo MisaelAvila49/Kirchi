@@ -1,0 +1,23 @@
+* Regulador 7912 con -19 V de entrada, 24 ohm y 10 uF: transistor de paso PNP y amplificador alimentado entre tierra y la entrada
+.include modelos.lib
+V1 in 0 DC -19
+XU1 ref fb g 0 in AMPOP a0=20000 gbw=1000000 sr=300000 rin=1000000000 rout=20 ilim=0.00082 dhi=0.77 dlo=0.07 rq=4444
+VREF ref0 0 DC -2.50085
+RSS ref0 ref 20000
+CSS ref 0 1e-9
+R1 out fb 76000
+R2 fb 0 20000
+RF g nx 10000
+CF nx fb 1e-7
+Q1 in g out QREGP
+RL out 0 24
+C1 out 0 10u
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20u 12m 0 10u uic
+wrdata salida.txt v(out) i(v1)
+.endc
+.end

@@ -1122,3 +1122,538 @@ fn avanzar_en_tramos_multiplos_del_paso_no_deja_astillas_que_atasquen() {
         assert!((m.voltage(7) - 10.0).abs() < 0.2, "tramo {tramo}: salida {}", m.voltage(7));
     }
 }
+
+/// El JFET con las mismas defensas que el MOSFET y el diodo: nada se cuelga ni pasa del vigilante de 250 ms.
+mod jfet {
+    use super::*;
+
+    const MODELO: &str = r#"{"vto":-3.05838,"beta":3.04692e-4,"lambda":0.00350877,"pb":1,"cgs":3e-12,"cgd":6e-12,"is":1e-14}"#;
+
+    /// Avanza `fin` segundos y devuelve el resultado con el tiempo de pared que tardó.
+    fn correr(json: &str, h: f64, fin: f64, sparse: bool) -> (Result<Transient, EngineError>, Duration) {
+        use kirchi_engine::transient::SolverKind;
+        let t0 = Instant::now();
+        let kind = if sparse { SolverKind::Sparse } else { SolverKind::Dense };
+        let mut tr = Transient::with_solver(Netlist::from_json(json).unwrap(), h, kind).unwrap();
+        let r = tr.advance_to(fin, 1000).map(|_| tr);
+        (r, t0.elapsed())
+    }
+
+    #[test]
+    fn la_compuerta_en_directo_sin_resistencia_converge_o_avisa_de_la_union() {
+        let json = format!(r#"{{"nodes":4,"elements":[
+            {{"type":"V","a":1,"b":0,"wave":{{"kind":"dc","v":12}}}},
+            {{"type":"V","a":2,"b":0,"wave":{{"kind":"dc","v":5}}}},
+            {{"type":"R","a":1,"b":3,"ohms":1000}},
+            {{"type":"J","d":3,"g":2,"s":0,"model":{MODELO}}}]}}"#);
+        for sparse in [false, true] {
+            let (r, t) = correr(&json, 1e-5, 1e-3, sparse);
+            assert!(t < Duration::from_millis(250), "tardó {t:?}");
+            match r {
+                Ok(tr) => assert!(tr.voltage(3).is_finite()),
+                Err(e) => assert_eq!(e, EngineError::DiodoSinLimite { element: Some(3) }),
+            }
+        }
+    }
+
+    #[test]
+    fn el_drenador_al_aire_simula_con_la_compuerta_senoidal() {
+        let json = format!(r#"{{"nodes":5,"elements":[
+            {{"type":"V","a":4,"b":0,"wave":{{"kind":"sine","offset":0,"amp":2,"freq":1000}}}},
+            {{"type":"R","a":4,"b":2,"ohms":1000}},
+            {{"type":"J","d":1,"g":2,"s":0,"model":{MODELO}}},
+            {{"type":"J","d":3,"g":0,"s":0,"model":{MODELO}}}]}}"#);
+        for sparse in [false, true] {
+            let (r, t) = correr(&json, 1e-5, 2e-3, sparse);
+            assert!(t < Duration::from_millis(250), "tardó {t:?}");
+            let tr = r.unwrap_or_else(|e| panic!("{e:?}"));
+            assert!((1..5).all(|n| tr.voltage(n).is_finite()));
+        }
+    }
+
+    #[test]
+    fn la_fuente_de_corriente_de_jfet_con_rs_cero_regula_en_idss() {
+        let json = format!(r#"{{"nodes":3,"elements":[
+            {{"type":"V","a":1,"b":0,"wave":{{"kind":"dc","v":20}}}},
+            {{"type":"R","a":1,"b":2,"ohms":1000}},
+            {{"type":"J","d":2,"g":0,"s":0,"model":{MODELO}}}]}}"#);
+        for sparse in [false, true] {
+            let (r, t) = correr(&json, 1e-5, 1e-3, sparse);
+            assert!(t < Duration::from_millis(250), "tardó {t:?}");
+            let tr = r.unwrap();
+            // IDSS de la hoja con la modulación del largo: unos 3 mA, y el drenador cae a 17 V.
+            let i = tr.readings()[2].i;
+            assert!((i - 3.0e-3).abs() < 0.1e-3, "i = {i}");
+        }
+    }
+}
+
+mod motor_a_pasos {
+    use kirchi_engine::{Element, Netlist, Transient, Wave};
+    use std::f64::consts::FRAC_PI_2;
+
+    /// Paso completo del 17HS4401 (50 pares de polos): π / 2N.
+    const PASO: f64 = FRAC_PI_2 / 50.0;
+    const CAMPO: [(f64, f64); 4] = [(1.0, 0.0), (0.0, 1.0), (-1.0, 0.0), (0.0, -1.0)];
+    const MOTOR: &str = r#"{"type":"PASOS","nodos":[NODO_A,0,NODO_B,0],"r":1.5,"l":2.8e-3,"km":0.1664,"dientes":50,"td":0.022,"j":5.4e-6,"bm":2e-3}"#;
+
+    /// Sube de 200 a 2,000 pasos por segundo en 90 pasos, sigue 1,000 pasos a 2,000 y se asienta; `mover` aplica el campo
+    /// (fase A, fase B) normalizado. Devuelve el mayor retraso del rotor respecto del campo y el error final, ambos en pasos.
+    fn recorrer(mut tr: Transient, mover: impl Fn(&mut Transient, f64, f64)) -> (f64, f64) {
+        mover(&mut tr, CAMPO[0].0, CAMPO[0].1);
+        tr.advance_to(0.02, u32::MAX).unwrap();
+        let mut t = tr.time();
+        let mut peor = 0.0f64;
+        let pasos = 90 + 1000;
+        for k in 1..=pasos {
+            let f = (200.0 + 20.0 * k as f64).min(2000.0);
+            mover(&mut tr, CAMPO[k % 4].0, CAMPO[k % 4].1);
+            t += 1.0 / f;
+            tr.advance_to(t, u32::MAX).unwrap();
+            peor = peor.max((k as f64 * PASO - tr.readings()[tr.readings().len() - 1].estado).abs() / PASO);
+        }
+        tr.advance_to(t + 0.05, u32::MAX).unwrap();
+        let final_ = (pasos as f64 * PASO - tr.readings()[tr.readings().len() - 1].estado).abs() / PASO;
+        (peor, final_)
+    }
+
+    #[test]
+    fn a_2000_pasos_por_segundo_con_corriente_impuesta_no_pierde_posicion() {
+        let json = format!(
+            r#"{{"nodes":3,"elements":[{{"type":"I","a":0,"b":1,"amps":0}},{{"type":"I","a":0,"b":2,"amps":0}},{}]}}"#,
+            MOTOR.replace("NODO_A", "1").replace("NODO_B", "2")
+        );
+        let tr = Transient::new(Netlist::from_json(&json).unwrap(), 1e-4).unwrap();
+        let (peor, final_) = recorrer(tr, |tr, a, b| {
+            tr.set_element(0, Element::I { a: 0, b: 1, amps: 1.7 * a }).unwrap();
+            tr.set_element(1, Element::I { a: 0, b: 2, amps: 1.7 * b }).unwrap();
+        });
+        assert!(peor < 1.5, "el rotor se retrasó {peor} pasos");
+        assert!(final_ < 0.05, "perdió {final_} pasos");
+    }
+
+    #[test]
+    fn a_2000_pasos_por_segundo_con_voltaje_y_resistencia_en_serie_no_pierde_posicion() {
+        // 48 V con 26.5 Ω por fase: 1.7 A en reposo y la fuerza contraelectromotriz del giro baja la corriente sin parar el motor.
+        let json = format!(
+            r#"{{"nodes":5,"elements":[
+            {{"type":"V","a":1,"b":0,"wave":{{"kind":"dc","v":0}}}},{{"type":"V","a":2,"b":0,"wave":{{"kind":"dc","v":0}}}},
+            {{"type":"R","a":1,"b":3,"ohms":26.5}},{{"type":"R","a":2,"b":4,"ohms":26.5}},{}]}}"#,
+            MOTOR.replace("NODO_A", "3").replace("NODO_B", "4")
+        );
+        let tr = Transient::new(Netlist::from_json(&json).unwrap(), 1e-4).unwrap();
+        let (peor, final_) = recorrer(tr, |tr, a, b| {
+            tr.set_element(0, Element::V { a: 1, b: 0, wave: Wave::Dc { v: 48.0 * a } }).unwrap();
+            tr.set_element(1, Element::V { a: 2, b: 0, wave: Wave::Dc { v: 48.0 * b } }).unwrap();
+        });
+        assert!(peor < 1.5, "el rotor se retrasó {peor} pasos");
+        assert!(final_ < 0.05, "perdió {final_} pasos");
+    }
+}
+
+/// El armado mínimo del ADC0804: un `DACM` en voltaje con referencia de 5 V (LSB de 19.53 mV), un comparador con 0.1 mV de histéresis desplazado medio LSB, de modo que el código es el entero más cercano, y el núcleo de aproximaciones del `MSI` que prueba cada bit desde el más significativo.
+mod convertidor {
+    use super::*;
+    use kirchi_engine::transient::SolverKind;
+    use serde_json::json;
+
+    const LSB: f64 = 5.0 / 256.0;
+    const HISTERESIS: f64 = 0.1e-3;
+    /// Una decisión cada 8 ciclos de un reloj interno de 0.2 µs.
+    const PERIODO: f64 = 1.6e-6;
+    /// Redes digitales: 0 comparador, 1 a 8 código de prueba (la 1 es el bit más significativo), 9 CS, 10 WR, 11 RD, 12 a 19 resultado, 20 INTR.
+    const WR: usize = 6;
+
+    fn solvers() -> Vec<Option<SolverKind>> {
+        let mut v = vec![None, Some(SolverKind::Dense)];
+        #[cfg(feature = "faer")]
+        v.push(Some(SolverKind::Sparse));
+        v
+    }
+
+    fn analogico(vin: serde_json::Value, histeresis: f64) -> Vec<serde_json::Value> {
+        vec![
+            json!({"type":"V","a":1,"b":0,"wave":vin}),
+            json!({"type":"V","a":2,"b":0,"wave":{"kind":"dc","v":5}}),
+            json!({"type":"R","a":3,"b":0,"ohms":1e6}),
+            json!({"type":"ADC","p":1,"n":3,"out":0,"in_low":-LSB / 2.0 - histeresis / 2.0,"in_high":-LSB / 2.0 + histeresis / 2.0,"histeresis":true}),
+        ]
+    }
+
+    fn dacm() -> serde_json::Value {
+        json!({"type":"DACM","modo":"voltaje","out":3,"ret":0,"ref_p":2,"ref_n":0,"bits":[1,2,3,4,5,6,7,8],"t_asentamiento":1.5e-7})
+    }
+
+    /// El código de prueba lo fija a mano la prueba con ocho estados lógicos (para medir solo el comparador).
+    fn comparador_fijo(vin: serde_json::Value, histeresis: f64) -> Netlist {
+        let mut els = analogico(vin, histeresis);
+        els.extend((1..=8).map(|r| json!({"type":"LOGIC","out":r,"value":0})));
+        els.push(dacm());
+        Netlist::from_json(&json!({"nodes":4,"digital_nets":9,"elements":els}).to_string()).unwrap()
+    }
+
+    /// El convertidor completo: CS y WR en bajo reinician y la subida de WR arranca (el WR es el elemento 6).
+    fn aproximador(vin: serde_json::Value, histeresis: f64) -> Netlist {
+        let mut els = analogico(vin, histeresis);
+        els.push(dacm());
+        els.push(json!({"type":"LOGIC","out":9,"value":0}));
+        els.push(json!({"type":"LOGIC","out":10,"value":0}));
+        els.push(json!({"type":"LOGIC","out":11,"value":1}));
+        let de: Vec<serde_json::Value> = (0..8)
+            .rev()
+            .map(|b| json!({"tipo":"directa","fuente":{"aux":b}}))
+            .chain((0..8).rev().map(|b| json!({"tipo":"directa","fuente":{"bit":b}})))
+            .chain([json!({"tipo":"directa","fuente":{"bandera":0},"negada":true})])
+            .collect();
+        els.push(json!({"type":"MSI","entradas":[9,10,11,0],"salidas":(1..=8).chain(12..=20).collect::<Vec<usize>>(),
+            "nucleo":{"tipo":"aproximaciones","bits":8,"cs":{"entrada":0,"bajo":true},"wr":{"entrada":1,"bajo":true},"rd":{"entrada":2,"bajo":true},
+                "comparador":3,"reloj":{"tipo":"interno","periodo":0.2e-6},"ciclos_inicio":0,"ciclos_bit":8},
+            "de":de,"retardos":vec![[5e-9, 5e-9]; 17]}));
+        Netlist::from_json(&json!({"nodes":4,"digital_nets":21,"elements":els}).to_string()).unwrap()
+    }
+
+    fn mixto(net: Netlist, solver: Option<SolverKind>) -> Mixto {
+        match solver {
+            Some(k) => Mixto::with_solver(net, 1e-6, k).unwrap(),
+            None => Mixto::new(net, 1e-6).unwrap(),
+        }
+    }
+
+    fn numero(m: &Mixto, desde: usize) -> u32 {
+        (0..8).fold(0, |a, k| a << 1 | u32::from(m.nivel(desde + k) == Nivel::Uno))
+    }
+
+    /// Una conversión desde `t0` con el núcleo real; compara cada decisión con la réplica de la aproximación sucesiva con el voltaje
+    /// de entrada de su instante. Devuelve el código y el instante en que termina.
+    fn convertir(m: &mut Mixto, t0: f64, vin: impl Fn(f64) -> f64) -> (u32, f64) {
+        m.advance_to(t0, u32::MAX).unwrap();
+        m.set_element(WR, Element::Logic { out: 10, value: 1 }).unwrap();
+        m.advance_to(t0 + 0.05e-6, u32::MAX).unwrap();
+        let (mut acumulado, mut t) = (0u32, t0);
+        for bit in (0..8).rev() {
+            let prueba = acumulado | 1 << bit;
+            assert_eq!(numero(m, 1), prueba, "el código de prueba del bit {bit} de la conversión desde {t0}");
+            t += PERIODO;
+            // Un nanosegundo antes de la decisión el comparador ya se asentó con el código de prueba.
+            m.advance_to(t - 1e-9, u32::MAX).unwrap();
+            let conserva = m.nivel(0) == Nivel::Uno;
+            let replica = vin(t) - f64::from(prueba) * LSB >= -LSB / 2.0;
+            assert_eq!(conserva, replica, "bit {bit} de la conversión desde {t0}: el comparador dio {conserva} y la réplica {replica}");
+            if conserva {
+                acumulado = prueba;
+            }
+            m.advance_to(t + 0.05e-6, u32::MAX).unwrap();
+        }
+        assert_eq!(numero(m, 12), acumulado, "el resultado que sale por las redes");
+        assert_eq!(m.nivel(20), Nivel::Cero, "INTR baja al terminar");
+        (acumulado, t)
+    }
+
+    #[test]
+    fn con_la_entrada_a_0_2_mv_de_cada_umbral_el_codigo_es_el_entero_mas_cercano() {
+        // Una entrada en (n - 1/2) LSB cae justo en una transición; a 0.2 mV de cada lado la decisión es la del lado correcto.
+        for solver in solvers() {
+            for n in [1u32, 2, 17, 64, 127, 128, 129, 200, 254, 255] {
+                for (delta, esperado) in [(-0.2e-3, n - 1), (0.2e-3, n)] {
+                    let vin = (f64::from(n) - 0.5) * LSB + delta;
+                    let mut m = mixto(aproximador(json!({"kind":"dc","v":vin}), HISTERESIS), solver);
+                    let (codigo, _) = convertir(&mut m, 1e-6, |_| vin);
+                    assert_eq!(codigo, esperado, "entrada {vin} V");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn una_entrada_que_cambia_durante_la_conversion_da_el_codigo_de_la_aproximacion_sucesiva() {
+        // 50 kV/s: la entrada se mueve unos 32 LSB durante los 12.8 µs de la conversión.
+        let rampa = |t: f64| 1.0 + (t / 20e-6).min(1.0);
+        let mut distintos = 0;
+        for solver in solvers() {
+            let mut m = mixto(aproximador(json!({"kind":"pwl","puntos":[[0,1.0],[20e-6,2.0]]}), HISTERESIS), solver);
+            let (codigo, fin) = convertir(&mut m, 1e-6, rampa);
+            // La réplica completa: el mismo algoritmo en aritmética de coma flotante, bit a bit.
+            let mut r = 0u32;
+            let mut t = 1e-6;
+            for bit in (0..8).rev() {
+                if rampa(t + PERIODO) - f64::from(r | 1 << bit) * LSB >= -LSB / 2.0 {
+                    r |= 1 << bit;
+                }
+                t += PERIODO;
+            }
+            assert_eq!(codigo, r);
+            assert!((fin - (1e-6 + 8.0 * PERIODO)).abs() < 1e-12);
+            let al_inicio = ((rampa(1e-6) / LSB).round()) as u32;
+            distintos += usize::from(codigo != al_inicio);
+        }
+        assert!(distintos > 0, "la entrada tiene que moverse lo bastante para que el código no sea el del inicio");
+    }
+
+    /// Cuántos cambios del comparador hay en 1 s con la entrada sobre el umbral del bit más significativo y 20 µV de pico de ruido de 1 kHz.
+    fn cambios_del_comparador(histeresis: f64) -> usize {
+        let umbral = 127.5 * LSB;
+        let mut net = comparador_fijo(json!({"kind":"sine","offset":umbral,"amp":20e-6,"freq":1000}), histeresis);
+        // El código de prueba es 128 desde el arranque: el comparador mide la entrada contra su transición.
+        let Element::Logic { value, .. } = &mut net.elements[4] else { panic!("el bit más significativo") };
+        *value = 1;
+        let mut m = Mixto::new(net, 1e-5).unwrap();
+        m.registrar_cambios(true);
+        let mut cambios = 0;
+        while m.time() < 1.0 {
+            m.advance_to(1.0, u32::MAX).unwrap();
+            cambios += m.tomar_cambios().iter().filter(|c| c.1 == 0).count();
+        }
+        cambios
+    }
+
+    #[test]
+    fn la_entrada_justo_en_un_umbral_durante_1_s_no_arma_una_tormenta_de_eventos() {
+        let con = cambios_del_comparador(HISTERESIS);
+        assert!(con <= 4, "con histéresis hubo {con} cambios del comparador");
+        // Sin histéresis el mismo ruido sí lo hace oscilar: la prueba mide algo.
+        let sin = cambios_del_comparador(0.0);
+        assert!(sin > 100, "sin histéresis hubo {sin} cambios");
+    }
+
+    #[test]
+    fn el_nucleo_de_aproximaciones_a_media_conversion_vuelve_a_correr_igual_tras_retroceder() {
+        let huella = |m: &Mixto| {
+            let mut v = vec![m.time().to_bits()];
+            v.extend(m.voltages().iter().map(|x| x.to_bits()));
+            v.extend((0..m.digital_count()).map(|r| m.nivel(r).codigo().to_bits()));
+            v.extend(m.tiempos_de_islas().iter().map(|t| t.to_bits()));
+            v
+        };
+        for solver in solvers() {
+            let mut m = mixto(aproximador(json!({"kind":"dc","v":2.0}), HISTERESIS), solver);
+            m.advance_to(1e-6, u32::MAX).unwrap();
+            m.set_element(WR, Element::Logic { out: 10, value: 1 }).unwrap();
+            // Tres decisiones tomadas y la cuarta pendiente.
+            m.advance_to(1e-6 + 3.5 * PERIODO, u32::MAX).unwrap();
+            let en_a = huella(&m);
+            m.guardar_estado();
+            m.advance_to(1e-6 + 9.0 * PERIODO, u32::MAX).unwrap();
+            let en_b = huella(&m);
+            assert_eq!(numero(&m, 12), (2.0 / LSB).round() as u32);
+            m.restaurar_estado().unwrap();
+            assert_eq!(huella(&m), en_a);
+            m.advance_to(1e-6 + 9.0 * PERIODO, u32::MAX).unwrap();
+            assert_eq!(huella(&m), en_b, "volver a correr da lo mismo bit a bit");
+        }
+    }
+
+    #[test]
+    fn la_conversion_en_curso_vuelve_a_correr_igual_tras_retroceder() {
+        // Un contador de 4 bits que recorre el convertidor al ritmo de un reloj de 1 MHz, con la entrada entre dos códigos.
+        let net = Netlist::from_json(
+            &json!({"nodes":5,"digital_nets":8,"elements":[
+                {"type":"V","a":1,"b":0,"wave":{"kind":"square","low":0,"high":5,"freq":1e6}},
+                {"type":"ADC","p":1,"n":0,"out":0,"in_low":1.5,"in_high":3.5},
+                {"type":"V","a":2,"b":0,"wave":{"kind":"dc","v":5}},
+                {"type":"V","a":4,"b":0,"wave":{"kind":"dc","v":2.0}},
+                {"type":"R","a":3,"b":0,"ohms":1000},
+                {"type":"C","a":3,"b":0,"farads":1e-10},
+                {"type":"ADC","p":4,"n":3,"out":7,"in_low":-0.05e-3,"in_high":0.05e-3,"histeresis":true},
+                {"type":"LOGIC","out":6,"value":0},
+                {"type":"COUNTER","clk":0,"rst":6,"q":[1,2,3,4],"co":5,"modulo":16,"rise_delay":5e-9,"fall_delay":5e-9},
+                {"type":"DACM","modo":"voltaje","out":3,"ret":0,"ref_p":2,"ref_n":0,"bits":[4,3,2,1],"t_asentamiento":1.5e-7}]})
+            .to_string(),
+        )
+        .unwrap();
+        let huella = |m: &Mixto| {
+            let mut v = vec![m.time().to_bits()];
+            v.extend(m.voltages().iter().map(|x| x.to_bits()));
+            for r in m.readings() {
+                v.extend([r.i.to_bits(), r.aux.to_bits(), r.estado.to_bits()]);
+            }
+            v.extend((0..m.digital_count()).map(|r| m.nivel(r).codigo().to_bits()));
+            v.extend(m.tiempos_de_islas().iter().map(|t| t.to_bits()));
+            v
+        };
+        let mut m = Mixto::new(net, 1e-7).unwrap();
+        // A 60 ns de un flanco: el convertidor va a media rampa entre dos códigos.
+        m.advance_to(20.06e-6, u32::MAX).unwrap();
+        let en_a = huella(&m);
+        let (a, k) = (m.voltage(3), m.readings()[9].estado);
+        assert!(k > 0.0 && a > 0.0, "el convertidor tiene que estar en un código no nulo");
+        m.guardar_estado();
+        m.advance_to(41.7e-6, u32::MAX).unwrap();
+        let en_b = huella(&m);
+        assert_ne!(en_a, en_b);
+        m.restaurar_estado().unwrap();
+        assert_eq!(huella(&m), en_a);
+        m.advance_to(41.7e-6, u32::MAX).unwrap();
+        assert_eq!(huella(&m), en_b, "volver a correr da lo mismo bit a bit");
+    }
+}
+
+/// El 4017 con CLK fijo en alto: cada bajada de INH hace subir «CLK y no INH» y cuenta una vez, sin colgarse ni dejar una salida fuera de 0 y 1.
+mod contador_johnson {
+    use super::*;
+    use serde_json::json;
+
+    // Redes digitales: 0 a 9 salidas decodificadas, 10 CO, 11 CLK, 12 INH, 13 RESET. Elementos: 0 CLK, 1 INH, 2 RESET, 3 el 4017.
+    fn johnson() -> Netlist {
+        let tabla: Vec<u64> = (0..16u64).map(|n| (0..10u64).map(|k| u64::from(n == k) << (2 * k)).sum::<u64>() | u64::from(n < 5) << 20).collect();
+        let de: Vec<serde_json::Value> = (0..11).map(|c| json!({"tipo":"tabla","columna":c})).collect();
+        let net = json!({"nodes":1,"digital_nets":14,"tablas":[tabla],"elements":[
+            {"type":"LOGIC","out":11,"value":1},
+            {"type":"LOGIC","out":12,"value":0},
+            {"type":"LOGIC","out":13,"value":1},
+            {"type":"MSI","entradas":[11,12,13],"salidas":(0..11).collect::<Vec<usize>>(),
+                "nucleo":{"tipo":"contador","bits":4,"modulo":10,"reloj":{"senales":[{"entrada":0},{"entrada":1,"bajo":true}],"combina":"Y","flanco":"subida"},"borra":{"senal":{"entrada":2},"sincrona":false}},
+                "de":de,"fuentes":[{"bit":3},{"bit":2},{"bit":1},{"bit":0}],"tabla":0,"retardos":vec![[2.75e-7, 2.75e-7]; 11]}]});
+        Netlist::from_json(&net.to_string()).unwrap()
+    }
+
+    fn salidas(m: &Mixto) -> Vec<Nivel> {
+        (0..11).map(|r| m.nivel(r)).collect()
+    }
+
+    #[test]
+    fn un_4017_contado_por_la_bajada_de_inh_con_clk_en_alto_cuenta_una_vez_por_ciclo() {
+        let mut m = Mixto::new(johnson(), 1e-6).unwrap();
+        m.advance_to(2e-6, u32::MAX).unwrap();
+        m.set_element(2, Element::Logic { out: 13, value: 0 }).unwrap();
+        let mut t = 4e-6;
+        m.advance_to(t, u32::MAX).unwrap();
+        for ciclo in 1..=200usize {
+            m.set_element(1, Element::Logic { out: 12, value: 1 }).unwrap();
+            t += 1e-6;
+            m.advance_to(t, u32::MAX).unwrap();
+            m.set_element(1, Element::Logic { out: 12, value: 0 }).unwrap();
+            t += 1e-6;
+            m.advance_to(t, u32::MAX).unwrap();
+            let n = ciclo % 10;
+            let s = salidas(&m);
+            assert!(s.iter().all(|&x| x == Nivel::Cero || x == Nivel::Uno), "ciclo {ciclo}: una salida quedó fuera de 0 y 1");
+            let altas: Vec<usize> = (0..10).filter(|&k| s[k] == Nivel::Uno).collect();
+            assert_eq!(altas, vec![n], "ciclo {ciclo}: la salida decodificada en alto");
+            assert_eq!(s[10] == Nivel::Uno, n < 5, "ciclo {ciclo}: CO");
+        }
+        assert!(m.time() >= t, "la simulación llegó al final");
+    }
+
+    #[test]
+    fn con_inh_en_alto_el_reloj_no_cuenta_y_el_borrado_manda_sobre_el_reloj() {
+        let mut m = Mixto::new(johnson(), 1e-6).unwrap();
+        m.set_element(2, Element::Logic { out: 13, value: 0 }).unwrap();
+        m.set_element(1, Element::Logic { out: 12, value: 1 }).unwrap();
+        let mut t = 2e-6;
+        for _ in 0..30 {
+            m.set_element(0, Element::Logic { out: 11, value: 0 }).unwrap();
+            t += 1e-6;
+            m.advance_to(t, u32::MAX).unwrap();
+            m.set_element(0, Element::Logic { out: 11, value: 1 }).unwrap();
+            t += 1e-6;
+            m.advance_to(t, u32::MAX).unwrap();
+        }
+        assert_eq!(m.nivel(0), Nivel::Uno, "inhibido, el contador sigue en 0");
+        assert!((1..10).all(|k| m.nivel(k) == Nivel::Cero));
+        // Sin inhibición cuenta con cada subida y RESET lo devuelve a 0 sin esperar al reloj. INH baja con CLK en bajo para no contar.
+        m.set_element(0, Element::Logic { out: 11, value: 0 }).unwrap();
+        t += 1e-6;
+        m.advance_to(t, u32::MAX).unwrap();
+        m.set_element(1, Element::Logic { out: 12, value: 0 }).unwrap();
+        t += 1e-6;
+        m.advance_to(t, u32::MAX).unwrap();
+        assert_eq!(m.nivel(0), Nivel::Uno, "INH bajando con CLK en bajo no cuenta");
+        for _ in 0..3 {
+            m.set_element(0, Element::Logic { out: 11, value: 0 }).unwrap();
+            t += 1e-6;
+            m.advance_to(t, u32::MAX).unwrap();
+            m.set_element(0, Element::Logic { out: 11, value: 1 }).unwrap();
+            t += 1e-6;
+            m.advance_to(t, u32::MAX).unwrap();
+        }
+        assert_eq!(m.nivel(3), Nivel::Uno, "tres subidas, salida Q3 en alto");
+        m.set_element(2, Element::Logic { out: 13, value: 1 }).unwrap();
+        t += 1e-6;
+        m.advance_to(t, u32::MAX).unwrap();
+        assert_eq!(m.nivel(0), Nivel::Uno);
+        assert_eq!(m.nivel(3), Nivel::Cero);
+    }
+}
+
+/// Un 74HC161 cuyo CLR sube despacio (una rampa o un interruptor) sin otra actividad digital: al cruzar la zona X del puente la
+/// cuenta debe tomar el valor de CLR ya definido, no quedarse en X.
+mod control_asincrono {
+    use super::*;
+    use serde_json::json;
+
+    // Nodos: 1 alto (4.5 V), 2 CLR, 3 CLK. Redes: 0 a 3 QA a QD, 4 RCO, 5 CLK, 6 ENP, 7 ENT, 8 CLR, 9 LOAD, 10 a 13 A a D.
+    // Elementos: 0 alto, 1 CLR, 2 CLK.
+    fn c161(clr: serde_json::Value) -> Netlist {
+        let adc = |p: usize, out: usize| json!({"type":"ADC","p":p,"n":0,"out":out,"in_low":1.35,"in_high":3.15});
+        let mut el = vec![
+            json!({"type":"V","a":1,"b":0,"wave":{"kind":"dc","v":4.5}}),
+            json!({"type":"V","a":2,"b":0,"wave":clr}),
+            json!({"type":"V","a":3,"b":0,"wave":{"kind":"dc","v":0}}),
+        ];
+        for (p, out) in [(3, 5), (1, 6), (1, 7), (2, 8), (1, 9), (3, 10), (3, 11), (3, 12), (3, 13)] {
+            el.push(adc(p, out));
+        }
+        let tabla: Vec<u64> = (0..32u64).map(|i| u64::from(i == 0b11111)).collect();
+        el.push(json!({"type":"MSI","entradas":[5,6,7,8,9,10,11,12,13],"salidas":[0,1,2,3,4],
+            "nucleo":{"tipo":"contador","bits":4,"modulo":16,"reloj":{"senales":[{"entrada":0}],"flanco":"subida"},"habilita":[{"entrada":1},{"entrada":2}],
+                "borra":{"senal":{"entrada":3,"bajo":true},"sincrona":false},"carga":{"senal":{"entrada":4,"bajo":true},"sincrona":true,"datos":[5,6,7,8]}},
+            "de":[{"tipo":"directa","fuente":{"bit":0}},{"tipo":"directa","fuente":{"bit":1}},{"tipo":"directa","fuente":{"bit":2}},{"tipo":"directa","fuente":{"bit":3}},{"tipo":"tabla","columna":0}],
+            "fuentes":[{"entrada":2},{"bit":3},{"bit":2},{"bit":1},{"bit":0}],"tabla":0,"retardos":vec![[2.15e-8, 2.15e-8]; 5]}));
+        Netlist::from_json(&json!({"nodes":4,"digital_nets":14,"tablas":[tabla],"elements":el}).to_string()).unwrap()
+    }
+
+    fn cuenta(m: &Mixto) -> Option<u32> {
+        (0..4).try_fold(0u32, |a, k| match m.nivel(k) {
+            Nivel::Cero => Some(a),
+            Nivel::Uno => Some(a | 1 << k),
+            _ => None,
+        })
+    }
+
+    fn dc(v: f64) -> Wave {
+        Wave::Dc { v }
+    }
+
+    /// Un pulso de reloj por `set_element`; devuelve el instante siguiente.
+    fn pulso(m: &mut Mixto, t: f64) -> f64 {
+        m.set_element(2, Element::V { a: 3, b: 0, wave: dc(4.5) }).unwrap();
+        m.advance_to(t + 1e-6, u32::MAX).unwrap();
+        m.set_element(2, Element::V { a: 3, b: 0, wave: dc(0.0) }).unwrap();
+        m.advance_to(t + 2e-6, u32::MAX).unwrap();
+        t + 2e-6
+    }
+
+    #[test]
+    fn un_clr_que_sube_en_rampa_deja_la_cuenta_en_cero_y_el_contador_sigue_contando() {
+        let mut m = Mixto::new(c161(json!({"kind":"pwl","puntos":[[0.0,0.0],[1e-6,0.0],[1.1e-6,4.5]]})), 1e-6).unwrap();
+        m.advance_to(3e-6, u32::MAX).unwrap();
+        assert_eq!(m.nivel(8), Nivel::Uno, "CLR ya está en alto");
+        assert_eq!(cuenta(&m), Some(0), "CLR subió y la cuenta quedó en cero");
+        let t = pulso(&mut m, 3e-6);
+        pulso(&mut m, t);
+        assert_eq!(cuenta(&m), Some(2), "dos subidas del reloj");
+    }
+
+    #[test]
+    fn un_interruptor_en_clr_borra_y_suelta_la_cuenta() {
+        let mut m = Mixto::new(c161(json!({"kind":"dc","v":4.5})), 1e-6).unwrap();
+        m.advance_to(1e-6, u32::MAX).unwrap();
+        let mut t = 1e-6;
+        for _ in 0..5 {
+            t = pulso(&mut m, t);
+        }
+        assert_eq!(cuenta(&m), Some(5));
+        for ciclo in 0..3 {
+            m.set_element(1, Element::V { a: 2, b: 0, wave: dc(0.0) }).unwrap();
+            t += 1e-6;
+            m.advance_to(t, u32::MAX).unwrap();
+            assert_eq!(cuenta(&m), Some(0), "ciclo {ciclo}: CLR en bajo borra");
+            m.set_element(1, Element::V { a: 2, b: 0, wave: dc(4.5) }).unwrap();
+            t += 1e-6;
+            m.advance_to(t, u32::MAX).unwrap();
+            assert_eq!(cuenta(&m), Some(0), "ciclo {ciclo}: al soltar CLR la cuenta sigue en cero");
+            t = pulso(&mut m, t);
+            assert_eq!(cuenta(&m), Some(1), "ciclo {ciclo}: y cuenta con el reloj");
+        }
+    }
+}

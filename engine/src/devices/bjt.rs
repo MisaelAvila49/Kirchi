@@ -1,5 +1,6 @@
 //! Transistor bipolar Gummel-Poon de SPICE (bjtload.c y bjttemp.c de ngspice a 27 °C): efecto Early, caída de beta, fugas, resistencias, capacitancias de agotamiento y tiempos de tránsito. Sin sustrato ni exceso de fase.
 
+use super::region::{AMPLIFICA, CORTE, INTERRUPTOR, INVERSA};
 use super::{close, depletion, exp_tope, limexp, MAX_EXP_ARG, entry, init_charge, init_current, integrate, inject, pnjlim, predict, stamp_g, terr, volt, Alloc, Ctx, Device, Hist, Mode, Reading, Tol, U, VT};
 use crate::netlist::BjtModel;
 
@@ -293,10 +294,10 @@ impl Device for Bjt {
         let cqbx = s0[s + QBX + 1];
         let (vbe, vbc) = (s0[s + VBE], s0[s + VBC]);
         let region = match (vbe >= UMBRAL_REGION, vbc >= UMBRAL_REGION) {
-            (false, false) => 0.0,
-            (true, false) => 1.0,
-            (true, true) => 2.0,
-            (false, true) => 3.0,
+            (false, false) => CORTE,
+            (true, false) => AMPLIFICA,
+            (true, true) => INTERRUPTOR,
+            (false, true) => INVERSA,
         };
         Reading { i: self.tipo * (s0[s + CC] - cqbx), aux: self.tipo * (s0[s + CB] + cqbx), estado: region }
     }

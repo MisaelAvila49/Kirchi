@@ -37,11 +37,12 @@ test('capítulo 2: «Medir» con el multímetro cumple el paso 1 con el circuito
   await empezar(page, 'medir')
   // El circuito de arranque trae la fuente, la resistencia, el LED y la tierra.
   expect(Object.keys((await sonda(page, 'doc')).piezas)).toHaveLength(4)
-  // Clic derecho sobre el cable entre la resistencia y el LED: Medir con el multímetro, Multímetro nuevo.
+  // Clic derecho sobre el cable entre la resistencia y el LED: Medir, Multímetro, Multímetro completo.
   const p = await sonda(page, 'aPantalla', 26, -4)
   await page.mouse.click(p.x, p.y, { button: 'right' })
-  await page.locator('[role="menuitem"]', { hasText: 'Medir con el multímetro' }).first().click()
-  await page.locator('[role="menuitem"]', { hasText: 'Multímetro nuevo' }).first().click()
+  await page.locator('[role="menuitem"]', { hasText: /^Medir$/ }).first().click()
+  await page.locator('[role="menuitem"]', { hasText: /^Multímetro$/ }).first().click()
+  await page.locator('[role="menuitem"]', { hasText: 'Multímetro completo' }).first().click()
   await expect.poll(() => cumplido(page)).toBe(true)
   await app.close()
 })
@@ -100,8 +101,9 @@ test('el globo cumplido no cambia de alto con el ratón en su borde inferior (no
   await empezar(page, 'medir')
   const p = await sonda(page, 'aPantalla', 26, -4)
   await page.mouse.click(p.x, p.y, { button: 'right' })
-  await page.locator('[role="menuitem"]', { hasText: 'Medir con el multímetro' }).first().click()
-  await page.locator('[role="menuitem"]', { hasText: 'Multímetro nuevo' }).first().click()
+  await page.locator('[role="menuitem"]', { hasText: /^Medir$/ }).first().click()
+  await page.locator('[role="menuitem"]', { hasText: /^Multímetro$/ }).first().click()
+  await page.locator('[role="menuitem"]', { hasText: 'Multímetro completo' }).first().click()
   await expect.poll(() => cumplido(page)).toBe(true)
   const globo = page.locator('.tutorial-globo')
   const b = (await globo.boundingBox())!

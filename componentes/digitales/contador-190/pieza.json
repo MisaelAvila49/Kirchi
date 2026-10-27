@@ -1,0 +1,184 @@
+{
+  "id": "contador-190",
+  "nombre": { "es": "Contador de década arriba y abajo (74190)", "en": "Up/down decade counter (74190)" },
+  "categoria": "digitales",
+  "grupo": "Biestables y contadores",
+  "prefijo": "U",
+  "buscar": [
+    "u",
+    "contador",
+    "counter",
+    "decada",
+    "decade",
+    "bcd",
+    "arriba abajo",
+    "up down",
+    "74190",
+    "74hc190",
+    "74ls190",
+    "max min"
+  ],
+  "pines": [
+    { "id": "CLK", "nombre": "CLK (reloj, flanco de subida)", "x": -8, "y": -6 },
+    { "id": "D/U", "nombre": "D/U (sentido: bajo cuenta hacia arriba, alto hacia abajo)", "x": -8, "y": -4 },
+    { "id": "CTEN", "nombre": "CTEN (habilitación, activa en bajo)", "x": -8, "y": -2 },
+    { "id": "LOAD", "nombre": "LOAD (carga asíncrona, activa en bajo)", "x": -8, "y": -8 },
+    { "id": "A", "nombre": "A", "x": -8, "y": 2 },
+    { "id": "B", "nombre": "B", "x": -8, "y": 4 },
+    { "id": "C", "nombre": "C", "x": -8, "y": 6 },
+    { "id": "D", "nombre": "D", "x": -8, "y": 8 },
+    { "id": "QA", "nombre": "QA", "x": 8, "y": -8 },
+    { "id": "QB", "nombre": "QB", "x": 8, "y": -6 },
+    { "id": "QC", "nombre": "QC", "x": 8, "y": -4 },
+    { "id": "QD", "nombre": "QD", "x": 8, "y": -2 },
+    { "id": "MAX/MIN", "nombre": "MAX/MIN (cuenta máxima o mínima)", "x": 8, "y": 2 },
+    { "id": "RCO", "nombre": "RCO (acarreo, activo en bajo)", "x": 8, "y": 4 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "msi",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "nucleo": {
+      "tipo": "contador",
+      "bits": 4,
+      "modulo": 10,
+      "reloj": { "senales": ["CLK"], "flanco": "subida" },
+      "sentido": "D/U",
+      "habilita": ["!CTEN"],
+      "carga": { "senal": "!LOAD", "sincrona": false, "datos": ["A", "B", "C", "D"] }
+    },
+    "salidas": { "QA": "q0", "QB": "q1", "QC": "q2", "QD": "q3", "MAX/MIN": "tabla", "RCO": "tabla" },
+    "tabla": {
+      "columnas": ["CLK", "CTEN", "D/U", "estado"],
+      "salidas": ["MAX/MIN", "RCO"],
+      "filas": [
+        "0 0 0 9 > 1 0",
+        "1 X 0 9 > 1 1",
+        "0 1 0 9 > 1 1",
+        "X X 0 0-8 > 0 1",
+        "X X 0 10-15 > 0 1",
+        "0 0 1 0 > 1 0",
+        "1 X 1 0 > 1 1",
+        "0 1 1 0 > 1 1",
+        "X X 1 1-15 > 0 1"
+      ]
+    },
+    "retardos": {
+      "74HC": { "vcc": 5, "Q*": [1.4e-8, 1.4e-8], "RCO": [1e-8, 1e-8], "MAX/MIN": [1.8e-8, 1.8e-8] },
+      "74LS": { "vcc": 5, "Q*": [1.6e-8, 2.4e-8], "RCO": [1.3e-8, 1.6e-8], "MAX/MIN": [2.8e-8, 3.7e-8] }
+    }
+  },
+  "caja": {
+    "titulo": "CTR DIV 10",
+    "forma": "funcional",
+    "izquierda": ["!LOAD", "CLK", "D/U", "!CTEN", null, "A", "B", "C", "D"],
+    "derecha": ["QA", "QB", "QC", "QD", null, "MAX/MIN", "!RCO"],
+    "marcas": { "CLK": ["dinamico"] }
+  },
+  "fuentes": {
+    "74HC": "TI CD74HC190 (SCHS275E): función p. 2 y retardos típicos de 14 ns de CLK a Q, 10 ns a RCO y 18 ns a MAX/MIN (p. 14, 5 V, CL 15 pF; a 4.5 V la hoja solo da máximos). LOAD a Q usa el retardo de CLK a Q.",
+    "74LS": "TI SN74LS190 (SDLS072): función p. 1 y retardos típicos de CLK a Q (16 ns de subida, 24 de bajada), a RCO (13 y 16) y a MAX/MIN (28 y 37) (p. 10, 5 V, CL 15 pF)."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD74HC190E",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd74hc190.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0; el retardo de LOAD a Q usa el de CLK a Q. Un estado ilegal (10 a 15) vuelve a la secuencia en una o dos cuentas según el diagrama de estados de la hoja (Figura 3), que no se transcribió.",
+        "equivalencias": { "kicad": "74xx:74LS190" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "A": "15",
+              "B": "1",
+              "C": "10",
+              "D": "9",
+              "QA": "3",
+              "QB": "2",
+              "QC": "6",
+              "QD": "7",
+              "CTEN": "4",
+              "D/U": "5",
+              "CLK": "14",
+              "LOAD": "11",
+              "MAX/MIN": "12",
+              "RCO": "13"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "CD74HC190E"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de CD74HC190E de TI (solo SN74HC190N(XBLW), otro fabricante)" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI CD74HC190/191 (SCHS275E, oct 2003), p. 1, TOP VIEW; KiCad 74xx:74LS190 (9.0.0, mismo número de patilla, otra familia; el símbolo 74HC190 no existe)"
+        }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS190N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls191.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0; el retardo de LOAD a Q usa el de CLK a Q.",
+        "equivalencias": { "kicad": "74xx:74LS190" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "A": "15",
+              "B": "1",
+              "C": "10",
+              "D": "9",
+              "QA": "3",
+              "QB": "2",
+              "QC": "6",
+              "QD": "7",
+              "CTEN": "4",
+              "D/U": "5",
+              "CLK": "14",
+              "LOAD": "11",
+              "MAX/MIN": "12",
+              "RCO": "13"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS190N"
+          }
+        ],
+        "pendiente": {
+          "parte": "SN74LS190N no figura en la lista de pedido (addendum del 23 oct 2026) de la hoja SDLS072, que solo lista SN74LS191N; sn74ls190.pdf devuelve 404 en ti.com",
+          "lcsc": "no se halló un número LCSC de SN74LS190N (solo SN74LS191N, C1523316, que es otro chip)"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74LS190/191 (SDLS072, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS190 (9.0.0)" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -14 }, "valor": { "x": 0, "y": 14 } },
+  "rotulos": [
+    { "texto": "LOAD", "x": -5.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "CLK", "x": -4.3, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "D/U", "x": -5.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "CTEN", "x": -5.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "A", "x": -5.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -5.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "C", "x": -5.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "D", "x": -5.2, "y": 8, "tam": 1, "alinear": "izq" },
+    { "texto": "QA", "x": 5.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "QB", "x": 5.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "QC", "x": 5.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "QD", "x": 5.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "MAX/MIN", "x": 5.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "RCO", "x": 5.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "CTR DIV 10", "x": 0, "y": -11, "tam": 1, "alinear": "centro" }
+  ]
+}

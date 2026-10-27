@@ -1,0 +1,82 @@
+{
+  "netlist": {
+    "nodes": 7,
+    "digital_nets": 0,
+    "elements": [
+      {
+        "type": "V",
+        "a": 1,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 5
+        }
+      },
+      {
+        "type": "R",
+        "a": 1,
+        "b": 2,
+        "ohms": 1000
+      },
+      {
+        "type": "V",
+        "a": 3,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 5
+        }
+      },
+      {
+        "type": "R",
+        "a": 3,
+        "b": 4,
+        "ohms": 100
+      },
+      {
+        "type": "D",
+        "a": 2,
+        "b": 5,
+        "is": 2.36e-12,
+        "n": 2,
+        "rs": 0.9
+      },
+      {
+        "type": "F",
+        "p": 4,
+        "n": 6,
+        "cp": 5,
+        "cn": 0,
+        "ganancia": 0.01408
+      },
+      {
+        "type": "Q",
+        "c": 4,
+        "b": 6,
+        "e": 0,
+        "pnp": false,
+        "model": {
+          "is": 1e-14,
+          "bf": 200,
+          "tf": 8e-9
+        }
+      }
+    ]
+  },
+  "fin": 0.2,
+  "hmax": 0.001,
+  "columnas": {
+    "v(a)": {
+      "nodo": 2
+    },
+    "v(c)": {
+      "nodo": 4
+    },
+    "i(v1)": {
+      "corriente": 0
+    },
+    "i(v2)": {
+      "corriente": 2
+    }
+  }
+}

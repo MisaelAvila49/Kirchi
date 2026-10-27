@@ -23,7 +23,11 @@ describe('semiconductores nuevos', () => {
     ['npn', 'semiconductores', 'Q', ['B@-4,0', 'C@2,-4', 'E@2,4']],
     ['pnp', 'semiconductores', 'Q', ['B@-4,0', 'E@2,-4', 'C@2,4']],
     ['mosfet-n', 'semiconductores', 'Q', ['G@-4,0', 'D@2,-4', 'S@2,4']],
-    ['mosfet-p', 'semiconductores', 'Q', ['G@-4,0', 'S@2,-4', 'D@2,4']]
+    ['mosfet-p', 'semiconductores', 'Q', ['G@-4,0', 'S@2,-4', 'D@2,4']],
+    ['jfet-n', 'semiconductores', 'J', ['G@-4,0', 'D@2,-4', 'S@2,4']],
+    ['jfet-p', 'semiconductores', 'J', ['G@-4,0', 'S@2,-4', 'D@2,4']],
+    ['igbt', 'semiconductores', 'Q', ['G@-4,0', 'C@2,-4', 'E@2,4']],
+    ['ujt', 'semiconductores', 'Q', ['E@-4,0', 'B2@2,-4', 'B1@2,4']]
   ] as const)('%s: categoría %s, prefijo %s y pines', (id, categoria, prefijo, esperados) => {
     const def = lib.get(id)
     expect(def, id).toBeDefined()
@@ -37,7 +41,12 @@ describe('semiconductores nuevos', () => {
     ['pnp', 'pnp'],
     ['zener', 'zener'],
     ['mosfet canal n', 'mosfet-n'],
-    ['pmos', 'mosfet-p']
+    ['pmos', 'mosfet-p'],
+    ['jfet canal n', 'jfet-n'],
+    ['jfet canal p', 'jfet-p'],
+    ['igbt', 'igbt'],
+    ['ujt', 'ujt'],
+    ['unijuntura', 'ujt']
   ] as const)('el buscador encuentra «%s» primero: %s', (q, id) => {
     expect(primero(q)).toBe(id)
   })
@@ -82,6 +91,13 @@ describe('semiconductores nuevos', () => {
     // El canal es la raya de tres tramos en x = -0.4.
     const canal = { x: -0.4, y: 0 }
     const n = flecha('mosfet-n'), p = flecha('mosfet-p')
+    expect(dist(n.punta, canal), 'N: hacia dentro').toBeLessThan(dist(n.base, canal))
+    expect(dist(p.punta, canal), 'P: hacia fuera').toBeGreaterThan(dist(p.base, canal))
+  })
+
+  it('la flecha del JFET-N apunta hacia el canal y la del JFET-P se aleja de él', () => {
+    const canal = { x: -0.4, y: 0 }
+    const n = flecha('jfet-n'), p = flecha('jfet-p')
     expect(dist(n.punta, canal), 'N: hacia dentro').toBeLessThan(dist(n.base, canal))
     expect(dist(p.punta, canal), 'P: hacia fuera').toBeGreaterThan(dist(p.base, canal))
   })

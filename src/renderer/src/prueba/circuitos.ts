@@ -81,3 +81,14 @@ export function relojConDisplay(r2: string, c1: string): Parte[] {
     { tipo: 'display-7seg', ref: 'DS1', pines: { a: 'an_a', b: 'an_b', c: 'an_c', d: 'an_d', e: 'an_e', f: 'an_f', g: 'an_g', dp: 'suelto', COM: '0' } }
   ]
 }
+
+/** Escalera RC de `n` etapas (una resistencia en serie y un capacitor a tierra por etapa) con una fuente de 5 V: `2n + 1`
+ * piezas más la tierra. Sirve de circuito grande que compila y converge. */
+export function escaleraRC(n: number): Parte[] {
+  const partes: Parte[] = [{ tipo: 'fuente-dc', ref: 'V1', props: { voltaje: '5' }, pines: { '+': 'n0', '-': '0' } }]
+  for (let k = 1; k <= n; k++) {
+    partes.push({ tipo: 'resistencia', ref: `R${k}`, props: { valor: '1k' }, pines: { '1': `n${k - 1}`, '2': `n${k}` } })
+    partes.push({ tipo: 'capacitor', ref: `C${k}`, props: { valor: '100n' }, pines: { '1': `n${k}`, '2': '0' } })
+  }
+  return partes
+}

@@ -1,0 +1,23 @@
+{
+ "columnas": [
+  "OE",
+  "DIR"
+ ],
+ "salidas": [
+  "operacion"
+ ],
+ "filas": [
+  "0 0 > B->A",
+  "0 1 > A->B",
+  "1 X > aislado"
+ ],
+ "notas": [
+  "Cada uno de los ocho pares Ak y Bk transmite el nivel del lado emisor al otro (sin invertir); el lado receptor queda en Z. En aislado los dos lados quedan en Z."
+ ],
+ "fuente": {
+  "documento": "TI SN74HC245 (SCLS131F)",
+  "pagina": "9, tabla 8-1 Function Table",
+  "comprobada_con": "TI SN54LS245/SN74LS245 (SDLS146B), p. 9, Table 1: las 3 filas son iguales",
+  "convencion": "OE activo en bajo; DIR bajo = de B a A, DIR alto = de A a B"
+ }
+}

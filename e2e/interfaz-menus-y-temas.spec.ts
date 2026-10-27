@@ -42,9 +42,9 @@ test.afterAll(async () => {
   await app?.close()
 })
 
-test('la ventana abre en claro, con los paneles y la librería de 58 piezas', async () => {
+test('la ventana abre en claro, con los paneles y la librería de 102 piezas', async () => {
   expect(await page.evaluate(() => document.documentElement.dataset.tema)).toBe('claro')
-  await expect(page.locator('.lateral .panel-cabeza')).toContainText('58 piezas')
+  await expect(page.locator('.lateral .panel-cabeza')).toContainText('102 piezas')
   await expect(page.locator('aside.inspector h2')).toHaveText('Sin selección')
 })
 
@@ -126,7 +126,7 @@ test('Inicio › Archivo trae Guardar, Nuevo, Abrir, Guardar como, Recientes y E
 
 test('arrastrar una resistencia de la Librería la coloca donde se suelta', async () => {
   await sonda('cargar', DOS)
-  const item = (await page.locator('.pieza-libreria', { hasText: 'Resistencia' }).boundingBox())!
+  const item = (await page.getByRole('button', { name: 'Resistencia', exact: true }).boundingBox())!
   const destino = await aPantalla(10, 6)
   await page.mouse.move(item.x + item.width / 2, item.y + item.height / 2)
   await page.mouse.down()

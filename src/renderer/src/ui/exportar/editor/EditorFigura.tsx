@@ -56,7 +56,7 @@ export interface PropsEditor {
   datos(e: EstadoEditor): DatoExportable[]
   /** Del objeto de la figura (`V(s)#°`) a la clave de la traza que guarda su estilo. */
   claveDeTraza(id: string): string
-  ejeX: { etiqueta: string; unidad: string; log?: boolean } | null
+  ejeX: { etiqueta: string; unidad: string; log?: boolean; sinRango?: boolean } | null
   /** La tabla del CSV (formato CSV); sin ella, no hay CSV. */
   vistaCsv?(e: EstadoEditor): JSX.Element
   /** El tamaño que tendrá un CSV («120 puntos»). */
@@ -396,7 +396,7 @@ export default function EditorFigura(props: PropsEditor) {
             todas={todas()}
             enfocarTexto={enfocarTexto()}
             tamGeneral={props.opciones.tamañoLetra}
-            conRango={props.tipo === 'grafica'}
+            conRango={props.tipo === 'grafica' || props.tipo === 'pantalla'}
             figura={seccionFigura()}
             onBorrar={borrar}
           />

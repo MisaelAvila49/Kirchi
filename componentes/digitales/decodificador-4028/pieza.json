@@ -1,0 +1,124 @@
+{
+  "id": "decodificador-4028",
+  "nombre": { "es": "Decodificador BCD a decimal (4028)", "en": "BCD to decimal decoder (4028)" },
+  "categoria": "digitales",
+  "grupo": "Decodificadores y multiplexores",
+  "prefijo": "U",
+  "buscar": ["u", "decodificador", "decoder", "bcd", "decimal", "4028", "cd4028", "cmos", "1 de 10"],
+  "pines": [
+    { "id": "D", "nombre": "D", "x": -6, "y": -2 },
+    { "id": "C", "nombre": "C", "x": -6, "y": -4 },
+    { "id": "B", "nombre": "B", "x": -6, "y": -6 },
+    { "id": "A", "nombre": "A", "x": -6, "y": -8 },
+    { "id": "Y0", "nombre": "Y0", "x": 6, "y": -8 },
+    { "id": "Y1", "nombre": "Y1", "x": 6, "y": -6 },
+    { "id": "Y2", "nombre": "Y2", "x": 6, "y": -4 },
+    { "id": "Y3", "nombre": "Y3", "x": 6, "y": -2 },
+    { "id": "Y4", "nombre": "Y4", "x": 6, "y": 0 },
+    { "id": "Y5", "nombre": "Y5", "x": 6, "y": 2 },
+    { "id": "Y6", "nombre": "Y6", "x": 6, "y": 4 },
+    { "id": "Y7", "nombre": "Y7", "x": 6, "y": 6 },
+    { "id": "Y8", "nombre": "Y8", "x": 6, "y": 8 },
+    { "id": "Y9", "nombre": "Y9", "x": 6, "y": 10 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "CD4000B", "opciones": ["CD4000B"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": ["D", "C", "B", "A"],
+    "tabla": {
+      "columnas": ["D", "C", "B", "A"],
+      "salidas": ["Y0", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9"],
+      "filas": [
+        "0 0 0 0 > 1 0 0 0 0 0 0 0 0 0",
+        "0 0 0 1 > 0 1 0 0 0 0 0 0 0 0",
+        "0 0 1 0 > 0 0 1 0 0 0 0 0 0 0",
+        "0 0 1 1 > 0 0 0 1 0 0 0 0 0 0",
+        "0 1 0 0 > 0 0 0 0 1 0 0 0 0 0",
+        "0 1 0 1 > 0 0 0 0 0 1 0 0 0 0",
+        "0 1 1 0 > 0 0 0 0 0 0 1 0 0 0",
+        "0 1 1 1 > 0 0 0 0 0 0 0 1 0 0",
+        "1 0 0 0 > 0 0 0 0 0 0 0 0 1 0",
+        "1 0 0 1 > 0 0 0 0 0 0 0 0 0 1",
+        "1 0 1 X > 0 0 0 0 0 0 0 0 0 0",
+        "1 1 X X > 0 0 0 0 0 0 0 0 0 0"
+      ]
+    },
+    "retardos": { "CD4000B": { "vcc": 5, "*": [1.75e-7, 1.75e-7] } }
+  },
+  "caja": {
+    "titulo": "BCD/DEC",
+    "forma": "funcional",
+    "izquierda": ["A", "B", "C", "D"],
+    "derecha": ["Y0", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9"]
+  },
+  "fuentes": {
+    "CD4000B": "TI CD4028B (SCHS033C): tabla de verdad p. 1 (las entradas de 1010 a 1111 dejan las diez salidas en bajo) y retardo típico de 175 ns a 5 V con CL 50 pF (p. 2, igual en subida y bajada)."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "CD4000B": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4028BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4028b.pdf",
+        "equivalencias": { "kicad": "4xxx:4028" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "A": "10",
+              "B": "13",
+              "C": "12",
+              "D": "11",
+              "Y0": "3",
+              "Y1": "14",
+              "Y2": "2",
+              "Y3": "15",
+              "Y4": "1",
+              "Y5": "6",
+              "Y6": "7",
+              "Y7": "4",
+              "Y8": "9",
+              "Y9": "5"
+            },
+            "alimentacion": { "VDD": "16", "VSS": "8" },
+            "parte": "CD4028BE",
+            "lcsc": { "numero": "C5222", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI CD4028B (SCHS033C, oct 2003), p. 1, TERMINAL DIAGRAM y FUNCTIONAL DIAGRAM (las dos figuras concuerdan); KiCad 4xxx:4028 (9.0.0)"
+        }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -14 }, "valor": { "x": 0, "y": 14 } },
+  "rotulos": [
+    { "texto": "A", "x": -3.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "C", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "D", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "Y0", "x": 3.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "Y1", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "Y2", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "Y3", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "Y4", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "Y5", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "Y6", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "Y7", "x": 3.2, "y": 6, "tam": 1, "alinear": "der" },
+    { "texto": "Y8", "x": 3.2, "y": 8, "tam": 1, "alinear": "der" },
+    { "texto": "Y9", "x": 3.2, "y": 10, "tam": 1, "alinear": "der" },
+    { "texto": "BCD/DEC", "x": 0, "y": -11, "tam": 1, "alinear": "centro" }
+  ]
+}

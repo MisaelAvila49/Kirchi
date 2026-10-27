@@ -46,7 +46,7 @@ export const CAPITULO_2: CapituloDef = {
     {
       id: 'medir-voltaje',
       resumen: 'pon un multímetro con Medir',
-      texto: 'Haz {gesto:clic-derecho} sobre el cable entre la resistencia y el LED y elige Medir con el multímetro, Multímetro nuevo.',
+      texto: 'Haz {gesto:clic-derecho} sobre el cable entre la resistencia y el LED y elige Medir, Multímetro, Multímetro completo.',
       cumplido: 'Multímetro puesto con su sonda.',
       pista: 'La sonda mide el voltaje de ese punto contra la tierra sin tender un cable.',
       objetivo: (ctx) => zona(tramoEntre(ctx, 'resistencia', 'led', 2)),

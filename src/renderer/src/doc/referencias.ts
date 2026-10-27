@@ -6,8 +6,11 @@ export function siguienteReferencia(doc: Documento, prefijo: string): string {
   const re = new RegExp(`^${escapado}(\\d+)$`)
   let max = 0
   for (const p of Object.values(doc.piezas)) {
-    const m = re.exec(p.ref)
-    if (m) max = Math.max(max, Number(m[1]))
+    // El paquete de una unidad (U1 de U1B) también ocupa su número.
+    for (const t of [p.ref, p.props.paquete]) {
+      const m = t === undefined ? null : re.exec(t)
+      if (m) max = Math.max(max, Number(m[1]))
+    }
   }
   return `${prefijo}${max + 1}`
 }
@@ -41,6 +44,8 @@ export function errorDeReferencia(doc: Documento, id: string, texto: string): st
     if (otro === id) continue
     const r = doc.piezas[otro].ref
     if (r.toUpperCase() === k) return `Ya hay otra pieza con la referencia ${r}.`
+    const q = doc.piezas[otro].props.paquete
+    if (q?.toUpperCase() === k) return `Ya hay otra pieza con la referencia ${q}.`
   }
   return null
 }

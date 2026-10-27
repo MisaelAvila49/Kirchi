@@ -114,3 +114,20 @@ describe('unidades con selector', () => {
     expect(textoDeCampo('2.2', 'M')).toBe('2.2M')
   })
 })
+
+describe('unidades de las perillas en vivo', () => {
+  it('lx y N·m llevan prefijos; los °C no', () => {
+    const rotulos = (u: string) => opcionesDeUnidad(u)!.map((o) => etiquetaUnidad(o, u))
+    expect(rotulos('lx')).toEqual(['lx', 'klx'])
+    expect(rotulos('N·m')).toEqual(['µN·m', 'mN·m', 'N·m'])
+    expect(opcionesDeUnidad('°C')).toBeNull()
+  })
+
+  it('se leen y se parten con su unidad', () => {
+    expect(leerCampo('5', 'k', 'lx')).toEqual({ valor: 5000, prefijo: 'k' })
+    expect(leerCampo('2.5 klx', '', 'lx')).toEqual({ valor: 2500, prefijo: 'k' })
+    expect(leerCampo('40 mN·m', '', 'N·m')!.valor).toBeCloseTo(0.04, 12)
+    expect(partirValor(20000, 'lx')).toEqual({ numero: '20', prefijo: 'k' })
+    expect(partirValor(0.05, 'N·m')).toEqual({ numero: '50', prefijo: 'm' })
+  })
+})

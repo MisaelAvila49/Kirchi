@@ -1,0 +1,96 @@
+{
+  "id": "ptc",
+  "nombre": { "es": "Termistor PTC", "en": "PTC thermistor" },
+  "categoria": "pasivos",
+  "prefijo": "TH",
+  "buscar": ["ptc", "termistor ptc", "thermistor ptc", "coeficiente positivo", "b59339", "resistencia ptc"],
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "defecto": "B59339A1202P020", "opciones": ["B59339A1202P020"] },
+    {
+      "id": "temperatura",
+      "nombre": "Temperatura",
+      "unidad": "°C",
+      "defecto": "25",
+      "enVivo": { "magnitud": "temperatura", "min": -25, "max": 125, "paso": 5, "pasoFino": 1 }
+    },
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Ambos", "opciones": ["Nada", "Ajuste", "Resistencia", "Ambos"], "omitir": true }
+  ],
+  "modelo": {
+    "tipo": "termistor",
+    "a": "1",
+    "b": "2",
+    "ptc": true,
+    "prop": "modelo",
+    "modelos": {
+      "B59339A1202P020": { "r25": 2210, "beta": 557, "delta": 0.0046, "tau": 40, "tmax": 220 }
+    },
+    "tablas": {
+      "B59339A1202P020": [
+        [-20, 3600], [0, 2890], [10, 2590], [20, 2330], [25, 2210], [30, 2100], [40, 1900], [50, 1740], [60, 1590], [70, 1480], [80, 1410], [90, 1450],
+        [100, 1620], [105, 1780], [110, 2040], [115, 2500], [120, 3470], [125, 5470], [130, 10500], [135, 28600], [140, 93700], [145, 376000],
+        [150, 1460000], [155, 5420000], [160, 16400000], [165, 40300000], [170, 85700000], [175, 126000000], [180, 156000000], [190, 184000000],
+        [200, 172000000], [210, 144000000], [220, 112000000]
+      ]
+    },
+    "temperatura": "temperatura"
+  },
+  "rotulos": [
+    { "texto": "+t°", "x": -2.6, "y": -2.8, "tam": 1.6 }
+  ],
+  "fuentes": {
+    "B59339A1202P020": "TDK (EPCOS), PTC de conmutación B593** en caja de plástico, 230 V (enero 2016), tipo J289: RR de 2000 Ω ± 25 %, Rmin de 900 Ω, Tref de 120 °C, Vmax de 265 V e Ir de 2.0 mA a Vmax (p. 2). La hoja solo publica la curva R-T como gráfica (p. 5): la tabla es la curva vectorial del PDF leída con la rejilla de calibración (a 25 °C da 2210 Ω, dentro de la tolerancia de RR, y su mínimo de 1410 Ω a 80 °C es la curva típica, no el Rmin garantizado), así que es aproximada. La disipación de 4.6 mW/K sale de Ir a Vmax: 265 V por 2.0 mA son 0.53 W y la curva da 141 °C para 132.5 kΩ. La constante térmica de 40 s deja ts en 0.47 s a Vmax con esa disipación, bajo los 0.5 s máximos de la hoja (45 s ya lo pasarían). Ninguno de los dos está publicado en la hoja. Se quema en 220 °C, donde termina la curva; beta y r25 son de respaldo y no se usan con la tabla."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:Thermistor_PTC" },
+    "valores": {
+      "B59339A1202P020": {
+        "fabricante": "TDK (EPCOS)",
+        "parte": "B59339A1202P020",
+        "presentaciones": [
+          { "encapsulado": "PTC-caja", "patillas": { "1": "1", "2": "2" }, "lcsc": { "numero": "C17506069", "comprobado": "2026-10-26" } }
+        ],
+        "pendiente": {
+          "hoja": "El PDF de EPCOS «PTC thermistors for switching applications, plastic case, 230 V, B593**» (enero 2016) se leyó de la copia de LCSC (datasheet.lcsc.com/datasheet/pdf/34a22c5d9abecbc062aa56fa917bf708.pdf); no se bajó una URL de tdk-electronics.tdk.com.",
+          "huella": "La separación de las patas está solo en el dibujo acotado (p. 2), que no se extrae como texto. Sin huella en KiCad 9.0 para esta caja.",
+          "curva": "La curva R-T es una gráfica (p. 4 a 6); no hay tabla. Del texto solo salen RR 2000 Ω ± 25 %, Rmin 900 Ω, Tref 120 °C, corriente de conmutación, tiempo de conmutación y límites de tensión. La pendiente de la rampa y el valor de meseta no son determinables sin leer la gráfica.",
+          "disipacion": "La hoja define δ (factor de disipación) y τ (constante térmica) en su lista de símbolos pero no les da valor para esta serie."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "EPCOS B593** (enero 2016) p. 2: RR 2000 Ω ± 25 %, Rmin 900 Ω, IR 10 mA, IS 20 mA, ISmax 0.15 A, Ir 2.0 mA, ts 0.5 s, Tref 120 °C, Vmax 265 V, VR 230 V; LCSC C17506069 (nombre B59339A1202P020, 2 kΩ, listado sin paquete). Patillas: dos terminales sin polaridad; Device:Thermistor_PTC de KiCad 9 (pines 1 y 2)"
+        },
+        "nota": "Es la PTC cerámica de conmutación (respuesta a la pregunta 1): caja de plástico con patas, se calienta sola y salta de resistencia cerca de Tref. Otras dos filas de la misma hoja: 500 Ω (B59339A1501P020, Rmin 260 Ω, Tref 120 °C) y 5000 Ω (B59339A1502P020, Rmin 3200 Ω, Tref 115 °C)."
+      }
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "B59339A1202P020": {
+          "fuente": "TDK (EPCOS), B593** (enero 2016), p. 2: Vmax de 265 V.",
+          "limites": [
+            {
+              "nombre": "voltaje",
+              "de": "1",
+              "a": "2",
+              "abs": true,
+              "max": 265,
+              "escala": 265,
+              "consejo": "baja el voltaje sobre la PTC o agrega una resistencia en serie."
+            }
+          ]
+        }
+      }
+    }
+  },
+  "etiquetas": {
+    "ref": { "x": 5, "y": -3 },
+    "valor": { "x": 5, "y": 3 }
+  }
+}

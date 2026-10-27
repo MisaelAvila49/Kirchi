@@ -24,7 +24,12 @@ describe('pasivos y fuentes nuevos', () => {
     ['fusible', 'pasivos', 'F', ['1@-4,0', '2@4,0']],
     ['fuente-ac', 'fuentes', 'V', ['+@0,-4', '-@0,4']],
     ['fuente-pulso', 'fuentes', 'V', ['+@0,-4', '-@0,4']],
-    ['fuente-corriente', 'fuentes', 'I', ['entrada@0,4', 'salida@0,-4']]
+    ['fuente-corriente', 'fuentes', 'I', ['entrada@0,4', 'salida@0,-4']],
+    ['fuente-vcvs', 'fuentes', 'E', ['+@0,-4', '-@0,4', 'C+@-4,-2', 'C-@-4,2']],
+    ['fuente-vccs', 'fuentes', 'G', ['+@0,-4', '-@0,4', 'C+@-4,-2', 'C-@-4,2']],
+    ['fuente-ccvs', 'fuentes', 'H', ['+@0,-4', '-@0,4', 'C+@-4,-2', 'C-@-4,2']],
+    ['fuente-cccs', 'fuentes', 'F', ['+@0,-4', '-@0,4', 'C+@-4,-2', 'C-@-4,2']],
+    ['fuente-pwl', 'fuentes', 'V', ['+@0,-4', '-@0,4']]
   ] as const)('%s: categoría %s, prefijo %s y pines', (id, categoria, prefijo, esperados) => {
     const def = lib.get(id)
     expect(def, id).toBeDefined()
@@ -37,7 +42,12 @@ describe('pasivos y fuentes nuevos', () => {
     ['fusible', 'fusible'],
     ['fuente ac 12', 'fuente-ac'],
     ['pulso', 'fuente-pulso'],
-    ['i 10m', 'fuente-corriente']
+    ['i 10m', 'fuente-corriente'],
+    ['fuente vcvs', 'fuente-vcvs'],
+    ['transconductor', 'fuente-vccs'],
+    ['fuente ccvs', 'fuente-ccvs'],
+    ['fuente cccs', 'fuente-cccs'],
+    ['pwl', 'fuente-pwl']
   ] as const)('el buscador encuentra «%s» primero: %s', (q, id) => {
     expect(primero(q)).toBe(id)
   })
@@ -94,12 +104,12 @@ describe('pasivos y fuentes nuevos', () => {
   it('el valor que se muestra en el lienzo es el de la primera propiedad numérica', () => {
     const pieza = (tipo: string) => ({ id: 'p', tipo, ref: 'X1', x: 0, y: 0, rot: 0, espejo: false, props: {} }) as const
     const valor = (tipo: string) => textoDeValor(pieza(tipo), lib.get(tipo)!)
-    expect(valor('potenciometro')).toBe('10 kΩ')
+    expect(valor('potenciometro')).toBe('10 kΩ · 50 %')
     expect(valor('fuente-ac')).toBe('5 V')
     expect(valor('fuente-corriente')).toBe('1 mA')
     expect(valor('fusible')).toBe('1 A')
     // El orden de las propiedades decide qué se muestra; la frecuencia queda en segundo lugar.
-    expect(lib.get('potenciometro')!.props.map((p) => p.id)).toEqual(['valor', 'posicion', 'ley'])
+    expect(lib.get('potenciometro')!.props.map((p) => p.id)).toEqual(['valor', 'posicion', 'ley', 'junto'])
     expect(lib.get('fuente-ac')!.props.map((p) => [p.id, p.unidad])).toEqual([['amplitud', 'V'], ['frecuencia', 'Hz']])
     expect(lib.get('fuente-pulso')!.props.find((p) => p.id === 'ciclo')!.opciones).toContain('50 %')
   })

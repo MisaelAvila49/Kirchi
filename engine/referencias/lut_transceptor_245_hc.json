@@ -1,0 +1,536 @@
+{
+  "netlist": {
+    "nodes": 13,
+    "digital_nets": 38,
+    "elements": [
+      {
+        "type": "V",
+        "a": 1,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 83333.333333,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 0.0000059999899999999995,
+          "phase": 0.750000000001,
+          "continua": true
+        }
+      },
+      {
+        "type": "V",
+        "a": 2,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 83333.333333,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 0.0000059999899999999995,
+          "phase": 0.750000000001,
+          "continua": true
+        }
+      },
+      {
+        "type": "V",
+        "a": 3,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 375375.375375,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 0.000001331999,
+          "phase": 0.82957957957975,
+          "continua": true
+        }
+      },
+      {
+        "type": "V",
+        "a": 4,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 322580.645161,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 0.000001549999,
+          "phase": 0.53225806451655,
+          "continua": true
+        }
+      },
+      {
+        "type": "ADC",
+        "p": 5,
+        "n": 0,
+        "out": 16,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 1,
+        "n": 0,
+        "out": 17,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 6,
+        "n": 0,
+        "out": 18,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 7,
+        "n": 0,
+        "out": 19,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 8,
+        "n": 0,
+        "out": 20,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 9,
+        "n": 0,
+        "out": 21,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 10,
+        "n": 0,
+        "out": 22,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 6,
+        "n": 0,
+        "out": 23,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 7,
+        "n": 0,
+        "out": 24,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 8,
+        "n": 0,
+        "out": 25,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 9,
+        "n": 0,
+        "out": 26,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 10,
+        "n": 0,
+        "out": 27,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 2,
+        "n": 0,
+        "out": 28,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 11,
+        "n": 0,
+        "out": 29,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 12,
+        "n": 0,
+        "out": 30,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 3,
+        "n": 0,
+        "out": 31,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 4,
+        "n": 0,
+        "out": 32,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 2,
+        "n": 0,
+        "out": 33,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 11,
+        "n": 0,
+        "out": 34,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 12,
+        "n": 0,
+        "out": 35,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 3,
+        "n": 0,
+        "out": 36,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "ADC",
+        "p": 4,
+        "n": 0,
+        "out": 37,
+        "in_low": 1.3499999999999999,
+        "in_high": 3.15
+      },
+      {
+        "type": "V",
+        "a": 6,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 111111.111111,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 0.00000299999,
+          "phase": 0,
+          "continua": true
+        }
+      },
+      {
+        "type": "V",
+        "a": 5,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 166666.666667,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 5.9999e-7,
+          "phase": 0.5333333333324,
+          "continua": true
+        }
+      },
+      {
+        "type": "V",
+        "a": 7,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 1250000,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 3.99999e-7,
+          "phase": 0.875,
+          "continua": true
+        }
+      },
+      {
+        "type": "V",
+        "a": 8,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 714285.714286,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 6.99999e-7,
+          "phase": 0.8928571428571,
+          "continua": true
+        }
+      },
+      {
+        "type": "V",
+        "a": 9,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 454545.454545,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 0.000001099999,
+          "phase": 0.7045454545457499,
+          "continua": true
+        }
+      },
+      {
+        "type": "V",
+        "a": 10,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 333333.333333,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 0.000001499999,
+          "phase": 0.7666666666669,
+          "continua": true
+        }
+      },
+      {
+        "type": "V",
+        "a": 11,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 634517.766497,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 7.87999e-7,
+          "phase": 0.7684010152285949,
+          "continua": true
+        }
+      },
+      {
+        "type": "V",
+        "a": 12,
+        "b": 0,
+        "wave": {
+          "kind": "pulse",
+          "low": 0,
+          "high": 4.5,
+          "freq": 419463.087248,
+          "rise": 1e-12,
+          "fall": 1e-12,
+          "width": 0.000001191999,
+          "phase": 0.659815436241872,
+          "continua": true
+        }
+      },
+      {
+        "type": "LUT",
+        "comunes": [16,17],
+        "rebanadas": [
+          {
+            "entradas": [0,1],
+            "salidas": [0,1]
+          },
+          {
+            "entradas": [2,3],
+            "salidas": [2,3]
+          },
+          {
+            "entradas": [4,5],
+            "salidas": [4,5]
+          },
+          {
+            "entradas": [6,7],
+            "salidas": [6,7]
+          },
+          {
+            "entradas": [8,9],
+            "salidas": [8,9]
+          },
+          {
+            "entradas": [10,11],
+            "salidas": [10,11]
+          },
+          {
+            "entradas": [12,13],
+            "salidas": [12,13]
+          },
+          {
+            "entradas": [14,15],
+            "salidas": [14,15]
+          }
+        ],
+        "tabla": 0,
+        "retardos": [
+          [1.1499999999999999e-8,1.1499999999999999e-8],
+          [1.1499999999999999e-8,1.1499999999999999e-8]
+        ],
+        "z_como": "x"
+      },
+      {
+        "type": "LUT",
+        "comunes": [],
+        "rebanadas": [
+          {
+            "entradas": [18,19],
+            "salidas": [0]
+          },
+          {
+            "entradas": [18,20],
+            "salidas": [2]
+          },
+          {
+            "entradas": [18,21],
+            "salidas": [4]
+          },
+          {
+            "entradas": [18,22],
+            "salidas": [6]
+          },
+          {
+            "entradas": [23,24],
+            "salidas": [8]
+          },
+          {
+            "entradas": [23,25],
+            "salidas": [10]
+          },
+          {
+            "entradas": [23,26],
+            "salidas": [12]
+          },
+          {
+            "entradas": [23,27],
+            "salidas": [14]
+          }
+        ],
+        "tabla": 1,
+        "retardos": [
+          [9.5e-9,9.5e-9]
+        ],
+        "z_como": "x"
+      },
+      {
+        "type": "LUT",
+        "comunes": [],
+        "rebanadas": [
+          {
+            "entradas": [28,29],
+            "salidas": [1]
+          },
+          {
+            "entradas": [28,30],
+            "salidas": [3]
+          },
+          {
+            "entradas": [28,31],
+            "salidas": [5]
+          },
+          {
+            "entradas": [28,32],
+            "salidas": [7]
+          },
+          {
+            "entradas": [33,34],
+            "salidas": [9]
+          },
+          {
+            "entradas": [33,35],
+            "salidas": [11]
+          },
+          {
+            "entradas": [33,36],
+            "salidas": [13]
+          },
+          {
+            "entradas": [33,37],
+            "salidas": [15]
+          }
+        ],
+        "tabla": 1,
+        "retardos": [
+          [9.5e-9,9.5e-9]
+        ],
+        "z_como": "x"
+      }
+    ],
+    "tablas": [
+      [8,9,8,9,2,2,6,6,10,10,10,10,10,10,10,10],
+      [0,1,2,2]
+    ]
+  },
+  "fin": 0.000012,
+  "hmax": 1e-10,
+  "tolerancia_t": 5e-10,
+  "columnas": {
+    "v(n1)": {
+      "nodo": 1
+    }
+  },
+  "eventos": {
+    "d0": 0,
+    "d1": 1,
+    "d2": 2,
+    "d3": 3,
+    "d4": 4,
+    "d5": 5,
+    "d6": 6,
+    "d7": 7,
+    "d8": 8,
+    "d9": 9,
+    "d10": 10,
+    "d11": 11,
+    "d12": 12,
+    "d13": 13,
+    "d14": 14,
+    "d15": 15
+  }
+}

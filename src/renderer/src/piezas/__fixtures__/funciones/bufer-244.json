@@ -1,0 +1,21 @@
+{
+ "rebanadas": "ocho (1A1 a 1A4 con 1OE y 2A1 a 2A4 con 2OE)",
+ "columnas": [
+  "OE",
+  "A"
+ ],
+ "salidas": [
+  "Y"
+ ],
+ "filas": [
+  "0 0 > 0",
+  "0 1 > 1",
+  "1 X > Z"
+ ],
+ "fuente": {
+  "documento": "TI SN74HC244 (SCLS130I)",
+  "pagina": "15, tabla 7-1 Function Table",
+  "comprobada_con": "TI SNx4LS240/241/244 (SDLS144D), p. 13, Table 3 (SNx4LS244): las 3 filas son iguales",
+  "convencion": "OE activo en bajo; no invierte"
+ }
+}

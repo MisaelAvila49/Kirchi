@@ -1,0 +1,150 @@
+{
+  "id": "ldr",
+  "nombre": { "es": "Fotorresistencia", "en": "Photoresistor" },
+  "categoria": "pasivos",
+  "prefijo": "LDR",
+  "buscar": ["ldr", "fotorresistencia", "photoresistor", "luz", "fotoresistor", "gl5528", "gl5516", "gl5539", "cds"],
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "defecto": "GL5528", "opciones": ["GL5516", "GL5528", "GL5539"] },
+    {
+      "id": "luz",
+      "nombre": "Luz",
+      "unidad": "lx",
+      "defecto": "300",
+      "enVivo": { "magnitud": "luz", "min": 0.1, "max": 100000, "paso": 10, "pasoFino": 2, "escala": "log" }
+    },
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Ambos", "opciones": ["Nada", "Ajuste", "Resistencia", "Ambos"], "omitir": true }
+  ],
+  "modelo": {
+    "tipo": "ldr",
+    "a": "1",
+    "b": "2",
+    "prop": "modelo",
+    "modelos": {
+      "GL5516": { "r10": 7071, "gamma": 0.5, "roscuro": 500000, "tau_sube": 0.03, "tau_baja": 0.03 },
+      "GL5528": { "r10": 14142, "gamma": 0.6, "roscuro": 1000000, "tau_sube": 0.02, "tau_baja": 0.03 },
+      "GL5539": { "r10": 70711, "gamma": 0.8, "roscuro": 5000000, "tau_sube": 0.02, "tau_baja": 0.03 }
+    },
+    "luz": "luz"
+  },
+  "fuentes": {
+    "GL5516": "Senba, manual GL55 (copia de LCSC C125630, p. 2): GL5516 da 5 a 10 kΩ a 10 lx, 0.5 MΩ en oscuridad, γ de 0.5 y tiempos de subida y bajada de 30 y 30 ms. R10 es un rango en la hoja y el modelo toma su media geométrica (7071 Ω). Los tiempos son cotas, la hoja no define el criterio (63 % o 10-90 %). Las curvas de iluminancia y de temperatura están solo como gráfica y no se leyeron.",
+    "GL5528": "Senba, manual GL55 (copia de LCSC C125630, p. 2): GL5528 da 10 a 20 kΩ a 10 lx, 1 MΩ en oscuridad, γ de 0.6 y tiempos de subida y bajada de 20 y 30 ms. R10 es un rango en la hoja y el modelo toma su media geométrica (14142 Ω). Los tiempos son cotas, la hoja no define el criterio (63 % o 10-90 %). Las curvas de iluminancia y de temperatura están solo como gráfica y no se leyeron. Una copia de la hoja da 30 ms de subida; se usan 20 ms (cuatro copias contra una).",
+    "GL5539": "Senba, manual GL55 (copia de LCSC C125630, p. 2): GL5539 da 50 a 100 kΩ a 10 lx, 5 MΩ en oscuridad, γ de 0.8 y tiempos de subida y bajada de 20 y 30 ms. R10 es un rango en la hoja y el modelo toma su media geométrica (70711 Ω). Los tiempos son cotas, la hoja no define el criterio (63 % o 10-90 %). Las curvas de iluminancia y de temperatura están solo como gráfica y no se leyeron. La resistencia en oscuridad del GL5539 es 5 MΩ en el manual y 10 MΩ en el listado de LCSC; se usa el manual."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:R_Photo" },
+    "valores": {
+      "GL5516": {
+        "fabricante": "Senba Optical & Electronic",
+        "parte": "GL5516",
+        "presentaciones": [
+          {
+            "encapsulado": "LDR-5mm",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "OptoDevice:R_LDR_5.0x4.1mm_P3mm_Vertical",
+            "lcsc": { "numero": "C125626", "comprobado": "2026-10-26" }
+          }
+        ],
+        "pendiente": {
+          "hoja": "El manual GL55 solo da http://www.nysenba.com, sin ruta ni https. Copias leídas: datasheet.lcsc.com (productCode=C125626 y C125630), Digilent, Shopify y Rapid (GL5528). Hay que agregar nysenba.com a la lista de dominios o dejar la hoja sin enlace.",
+          "huella": "La huella existe en KiCad 9.0.0; el cuerpo de 5 mm y el paso de 3 mm salen del listado de LCSC («Through Hole, P=3mm»). El dibujo acotado del manual no se extrae como texto."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Senba GL55 Series CdS Photoresistor Manual (copia LCSC C125630, p. 2): GL5516, 5 a 10 kΩ a 10 lux, oscuridad 0.5 MΩ, γ 0.5, subida 30 ms, bajada 30 ms; LCSC C125626 lista 5kΩ~10kΩ, 500 kΩ, γ 0.5. Patillas: dos terminales sin polaridad; Device:R_Photo de KiCad 9 (pines 1 y 2)"
+        }
+      },
+      "GL5528": {
+        "fabricante": "Senba Optical & Electronic",
+        "parte": "GL5528",
+        "presentaciones": [
+          {
+            "encapsulado": "LDR-5mm",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "OptoDevice:R_LDR_5.0x4.1mm_P3mm_Vertical",
+            "lcsc": { "numero": "C125627", "comprobado": "2026-10-26" }
+          }
+        ],
+        "pendiente": {
+          "hoja": "Igual que el GL5516 (nysenba.com sin ruta). La copia de Rapid (58-0134, GL5528) trae solo este modelo.",
+          "tiempos": "Subida/bajada: 20 ms / 30 ms en las copias de Rapid, Digilent, Shopify y LCSC C125630; 30 ms / 30 ms en la copia de LCSC C125626. Se usa 20/30 (cuatro copias contra una)."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Senba GL55 (copia LCSC C125630, p. 2): GL5528, 10 a 20 kΩ a 10 lux, oscuridad 1 MΩ, γ 0.6, 20/30 ms; la copia de Rapid (GL5528, p. 1) da lo mismo; LCSC C125627 lista 10kΩ~20kΩ, 1 MΩ, γ 0.6. Patillas: Device:R_Photo de KiCad 9"
+        }
+      },
+      "GL5539": {
+        "fabricante": "Senba Optical & Electronic",
+        "parte": "GL5539",
+        "presentaciones": [
+          {
+            "encapsulado": "LDR-5mm",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "OptoDevice:R_LDR_5.0x4.1mm_P3mm_Vertical",
+            "lcsc": { "numero": "C125630", "comprobado": "2026-10-26" }
+          }
+        ],
+        "pendiente": {
+          "hoja": "Igual que el GL5516 (nysenba.com sin ruta).",
+          "oscuridad": "Resistencia en oscuridad: 5 MΩ en el manual (renglón 50 a 100 kΩ) contra 10 MΩ en el listado de LCSC C125630; 10 MΩ es el valor del renglón siguiente (GL5549, 100 a 200 kΩ). Se usa 5 MΩ, el del manual.",
+          "tiempos": "20/30 ms en el manual de la copia C125630 y 30/30 ms en la copia C125626 (otra revisión)."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Senba GL55 (copia LCSC C125630, p. 2): GL5539, 50 a 100 kΩ a 10 lux, γ 0.8, 20/30 ms; LCSC C125630 lista 50kΩ~100kΩ y γ 0.8. Patillas: Device:R_Photo de KiCad 9"
+        }
+      }
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "GL5516": {
+          "fuente": "Senba, manual GL55 (p. 1): disipación máxima de 90 mW, 150 V.",
+          "limites": [
+            {
+              "nombre": "potencia",
+              "medida": "potencia",
+              "max": 0.09,
+              "consejo": "agrega una resistencia en serie o baja el voltaje sobre la fotorresistencia."
+            }
+          ]
+        },
+        "GL5528": {
+          "fuente": "Senba, manual GL55 (p. 1): disipación máxima de 100 mW, 150 V.",
+          "limites": [
+            {
+              "nombre": "potencia",
+              "medida": "potencia",
+              "max": 0.1,
+              "consejo": "agrega una resistencia en serie o baja el voltaje sobre la fotorresistencia."
+            }
+          ]
+        },
+        "GL5539": {
+          "fuente": "Senba, manual GL55 (p. 1): disipación máxima de 100 mW, 150 V.",
+          "limites": [
+            {
+              "nombre": "potencia",
+              "medida": "potencia",
+              "max": 0.1,
+              "consejo": "agrega una resistencia en serie o baja el voltaje sobre la fotorresistencia."
+            }
+          ]
+        }
+      }
+    }
+  },
+  "etiquetas": {
+    "ref": { "x": 5, "y": -3 },
+    "valor": { "x": 5, "y": 3 }
+  }
+}

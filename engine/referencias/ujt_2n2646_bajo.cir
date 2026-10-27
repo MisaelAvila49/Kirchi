@@ -1,0 +1,21 @@
+* UJT 2N2646 con 10 V entre bases y 1 uA en el emisor: antes del pico, el emisor sigue a eta por VBB
+.include modelos.lib
+V1 b2 0 DC 10
+RB2 b2 x 2256.3
+RB1 x 0 4283.7
+Q1 gi x e1 QUJTP
+Q2 x gi 0 QUJTN
+RGK gi 0 1Meg
+RSE e e1 2
+CL1 gi 0 100p
+CL2 x e1 100p
+IE 0 e DC 1u
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(e) v(x) i(v1)
+.endc
+.end

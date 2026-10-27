@@ -1,0 +1,24 @@
+{
+  "id": "fuente-pwl",
+  "nombre": { "es": "Fuente de voltaje por tramos (PWL)", "en": "Piecewise-linear voltage source (PWL)" },
+  "categoria": "fuentes",
+  "prefijo": "V",
+  "buscar": ["pwl", "tramos", "por tramos", "forma de onda", "arbitraria", "piecewise", "fuente pwl"],
+  "pines": [
+    { "id": "+", "nombre": "+", "x": 0, "y": -4 },
+    { "id": "-", "nombre": "−", "x": 0, "y": 4 }
+  ],
+  "props": [
+    { "id": "puntos", "nombre": "Puntos (tiempo y voltaje)", "defecto": "0 0, 1m 5, 2m 5, 3m 0", "texto": true, "largoMax": 6000 },
+    { "id": "repetir", "nombre": "Repetir", "defecto": "No", "opciones": ["No", "Sí"], "casilla": true },
+    { "id": "modo", "nombre": "Salida", "defecto": "Voltaje", "opciones": ["Voltaje"], "omitir": true }
+  ],
+  "modelo": { "tipo": "pwl", "a": "+", "b": "-", "puntos": "puntos", "repetir": "repetir", "modo": "modo" },
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
+  "datos": {
+    "equivalencias": { "kicad": "Simulation_SPICE:VPWL", "ltspice": "voltage", "sinVerificar": ["ltspice"] },
+    "valores": {
+      "*": { "virtual": true, "nota": "Fuente ideal de voltaje que sigue los puntos escritos, unidos con rectas." }
+    }
+  }
+}

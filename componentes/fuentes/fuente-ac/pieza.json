@@ -13,5 +13,17 @@
     { "id": "frecuencia", "nombre": "Frecuencia", "unidad": "Hz", "defecto": "60", "comunes": ["50", "60", "100", "1k", "10k"] }
   ],
   "modelo": { "tipo": "senoidal", "a": "+", "b": "-", "amplitud": "amplitud", "frecuencia": "frecuencia" },
-  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } }
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
+  "datos": {
+    "equivalencias": {
+      "kicad": "Simulation_SPICE:VSIN",
+      "ltspice": "voltage",
+      "falstad": "v",
+      "proteus": "ALTERNATOR",
+      "sinVerificar": ["ltspice", "proteus"]
+    },
+    "valores": {
+      "*": { "virtual": true, "nota": "Fuente ideal senoidal del simulador." }
+    }
+  }
 }

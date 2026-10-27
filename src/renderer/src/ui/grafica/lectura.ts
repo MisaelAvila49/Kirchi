@@ -4,6 +4,7 @@ import { textoMarca } from '../../../../compartido/grafica/ticks'
 import type { Geometria } from './dibujo'
 import type { ModeloGrafica, VistaGrafica } from './modelo'
 import { aPixel, deValor, interpolar } from './vista'
+import { lecturaXY } from './xy'
 
 /**
  * Lo que el puntero lee sobre una gráfica (valor horizontal y de cada traza visible, con el prefijo de su eje). Sin DOM, en píxeles de dispositivo.
@@ -32,9 +33,10 @@ const DISPERSOS_PX = 14
 
 const NOMBRE_CORTO = (nombre: string): string => (nombre.length <= 3 ? nombre : nombre.charAt(0).toLowerCase())
 
-export function lecturaEn(m: ModeloGrafica, v: VistaGrafica, g: Geometria, xPx: number): LecturaEn | null {
+export function lecturaEn(m: ModeloGrafica, v: VistaGrafica, g: Geometria, xPx: number, yPx = Number.NaN): LecturaEn | null {
   const col0 = g.paneles[0].col
   if (!(xPx >= col0.x && xPx <= col0.x + col0.w)) return null
+  if (m.xy && m.tipo === 'lineas') return Number.isNaN(yPx) ? null : lecturaXY(m, v, g, xPx, yPx)
   const d = g.dpr
   if (m.tipo === 'barras' && m.barras) {
     const n = m.barras.categorias.length

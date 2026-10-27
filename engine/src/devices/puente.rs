@@ -15,6 +15,8 @@ pub struct PuenteEntrada {
     /// Conductancia y voltaje interno de una entrada que toma corriente (74LS).
     carga: Option<(f64, f64)>,
     nivel: Nivel,
+    /// Disparador Schmitt: entre los dos umbrales conserva su nivel en vez de leer X.
+    histeresis: bool,
     cambio: bool,
     /// Voltaje del último paso aceptado y el instante en que se cruzó el umbral del último cambio de nivel (interpolado
     /// dentro del paso: el evento lleva ese instante y no el del final del paso).
@@ -24,10 +26,15 @@ pub struct PuenteEntrada {
 
 impl PuenteEntrada {
     pub fn new(p: usize, n: usize, in_low: f64, in_high: f64, r_in: Option<f64>, v_in: f64) -> Self {
-        let mut e = Self { p, n, up: None, un: None, in_low, in_high, carga: r_in.map(|r| (1.0 / r, v_in)), nivel: Nivel::X, cambio: false, v_acc: 0.0, t_cambio: 0.0 };
+        let mut e = Self { p, n, up: None, un: None, in_low, in_high, carga: r_in.map(|r| (1.0 / r, v_in)), nivel: Nivel::X, histeresis: false, cambio: false, v_acc: 0.0, t_cambio: 0.0 };
         // En t = 0 todo está descargado (como `uic`): el nivel inicial es el de 0 V.
         e.nivel = e.leer(0.0);
         e
+    }
+
+    pub fn con_histeresis(mut self, si: bool) -> Self {
+        self.histeresis = si;
+        self
     }
 
     /// El nivel que corresponde al voltaje `v`.
@@ -36,6 +43,8 @@ impl PuenteEntrada {
             Nivel::Uno
         } else if v <= self.in_low {
             Nivel::Cero
+        } else if self.histeresis {
+            self.nivel
         } else {
             Nivel::X
         }
@@ -48,6 +57,9 @@ impl PuenteEntrada {
     /// El primer umbral que cambia el nivel desde el que tiene, yendo de `v0` a `v1`: subiendo desde 0 es in_low (a X o,
     /// sin zona X, a 1); desde X, in_high. Bajando desde 1 es in_high; desde X, in_low.
     fn primer_umbral(&self, v0: f64, v1: f64) -> f64 {
+        if self.histeresis {
+            return if v1 > v0 { self.in_high } else { self.in_low };
+        }
         if v1 > v0 {
             if self.nivel == Nivel::Cero { self.in_low } else { self.in_high }
         } else if self.nivel == Nivel::Uno {
@@ -144,12 +156,24 @@ pub struct PuenteSalida {
     t1: f64,
     /// Instante del último paso aceptado (para la lectura).
     t_acept: f64,
+    /// Admite el nivel Z (salida de tres estados) y lo tiene ahora: sin rampa, queda como una resistencia de 1 GOhm.
+    z_capaz: bool,
+    en_z: bool,
 }
+
+/// Conductancia (S) de un puente de salida en Z.
+const G_EN_Z: f64 = 1e-9;
 
 impl PuenteSalida {
     #[allow(clippy::too_many_arguments)]
     pub fn new(out: usize, lo: Option<usize>, hi: Option<usize>, v_lo: f64, v_hi: f64, r_lo: f64, r_hi: f64, t_rise: f64, t_fall: f64) -> Self {
-        Self { out, lo, hi, uo: None, ulo: None, uhi: None, v_lo, v_hi, r_lo, r_hi, t_rise, t_fall, s0: 0.0, t0: 0.0, s1: 0.0, t1: 0.0, t_acept: 0.0 }
+        Self { out, lo, hi, uo: None, ulo: None, uhi: None, v_lo, v_hi, r_lo, r_hi, t_rise, t_fall, s0: 0.0, t0: 0.0, s1: 0.0, t1: 0.0, t_acept: 0.0, z_capaz: false, en_z: false }
+    }
+
+    /// Que la salida pueda quedar en alta impedancia cuando su red digital pasa a Z.
+    pub fn con_z(mut self, si: bool) -> Self {
+        self.z_capaz = si;
+        self
     }
 
     /// El control en el instante `t`.
@@ -165,6 +189,9 @@ impl PuenteSalida {
 
     /// Conductancia y corriente de Thévenin (sin los nodos) con el control `s`.
     fn thevenin(&self, s: f64) -> (f64, f64) {
+        if self.en_z {
+            return (G_EN_Z, 0.0);
+        }
         let g = 1.0 / ((1.0 - s) * self.r_lo + s * self.r_hi);
         (g, g * ((1.0 - s) * self.v_lo + s * self.v_hi))
     }
@@ -219,7 +246,7 @@ impl Device for PuenteSalida {
 
     /// Con los niveles respecto de tierra y la misma resistencia en alto y en bajo, la matriz no cambia con la rampa.
     fn linear(&self) -> bool {
-        self.lo.is_none() && self.hi.is_none() && self.r_lo == self.r_hi
+        self.lo.is_none() && self.hi.is_none() && self.r_lo == self.r_hi && !self.z_capaz
     }
 
     fn tiene_quiebres(&self) -> bool {
@@ -268,6 +295,13 @@ impl Device for PuenteSalida {
     }
 
     fn fijar_nivel(&mut self, t: f64, n: Nivel, inmediato: bool) -> bool {
+        if self.z_capaz && n == Nivel::Z {
+            // En Z el control se queda donde está y el cambio es de golpe.
+            let s = self.control(t);
+            (self.en_z, self.s0, self.t0, self.s1, self.t1) = (true, s, t, s, t);
+            return true;
+        }
+        self.en_z = false;
         let s1 = objetivo(n);
         let s0 = if inmediato { s1 } else { self.control(t) };
         self.s0 = s0;
@@ -371,6 +405,29 @@ mod tests {
         let c = PuenteEntrada::new(1, 2, 0.0, 0.0, None, 0.0);
         assert_eq!([c.leer(-1e-9), c.leer(0.0), c.leer(1e-9)], [Cero, Uno, Uno]);
         assert_eq!(c.nivel_logico(), Some(Uno));
+    }
+
+    #[test]
+    fn con_histeresis_sube_en_in_high_baja_en_in_low_y_entre_los_dos_conserva_su_nivel() {
+        let mut p = PuenteEntrada::new(1, 0, 1.6, 2.7, None, 0.0).con_histeresis(true);
+        assert_eq!(p.nivel_logico(), Some(Cero));
+        // Subiendo: nada cambia hasta 2.7 V.
+        for v in [0.0, 1.6, 2.0, 2.69] {
+            assert_eq!(p.leer(v), Cero, "subiendo en {v} V");
+        }
+        assert_eq!(p.leer(2.7), Uno);
+        p.nivel = Uno;
+        // Bajando: sigue en 1 hasta 1.6 V, sin pasar por X.
+        for v in [5.0, 2.7, 2.0, 1.61] {
+            assert_eq!(p.leer(v), Uno, "bajando en {v} V");
+        }
+        assert_eq!(p.leer(1.6), Cero);
+        // El cruce se localiza en el umbral de su sentido.
+        p.bind(&mut Alloc::new(2));
+        assert_eq!(p.cruce(&[3.0], &[1.0]).map(|f| (f * 100.0).round()), Some(70.0));
+        p.nivel = Cero;
+        assert_eq!(p.cruce(&[1.0], &[3.0]).map(|f| (f * 100.0).round()), Some(85.0));
+        assert_eq!(p.cruce(&[1.0], &[2.0]), None);
     }
 
     #[test]

@@ -6,8 +6,8 @@ import { seleccionVacia, type Seleccion } from '../editor/seleccion'
 import { divisor } from '../prueba/circuitos'
 import { libreriaDePrueba } from '../prueba/libreria'
 import { textoNivelRed, type ExtraMedicion, type Lectura, type LecturaDigital, type MedicionPieza } from '../sim/lectura'
-import { REGIONES_BJT, REGIONES_MOS } from '../sim/lectura'
-import { cifra, cifraCorriente, estadoEnPalabras, medicionDeSeleccion, PASOS_REGION, textoBeta, textoPotencia } from './medicion'
+import { REGIONES } from '../sim/lectura'
+import { cifra, cifraCorriente, estadoDeAdc, estadoEnPalabras, formasDeCodigo, medicionDeSeleccion, PASOS_REGION, textoBeta, textoPotencia, textoRegistro, voltajeDeAdc } from './medicion'
 
 const lib = libreriaDePrueba().piezas
 const d = divisor()
@@ -63,6 +63,48 @@ describe('lecturas digitales en el inspector y el Multímetro', () => {
     expect(filas({ tipo: 'digital', modelo: 'decodificador', pines: [], digito: -1 })).toEqual([{ nombre: 'Dígito', valor: 'apagado' }])
     expect(palabras({ tipo: 'digital', modelo: 'decodificador', pines: [], digito: 3 })).toBe('manda 3')
     expect(palabras({ tipo: 'digital', modelo: 'biestable-d', pines: [], q: '1', causa: 'pre' })).toBe('Q en 1')
+  })
+
+  it('un MSI dice su registro con la clase que le da su núcleo y el reloj; sin definir cuando algún bit lo está', () => {
+    const registro = { clase: 'cuenta' as const, valor: 9, bits: 4, nombres: ['QA', 'QB', 'QC', 'QD'], reloj: { hz: 1000, pin: 'CLK' } }
+    const x: ExtraMedicion = { tipo: 'digital', modelo: 'msi', pines: [{ id: 'RCO', nombre: 'RCO', nivel: '0', salida: true }], registro }
+    expect(filas(x)).toEqual([
+      { nombre: 'Cuenta', valor: '9, 1001' },
+      { nombre: 'Reloj', valor: '1.00 kHz (CLK)' },
+      { nombre: 'RCO', valor: '0' }
+    ])
+    expect(palabras(x)).toBe('cuenta 9, 1001')
+    expect(palabras({ ...x, registro: { ...registro, clase: 'almacén', valor: null, reloj: { hz: 0, pin: 'SRCLK' } } })).toBe('almacén sin definir')
+    expect(filas({ ...x, registro: { ...registro, reloj: { hz: 0, pin: 'CLK' } } })![1]).toEqual({ nombre: 'Reloj', valor: 'sin pulsos' })
+  })
+
+  it('un código se escribe en decimal, hexadecimal y binario con el ancho de su registro', () => {
+    expect(formasDeCodigo(9, 4)).toEqual({ decimal: '9', hex: '0x9', bin: '0b1001' })
+    expect(formasDeCodigo(128, 8)).toEqual({ decimal: '128', hex: '0x80', bin: '0b10000000' })
+    expect(formasDeCodigo(null, 8).hex).toBe('sin definir')
+    expect(textoRegistro(5, 8)).toBe('5, 00000101')
+  })
+
+  it('el ADC0804 dice código, lo que representa del fondo de escala, su estado, INTR y su reloj', () => {
+    const adc: Extract<ExtraMedicion, { tipo: 'convertidor-ad' }> = { tipo: 'convertidor-ad', codigo: 128, bits: 8, convirtiendo: false, intr: '0', vref: 5, reloj: { tipo: 'rc', hz: 606e3, r: 10e3, c: 150e-12 } }
+    expect(filas(adc)).toEqual([
+      { nombre: 'Código', valor: '128, 10000000' },
+      { nombre: 'Representa', valor: '2.50 V de 5.00 V' },
+      { nombre: 'Estado', valor: 'listo' },
+      { nombre: 'INTR', valor: '0' },
+      { nombre: 'Reloj', valor: '606 kHz (R 10 kΩ, C 150 pF)' }
+    ])
+    expect(palabras(adc)).toBe('código 128, listo')
+    expect(estadoDeAdc({ ...adc, convirtiendo: true })).toBe('convirtiendo')
+    expect(estadoDeAdc({ ...adc, intr: '1' })).toBe('en espera')
+    expect(voltajeDeAdc({ ...adc, vref: null })).toBeNull()
+    expect(filas({ ...adc, codigo: null, reloj: { tipo: 'externo' } })).toMatchObject([{ valor: 'sin definir' }, { valor: SIN_DATO }, {}, {}, { valor: 'externo, por CLK IN' }])
+  })
+
+  it('el DAC0808 dice el código y la corriente de IO', () => {
+    const x: ExtraMedicion = { tipo: 'convertidor-da', codigo: 64, io: 0.5e-3 }
+    expect(filas(x)).toEqual([{ nombre: 'Código', valor: '64' }, { nombre: 'Corriente IO', valor: '500 µA' }])
+    expect(palabras(x)).toBe('código 64')
   })
 
   it('el 555 dice si oscila, con su frecuencia y su ciclo de trabajo; el display, lo que muestra y la corriente de cada segmento conectado', () => {
@@ -162,7 +204,7 @@ describe('medicionDeSeleccion', () => {
     ])
     expect(textoBeta(1e-9, 0)).toBe(SIN_DATO)
     // Los pasos de la barra salen de las regiones del motor; «activa inversa» no es uno de ellos.
-    expect(PASOS_REGION).toEqual({ bjt: REGIONES_BJT.slice(0, 3), mosfet: [...REGIONES_MOS] })
+    expect(PASOS_REGION).toEqual({ bjt: REGIONES.bjt.slice(0, 3), mosfet: ['corte', 'lineal', 'saturación'] })
   })
 
   it('un MOSFET, un amplificador saturado, un fusible fundido, un motor, un relé y un zumbador', () => {
@@ -172,6 +214,12 @@ describe('medicionDeSeleccion', () => {
       { nombre: 'Vgs', valor: '2.98 V' },
       { nombre: 'Vds', valor: '5.06 V' },
       { nombre: 'Id', valor: '69.4 mA' }
+    ])
+    expect(conExtra({ tipo: 'jfet', region: 'lineal', vgs: -1 }, 0.5, 2e-3)).toEqual([
+      { nombre: 'Región', valor: 'lineal', pasos: ['corte', 'lineal', 'saturación'] },
+      { nombre: 'Vgs', valor: '−1.00 V' },
+      { nombre: 'Vds', valor: '500 mV' },
+      { nombre: 'Id', valor: '2.00 mA' }
     ])
     expect(conExtra({ tipo: 'ampop', saturado: 1 }, 13.8)![1]).toEqual({ nombre: 'Estado', valor: 'saturado contra V+' })
     expect(conExtra({ tipo: 'ampop', saturado: -1 })![1].valor).toBe('saturado contra V−')
@@ -183,6 +231,9 @@ describe('medicionDeSeleccion', () => {
     expect(conExtra({ tipo: 'motor', rpm: 8912.4 })![1]).toEqual({ nombre: 'Sentido', valor: 'horario' })
     expect(conExtra({ tipo: 'motor', rpm: -30 })![1]).toEqual({ nombre: 'Sentido', valor: 'antihorario' })
     expect(conExtra({ tipo: 'motor', rpm: 0.2 })![1]).toEqual({ nombre: 'Sentido', valor: 'quieto' })
+    // Un motor a pasos suma el ángulo del eje y los pasos que lleva, con la velocidad a una decimal bajo 10 rpm.
+    const aPasos = conExtra({ tipo: 'motor', rpm: 7.46, angulo: Math.PI / 2, pasos: 63.6 })!
+    expect(aPasos.map((f) => [f.nombre, f.valor])).toEqual([['Velocidad', '7.5 rpm'], ['Sentido', 'horario'], ['Ángulo', '90.0°'], ['Pasos', '64'], ['Corriente de la fase A', expect.any(String)], ['Voltaje de la fase A', expect.any(String)]])
     expect(conExtra({ tipo: 'rele', operado: true })![0]).toEqual({ nombre: 'Estado', valor: 'operado' })
     expect(conExtra({ tipo: 'rele', operado: false })![0]).toEqual({ nombre: 'Estado', valor: 'en reposo' })
     expect(conExtra({ tipo: 'rele', operado: true })![1]).toEqual({ nombre: 'Contacto', valor: 'común con NA' })

@@ -28,4 +28,39 @@ describe('tono de cada categoría de la Librería', () => {
     expect(ids).toEqual(expect.arrayContaining(['npn', 'pnp']))
     expect(new Set(ids).size).toBe(ids.length)
   })
+
+  describe('grupos plegables', () => {
+    const base = [...lib.values()].find((d) => d.categoria === 'digitales')!
+    const conGrupos = new Map(
+      [
+        ['a', 'Aritmética'],
+        ['b', 'Compuertas'],
+        ['c', 'Compuertas'],
+        ['d', 'Zeta nuevo'],
+        ['e', undefined]
+      ].map(([id, grupo]) => [id as string, { ...base, id: id as string, nombre: { ...base.nombre, es: `Compuerta ${id}` }, categoria: 'digitales', grupo }])
+    )
+
+    it('las piezas sin grupo van arriba y los grupos en el orden fijo, con los desconocidos al final', () => {
+      const [dig] = catalogo(conGrupos)
+      expect(dig.sueltas!.map((e) => e.def.id)).toEqual(['e'])
+      expect(dig.grupos!.map((g) => [g.id, g.piezas.map((e) => e.def.id)])).toEqual([
+        ['digitales/Compuertas', ['b', 'c']],
+        ['digitales/Aritmética', ['a']],
+        ['digitales/Zeta nuevo', ['d']]
+      ])
+      expect(dig.piezas).toHaveLength(5)
+    })
+
+    it('una categoría sin ninguna pieza con grupo queda plana', () => {
+      const plana = catalogo(new Map([['x', { ...base, id: 'x', grupo: undefined }]]))
+      expect(plana[0].grupos).toBeUndefined()
+      expect(plana[0].sueltas).toBeUndefined()
+    })
+
+    it('con filtro la búsqueda ignora los grupos', () => {
+      const [dig] = catalogo(conGrupos, 'compuerta')
+      expect(dig.grupos).toBeUndefined()
+    })
+  })
 })

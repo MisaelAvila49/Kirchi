@@ -1,0 +1,300 @@
+{
+  "id": "igbt",
+  "nombre": {
+    "es": "Transistor IGBT",
+    "en": "IGBT transistor"
+  },
+  "categoria": "semiconductores",
+  "prefijo": "Q",
+  "buscar": [
+    "igbt",
+    "irg4bc30ud",
+    "irg4bc30u",
+    "fga25n120antd",
+    "fga25n120",
+    "transistor bipolar de compuerta aislada",
+    "insulated gate bipolar"
+  ],
+  "pines": [
+    {
+      "id": "G",
+      "nombre": "compuerta (G)",
+      "x": -4,
+      "y": 0
+    },
+    {
+      "id": "C",
+      "nombre": "colector (C)",
+      "x": 2,
+      "y": -4
+    },
+    {
+      "id": "E",
+      "nombre": "emisor (E)",
+      "x": 2,
+      "y": 4
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "IRG4BC30UD",
+      "opciones": [
+        "IRG4BC30UD",
+        "FGA25N120ANTD"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "IRG4BC30UD": {
+        "vto": 4.4873,
+        "kp": 1.027467,
+        "pis": 2.1245e-11,
+        "pbf": 2,
+        "pnf": 2,
+        "re": 0.016174,
+        "cge": 1.086e-9,
+        "cgc": 1.4e-11,
+        "cce": 5.9e-11,
+        "dis": 4.35e-14,
+        "drs": 0.045,
+        "dtt": 6.7e-9
+      },
+      "FGA25N120ANTD": {
+        "vto": 5.4118,
+        "kp": 2.14056,
+        "pis": 2.6406e-11,
+        "pbf": 2,
+        "pnf": 2,
+        "re": 0.007178,
+        "cge": 3.62e-9,
+        "cgc": 8e-11,
+        "cce": 5e-11,
+        "dis": 6.2877e-12,
+        "drs": 0.05,
+        "dtt": 1.25e-7
+      }
+    },
+    "internas": [
+      "b",
+      "ce"
+    ],
+    "medida": {
+      "mas": "C",
+      "menos": "E",
+      "i": 2,
+      "region": 1
+    },
+    "elementos": [
+      {
+        "t": "M",
+        "d": "b",
+        "g": "G",
+        "s": "E",
+        "params": {
+          "vto": "vto",
+          "kp": "kp",
+          "lambda": 0
+        }
+      },
+      {
+        "t": "Q",
+        "c": "E",
+        "b": "b",
+        "e": "ce",
+        "pnp": true,
+        "params": {
+          "is": "pis",
+          "bf": "pbf",
+          "nf": "pnf"
+        }
+      },
+      {
+        "t": "R",
+        "a": "C",
+        "b": "ce",
+        "ohms": "re"
+      },
+      {
+        "t": "D",
+        "a": "E",
+        "b": "C",
+        "params": {
+          "is": "dis",
+          "n": 1,
+          "rs": "drs",
+          "tt": "dtt"
+        }
+      },
+      {
+        "t": "C",
+        "a": "G",
+        "b": "E",
+        "farads": "cge"
+      },
+      {
+        "t": "C",
+        "a": "G",
+        "b": "C",
+        "farads": "cgc"
+      },
+      {
+        "t": "C",
+        "a": "C",
+        "b": "E",
+        "farads": "cce"
+      }
+    ]
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "IRG4BC30UD": {
+          "fuente": "International Rectifier IRG4BC30UD (PD 91453B), Absolute Maximum Ratings: VCES de 600 V, VGE de ±20 V, corriente continua de colector de 12 A con la cápsula a 100 °C (23 A a 25 °C).",
+          "limites": [
+            {
+              "nombre": "Vce",
+              "de": "C",
+              "a": "E",
+              "max": 600,
+              "escala": 600,
+              "consejo": "baja el voltaje del colector o elige un IGBT de más voltaje."
+            },
+            {
+              "nombre": "Vge",
+              "de": "G",
+              "a": "E",
+              "abs": true,
+              "max": 20,
+              "escala": 20,
+              "consejo": "limita la compuerta con un divisor o un Zener a menos de 20 V."
+            },
+            {
+              "nombre": "corriente de colector",
+              "medida": "corriente",
+              "max": 12,
+              "consejo": "aumenta la resistencia de la carga o elige un IGBT de más corriente."
+            }
+          ]
+        },
+        "FGA25N120ANTD": {
+          "fuente": "Fairchild FGA25N120ANTD (Rev. C1), Absolute Maximum Ratings: VCES de 1200 V, VGES de ±20 V, corriente continua de colector de 25 A con la cápsula a 100 °C (50 A a 25 °C).",
+          "limites": [
+            {
+              "nombre": "Vce",
+              "de": "C",
+              "a": "E",
+              "max": 1200,
+              "escala": 1200,
+              "consejo": "baja el voltaje del colector o elige un IGBT de más voltaje."
+            },
+            {
+              "nombre": "Vge",
+              "de": "G",
+              "a": "E",
+              "abs": true,
+              "max": 20,
+              "escala": 20,
+              "consejo": "limita la compuerta con un divisor o un Zener a menos de 20 V."
+            },
+            {
+              "nombre": "corriente de colector",
+              "medida": "corriente",
+              "max": 25,
+              "consejo": "aumenta la resistencia de la carga o elige un IGBT de más corriente."
+            }
+          ]
+        }
+      }
+    },
+    "quema": {
+      "factor": 2,
+      "durante": 0.5,
+      "elemento": 1
+    }
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 4,
+      "y": -1
+    },
+    "valor": {
+      "x": 4,
+      "y": 1
+    }
+  },
+  "fuentes": {
+    "IRG4BC30UD": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a International Rectifier IRG4BC30UD (PD 91453B, 17 abr 2000): VCE(on) de 1.95 V a 12 A y 2.52 V a 23 A con VGE = 15 V, gfe de 8.6 S con VCE = 100 V e IC = 12 A, VGE(th) de 4.5 V (centro de 3.0 a 6.0 V) con 250 µA, Cies 1100 pF, Coes 73 pF y Cres 14 pF, VFM del diodo de 1.4 V a 12 A y Qrr de 80 nC. Es el macromodelo clásico: un MOSFET de canal N (nivel 1, VTO = 4.487 V, KP = 1.027 A/V²) maneja la base de un PNP de ganancia 2 cuyo emisor es el colector del IGBT, con una resistencia de 16 mΩ en serie, más el diodo en antiparalelo y tres capacitores constantes (la hoja los grafica contra VCE). El PNP lleva N = 2 porque su base ancha y poco dopada trabaja con inyección de nivel alto; IS = 2.1e-11 A y la resistencia salen de los dos puntos de VCE(on), y KP de la gfe (el producto (BF + 1) · KP es lo que fija la gfe, así que BF = 2 es una elección). El diodo supone N = 1 y RS = 45 mΩ (la hoja solo da un punto), TT = Qrr / IF. No modela la temperatura, la corriente de cola al apagar ni la resistencia de compuerta (la hoja no la da).",
+    "FGA25N120ANTD": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Fairchild FGA25N120ANTD (Rev. C1): VCE(sat) de 2.0 V a 25 A y 2.65 V a 50 A con VGE = 15 V, VGE(th) de 5.5 V con 25 mA, Cies 3700 pF, Coes 130 pF y Cres 80 pF, VFM del diodo de 2.0 V a 25 A y Qrr de 3130 nC. Misma estructura que el IRG4BC30UD (MOSFET que maneja un PNP con N = 2 y BF = 2). La hoja no trae la transconductancia, así que KP supone el mismo producto (BF + 1) · KP por amperio nominal que el IRG4BC30UD (6.42 A/V² a 25 A); IS y la resistencia (7.2 mΩ) salen de los dos puntos de VCE(sat). El diodo supone N = 1 y RS = 50 mΩ, TT = Qrr / IF. No modela la temperatura, la cola de apagado ni la resistencia de compuerta."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": {
+      "kicad": "Device:Q_NIGBT_GCE",
+      "ltspice": "igbt",
+      "proteus": "IGBT",
+      "sinVerificar": [
+        "ltspice",
+        "proteus"
+      ]
+    },
+    "valores": {
+      "IRG4BC30UD": {
+        "fabricante": "International Rectifier (Infineon)",
+        "parte": "IRG4BC30UD",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": {
+              "G": "1",
+              "C": "2",
+              "E": "3"
+            },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical"
+          }
+        ],
+        "nota": "Candidato cambiado respecto al plan: con diodo en antiparalelo (CoPack), porque es el que tiene hoja descargable. El IRG4BC30U sin diodo no se hallo",
+        "pendiente": {
+          "hoja": "El PDF de Infineon no baja (404 en las URL de dgdl y de irf.com); se leyo la copia del documento PD 91453B (17 abr 2000) de docs.rs-online.com, que no es del fabricante",
+          "lcsc": "No se hallo pagina de LCSC (busqueda del 26 oct 2026)",
+          "patillas": "Una sola parte leida: IR PD 91453B p. 10, LEAD ASSIGNMENTS: 1 compuerta, 2 colector, 3 emisor (TO-220AB). Segunda fuente solo de la familia: Transistor_IGBT:IRG4PF50W de KiCad 9 (G1 C2 E3, TO-247). Se llena porque coinciden y es el orden de JEDEC TO-220AB; se confirma con el usuario"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "IR IRG4BC30UD PD 91453B (4/17/00) p. 1 y 10"
+        },
+        "aproximada": "Macromodelo de un MOSFET y un PNP con capacitancias constantes: sin temperatura ni cola de corriente al apagar."
+      },
+      "FGA25N120ANTD": {
+        "fabricante": "Fairchild (onsemi)",
+        "parte": "FGA25N120ANTDTU",
+        "hoja": "https://www.onsemi.com/pdf/datasheet/fga25n120antdtu-d.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-3P",
+            "patillas": {},
+            "huella": "Package_TO_SOT_THT:TO-3P-3_Vertical"
+          }
+        ],
+        "nota": "NPT trench de 1200 V con diodo, el del plan; es TO-3P",
+        "pendiente": {
+          "patillas": "Sin resolver. Fairchild FGA25N120ANTD Rev. C1 (nov 2013) p. 1: el dibujo TO-3P rotula G, C, E sin numerar; la p. 8 solo trae el dibujo mecanico. Device:Q_NIGBT_GCE de KiCad da G1 C2 E3 pero es generico. Propuesta: G1 C2 E3 (orden usual del TO-3P)",
+          "encapsulado": "La hoja dice TO-3P (EIAJ SC-65), no TO-247. Hay que decidir si entra el encapsulado TO-3P o se cambia de candidato a uno en TO-247 (el IRG4PF50W de KiCad es TO-247)",
+          "hoja": "El PDF de onsemi responde 403 a un cliente sin navegador; se leyo la copia Rev. C1 de components101",
+          "lcsc": "No se hallo pagina de LCSC (busqueda del 26 oct 2026)"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Fairchild FGA25N120ANTD Rev. C1 p. 1, 2 y 8"
+        },
+        "aproximada": "Macromodelo de un MOSFET y un PNP con capacitancias constantes, con la transconductancia supuesta (la hoja no la trae)."
+      }
+    }
+  }
+}

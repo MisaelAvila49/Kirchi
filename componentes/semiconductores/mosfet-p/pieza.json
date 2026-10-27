@@ -61,5 +61,64 @@
   },
   "fuentes": {
     "IRF4905": "Parámetros ajustados por Kirchi (no copiados) a Infineon IRF4905PbF Rev. 2.1, https://www.infineon.com/dgdl/irf4905.pdf?fileId=5546d462533600a4015355e32165197c: RDS(on) 20 mΩ máx a VGS = -10 V e ID = -38 A (el modelo da 16.5 mΩ), VGS(th) de -2 a -4 V (-3 V), gfs 21 S mín (el nivel 1 da 30 S), Ciss 3400 pF, Coss 1400 pF y Crss 640 pF a 25 V."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Transistor_FET:Q_PMOS_GSD", "ltspice": "pmos", "falstad": "f", "proteus": "PMOS", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "BS250": {
+        "fabricante": "Diodes Incorporated",
+        "parte": "BS250P",
+        "hoja": "https://www.diodes.com/assets/Datasheets/BS250P.pdf",
+        "equivalencias": { "kicad": "Transistor_FET:BS250" },
+        "presentaciones": [
+          { "encapsulado": "TO-92", "patillas": {}, "huella": "Package_TO_SOT_THT:TO-92_Inline", "lcsc": { "numero": "C151450", "sinVerificar": true } }
+        ],
+        "pendiente": {
+          "patillas": "Sin numeración del fabricante. Diodes BS250P (DS33014 rev. 3-2) dibuja la E-Line en perspectiva con D, G y S sin números; General Semiconductor BS250 (2/28/99, la hoja que cita KiCad) da D, G, S en vista inferior con la cara plana arriba, que vista de frente es S, G, D; Philips BS250 numera 1 Fuente, 2 Compuerta, 3 Drenador. Transistor_FET:BS250 de KiCad 9 da D1 G2 S3. Se resuelve con una hoja que numere el BS250P"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Diodes BS250P (DS33014 rev. 3-2, oct 2019) p. 1, dibujo E-Line D, G, S sin numerar; General Semiconductor BS250 (2/28/99) p. 1, vista inferior D, G, S; Philips BS250 (1 S, 2 G, 3 D); Transistor_FET:BS250 de KiCad 9 (D1 G2 S3)"
+        },
+        "nota": "La compuerta es la patilla de en medio en todas las fuentes; lo que no coincide es de qué lado quedan drenador y fuente."
+      },
+      "IRF9540": {
+        "fabricante": "Vishay",
+        "parte": "IRF9540PBF",
+        "hoja": "https://www.vishay.com/docs/91078/91078.pdf",
+        "equivalencias": { "kicad": "Transistor_FET:IRF9540N" },
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": { "G": "1", "D": "2", "S": "3" },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical",
+            "lcsc": { "numero": "C183014", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Vishay IRF9540 (doc. 91078) p. 1, TO-220AB: terminales G, D, S; coincide con Transistor_FET:IRF9540N de KiCad 9 (G1 D2 S3)"
+        }
+      },
+      "IRF4905": {
+        "fabricante": "Infineon",
+        "parte": "IRF4905PBF",
+        "hoja": "https://www.infineon.com/dgdl/irf4905.pdf?fileId=5546d462533600a4015355e32165197c",
+        "equivalencias": { "kicad": "Transistor_FET:IRF4905" },
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": { "G": "1", "S": "3", "D": "2" },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical",
+            "lcsc": { "numero": "C2564", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Infineon IRF4905PbF (rev. 2.1) p. 1: Gate pin 1, Drain pin 2 y lengüeta, Source pin 3; coincide con Transistor_FET:IRF4905 de KiCad 9"
+        }
+      }
+    }
   }
 }

@@ -1,0 +1,142 @@
+{
+  "id": "multiplexor-157",
+  "nombre": { "es": "Cuádruple multiplexor de 2 a 1 (74157)", "en": "Quad 2-to-1 multiplexer (74157)" },
+  "categoria": "digitales",
+  "grupo": "Decodificadores y multiplexores",
+  "prefijo": "U",
+  "buscar": ["u", "multiplexor", "multiplexer", "mux", "2 a 1", "74157", "74hc157", "74ls157", "cuadruple", "quad", "selector"],
+  "pines": [
+    { "id": "A/B", "nombre": "A/B (selección: bajo elige A, alto elige B)", "x": -6, "y": -12 },
+    { "id": "G", "nombre": "G (estrobo, activo en bajo)", "x": -6, "y": -10 },
+    { "id": "1A", "nombre": "1A", "x": -6, "y": -6 },
+    { "id": "1B", "nombre": "1B", "x": -6, "y": -4 },
+    { "id": "1Y", "nombre": "1Y", "x": 6, "y": -6 },
+    { "id": "2A", "nombre": "2A", "x": -6, "y": 0 },
+    { "id": "2B", "nombre": "2B", "x": -6, "y": 2 },
+    { "id": "2Y", "nombre": "2Y", "x": 6, "y": 0 },
+    { "id": "3A", "nombre": "3A", "x": -6, "y": 6 },
+    { "id": "3B", "nombre": "3B", "x": -6, "y": 8 },
+    { "id": "3Y", "nombre": "3Y", "x": 6, "y": 6 },
+    { "id": "4A", "nombre": "4A", "x": -6, "y": 12 },
+    { "id": "4B", "nombre": "4B", "x": -6, "y": 14 },
+    { "id": "4Y", "nombre": "4Y", "x": 6, "y": 12 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": ["G", "A/B"],
+    "rebanadas": [
+      { "A": "1A", "B": "1B", "Y": "1Y" },
+      { "A": "2A", "B": "2B", "Y": "2Y" },
+      { "A": "3A", "B": "3B", "Y": "3Y" },
+      { "A": "4A", "B": "4B", "Y": "4Y" }
+    ],
+    "tabla": { "columnas": ["G", "A/B", "A", "B"], "salidas": ["Y"], "filas": ["1 X X X > 0", "0 0 X X > A", "0 1 X X > B"] },
+    "retardos": { "74HC": { "vcc": 4.5, "*": [1.8e-8, 1.8e-8] }, "74LS": { "vcc": 5, "*": [1.5e-8, 1.8e-8] } }
+  },
+  "caja": {
+    "titulo": "MUX",
+    "forma": "funcional",
+    "izquierda": ["A/B", "!G", null, "1A", "1B", null, "2A", "2B", null, "3A", "3B", null, "4A", "4B"],
+    "derecha": [null, null, null, "1Y", null, null, "2Y", null, null, "3Y", null, null, "4Y"]
+  },
+  "fuentes": {
+    "74HC": "TI SN74HC157 (SCLS113F): tabla de función p. 9 y retardo típico de 18 ns de A/B a Y (p. 5, 4.5 V, CL 50 pF). Los datos (13 ns) y el estrobo (16 ns) usan este mismo valor.",
+    "74LS": "TI SN74LS157 (SDLS058): tabla de función p. 1 y retardo típico de A/B a Y, 15 ns de subida y 18 de bajada (p. 5, 5 V, CL 15 pF). Los datos y el estrobo usan estos mismos valores."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC157N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc157.pdf",
+        "equivalencias": { "kicad": "74xx:74LS157" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "A/B": "1",
+              "1A": "2",
+              "1B": "3",
+              "1Y": "4",
+              "2A": "5",
+              "2B": "6",
+              "2Y": "7",
+              "3Y": "9",
+              "3B": "10",
+              "3A": "11",
+              "4Y": "12",
+              "4B": "13",
+              "4A": "14",
+              "G": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74HC157N",
+            "lcsc": { "numero": "C5218", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC157 (SCLS113F, feb 2025), p. 3; KiCad 74xx:74LS157 (misma función y orden)" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS157N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls157.pdf",
+        "equivalencias": { "kicad": "74xx:74LS157" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "A/B": "1",
+              "1A": "2",
+              "1B": "3",
+              "1Y": "4",
+              "2A": "5",
+              "2B": "6",
+              "2Y": "7",
+              "3Y": "9",
+              "3B": "10",
+              "3A": "11",
+              "4Y": "12",
+              "4B": "13",
+              "4A": "14",
+              "G": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS157N",
+            "lcsc": { "numero": "C139317", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74LS157 (SDLS058, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS157" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -18 }, "valor": { "x": 0, "y": 18 } },
+  "rotulos": [
+    { "texto": "A/B", "x": -3.2, "y": -12, "tam": 1, "alinear": "izq" },
+    { "texto": "G", "x": -3.2, "y": -10, "tam": 1, "alinear": "izq" },
+    { "texto": "1A", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "1B", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "2A", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "2B", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "3A", "x": -3.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "3B", "x": -3.2, "y": 8, "tam": 1, "alinear": "izq" },
+    { "texto": "4A", "x": -3.2, "y": 12, "tam": 1, "alinear": "izq" },
+    { "texto": "4B", "x": -3.2, "y": 14, "tam": 1, "alinear": "izq" },
+    { "texto": "1Y", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "2Y", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "3Y", "x": 3.2, "y": 6, "tam": 1, "alinear": "der" },
+    { "texto": "4Y", "x": 3.2, "y": 12, "tam": 1, "alinear": "der" },
+    { "texto": "MUX", "x": 0, "y": -15, "tam": 1, "alinear": "centro" }
+  ]
+}

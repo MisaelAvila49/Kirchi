@@ -1,0 +1,256 @@
+{
+  "id": "jfet-n",
+  "nombre": {
+    "es": "JFET canal N",
+    "en": "N-channel JFET"
+  },
+  "categoria": "semiconductores",
+  "prefijo": "J",
+  "buscar": [
+    "jfet",
+    "njfet",
+    "fet",
+    "canal n",
+    "2n5457",
+    "j201",
+    "2n3819"
+  ],
+  "pines": [
+    {
+      "id": "G",
+      "nombre": "compuerta",
+      "x": -4,
+      "y": 0
+    },
+    {
+      "id": "D",
+      "nombre": "drenador",
+      "x": 2,
+      "y": -4
+    },
+    {
+      "id": "S",
+      "nombre": "fuente",
+      "x": 2,
+      "y": 4
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "2N5457",
+      "opciones": [
+        "2N5457",
+        "J201",
+        "2N3819"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "jfet",
+    "d": "D",
+    "g": "G",
+    "s": "S",
+    "pjf": false,
+    "prop": "modelo",
+    "modelos": {
+      "2N5457": {
+        "vto": -3.05838,
+        "beta": 0.000304692,
+        "lambda": 0.00350877,
+        "is": 1e-14,
+        "n": 1,
+        "pb": 1,
+        "cgs": 3e-12,
+        "cgd": 6e-12,
+        "rd": 0,
+        "rs": 0
+      },
+      "J201": {
+        "vto": -0.67082,
+        "beta": 0.000993808,
+        "lambda": 0,
+        "is": 1e-14,
+        "n": 1,
+        "pb": 1,
+        "cgs": 3.2e-12,
+        "cgd": 5.2e-12,
+        "rd": 0,
+        "rs": 0
+      },
+      "2N3819": {
+        "vto": -3.63636,
+        "beta": 0.000727891,
+        "lambda": 0.0025974,
+        "is": 1e-14,
+        "n": 1,
+        "pb": 1,
+        "cgs": 1.5e-12,
+        "cgd": 2.8e-12,
+        "rd": 0,
+        "rs": 0
+      }
+    }
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 4,
+      "y": -1
+    },
+    "valor": {
+      "x": 4,
+      "y": 1
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "2N5457": {
+          "fuente": "Central Semiconductor, 2N5457 2N5458 2N5459 (R1, 6 mar 2014), Maximum Ratings: VDS 25 V, VDG 25 V, VGS 25 V.",
+          "limites": [
+            {
+              "nombre": "Vds",
+              "de": "D",
+              "a": "S",
+              "abs": true,
+              "max": 25,
+              "escala": 25,
+              "consejo": "baja el voltaje entre drenador y fuente o elige un JFET de más voltaje."
+            },
+            {
+              "nombre": "Vdg",
+              "de": "D",
+              "a": "G",
+              "max": 25,
+              "escala": 25,
+              "consejo": "baja el voltaje entre el drenador y la compuerta."
+            },
+            {
+              "nombre": "Vgs inverso",
+              "de": "S",
+              "a": "G",
+              "max": 25,
+              "escala": 25,
+              "consejo": "evita llevar la compuerta al revés de la fuente más allá de lo que admite la unión."
+            }
+          ]
+        },
+        "J201": {
+          "fuente": "Central Semiconductor, J201 (R3, 22 mar 2021), Maximum Ratings: VDG 40 V, VGS 40 V (la hoja no da VDS).",
+          "limites": [
+            {
+              "nombre": "Vdg",
+              "de": "D",
+              "a": "G",
+              "max": 40,
+              "escala": 40,
+              "consejo": "baja el voltaje entre el drenador y la compuerta."
+            },
+            {
+              "nombre": "Vgs inverso",
+              "de": "S",
+              "a": "G",
+              "max": 40,
+              "escala": 40,
+              "consejo": "evita llevar la compuerta al revés de la fuente más allá de lo que admite la unión."
+            }
+          ]
+        },
+        "2N3819": {
+          "fuente": "Central Semiconductor, 2N3819 (R1, 9 ene 2014), Maximum Ratings: VDG 25 V, VDS 25 V, VGS 25 V.",
+          "limites": [
+            {
+              "nombre": "Vds",
+              "de": "D",
+              "a": "S",
+              "abs": true,
+              "max": 25,
+              "escala": 25,
+              "consejo": "baja el voltaje entre drenador y fuente o elige un JFET de más voltaje."
+            },
+            {
+              "nombre": "Vdg",
+              "de": "D",
+              "a": "G",
+              "max": 25,
+              "escala": 25,
+              "consejo": "baja el voltaje entre el drenador y la compuerta."
+            },
+            {
+              "nombre": "Vgs inverso",
+              "de": "S",
+              "a": "G",
+              "max": 25,
+              "escala": 25,
+              "consejo": "evita llevar la compuerta al revés de la fuente más allá de lo que admite la unión."
+            }
+          ]
+        }
+      }
+    },
+    "quema": {
+      "factor": 2,
+      "durante": 0.5
+    }
+  },
+  "fuentes": {
+    "2N5457": "Parámetros ajustados por Kirchi (no copiados) a Fairchild 2N5457/5458/5459 (Rev. G, p. 2) y Central 2N5457-5459 (R1, p. 1): IDSS 3.0 mA típico a VDS = 15 V (1.0 a 5.0 mA), VGS −2.5 V típico a 100 µA, gos 10 µS, Ciss 4.5 pF y Crss 1.5 pF típicos. VTO sale de VGS e IDSS, BETA de IDSS, LAMBDA de gos, CGS y CGD de las capacitancias con PB = 1 V. Se midió con ngspice 47: IDSS 3.000 mA, gfs 1.96 mS y 0.100 mA a −2.5 V, dentro de los límites de la hoja. PB, IS, RD, RS y B no vienen en la hoja: quedan en su valor por omisión.",
+    "J201": "Parámetros ajustados por Kirchi (no copiados) a Vishay Siliconix J/SST201 (doc. 70233, Rev. G, p. 2) y Central J201 (R3, p. 1): la hoja solo da mínimos y máximos (IDSS 0.2 a 1.0 mA, VGS(off) −0.3 a −1.5 V), así que se usó la media geométrica de cada intervalo (0.447 mA y −0.671 V); BETA = IDSS/VTO². Ciss 4.5 pF y Crss 1.3 pF típicos dan CGS y CGD con PB = 1 V. Se midió con ngspice 47: IDSS 0.447 mA y gfs 1.32 mS (mínimo de la hoja 0.5 mS). La hoja no da la conductancia de salida: LAMBDA = 0.",
+    "2N3819": "Parámetros ajustados por Kirchi (no copiados) a Vishay Siliconix 2N3819 (doc. 70238, Rev. D, p. 2) y Central 2N3819 (R1, p. 1): IDSS 10 mA típico (2 a 20 mA), gfs 5.5 mS típico (2.0 a 6.5 mS), gos 25 µS, Ciss 2.2 pF y Crss 0.7 pF típicos. |VTO| = 2 IDSS/gfs (3.64 V, dentro de 3 a 8 V; con la VGS típica de la hoja saldría fuera). Se midió con ngspice 47: IDSS 10.00 mA y gfs 5.49 mS."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:Q_NJFET_DSG", "ltspice": "njf", "falstad": "j", "proteus": "NJF", "sinVerificar": ["ltspice", "falstad", "proteus"] },
+    "valores": {
+      "2N5457": {
+        "fabricante": "Central Semiconductor",
+        "parte": "2N5457",
+        "hoja": "https://my.centralsemi.com/datasheets/2N5457-5459.PDF",
+        "presentaciones": [
+          { "encapsulado": "TO-92", "patillas": {}, "huella": "Package_TO_SOT_THT:TO-92_Inline" }
+        ],
+        "pendiente": {
+          "patillas": "Sin resolver. Central 2N5457/58/59 R1 (6 mar 2014) p. 2, LEAD CODE: 1 drenador, 2 fuente, 3 compuerta. Fairchild 2N5457/5458/5459 (Rev. G) p. 1: dibujo TO-92 sin numerar, rotulado G, S, D, con la nota de que fuente y drenador son intercambiables. onsemi 2N5457/D (segun resumen de busqueda, el PDF no se pudo bajar por bloqueo del sitio): 1 drenador, 2 fuente, 3 compuerta. New Jersey Semiconductor (idem): 1 fuente, 2 drenador, 3 compuerta. Propuesta si el usuario acepta: D 1, S 2, G 3 (Central y onsemi)",
+          "lcsc": "No se hallo pagina de LCSC para el 2N5457 (busqueda del 26 oct 2026)"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Central 2N5457-5459 p. 1 y 2 (valores y LEAD CODE) y Fairchild 2N5457 Rev. G p. 1 y 2 (valores de tabla)"
+        },
+        "nota": "Fabricante Central porque su PDF es el unico descargable del sitio del fabricante; la hoja de Fairchild trae los valores tipicos"
+      },
+      "J201": {
+        "fabricante": "Central Semiconductor",
+        "parte": "J201",
+        "hoja": "https://my.centralsemi.com/datasheets/J201.PDF",
+        "presentaciones": [
+          { "encapsulado": "TO-92", "patillas": { "D": "1", "S": "2", "G": "3" }, "huella": "Package_TO_SOT_THT:TO-92_Inline" }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Central J201 R3 (22 mar 2021) p. 2, LEAD CODE: 1 drenador, 2 fuente, 3 compuerta; Vishay Siliconix J/SST201 (doc. 70233, Rev. G, 15 mar 2004) p. 1, vista superior TO-226AA: 1 D, 2 S, 3 G. Coinciden dos fabricantes. Fairchild J201 (resumen de busqueda) rotula G, S y D sin numerar y no se pudo cotejar"
+        }
+      },
+      "2N3819": {
+        "fabricante": "Central Semiconductor",
+        "parte": "2N3819",
+        "hoja": "https://my.centralsemi.com/datasheets/2N3819.PDF",
+        "presentaciones": [
+          { "encapsulado": "TO-92", "patillas": {}, "huella": "Package_TO_SOT_THT:TO-92_Inline" }
+        ],
+        "pendiente": {
+          "patillas": "Sin resolver. Central 2N3819 R1 (9 ene 2014) p. 2, LEAD CODE: 1 drenador, 2 compuerta, 3 fuente; Transistor_FET:2N3819 de KiCad 9 (hereda de BF244A): D1 G2 S3. Vishay Siliconix 2N3819 (doc. 70238, Rev. D, 4 jun 2001) p. 1, vista superior TO-226AA: 1 S, 2 G, 3 D. onsemi 2N3819/D 2002 (segun resumen de busqueda, PDF no obtenido): 1 S, 2 G, 3 D. La compuerta va en medio en todas; drenador y fuente cambian de lado. Propuesta: D1 G2 S3 si el usuario prefiere Central y KiCad",
+          "lcsc": "LCSC C17276784 (Central Semicon 2N3819) y C17399914 (NTE) salieron en una busqueda del 26 oct 2026, sin abrir la pagina para comprobar el encapsulado: sinVerificar"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Central 2N3819 p. 1 y 2; Vishay 2N3819 Rev. D p. 1 y 2 (valores tipicos); Transistor_FET:2N3819 de KiCad 9"
+        },
+        "nota": "Los valores tipicos del modelo salen de la hoja de Vishay (Central solo da minimos y maximos)"
+      }
+    }
+  }
+}

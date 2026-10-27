@@ -1,5 +1,6 @@
 import { carpetaDeRuta, nombreDeRuta, type FormatoExportar } from '../../../compartido/archivos'
 import { GROSORES, NOMBRE_FIGURA, OPACIDADES, PUNTAS, TRAZOS_FIGURA, type EstiloFigura } from '../doc/figuras'
+import { unidadesDe } from '../doc/paquetes'
 import type { Documento, Pieza } from '../doc/tipos'
 import type { ObjetivoMenu } from '../editor/Editor'
 import { textoDeValor } from '../lienzo/etiquetas'
@@ -36,27 +37,44 @@ const instrumentosDe = (ctx: ContextoMenu, tipo: 'osciloscopio' | 'multimetro'):
     .sort((a, b) => a.ref.localeCompare(b.ref, 'es', { numeric: true }))
 
 /**
- * Menús «Medir con el multímetro ▸» y «Medir con el osciloscopio ▸» del clic derecho de un cable o etiqueta. Todo pone sondas.
+ * Menú «Medir ▸» del clic derecho de un cable o etiqueta, con tres submenús: Sonda, Multímetro y Osciloscopio. Todo pone sondas.
  */
 function entradasMedir(ctx: ContextoMenu): EntradaMenu[] {
   const oscs = instrumentosDe(ctx, 'osciloscopio')
   const mms = instrumentosDe(ctx, 'multimetro')
-  const subOsc: EntradaMenu[] = oscs.length
-    ? oscs.flatMap((o) => CANALES.map((c): EntradaMenu => ({ tipo: 'item', id: `medir-osc:${o.id}:${c}`, texto: oscs.length > 1 ? `${o.ref} · Entrada ${c}` : `Entrada ${c}`, ...estadoDeEntrada(ctx, o, c) })))
-    : CANALES.map((c): EntradaMenu => ({ tipo: 'item', id: `medir-osc:nuevo:${c}`, texto: `Entrada ${c}` }))
+  const entrada = (o: Pieza, c: Canal): EntradaMenu => ({ tipo: 'item', id: `medir-osc:${o.id}:${c}`, texto: `Entrada ${c}`, ...estadoDeEntrada(ctx, o, c) })
+  const subOsc: EntradaMenu[] =
+    oscs.length > 1
+      ? oscs.map((o): EntradaMenu => ({ tipo: 'item', id: `medir-osc-grupo:${o.id}`, texto: o.ref, flecha: true, submenu: CANALES.map((c) => entrada(o, c)) }))
+      : oscs.length
+        ? CANALES.map((c) => entrada(oscs[0], c))
+        : CANALES.map((c): EntradaMenu => ({ tipo: 'item', id: `medir-osc:nuevo:${c}`, texto: `Entrada ${c}` }))
   const subMm: EntradaMenu[] = [
     { tipo: 'item', id: 'medir-mm:rapido', texto: 'Medidor rápido' },
-    ...mms.flatMap((m) => (['+', 'COM'] as const).map((t): EntradaMenu => ({ tipo: 'item', id: `medir-mm:${m.id}:${t}`, texto: `${m.ref} · ${t}`, ...estadoDeEntrada(ctx, m, t) }))),
-    { tipo: 'item', id: 'medir-mm:nuevo', texto: 'Multímetro nuevo' }
+    { tipo: 'item', id: 'medir-mm:nuevo', texto: 'Multímetro completo' },
+    ...(mms.length ? [{ tipo: 'separador' } as EntradaMenu] : []),
+    ...mms.flatMap((m) => (['+', 'COM'] as const).map((t): EntradaMenu => ({ tipo: 'item', id: `medir-mm:${m.id}:${t}`, texto: `${m.ref} · ${t}`, ...estadoDeEntrada(ctx, m, t) })))
+  ]
+  const subSonda: EntradaMenu[] = [
+    { tipo: 'item', id: 'medir-sonda:voltaje', texto: 'Voltaje', icono: 'voltajes' },
+    { tipo: 'item', id: 'medir-sonda:corriente', texto: 'Corriente', icono: 'corriente' }
   ]
   return [
-    { tipo: 'item', id: 'medir-mm', texto: 'Medir con el multímetro', icono: 'multimetro', flecha: true, submenu: subMm },
-    { tipo: 'item', id: 'medir-osc', texto: 'Medir con el osciloscopio', icono: 'osciloscopio', flecha: true, submenu: subOsc }
+    {
+      tipo: 'item', id: 'medir', texto: 'Medir', icono: 'voltajes', flecha: true,
+      submenu: [
+        { tipo: 'item', id: 'medir-sonda', texto: 'Sonda', icono: 'voltajes', flecha: true, submenu: subSonda },
+        { tipo: 'item', id: 'medir-mm', texto: 'Multímetro', icono: 'multimetro', flecha: true, submenu: subMm },
+        { tipo: 'item', id: 'medir-osc', texto: 'Osciloscopio', icono: 'osciloscopio', flecha: true, submenu: subOsc }
+      ]
+    }
   ]
 }
 
-/** El pedido de medida de un ítem del menú (`medir-osc:<id|nuevo>:<canal>`, `medir-mm:<id>:<terminal>`, …); null si no es uno. */
+/** El pedido de medida de un ítem del menú (`medir-sonda:<voltaje|corriente>`, `medir-osc:<id|nuevo>:<canal>`, `medir-mm:<id>:<terminal>`, …); null si no es uno. */
 export function pedidoDeAccion(id: AccionMenu): PedidoMedir | null {
+  if (id === 'medir-sonda:voltaje') return { con: 'voltaje' }
+  if (id === 'medir-sonda:corriente') return { con: 'corriente' }
   if (id === 'medir-mm:rapido') return { con: 'medidor' }
   if (id === 'medir-mm:nuevo') return { con: 'multimetro-nuevo' }
   const [pre, osc, que] = id.split(':')
@@ -68,7 +86,7 @@ export function pedidoDeAccion(id: AccionMenu): PedidoMedir | null {
 export type AccionMenu =
   | 'editar-valor' | 'girar' | 'girar-izq' | 'espejo-x' | 'espejo-y' | 'cortar' | 'copiar' | 'duplicar' | 'guardar-plantilla' | 'exportar-seleccion' | 'borrar'
   | 'derivar' | 'editar-texto'
-  | 'colocar-aqui' | 'pegar-aqui' | 'etiqueta' | 'tierra' | 'nota' | 'encuadrar'
+  | 'colocar-aqui' | 'pegar-aqui' | 'etiqueta' | 'tierra' | 'nota' | 'encuadrar' | 'agrupar-encapsulados'
   | 'nuevo' | 'abrir' | 'recientes' | 'guardar' | 'guardar-como' | 'exportar' | 'configuracion'
   | `reciente:${number}` | 'olvidar-recientes' | `exportar:${FormatoExportar}`
   | 'formato' | `formato:${string}`
@@ -76,7 +94,7 @@ export type AccionMenu =
   | 'panel-inspector' | 'panel-mediciones' | 'franja-osciloscopio' | 'franja-registro'
   | IdDeMenuDeCinta | IdDeFigura | 'al-fondo' | 'figura' | `figura-estilo:${string}`
   | `velocidad:${string}` | 'avanzar-hasta' | 'delta:automatico' | 'delta:paso' | 'delta:escrito'
-  | 'medir-osc' | `medir-osc:${string}` | 'medir-mm' | `medir-mm:${string}` | 'invertir-sentido' | 'convertir-medidor' | 'quitar-sonda'
+  | 'medir' | 'medir-sonda' | `medir-sonda:${string}` | `medir-osc-grupo:${string}` | 'medir-osc' | `medir-osc:${string}` | 'medir-mm' | `medir-mm:${string}` | 'invertir-sentido' | 'convertir-medidor' | 'quitar-sonda'
   | 'plantilla:colocar' | 'plantilla:copiar' | 'plantilla:renombrar' | 'plantilla:descripcion' | 'plantilla:mover' | 'plantilla:mostrar' | 'plantilla:borrar'
   | 'categoria:mostrar' | 'categoria:borrar'
   | 'grabacion:pausar' | 'grabacion:continuar' | 'grabacion:detener'
@@ -227,7 +245,7 @@ export function menuDeObjetivo(o: ObjetivoMenu, ctx: ContextoMenu): ModeloMenu {
         // «Editar» es el doble clic: abre el editor de referencia y valor.
         antes: [entradaEditar('etiqueta'), orden('panel-inspector')],
         // Lo que el último grupo de Inicio ofrece de la selección también está aquí.
-        propias: def?.modelo?.tipo === 'osciloscopio' ? [orden('franja-osciloscopio'), orden('panel-mediciones'), orden('franja-registro')] : def?.modelo?.tipo === 'multimetro' ? [orden('panel-mediciones')] : [],
+        propias: p && def && unidadesDe(def, p.props) ? [orden('agrupar-encapsulados')] : def?.modelo?.tipo === 'osciloscopio' ? [orden('franja-osciloscopio'), orden('panel-mediciones'), orden('franja-registro')] : def?.modelo?.tipo === 'multimetro' ? [orden('panel-mediciones')] : [],
         borrar: eliminar(ctx)
       })
     }
@@ -300,6 +318,7 @@ export function menuDeObjetivo(o: ObjetivoMenu, ctx: ContextoMenu): ModeloMenu {
       // Las figuras también aquí (eligen la herramienta, como el botón Figura).
       orden('figura', { flecha: true, submenu: entradasFigura() }),
       separador,
+      orden('agrupar-encapsulados'),
       orden('encuadrar', { atajo: t('encuadrar') })
     ]
   }

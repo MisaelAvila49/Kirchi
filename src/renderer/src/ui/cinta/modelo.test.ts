@@ -29,7 +29,7 @@ function registroCompleto(): Atajos {
 /** Dónde queda cada comando en la parte de arriba: el grupo de Inicio, la pestaña o la barra. */
 const TABLA_O2: Readonly<Record<string, readonly string[]>> = {
   'Inicio › Archivo': ['guardar', 'nuevo', 'abrir', 'guardar-como', 'recientes', 'exportar', 'guardar-plantilla'],
-  'Inicio › Editar': ['cortar', 'copiar', 'pegar', 'duplicar', 'borrar', 'todo'],
+  'Inicio › Editar': ['cortar', 'copiar', 'pegar', 'duplicar', 'borrar', 'todo', 'agrupar-encapsulados'],
   'Inicio › Colocar': ['pieza', 'figura', 'figura-linea', 'figura-rectangulo', 'figura-elipse', 'figura-flecha', 'etiqueta', 'tierra', 'alimentacion', 'nota'],
   'Inicio › Simular': ['simular', 'detener', 'avanzar-tiempo', 'avanzar-hasta', 'retroceder', 'avanzar', 'grabar', 'detener-grabacion'],
   'Inicio › Instrumento': ['instrumentos', 'colocar-multimetro', 'colocar-osciloscopio', 'colocar-generador', 'colocar-fuente'],
@@ -39,6 +39,7 @@ const TABLA_O2: Readonly<Record<string, readonly string[]>> = {
   'Vista › Zoom': ['encuadrar', 'zoom-100', 'zoom-menos', 'zoom-mas'],
   'Vista › Paneles': ['panel-libreria', 'panel-plantillas', 'panel-calculadoras', 'panel-inspector', 'panel-proyecto', 'panel-mediciones', 'panel-instrumentos'],
   'Vista › Tiempo y animación': ['velocidad', 'mas-lento', 'mas-rapido', 'animaciones', 'sonido'],
+  'Vista › Lienzo': ['numeros-patilla'],
   'Vista › Ventana': ['limpio', 'pantalla-completa', 'pagina-menos', 'pagina-real', 'pagina-mas'],
   'Ayuda › Aprender': ['aprender', 'atajos', 'enfocar-tutorial'],
   'Ayuda › Más ayuda': ['ejemplos', 'acerca'],
@@ -65,7 +66,7 @@ describe('modelo de la cinta', () => {
     expect(archivo.columnas).toEqual([
       { tipo: 'grande', id: 'guardar' }, { tipo: 'pila', ids: ['nuevo', 'abrir'] }, { tipo: 'pila', ids: ['guardar-como', 'recientes'] }, { tipo: 'pila', ids: ['exportar', 'guardar-plantilla'] }
     ])
-    expect(editar.columnas).toEqual([{ tipo: 'iconos', ids: ['cortar', 'copiar', 'pegar', 'duplicar', 'borrar', 'todo'], filas: 2 }])
+    expect(editar.columnas).toEqual([{ tipo: 'iconos', ids: ['cortar', 'copiar', 'pegar', 'duplicar', 'borrar', 'todo', 'agrupar-encapsulados'], filas: 2 }])
     expect(colocar.columnas).toEqual([{ tipo: 'grande', id: 'pieza' }, { tipo: 'grande', id: 'figura' }, { tipo: 'iconos', ids: ['etiqueta', 'tierra', 'alimentacion', 'nota'], filas: 2 }])
     expect(DENTRO_DE.figura).toEqual(['figura-linea', 'figura-rectangulo', 'figura-elipse', 'figura-flecha'])
   })
@@ -90,9 +91,10 @@ describe('modelo de la cinta', () => {
 
   it('Vista: Zoom, Paneles, Tiempo y animación, y Ventana (con Lienzo limpio); el tamaño de la interfaz sigue en Ventana', () => {
     const vista = PESTAÑAS[1]
-    expect(vista.grupos.map((g) => g.nombre)).toEqual(['Zoom', 'Paneles', 'Tiempo y animación', 'Ventana'])
+    expect(vista.grupos.map((g) => g.nombre)).toEqual(['Zoom', 'Paneles', 'Tiempo y animación', 'Lienzo', 'Ventana'])
     expect(vista.grupos[2].columnas).toEqual([{ tipo: 'grande', id: 'velocidad' }, { tipo: 'pila', ids: ['mas-lento', 'mas-rapido'] }, { tipo: 'pila', ids: ['animaciones', 'sonido'] }])
-    expect(vista.grupos[3].columnas).toEqual([{ tipo: 'grande', id: 'limpio' }, { tipo: 'pila', ids: ['pantalla-completa', 'control-tamano'] }])
+    expect(vista.grupos[3].columnas).toEqual([{ tipo: 'grande', id: 'numeros-patilla' }])
+    expect(vista.grupos[4].columnas).toEqual([{ tipo: 'grande', id: 'limpio' }, { tipo: 'pila', ids: ['pantalla-completa', 'control-tamano'] }])
     expect(DENTRO_DE['control-tamano']).toEqual(['pagina-menos', 'pagina-real', 'pagina-mas'])
     expect(COMANDOS['avanzar-tiempo'].menu && COMANDOS.velocidad.menu).toBe(true)
     expect(COMANDOS.avanzar.menu).toBeUndefined()

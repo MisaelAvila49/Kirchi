@@ -164,9 +164,9 @@ describe('modelo visible (mostrar)', () => {
     expect(valor('temporizador-555', { modelo: 'LM555' })).toBe('LM555')
   })
 
-  it('solo esos diecisiete modelos tienen mostrar', () => {
+  it('solo esos treinta y tres modelos tienen mostrar', () => {
     const con = [...lib.values()].filter((d) => d.props.some((p) => p.mostrar)).map((d) => d.id).sort()
-    expect(con).toEqual(['amp-op', 'comparador', 'cristal', 'diac', 'mosfet-n', 'mosfet-p', 'npn', 'pnp', 'puente-rectificador', 'regulador-ajustable', 'regulador-negativo', 'regulador-positivo', 'scr', 'temporizador-555', 'transformador', 'triac', 'uln2003'])
+    expect(con).toEqual(['amp-op', 'comparador', 'cristal', 'diac', 'igbt', 'ina128', 'jfet-n', 'jfet-p', 'l298', 'lm35', 'lm386', 'lm4040', 'mosfet-n', 'mosfet-p', 'motor-pasos-bipolar', 'motor-pasos-unipolar', 'npn', 'optoacoplador-4n25', 'optoacoplador-pc817', 'pnp', 'puente-rectificador', 'punta-logica', 'regulador-ajustable', 'regulador-negativo', 'regulador-positivo', 'scr', 'temporizador-555', 'tl431', 'tmp36', 'transformador', 'triac', 'ujt', 'uln2003'])
     for (const id of con) {
       const p = lib.get(id)!.props.find((q) => q.mostrar)!
       expect(p.opciones, id).toContain(p.defecto)

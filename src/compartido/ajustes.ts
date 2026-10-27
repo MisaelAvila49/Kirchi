@@ -2,6 +2,7 @@
 import type { ApiNgspice } from './ngspice'
 import type { ApiGraficas } from './graficas'
 import type { ApiOsciloscopio } from './ventanaOsc'
+import type { ApiAsistente } from './asistente'
 import type { ApiGrabacion } from './grabacion'
 import type { ApiPlantillas } from './plantillas'
 import { esRutaKir, LARGO_MAXIMO_RUTA, MAX_ARCHIVOS_RECIENTES, PAGINAS, type ApiArchivos, type TipoPagina } from './archivos'
@@ -159,6 +160,12 @@ export interface OpcionesGrabacion {
 }
 export const grabacionPorOmision = (): OpcionesGrabacion => ({ que: 'ventana', calidad: '1080p', microfono: null, resaltarClics: true })
 
+/** El asistente (servidor MCP): apagado por omisión y por usuario. */
+export interface AjustesAsistente {
+  activo: boolean
+}
+export const asistentePorOmision = (): AjustesAsistente => ({ activo: false })
+
 export interface Ajustes {
   tema: Tema
   colorCables: ColorCables
@@ -196,8 +203,14 @@ export interface Ajustes {
   tutorial: AjustesTutorial
   /** Categorías del panel Plantillas que el usuario plegó (el nombre de la carpeta), para que sigan plegadas al volver. */
   plantillasPlegadas: string[]
+  /** Grupos de la Librería que el usuario plegó («<categoría>/<grupo>»), para que sigan plegados al volver. */
+  libreriaPlegada: string[]
   /** Secciones del panel Proyecto que el usuario plegó («piezas», «redes», «alimentaciones» o «cat:<categoría>»). */
   proyectoPlegado: string[]
+  /** La sección «Datos de la pieza» del inspector está plegada (lo está la primera vez). */
+  inspectorDatosPlegado: boolean
+  /** Número de patilla junto a cada pin de los chips de Digitales e Integrados (Vista › Números de patilla); visibles la primera vez. */
+  numerosPatilla: boolean
   /** Cómo se cerró la última ventana (rectángulo, maximizada, pantalla completa): solo la anota el proceso principal. */
   ventana: EstadoVentana | null
   /** Última carpeta de abrir, guardar y exportar: solo la anota el proceso principal, que la valida al usarla. */
@@ -206,6 +219,10 @@ export interface Ajustes {
   grabacion: OpcionesGrabacion
   /** Carpeta de grabaciones elegida por el usuario (solo la anota el proceso principal); sin ella, `Videos/Kirchi`. */
   carpetaGrabaciones?: string
+  /** El permiso del asistente (el proceso principal lo anota al encender o apagar el interruptor). */
+  asistente: AjustesAsistente
+  /** Carpeta del asistente elegida por el usuario con el diálogo de carpeta; sin ella, `Documentos/Kirchi/Asistente`. */
+  carpetaAsistente?: string
 }
 
 /** Tope de categorías plegadas que se recuerdan (más que las carpetas que admite el almacén de plantillas, 100). */
@@ -245,10 +262,14 @@ export const ajustesPorOmision = (): Ajustes => ({
   simulacion: simulacionPorOmision(),
   tutorial: tutorialPorOmision(),
   plantillasPlegadas: [],
+  libreriaPlegada: [],
   proyectoPlegado: [],
+  inspectorDatosPlegado: true,
+  numerosPatilla: true,
   ventana: null,
   carpetas: carpetasPorOmision(),
-  grabacion: grabacionPorOmision()
+  grabacion: grabacionPorOmision(),
+  asistente: asistentePorOmision()
 })
 
 /** Ajustes con que arranca la interfaz: panel lateral e inspector siempre plegados, sin importar lo que quedó en settings.json. */
@@ -317,10 +338,21 @@ function carpetas(v: unknown, base: CarpetasDialogo): CarpetasDialogo {
   return { abrir: una('abrir'), guardar: una('guardar'), exportar: una('exportar') }
 }
 
+/** La carpeta del asistente: ruta absoluta de texto razonable o ausente. */
+function carpetaAsistente(v: unknown, base: string | undefined): { carpetaAsistente?: string } {
+  const c = v === undefined ? base : v
+  return typeof c === 'string' && c.length > 0 && c.length <= LARGO_MAXIMO_RUTA && !c.includes('\0') && esAbsoluta(c) ? { carpetaAsistente: c } : {}
+}
+
 /** La carpeta de grabaciones: ruta absoluta de texto razonable o ausente. */
 function carpetaGrabaciones(v: unknown, base: string | undefined): { carpetaGrabaciones?: string } {
   const c = v === undefined ? base : v
   return typeof c === 'string' && c.length > 0 && c.length <= LARGO_MAXIMO_RUTA && !c.includes('\0') && esAbsoluta(c) ? { carpetaGrabaciones: c } : {}
+}
+
+/** El asistente: un parche con otra cosa que un booleano en `activo` conserva lo anterior. */
+function asistente(v: unknown, base: AjustesAsistente): AjustesAsistente {
+  return { activo: booleano(propia(objeto(v), 'activo'), base.activo) }
 }
 
 function opcionesGrabacion(v: unknown, base: OpcionesGrabacion): OpcionesGrabacion {
@@ -487,22 +519,29 @@ export function normalizarAjustes(v: unknown, base: Ajustes = ajustesPorOmision(
     simulacion: simulacion(propia(o, 'simulacion'), base.simulacion),
     tutorial: tutorial(propia(o, 'tutorial'), base.tutorial),
     plantillasPlegadas: plegadas(propia(o, 'plantillasPlegadas'), base.plantillasPlegadas),
+    libreriaPlegada: plegadas(propia(o, 'libreriaPlegada'), base.libreriaPlegada),
     proyectoPlegado: plegadas(propia(o, 'proyectoPlegado'), base.proyectoPlegado),
+    inspectorDatosPlegado: booleano(propia(o, 'inspectorDatosPlegado'), base.inspectorDatosPlegado),
+    numerosPatilla: booleano(propia(o, 'numerosPatilla'), base.numerosPatilla),
     ventana: propia(o, 'ventana') === undefined ? base.ventana : estadoDeVentana(propia(o, 'ventana')),
     carpetas: carpetas(propia(o, 'carpetas'), base.carpetas),
     grabacion: opcionesGrabacion(propia(o, 'grabacion'), base.grabacion),
-    ...carpetaGrabaciones(propia(o, 'carpetaGrabaciones'), base.carpetaGrabaciones)
+    ...carpetaGrabaciones(propia(o, 'carpetaGrabaciones'), base.carpetaGrabaciones),
+    asistente: asistente(propia(o, 'asistente'), base.asistente),
+    ...carpetaAsistente(propia(o, 'carpetaAsistente'), base.carpetaAsistente)
   }
 }
 
-/** Aplica un parche de la interfaz solo con sus claves válidas. Recientes, carpetas de diálogos y estado de la ventana no se aceptan: solo los anota el proceso principal. */
+/** Aplica un parche de la interfaz solo con sus claves válidas. Recientes, carpetas de diálogos, de grabaciones y del asistente, y estado de la ventana no se aceptan: solo los anota el proceso principal. */
 export function aplicarParche(actual: Ajustes, parche: unknown): Ajustes {
-  const { archivosRecientes: _ignorado, ventana: _ignorada, carpetas: _ignoradas, carpetaGrabaciones: _ignoradaG, ...resto } = objeto(parche)
+  const { archivosRecientes: _ignorado, ventana: _ignorada, carpetas: _ignoradas, carpetaGrabaciones: _ignoradaG, carpetaAsistente: _ignoradaA, ...resto } = objeto(parche)
   return normalizarAjustes(resto, actual)
 }
 
 /** Canal IPC con el que la interfaz guarda un parche de ajustes. */
 export const CANAL_GUARDAR_AJUSTES = 'ajustes:guardar'
+/** Canal IPC con el que la interfaz pide abrir un enlace de la librería de piezas en el navegador del sistema. */
+export const CANAL_ABRIR_ENLACE = 'kirchi:abrir-enlace'
 /** Argumentos que el proceso principal agrega al renderizador (`additionalArguments`). */
 export const ARG_AJUSTES = '--kirchi-ajustes='
 export const ARG_PRUEBAS = '--kirchi-pruebas'
@@ -533,6 +572,8 @@ export interface ApiKirchi {
   guardarAjustes?(parche: Partial<Ajustes>): Promise<Ajustes>
   /** Los ajustes vigentes en el proceso principal. */
   leerAjustes?(): Promise<Ajustes>
+  /** Abre en el navegador la hoja de datos o el producto de LCSC de una pieza; el proceso principal solo acepta los enlaces de su librería. */
+  abrirEnlace?(url: string): Promise<boolean>
   /** Abrir, guardar, exportar y recuperar archivos (todo el disco lo toca el proceso principal). */
   archivos: ApiArchivos
   /** Plantillas del usuario: categoría y nombre, nunca rutas (la carpeta la decide el proceso principal). */
@@ -544,6 +585,8 @@ export interface ApiKirchi {
   osciloscopio?: ApiOsciloscopio
   /** Grabación de pantalla de la ventana de Kirchi: permisos y archivos los decide el proceso principal. */
   grabacion?: ApiGrabacion
+  /** El asistente (servidor MCP): interruptor, cliente unido, carpeta y peticiones del puente. */
+  asistente?: ApiAsistente
   /** Pantalla completa y zoom de la página (Vista › Ventana); el preload siempre la trae, las pruebas sin ventana no. */
   ventana?(orden: OrdenVentana): void
   /** Escucha el tamaño de la interfaz vigente (lo cambia el proceso principal); devuelve la forma de dejar de escuchar. */

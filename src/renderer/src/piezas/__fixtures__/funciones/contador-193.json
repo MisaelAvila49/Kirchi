@@ -1,0 +1,62 @@
+{
+ "fuente": [
+  {
+   "familia": "74HC",
+   "documento": "TI CD54/74HC192, CD54/74HC193, CD54/74HCT193, SCHS163F",
+   "revision": "oct 2003",
+   "paginas": "2",
+   "tabla": "TRUTH TABLE (p. 2); nombres de la hoja: CPU, CPD, MR, PL (a UP, DOWN, CLR, LOAD)"
+  },
+  {
+   "familia": "74LS",
+   "documento": "TI SN54/74LS192 y LS193, SDLS074",
+   "revision": "mar 1988",
+   "paginas": "1 (descripción)",
+   "tabla": "sin tabla; el texto dice lo mismo y nombra UP, DOWN, CLR, LOAD"
+  }
+ ],
+ "simbolos": {
+  "r": "flanco de subida",
+  "X": "no importa"
+ },
+ "columnas": [
+  "UP",
+  "DOWN",
+  "CLR",
+  "LOAD"
+ ],
+ "salidas": [
+  "funcion"
+ ],
+ "filas": [
+  "r 1 0 1 > cuenta hacia arriba",
+  "1 r 0 1 > cuenta hacia abajo",
+  "X X 1 X > borra (asíncrono): QA a QD = 0",
+  "X X 0 0 > carga asíncrona A a D"
+ ],
+ "adicionales": [
+  {
+   "nombre": "CO y BO",
+   "columnas": [
+    "UP",
+    "DOWN",
+    "estado"
+   ],
+   "salidas": [
+    "CO",
+    "BO"
+   ],
+   "filas": [
+    "0 X 15 > 0 1",
+    "X 0 0 > 1 0",
+    "1 1 X > 1 1"
+   ],
+   "origen": "HC193 p. 1: 'The Terminal Count Up (carry) goes low half a clock period before the maximum count is reached and returns to a high level at the zero count'; el BO igual al contar hacia abajo. Figura 2 (p. 9): TCU bajo con CPU bajo y cuenta 15; TCD bajo con CPD bajo y cuenta 0. Las demás combinaciones (CO con DOWN o BO con UP) no vienen en la hoja: pendiente"
+  }
+ ],
+ "notas": [
+  "HC193 p. 1: CLR (MR) alto domina sobre toda otra entrada ('overrides any other input to clear the counter to its zero state'); carga asíncrona con LOAD (PL) bajo.",
+  "SDLS074 p. 6, nota B y HC193 Fig. 2 nota 2: al contar hacia arriba DOWN debe estar en alto; al contar hacia abajo, UP en alto.",
+  "SDLS074 p. 6, nota A: 'Clear overrides load, data, and count inputs'."
+ ]
+}

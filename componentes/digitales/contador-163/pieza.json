@@ -1,0 +1,154 @@
+{
+  "id": "contador-163",
+  "nombre": { "es": "Contador binario síncrono de 4 bits (74163)", "en": "Synchronous 4-bit binary counter (74163)" },
+  "categoria": "digitales",
+  "grupo": "Biestables y contadores",
+  "prefijo": "U",
+  "buscar": ["u", "contador", "counter", "binario", "sincrono", "4 bits", "74163", "74hc163", "74ls163", "rco"],
+  "pines": [
+    { "id": "CLK", "nombre": "CLK (reloj, flanco de subida)", "x": -6, "y": -6 },
+    { "id": "CLR", "nombre": "CLR (borrado síncrono, activo en bajo)", "x": -6, "y": -10 },
+    { "id": "LOAD", "nombre": "LOAD (carga síncrona, activa en bajo)", "x": -6, "y": -8 },
+    { "id": "ENP", "nombre": "ENP (habilitación)", "x": -6, "y": 8 },
+    { "id": "ENT", "nombre": "ENT (habilitación y acarreo)", "x": -6, "y": 10 },
+    { "id": "A", "nombre": "A", "x": -6, "y": -2 },
+    { "id": "B", "nombre": "B", "x": -6, "y": 0 },
+    { "id": "C", "nombre": "C", "x": -6, "y": 2 },
+    { "id": "D", "nombre": "D", "x": -6, "y": 4 },
+    { "id": "QA", "nombre": "QA", "x": 6, "y": -10 },
+    { "id": "QB", "nombre": "QB", "x": 6, "y": -8 },
+    { "id": "QC", "nombre": "QC", "x": 6, "y": -6 },
+    { "id": "QD", "nombre": "QD", "x": 6, "y": -4 },
+    { "id": "RCO", "nombre": "RCO (acarreo)", "x": 6, "y": 0 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "msi",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "nucleo": {
+      "tipo": "contador",
+      "bits": 4,
+      "modulo": 16,
+      "reloj": { "senales": ["CLK"], "flanco": "subida" },
+      "habilita": ["ENP", "ENT"],
+      "borra": { "senal": "!CLR", "sincrona": true },
+      "carga": { "senal": "!LOAD", "sincrona": true, "datos": ["A", "B", "C", "D"] }
+    },
+    "salidas": { "QA": "q0", "QB": "q1", "QC": "q2", "QD": "q3", "RCO": "tabla" },
+    "tabla": { "columnas": ["ENT", "estado"], "salidas": ["RCO"], "filas": ["1 15 > 1", "1 0-14 > 0", "0 X > 0"] },
+    "retardos": {
+      "74HC": { "vcc": 4.5, "Q*": [2.5e-8, 2.5e-8], "RCO": [2.4e-8, 2.4e-8] },
+      "74LS": { "vcc": 5, "Q*": [1.3e-8, 1.8e-8], "RCO": [2e-8, 1.8e-8] }
+    }
+  },
+  "caja": {
+    "titulo": "CTR DIV 16",
+    "forma": "funcional",
+    "izquierda": ["!CLR", "!LOAD", "CLK", null, "A", "B", "C", "D", null, "ENP", "ENT"],
+    "derecha": ["QA", "QB", "QC", "QD", null, "RCO"],
+    "marcas": { "CLK": ["dinamico"] }
+  },
+  "fuentes": {
+    "74HC": "TI SN74HC163 (SCLS298D): función p. 2 y retardo típico de 25 ns de CLK a Q y 24 ns de CLK a RCO (p. 8, 4.5 V, CL 50 pF). El borrado espera el flanco de CLK.",
+    "74LS": "TI SN74LS163A (SDLS060): función p. 1 y retardos típicos de CLK a Q (13 ns de subida, 18 de bajada) y de CLK a RCO (20 y 18) (p. 15, 5 V, CL 15 pF). El borrado espera el flanco de CLK."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC163N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc163.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0.",
+        "equivalencias": { "kicad": "74xx:74LS163" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "CLR": "1",
+              "CLK": "2",
+              "A": "3",
+              "B": "4",
+              "C": "5",
+              "D": "6",
+              "ENP": "7",
+              "LOAD": "9",
+              "ENT": "10",
+              "QD": "11",
+              "QC": "12",
+              "QB": "13",
+              "QA": "14",
+              "RCO": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74HC163N",
+            "lcsc": { "numero": "C2893", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SN74HC163 (SCLS298D, oct 2003), p. 1, TOP VIEW; KiCad 74xx:74LS163 (9.0.0, extiende 74LS161; el símbolo 74HC163 no existe)"
+        }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS163AN",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls163a.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0.",
+        "equivalencias": { "kicad": "74xx:74LS163" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "CLR": "1",
+              "CLK": "2",
+              "A": "3",
+              "B": "4",
+              "C": "5",
+              "D": "6",
+              "ENP": "7",
+              "LOAD": "9",
+              "ENT": "10",
+              "QD": "11",
+              "QC": "12",
+              "QB": "13",
+              "QA": "14",
+              "RCO": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS163AN",
+            "lcsc": { "numero": "C133560", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74LS163A (SDLS060, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS163 (9.0.0)" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -16 }, "valor": { "x": 0, "y": 16 } },
+  "rotulos": [
+    { "texto": "CLR", "x": -3.2, "y": -10, "tam": 1, "alinear": "izq" },
+    { "texto": "LOAD", "x": -3.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "CLK", "x": -2.3, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "A", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "C", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "D", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "ENP", "x": -3.2, "y": 8, "tam": 1, "alinear": "izq" },
+    { "texto": "ENT", "x": -3.2, "y": 10, "tam": 1, "alinear": "izq" },
+    { "texto": "QA", "x": 3.2, "y": -10, "tam": 1, "alinear": "der" },
+    { "texto": "QB", "x": 3.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "QC", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "QD", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "RCO", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "CTR DIV 16", "x": 0, "y": -13, "tam": 1, "alinear": "centro" }
+  ]
+}

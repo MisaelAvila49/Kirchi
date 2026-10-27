@@ -3,20 +3,31 @@
 pub mod acople;
 pub mod basic;
 pub mod bjt;
+pub mod controladas;
+pub mod dacm;
 pub mod diode;
+pub mod externa;
 pub mod fuente_lab;
 pub mod fuse;
+pub mod interruptor_canal;
+pub mod jfet;
+pub mod ldr;
 pub mod lamp;
 pub mod mos1;
 pub mod motor;
 pub mod opamp;
+pub mod pasos;
 pub mod puente;
 pub mod quemado;
+pub mod region;
 pub mod relay;
+pub mod termistor;
 pub mod zumbador;
 
+use crate::canales::Canales;
 use crate::digital::Nivel;
 use crate::mna::Stamp;
+use crate::error::EngineError;
 use crate::netlist::Element;
 
 /// Incógnita del sistema: `None` es la tierra.
@@ -151,6 +162,8 @@ pub struct Ctx<'a> {
     pub gmin: f64,
     /// Factor de las fuentes independientes (1 salvo en el escalamiento de fuentes).
     pub src: f64,
+    /// Los canales de valor que lee la isla.
+    pub canales: &'a Canales,
 }
 
 /// Conductancia `g` entre `a` y `b`.
@@ -529,6 +542,15 @@ pub trait Device: DeviceClone {
     fn fijar_nivel(&mut self, _t: f64, _n: Nivel, _inmediato: bool) -> bool {
         false
     }
+    /// Como `fijar_nivel` para un elemento que lee varias redes digitales: `bit` es la posición de la red en su lista de
+    /// entradas. Los puentes de una sola red no lo redefinen.
+    fn fijar_nivel_bit(&mut self, t: f64, _bit: usize, n: Nivel, inmediato: bool) -> bool {
+        self.fijar_nivel(t, n, inmediato)
+    }
+    /// Cuántas veces cambió una red de la que depende dejándola sin nivel definido (X o Z): el Registro lo avisa una vez.
+    fn indefinidos(&self) -> u64 {
+        0
+    }
     /// Vuelve a su estado inicial (un fusible nuevo); false si no aplica.
     fn reset(&mut self) -> bool {
         false
@@ -562,10 +584,14 @@ pub trait Device: DeviceClone {
 
 /// Casillas de corriente por terminal de un elemento: las de sus nodos y la de la tierra interna (5 + 1 en el relé y en el
 /// amplificador operacional, los de más terminales).
-pub const CASILLAS_MAX: usize = 6;
+pub const CASILLAS_MAX: usize = 7;
 
 /// Construye el dispositivo de un elemento de la netlist; `idx` es su posición (para los eventos).
-pub fn build(e: &Element, idx: usize) -> Box<dyn Device> {
+pub fn build(e: &Element, idx: usize) -> Result<Box<dyn Device>, EngineError> {
+    Ok(construir(e, idx))
+}
+
+fn construir(e: &Element, idx: usize) -> Box<dyn Device> {
     match e {
         Element::R { a, b, ohms } => Box::new(basic::Resistor::new(*a, *b, *ohms)),
         Element::C { a, b, farads } => Box::new(basic::Capacitor::new(*a, *b, *farads)),
@@ -574,6 +600,7 @@ pub fn build(e: &Element, idx: usize) -> Box<dyn Device> {
         Element::I { a, b, amps } => Box::new(basic::ISource::new(*a, *b, *amps)),
         Element::D { a, b, model } => Box::new(diode::Diode::new(*a, *b, model.clone())),
         Element::Q { c, b, e, pnp, model } => Box::new(bjt::Bjt::new(*c, *b, *e, *pnp, model.clone())),
+        Element::J { d, g, s, pjf, model } => Box::new(jfet::Jfet::new(*d, *g, *s, *pjf, model.clone())),
         Element::M { d, g, s, pmos, model } => Box::new(mos1::Mos1::new(*d, *g, *s, *pmos, model.clone())),
         Element::OA { p, n, out, vp, vn, model } => Box::new(opamp::Opamp::new(*p, *n, *out, *vp, *vn, model.clone())),
         Element::Xfmr { a1, b1, a2, b2, l1, l2, k } => Box::new(acople::Acople::new(*a1, *b1, *a2, *b2, *l1, *l2, *k)),
@@ -585,9 +612,9 @@ pub fn build(e: &Element, idx: usize) -> Box<dyn Device> {
         Element::Relay { a1, a2, com, na, nc, r, l, ion, ioff } => {
             Box::new(relay::Relay::new(*a1, *a2, *com, *na, *nc, *r, *l, *ion, *ioff))
         }
-        Element::Adc { p, n, in_low, in_high, r_in, v_in, .. } => Box::new(puente::PuenteEntrada::new(*p, *n, *in_low, *in_high, *r_in, *v_in)),
-        Element::Dac { out, lo, hi, v_lo, v_hi, r_lo, r_hi, t_rise, t_fall, .. } => {
-            Box::new(puente::PuenteSalida::new(*out, *lo, *hi, *v_lo, *v_hi, *r_lo, *r_hi, *t_rise, *t_fall))
+        Element::Adc { p, n, in_low, in_high, r_in, v_in, histeresis, .. } => Box::new(puente::PuenteEntrada::new(*p, *n, *in_low, *in_high, *r_in, *v_in).con_histeresis(*histeresis)),
+        Element::Dac { out, lo, hi, v_lo, v_hi, r_lo, r_hi, t_rise, t_fall, z, .. } => {
+            Box::new(puente::PuenteSalida::new(*out, *lo, *hi, *v_lo, *v_hi, *r_lo, *r_hi, *t_rise, *t_fall).con_z(*z))
         }
         Element::Out555 { out, dis, vcc, gnd, v_lo, r_lo, v_hi, r_hi, g_on, g_off, t_rise, t_fall, .. } => {
             Box::new(puente::Salida555::new(*out, *dis, *vcc, *gnd, *v_lo, *r_lo, *v_hi, *r_hi, *g_on, *g_off, *t_rise, *t_fall))
@@ -599,7 +626,22 @@ pub fn build(e: &Element, idx: usize) -> Box<dyn Device> {
         | Element::Jkff { .. }
         | Element::Counter { .. }
         | Element::Decoder { .. }
-        | Element::Latch555 { .. } => unreachable!("un elemento digital no es un dispositivo analógico"),
+        | Element::Latch555 { .. }
+        | Element::Lut { .. }
+        | Element::Msi { .. } => unreachable!("un elemento digital no es un dispositivo analógico"),
+        Element::Dacm { modo, out, ret, ref_p, ref_n, bits, t_asentamiento, r_out } => {
+            Box::new(dacm::Dacm::new(*modo, *out, *ret, *ref_p, *ref_n, bits.len(), *t_asentamiento, *r_out))
+        }
+        Element::Intc { a, b, canal, r_on, r_off } => Box::new(interruptor_canal::InterruptorCanal::new(*a, *b, *canal, *r_on, *r_off)),
+        Element::E { .. } | Element::G { .. } | Element::H { .. } | Element::F { .. } => Box::new(controladas::Controlada::nueva(e)),
+        Element::Ext { a, b, modo, canal, k, c, r } => Box::new(externa::Externa::new(*a, *b, *modo, *canal, *k, *c, *r)),
+        Element::Term { a, b, tipo, r25, beta, rt, delta, tau, canal, tmax } => {
+            Box::new(termistor::Termistor::new(idx, *a, *b, *tipo, *r25, *beta, rt, *delta, *tau, *canal, *tmax))
+        }
+        Element::Ldr { a, b, r10, gamma, roscuro, tau_sube, tau_baja, canal } => Box::new(ldr::Ldr::new(*a, *b, *r10, *gamma, *roscuro, *tau_sube, *tau_baja, *canal)),
+        Element::Pasos { nodos, unipolar, r, l, k_mutua, km, dientes, td, j, bm, canal_carga, reduccion } => {
+            Box::new(pasos::Pasos::new(nodos, *unipolar, *r, *l, *k_mutua, *km, *dientes, *td, *j, *bm, *canal_carga, *reduccion))
+        }
     }
 }
 

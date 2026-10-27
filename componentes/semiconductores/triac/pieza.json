@@ -382,5 +382,48 @@
   "fuentes": {
     "BT136": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a NXP/WeEn BT136-600D, rev. 03 (2011) en los puntos que se pudieron leer: IGT de 2 mA típica y 5 mA máx en los cuadrantes T2+ G+, T2+ G− y T2− G−, IH de 1.2 mA típica y 10 mA máx a VD = 12 V, VDRM de 600 V, IT(RMS) de 4 A. No se pudo leer la tabla de IL ni la de VT: el modelo da VT de 1.64 V a 5 A (los distribuidores publican 1.5 a 1.7 V máx) y se dice sin validar. Cada mitad es un SCR de dos transistores como el del 2N5060 (PNP y NPN realimentados con 1 nF en sus dos nodos internos) con un diodo en el ánodo que lo hace bloquear al revés; la compuerta se mide contra MT1: en T2+ G+ la corriente entra a la base del NPN (330 Ω de compuerta a cátodo), y con compuerta negativa un NPN o un PNP sensores dan la ganancia (IGT medida: 1.5 mA, 2.5 mA y 3 mA en T2+ G+, T2+ G− y T2− G−). Con 400 V la fuga es de 0.1 µA. Mantenimiento medido: 3.4 mA. El cuadrante T2− G+ (IGT de 5 mA típica y 10 mA máx en la hoja) no se modela: ahí la compuerta no dispara. Tampoco dv/dt, di/dt, el tiempo de apagado ni la temperatura.",
     "BT137": "Como el BT136 (mismos puntos de compuerta y mantenimiento) con la resistencia de conducción a la mitad para que a 8 A caiga cerca de 1.9 V; NXP/WeEn BT137 series (BT137-600): IT(RMS) de 8 A, VDRM de 600 V. Esa caída no se pudo contrastar con la hoja."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:Q_Triac", "falstad": "206", "proteus": "TRIAC", "sinVerificar": ["proteus"] },
+    "valores": {
+      "BT136": {
+        "fabricante": "WeEn Semiconductors",
+        "parte": "BT136-600E,127",
+        "equivalencias": { "kicad": "Triac_Thyristor:BT136-600" },
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": { "MT1": "1", "MT2": "2", "G": "3" },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical",
+            "lcsc": { "numero": "C256439", "sinVerificar": true }
+          }
+        ],
+        "pendiente": { "hoja": "No se halló la hoja actual de WeEn con URL propia; la hoja Philips BT139 (misma familia) fija el orden" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Philips BT139 (rev. 1.200, sep 1997, misma familia) PINNING TO220AB: 1 MT1, 2 MT2, 3 compuerta, lengüeta MT2; Triac_Thyristor:BT136-600 de KiCad 9 (A1=1, A2=2, G=3)"
+        },
+        "nota": "LCSC C256439 es BT136-600E/L01,127 de WeEn"
+      },
+      "BT137": {
+        "fabricante": "WeEn Semiconductors",
+        "parte": "BT137-600E,127",
+        "equivalencias": { "kicad": "Triac_Thyristor:Generic_Triac_A1A2G" },
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": { "MT1": "1", "MT2": "2", "G": "3" },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical",
+            "lcsc": { "numero": "C9220", "sinVerificar": true }
+          }
+        ],
+        "pendiente": { "hoja": "No se halló la hoja actual de WeEn con URL propia; la hoja Philips BT139 (misma familia) fija el orden" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Philips BT139 (misma familia) PINNING TO220AB: 1 MT1, 2 MT2, 3 compuerta; KiCad 9 trae BT136, BT138 y BT139 con el mismo orden y no el BT137"
+        }
+      }
+    }
   }
 }

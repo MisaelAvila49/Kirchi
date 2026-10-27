@@ -11,6 +11,8 @@ const PERMITIDOS = [
   'doc/', // el modelo del documento
   'archivo/', // lee y escribe el .kir
   'editor/', // edita los cables
+  'edicion/', // las operaciones de edición ejecutan lo mismo que los gestos
+  'sinVentana/', // el modo sin ventana lee las redes de un documento y compila su netlist
   'plantillas/', // copia cables al armar y colocar
   'exportar/', // dibuja el circuito en SVG, PNG y PDF
   'prueba/', // circuitos de prueba y oráculos
@@ -48,5 +50,21 @@ describe('arquitectura', () => {
   it('la lista de permitidos no tiene entradas que ya no existen', () => {
     const rels = archivos(RAIZ).map((f) => relative(RAIZ, f).split(sep).join('/'))
     for (const p of PERMITIDOS) expect(rels.some((r) => (p.endsWith('/') ? r.startsWith(p) : r === p)), p).toBe(true)
+  })
+
+  it('la edición y el modo sin ventana no dependen de la interfaz ni del navegador', () => {
+    const faltas: string[] = []
+    const deInterfaz = /\bfrom\s+['"](?:\.\.?\/)+(?:ui|lienzo\/contexto[^'"]*)(?:\/[^'"]*)?['"]|\bfrom\s+['"]solid-js(?:\/[^'"]*)?['"]/
+    const delNavegador = /(?<![\w.])(?:document|window)\./
+    for (const f of archivos(RAIZ)) {
+      const rel = relative(RAIZ, f).split(sep).join('/')
+      if (!rel.startsWith('edicion/') && !rel.startsWith('sinVentana/')) continue
+      readFileSync(f, 'utf8').split('\n').forEach((linea, i) => {
+        const codigo = linea.replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '').replace(/\/\*.*?\*\//g, '')
+        if (deInterfaz.test(codigo)) faltas.push(`${rel}:${i + 1}: importa de la interfaz`)
+        if (delNavegador.test(codigo)) faltas.push(`${rel}:${i + 1}: usa document o window`)
+      })
+    }
+    expect(faltas).toEqual([])
   })
 })

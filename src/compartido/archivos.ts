@@ -56,6 +56,10 @@ export const CANALES = {
   diarioError: 'diario:error',
   /** El proceso principal manda un ResultadoAbrir ya leído de un `.kir` que llegó del sistema (doble clic con Kirchi abierto, `open-file`). La página no puede originar este mensaje. */
   abrirExterno: 'archivo:abrir-externo',
+  /** Del proceso principal a la interfaz: el archivo abierto cambió en el disco por otro lado (lleva su nombre). */
+  cambioEnDisco: 'archivo:cambio-en-disco',
+  /** invoke() → ResultadoAbrir: vuelve a leer del disco el archivo abierto en la ventana. */
+  recargar: 'archivo:recargar',
   /** invoke() → Ajustes: los ajustes vigentes (una recarga de la interfaz no arranca con datos viejos). */
   leerAjustes: 'ajustes:leer'
 } as const
@@ -143,6 +147,10 @@ export interface ApiArchivos {
   alErrorDiario(f: (mensaje: string) => void): () => void
   /** Registra quién carga un `.kir` que abrió el sistema con Kirchi ya abierto. El proceso principal ya lo leyó con las comprobaciones de Abrir. */
   alAbrirExterno(f: (r: ResultadoAbrir) => void): () => void
+  /** Registra quién avisa que el archivo abierto cambió en el disco por otro lado; devuelve cómo quitarlo. */
+  alCambioEnDisco?(f: (nombre: string) => void): () => void
+  /** Vuelve a leer del disco el archivo abierto (el proceso principal sabe cuál es: la página no manda la ruta). */
+  recargar?(): Promise<ResultadoAbrir>
 }
 
 /** Último tramo de una ruta, con separadores de Windows o de Unix. */

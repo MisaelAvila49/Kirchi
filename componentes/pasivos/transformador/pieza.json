@@ -44,5 +44,22 @@
   "etiquetas": { "ref": { "x": 0, "y": -7 }, "valor": { "x": 0, "y": 7 } },
   "fuentes": {
     "1:1": "Sin hoja de datos: es el modelo de dos inductancias acopladas de SPICE (`K1 L1 L2 k`, ngspice 47, manual §3.1.1). El motor integra los dos flujos concatenados con la regla del inductor (trapezoidal) y se compara con ngspice con la misma red (`xfmr_reductor` y `xfmr_elevador`, dentro de 1 %). L2 = L1 / n² con n = Np:Ns, M = k √(L1 L2); k va de 0 a 0.9999 (con 1 el sistema de las dos inductancias es singular). La resistencia de cada devanado (omitida por omisión: 1 Ω) va en serie. El punto de cada devanado es P1 y S1. Sin saturación del núcleo, pérdidas de hierro ni capacitancia entre devanados: un transformador real de red tiene un k cercano a 0.98 y una inductancia de primario de varios henrios."
+  },
+  "datos": {
+    "equivalencias": { "kicad": "Device:Transformer_1P_1S", "falstad": "T", "proteus": "TRAN-2P2S", "sinVerificar": ["proteus"] },
+    "valores": {
+      "*": {
+        "pendiente": {
+          "presentaciones": "depende del transformador (EI, toroidal, de audio, de pulsos); no hay encapsulado común",
+          "parte": "depende de la potencia y del voltaje",
+          "hoja": "depende del fabricante",
+          "lcsc": "depende del modelo"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Sin presentación común única; KiCad 9 trae decenas de huellas de fabricantes concretos (Transformer_THT) y no se eligió una"
+        }
+      }
+    }
   }
 }

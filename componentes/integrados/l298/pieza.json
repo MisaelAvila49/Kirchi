@@ -1,0 +1,380 @@
+{
+  "id": "l298",
+  "nombre": {
+    "es": "Puente H L298",
+    "en": "L298 H-bridge"
+  },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": [
+    "l298",
+    "l298n",
+    "puente h",
+    "h-bridge",
+    "driver de motor",
+    "controlador de motor",
+    "driver motor",
+    "doble puente"
+  ],
+  "pines": [
+    {
+      "id": "ENA",
+      "nombre": "habilitación A (ENA)",
+      "x": -8,
+      "y": -6,
+      "ayuda": "En bajo las salidas OUT1 y OUT2 quedan al aire · en alto siguen a IN1 e IN2"
+    },
+    {
+      "id": "IN1",
+      "nombre": "entrada 1 (IN1)",
+      "x": -8,
+      "y": -4,
+      "ayuda": "Nivel TTL referido a GND · en alto OUT1 sube a VS, en bajo baja a SENSA"
+    },
+    {
+      "id": "IN2",
+      "nombre": "entrada 2 (IN2)",
+      "x": -8,
+      "y": -2,
+      "ayuda": "Nivel TTL referido a GND · en alto OUT2 sube a VS, en bajo baja a SENSA"
+    },
+    {
+      "id": "ENB",
+      "nombre": "habilitación B (ENB)",
+      "x": -8,
+      "y": 2,
+      "ayuda": "En bajo las salidas OUT3 y OUT4 quedan al aire · en alto siguen a IN3 e IN4"
+    },
+    {
+      "id": "IN3",
+      "nombre": "entrada 3 (IN3)",
+      "x": -8,
+      "y": 4,
+      "ayuda": "Nivel TTL referido a GND · en alto OUT3 sube a VS, en bajo baja a SENSB"
+    },
+    {
+      "id": "IN4",
+      "nombre": "entrada 4 (IN4)",
+      "x": -8,
+      "y": 6,
+      "ayuda": "Nivel TTL referido a GND · en alto OUT4 sube a VS, en bajo baja a SENSB"
+    },
+    {
+      "id": "OUT1",
+      "nombre": "salida 1 (OUT1)",
+      "x": 8,
+      "y": -6,
+      "ayuda": "Sin diodos internos, como el real · con un motor o una bobina pon un diodo rápido de esta salida a VS y otro de tierra a esta salida (1N4007 en una práctica, de recuperación rápida en un circuito real)"
+    },
+    {
+      "id": "OUT2",
+      "nombre": "salida 2 (OUT2)",
+      "x": 8,
+      "y": -4,
+      "ayuda": "Sin diodos internos, como el real · con un motor o una bobina pon un diodo rápido de esta salida a VS y otro de tierra a esta salida (1N4007 en una práctica, de recuperación rápida en un circuito real)"
+    },
+    {
+      "id": "SENSA",
+      "nombre": "sensor A (SENSE A)",
+      "x": 8,
+      "y": -2,
+      "ayuda": "Resistencia a tierra para medir la corriente del puente A · directo a tierra si no se usa"
+    },
+    {
+      "id": "SENSB",
+      "nombre": "sensor B (SENSE B)",
+      "x": 8,
+      "y": 2,
+      "ayuda": "Resistencia a tierra para medir la corriente del puente B · directo a tierra si no se usa"
+    },
+    {
+      "id": "OUT3",
+      "nombre": "salida 3 (OUT3)",
+      "x": 8,
+      "y": 4,
+      "ayuda": "Sin diodos internos, como el real · con un motor o una bobina pon un diodo rápido de esta salida a VS y otro de tierra a esta salida (1N4007 en una práctica, de recuperación rápida en un circuito real)"
+    },
+    {
+      "id": "OUT4",
+      "nombre": "salida 4 (OUT4)",
+      "x": 8,
+      "y": 6,
+      "ayuda": "Sin diodos internos, como el real · con un motor o una bobina pon un diodo rápido de esta salida a VS y otro de tierra a esta salida (1N4007 en una práctica, de recuperación rápida en un circuito real)"
+    },
+    {
+      "id": "VS",
+      "nombre": "alimentación del motor (VS)",
+      "x": -2,
+      "y": -10,
+      "ayuda": "Voltaje de las salidas, de unos 2.5 V sobre el nivel alto de las entradas hasta 46 V · máximo absoluto 50 V"
+    },
+    {
+      "id": "VSS",
+      "nombre": "alimentación lógica (VSS)",
+      "x": 2,
+      "y": -10,
+      "ayuda": "Lógica de 4.5 a 7 V, normalmente 5 V · consume unos 24 mA con las entradas en bajo"
+    },
+    {
+      "id": "GND",
+      "nombre": "tierra (GND)",
+      "x": 0,
+      "y": 10
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "L298N",
+      "opciones": [
+        "L298N"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "puente-h",
+    "entradas": [
+      "IN1",
+      "IN2",
+      "IN3",
+      "IN4"
+    ],
+    "habilita": [
+      "ENA",
+      "ENB"
+    ],
+    "salidas": [
+      "OUT1",
+      "OUT2",
+      "OUT3",
+      "OUT4"
+    ],
+    "sensa": "SENSA",
+    "sensb": "SENSB",
+    "vs": "VS",
+    "vss": "VSS",
+    "gnd": "GND",
+    "prop": "modelo",
+    "modelos": {
+      "L298N": {}
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "L298N": {
+          "fuente": "STMicroelectronics, hoja del L298 (DS0218 rev. 5), tabla 1 de máximos absolutos: alimentación del motor VS de 50 V, alimentación lógica VSS de 7 V y entradas de habilitación y de dato de −0.3 a 7 V. La corriente de salida (2 A continuos) no se vigila porque la medición de la pieza no la separa por salida.",
+          "limites": [
+            {
+              "nombre": "alimentación VS",
+              "de": "VS",
+              "a": "GND",
+              "max": 50,
+              "consejo": "baja el voltaje del motor a menos de 50 V."
+            },
+            {
+              "nombre": "alimentación VSS",
+              "de": "VSS",
+              "a": "GND",
+              "max": 7,
+              "consejo": "usa 5 V para la lógica."
+            },
+            {
+              "nombre": "entradas",
+              "de": [
+                "IN1",
+                "IN2",
+                "IN3",
+                "IN4",
+                "ENA",
+                "ENB"
+              ],
+              "a": "GND",
+              "min": -0.3,
+              "max": 7,
+              "consejo": "las entradas y las habilitaciones no pasan de 7 V ni bajan de −0.3 V; usa una señal de 5 V."
+            }
+          ]
+        }
+      }
+    }
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -12
+    },
+    "valor": {
+      "x": 0,
+      "y": 12
+    }
+  },
+  "rotulos": [
+    {
+      "texto": "ENA",
+      "x": -5.4,
+      "y": -6,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "IN1",
+      "x": -5.4,
+      "y": -4,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "IN2",
+      "x": -5.4,
+      "y": -2,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "ENB",
+      "x": -5.4,
+      "y": 2,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "IN3",
+      "x": -5.4,
+      "y": 4,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "IN4",
+      "x": -5.4,
+      "y": 6,
+      "tam": 1,
+      "alinear": "izq"
+    },
+    {
+      "texto": "OUT1",
+      "x": 5.4,
+      "y": -6,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "OUT2",
+      "x": 5.4,
+      "y": -4,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "SENSA",
+      "x": 5.4,
+      "y": -2,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "SENSB",
+      "x": 5.4,
+      "y": 2,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "OUT3",
+      "x": 5.4,
+      "y": 4,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "OUT4",
+      "x": 5.4,
+      "y": 6,
+      "tam": 1,
+      "alinear": "der"
+    },
+    {
+      "texto": "VS",
+      "x": -2,
+      "y": -6.8,
+      "tam": 1,
+      "alinear": "abajo"
+    },
+    {
+      "texto": "VSS",
+      "x": 2,
+      "y": -6.8,
+      "tam": 1,
+      "alinear": "abajo"
+    },
+    {
+      "texto": "GND",
+      "x": 0,
+      "y": 6.8,
+      "tam": 1,
+      "alinear": "arriba"
+    },
+    {
+      "texto": "L298",
+      "x": 0,
+      "y": 0,
+      "tam": 1.4
+    }
+  ],
+  "fuentes": {
+    "L298N": "STMicroelectronics, hoja del L298 (DS0218 rev. 5), tabla 4 con VS = 42 V, VSS = 5 V y 25 °C. Entradas: nivel bajo hasta 1.5 V y alto desde 2.3 V, y el modelo cambia en el punto medio, 1.9 V, porque la hoja no da un umbral único. Resistencia de entrada de 150 kΩ, de la corriente de 30 µA típica con la entrada a VSS menos 0.6 V. Caídas de cada transistor como la recta por los dos puntos típicos de la hoja: lado alto 1.35 V a 1 A y 2.0 V a 2 A (0.70 V y 0.65 Ω), lado bajo 1.2 V a 1 A y 1.7 V a 2 A (0.70 V y 0.50 Ω). Sale una caída total de 2.55 V a 1 A y 3.70 V a 2 A, dentro de lo que publica la hoja (1.80 a 3.2 V a 1 A, máximo 4.9 V a 2 A). Retardos y tiempos de subida y bajada de la tabla de tiempos con carga resistiva (de 0.25 a 2 µs). La lógica consume 24 mA típicos con las entradas en bajo, que se modelan como 208 Ω entre VSS y GND. No lleva diodos internos de rueda libre, como el real: con un motor o una bobina hacen falta diodos externos rápidos. La recta de las caídas solo está ajustada entre 1 A y 2 A, y por debajo de 1 A es una extrapolación."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": {
+      "kicad": "Driver_Motor:L298HN",
+      "sinVerificar": []
+    },
+    "valores": {
+      "L298N": {
+        "fabricante": "STMicroelectronics",
+        "parte": "L298N",
+        "hoja": "https://www.st.com/resource/en/datasheet/l298.pdf",
+        "aproximada": "No lleva diodos internos de rueda libre, como el real; la salida se modela como un Thévenin que también conduce al revés, y las caídas son un ajuste lineal a los puntos de 1 A y 2 A de la hoja, no la curva de su figura 3.",
+        "presentaciones": [
+          {
+            "encapsulado": "Multiwatt15",
+            "patillas": {
+              "SENSA": "1",
+              "OUT1": "2",
+              "OUT2": "3",
+              "VS": "4",
+              "IN1": "5",
+              "ENA": "6",
+              "IN2": "7",
+              "GND": "8",
+              "VSS": "9",
+              "IN3": "10",
+              "ENB": "11",
+              "IN4": "12",
+              "OUT3": "13",
+              "OUT4": "14",
+              "SENSB": "15"
+            },
+            "huella": "Package_TO_SOT_THT:TO-220-15_P2.54x5.08mm_StaggerOdd_Lead4.58mm_Vertical",
+            "lcsc": {
+              "numero": "C19922",
+              "comprobado": "2026-10-26"
+            }
+          }
+        ],
+        "pendiente": {
+          "huella": "El símbolo Driver_Motor:L298N de KiCad 9 nombra TO-220-15_P2.54x2.54mm_StaggerOdd_Lead4.58mm_Vertical, que no existe en 9.0.0 (existen P2.54x5.08mm Lead4.58mm vertical y P2.54x2.54mm Lead5.84mm horizontal). Se usó la vertical P2.54x5.08mm: pads 1 a 15, descripción que cita la hoja del L298 y medidas del Multiwatt15L V (paso 1.27 mm, filas a 5.08 mm). Si StaggerOdd o StaggerEven corresponde al dibujo de la hoja no se determinó; el conjunto de pads es el mismo."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "STMicroelectronics L298 DS0218 rev. 5 (oct 2023) fig. 2 y tabla 3, Multiwatt15L V: 1 Sense A, 2 Out1, 3 Out2, 4 VS, 5 Input1, 6 Enable A, 7 Input2, 8 GND, 9 VSS, 10 Input3, 11 Enable B, 12 Input4, 13 Out3, 14 Out4, 15 Sense B, pestaña a la patilla 8; coincide con Driver_Motor:L298HN de KiCad 9.0.0. LCSC C19922 es el L298N de ST, MultiwAtt-15, leído en lcsc.com el 2026-10-26"
+        }
+      }
+    }
+  }
+}

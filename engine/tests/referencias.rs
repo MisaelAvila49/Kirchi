@@ -1,6 +1,6 @@
 //! Kirchi contra ngspice. Cada caso de `engine/referencias/` tiene su `.cir`, su `.csv` de ngspice (`node scripts/referencias-ngspice.mjs`) y la misma netlist para el motor (`.json`). Las pruebas no necesitan ngspice.
 //! Punto de operación: 1 % por cifra. Transitorio: punto a punto con 1 % del valor (mínimo 1 % del pico más 1 µV o 1 nA) y, donde falla, ventana de tiempo `tolerancia_t` (flancos, arranque, saturación). Cada caso corre con LU densa y dispersa. Ambos programas usan las tolerancias del `.options` de cada `.cir` (reltol 1e-4).
-//! `opamp_comparador`, `fuente_cv_cc` y `xfmr_elevador` tienen la referencia convergida (reltol 1e-6, paso máximo 0.05 a 2 µs): con reltol 1e-4 el instante de los flancos depende de la tolerancia de cada programa. Los casos digitales llevan `xtrtol=7` para usar el mismo `trtol`, comparan secuencias de niveles contra `<caso>.eventos.csv` y descartan niveles más breves que `tolerancia_t`.
+//! `opamp_comparador`, `fuente_cv_cc`, `xfmr_elevador` y las conmutaciones de los optoacopladores tienen la referencia convergida (reltol 1e-6, paso máximo 0.05 a 2 µs): con reltol 1e-4 el instante de los flancos depende de la tolerancia de cada programa. Los casos digitales llevan `xtrtol=7` para usar el mismo `trtol`, comparan secuencias de niveles contra `<caso>.eventos.csv` y descartan niveles más breves que `tolerancia_t`.
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -29,6 +29,16 @@ struct Caso {
     /// Cambios en caliente: en el instante `t` el elemento `element` pasa a ser `nuevo`.
     #[serde(default)]
     cambios: Vec<Cambio>,
+    /// Valores de los canales de las perillas en vivo, puestos de antemano (con canales de forma rampa, los puntos de un pwl).
+    #[serde(default)]
+    valores: Vec<ValorCanal>,
+}
+
+#[derive(Deserialize)]
+struct ValorCanal {
+    t: f64,
+    canal: usize,
+    valor: f64,
 }
 
 #[derive(Deserialize, Clone)]
@@ -44,6 +54,8 @@ enum Columna {
     Nodo(usize),
     Corriente(usize),
     Aux(usize),
+    /// El `estado` del elemento (el ángulo del eje de un motor a pasos).
+    Estado(usize),
     /// La corriente que entra al elemento `[elemento, casilla]` por uno de sus terminales (`Mixto::corrientes_de`).
     Terminal([usize; 2]),
 }
@@ -52,7 +64,7 @@ impl Columna {
     /// El piso de la tolerancia: 1 nA en una corriente y 1 µV en un voltaje.
     fn piso(self) -> f64 {
         match self {
-            Columna::Nodo(_) | Columna::Aux(_) => 1e-6,
+            Columna::Nodo(_) | Columna::Aux(_) | Columna::Estado(_) => 1e-6,
             Columna::Corriente(_) | Columna::Terminal(_) => 1e-9,
         }
     }
@@ -113,6 +125,7 @@ fn medir(tr: &Mixto, c: Columna) -> f64 {
         Columna::Nodo(k) => tr.voltage(k),
         Columna::Corriente(k) => tr.readings()[k].i,
         Columna::Aux(k) => tr.readings()[k].aux,
+        Columna::Estado(k) => tr.readings()[k].estado,
         Columna::Terminal([k, j]) => {
             let mut buf = [0.0; kirchi_engine::devices::CASILLAS_MAX];
             assert!(tr.corrientes_de(k, &mut buf), "elemento {k}: no tiene corrientes por terminal");
@@ -125,7 +138,7 @@ fn medir(tr: &Mixto, c: Columna) -> f64 {
 fn tiempo(tr: &Mixto, c: Columna) -> f64 {
     match c {
         Columna::Nodo(k) => tr.tiempo_de_nodo(k),
-        Columna::Corriente(k) | Columna::Aux(k) | Columna::Terminal([k, _]) => tr.tiempo_de_elemento(k),
+        Columna::Corriente(k) | Columna::Aux(k) | Columna::Estado(k) | Columna::Terminal([k, _]) => tr.tiempo_de_elemento(k),
     }
 }
 
@@ -142,6 +155,9 @@ fn comparar(caso: &str, solver: SolverKind) -> BTreeMap<String, (f64, f64, f64)>
     let mut tr = Mixto::with_solver(c.netlist, c.hmax, solver).unwrap();
     tr.set_tolerances(TOLERANCIAS);
     tr.registrar_cambios(true);
+    for v in &c.valores {
+        tr.poner_valor(v.canal, v.t, v.valor).unwrap();
+    }
     let iniciales: BTreeMap<String, char> = c.eventos.iter().map(|(n, &r)| (n.clone(), letra(tr.nivel(r)))).collect();
     let mut peor = BTreeMap::new();
     if nombres[0] != "t" {
@@ -400,6 +416,371 @@ fn mosfet_conmutacion() {
     revisar("mosfet_conmutacion");
 }
 
+// JFET de nivel 1: punto de operación por modelo, región lineal y saturación, drenador invertido, fuente común y conmutación.
+#[test]
+fn jfet_2n5457_autopolarizacion() {
+    revisar("jfet_2n5457_autopolarizacion");
+}
+
+#[test]
+fn jfet_j201_autopolarizacion() {
+    revisar("jfet_j201_autopolarizacion");
+}
+
+#[test]
+fn jfet_2n3819_autopolarizacion() {
+    revisar("jfet_2n3819_autopolarizacion");
+}
+
+#[test]
+fn jfet_2n5460_autopolarizacion() {
+    revisar("jfet_2n5460_autopolarizacion");
+}
+
+#[test]
+fn jfet_j175_autopolarizacion() {
+    revisar("jfet_j175_autopolarizacion");
+}
+
+#[test]
+fn jfet_2n3819_triodo() {
+    revisar("jfet_2n3819_triodo");
+}
+
+#[test]
+fn jfet_2n3819_saturacion() {
+    revisar("jfet_2n3819_saturacion");
+}
+
+#[test]
+fn jfet_j201_inverso() {
+    revisar("jfet_j201_inverso");
+}
+
+#[test]
+fn jfet_2n5457_fuente_comun() {
+    revisar("jfet_2n5457_fuente_comun");
+}
+
+#[test]
+fn jfet_2n3819_fuente_corriente() {
+    revisar("jfet_2n3819_fuente_corriente");
+}
+
+#[test]
+fn jfet_j175_interruptor() {
+    revisar("jfet_j175_interruptor");
+}
+
+// Fuentes controladas E, G, H y F: amplificador, lazo de ganancia alta, transconductancia, transresistencia, espejo y un filtro RC.
+#[test]
+fn vcvs_amplificador() {
+    revisar("vcvs_amplificador");
+}
+
+#[test]
+fn vcvs_lazo() {
+    revisar("vcvs_lazo");
+}
+
+#[test]
+fn vccs_transconductancia() {
+    revisar("vccs_transconductancia");
+}
+
+#[test]
+fn ccvs_transresistencia() {
+    revisar("ccvs_transresistencia");
+}
+
+#[test]
+fn cccs_espejo() {
+    revisar("cccs_espejo");
+}
+
+#[test]
+fn vcvs_filtro_rc() {
+    revisar("vcvs_filtro_rc");
+}
+
+// Fuente por tramos: rampa, escalones con subida de 1 µs y repetición.
+#[test]
+fn pwl_rampa() {
+    revisar("pwl_rampa");
+}
+
+#[test]
+fn pwl_escalones() {
+    revisar("pwl_escalones");
+}
+
+#[test]
+fn pwl_repeticion() {
+    revisar("pwl_repeticion");
+}
+
+// Termistor NTC: divisor a tres temperaturas con la tabla R/T, autocalentamiento, limitador de arranque y ambiente que cambia en el tiempo.
+#[test]
+fn ntc_10k_divisor_25() {
+    revisar("ntc_10k_divisor_25");
+}
+
+#[test]
+fn ntc_10k_divisor_100c() {
+    revisar("ntc_10k_divisor_100c");
+}
+
+#[test]
+fn ntc_100k_divisor_60c() {
+    revisar("ntc_100k_divisor_60c");
+}
+
+#[test]
+fn ntc_10k_autocalentamiento() {
+    revisar("ntc_10k_autocalentamiento");
+}
+
+#[test]
+fn ntc_arranque_limitador() {
+    revisar("ntc_arranque_limitador");
+}
+
+#[test]
+fn ntc_10k_cambio_temperatura() {
+    revisar("ntc_10k_cambio_temperatura");
+}
+
+// Termistor PTC cerámico: divisor a tres temperaturas, conmutación a 230 V con autocalentamiento y ambiente que sube por la zona de salto y baja.
+#[test]
+fn ptc_divisor_25() {
+    revisar("ptc_divisor_25");
+}
+
+#[test]
+fn ptc_divisor_80c() {
+    revisar("ptc_divisor_80c");
+}
+
+#[test]
+fn ptc_divisor_125c() {
+    revisar("ptc_divisor_125c");
+}
+
+#[test]
+fn ptc_conmutacion_230v() {
+    revisar("ptc_conmutacion_230v");
+}
+
+#[test]
+fn ptc_cambio_temperatura() {
+    revisar("ptc_cambio_temperatura");
+}
+
+// Fotorresistencia: divisor a luces fijas y escalón de luz con subida de 20 ms y bajada de 30 ms.
+#[test]
+fn ldr_gl5528_10lx() {
+    revisar("ldr_gl5528_10lx");
+}
+
+#[test]
+fn ldr_gl5528_1000lx() {
+    revisar("ldr_gl5528_1000lx");
+}
+
+#[test]
+fn ldr_gl5539_0p1lx() {
+    revisar("ldr_gl5539_0p1lx");
+}
+
+#[test]
+fn ldr_gl5516_300lx() {
+    revisar("ldr_gl5516_300lx");
+}
+
+#[test]
+fn ldr_gl5528_escalon_luz() {
+    revisar("ldr_gl5528_escalon_luz");
+}
+
+// LM35: 10 mV por grado a tres temperaturas y una rampa de temperatura que el seguidor sigue.
+#[test]
+fn lm35_25c() {
+    revisar("lm35_25c");
+}
+
+#[test]
+fn lm35_100c() {
+    revisar("lm35_100c");
+}
+
+#[test]
+fn lm35_0c() {
+    revisar("lm35_0c");
+}
+
+#[test]
+fn lm35_rampa() {
+    revisar("lm35_rampa");
+}
+
+// TMP36: 0.5 V más 10 mV por grado a tres temperaturas y una rampa de temperatura que el seguidor sigue.
+#[test]
+fn tmp36_25c() {
+    revisar("tmp36_25c");
+}
+
+#[test]
+fn tmp36_m40c() {
+    revisar("tmp36_m40c");
+}
+
+#[test]
+fn tmp36_125c() {
+    revisar("tmp36_125c");
+}
+
+#[test]
+fn tmp36_rampa() {
+    revisar("tmp36_rampa");
+}
+
+// Optoacoplador 4N25: LED y fototransistor de CTR 50 % en CC, saturado y conmutando una carga.
+#[test]
+fn opto_4n25_ctr() {
+    revisar("opto_4n25_ctr");
+}
+
+#[test]
+fn opto_4n25_saturado() {
+    revisar("opto_4n25_saturado");
+}
+
+#[test]
+fn opto_4n25_conmutacion() {
+    revisar("opto_4n25_conmutacion");
+}
+
+// Optoacoplador PC817: el CTR nominal de cada rango en CC y la conmutación del rango A.
+#[test]
+fn opto_pc817a_ctr() {
+    revisar("opto_pc817a_ctr");
+}
+
+#[test]
+fn opto_pc817b_ctr() {
+    revisar("opto_pc817b_ctr");
+}
+
+#[test]
+fn opto_pc817c_ctr() {
+    revisar("opto_pc817c_ctr");
+}
+
+#[test]
+fn opto_pc817d_ctr() {
+    revisar("opto_pc817d_ctr");
+}
+
+#[test]
+fn opto_pc817a_conmutacion() {
+    revisar("opto_pc817a_conmutacion");
+}
+
+// IGBT (MOSFET que maneja un PNP con el diodo en antiparalelo): conducción, zona activa, diodo y conmutación de los dos modelos.
+#[test]
+fn igbt_irg4bc30ud_conduccion() {
+    revisar("igbt_irg4bc30ud_conduccion");
+}
+
+#[test]
+fn igbt_irg4bc30ud_activa() {
+    revisar("igbt_irg4bc30ud_activa");
+}
+
+#[test]
+fn igbt_irg4bc30ud_diodo() {
+    revisar("igbt_irg4bc30ud_diodo");
+}
+
+#[test]
+fn igbt_irg4bc30ud_conmutacion() {
+    revisar("igbt_irg4bc30ud_conmutacion");
+}
+
+#[test]
+fn igbt_fga25n120antd_conduccion() {
+    revisar("igbt_fga25n120antd_conduccion");
+}
+
+#[test]
+fn igbt_fga25n120antd_activa() {
+    revisar("igbt_fga25n120antd_activa");
+}
+
+#[test]
+fn igbt_fga25n120antd_conmutacion() {
+    revisar("igbt_fga25n120antd_conmutacion");
+}
+
+// UJT como equivalente de un PUT: antes del pico, saturado, sobre el valle y el oscilador de relajación (con LU densa y dispersa).
+#[test]
+fn ujt_2n2646_bajo() {
+    revisar("ujt_2n2646_bajo");
+}
+
+#[test]
+fn ujt_2n2646_conduccion() {
+    revisar("ujt_2n2646_conduccion");
+}
+
+#[test]
+fn ujt_2n2646_valle() {
+    revisar("ujt_2n2646_valle");
+}
+
+#[test]
+fn ujt_2n2646_relajacion() {
+    revisar("ujt_2n2646_relajacion");
+}
+
+// Motor a pasos bipolar con fuentes de 12 V y 6 Ω por fase: un paso, ocho medios pasos y el arranque con carga.
+#[test]
+fn pasos_17hs4401_paso() {
+    revisar("pasos_17hs4401_paso");
+}
+
+#[test]
+fn pasos_17hs4401_medios_pasos() {
+    revisar("pasos_17hs4401_medios_pasos");
+}
+
+#[test]
+fn pasos_17hs4401_carga() {
+    revisar("pasos_17hs4401_carga");
+}
+
+// Motor a pasos unipolar con la toma a 5 V y cada mitad a tierra: un paso, ocho medios pasos y el arranque con carga.
+#[test]
+fn pasos_28byj48_paso() {
+    revisar("pasos_28byj48_paso");
+}
+
+#[test]
+fn pasos_28byj48_medios_pasos() {
+    revisar("pasos_28byj48_medios_pasos");
+}
+
+#[test]
+fn pasos_28byj48_carga() {
+    revisar("pasos_28byj48_carga");
+}
+
+// L298 armado con puentes y habilitación contra XSPICE: un motor DC con diodos que frena, gira, frena, gira al revés y frena.
+#[test]
+fn l298_motor_dc() {
+    revisar("l298_motor_dc");
+}
+
 #[test]
 fn opamp_inversor() {
     revisar("opamp_inversor");
@@ -610,4 +991,252 @@ fn el_arnes_aplica_los_cambios_del_mismo_instante_y_los_del_instante_cero() {
     let (_, v, i) = *vistos.last().unwrap();
     assert_eq!(v, 5.0);
     assert!((i - 0.01).abs() < 1e-12, "{i}");
+}
+
+#[test]
+fn hc_compuertas_n() {
+    revisar("hc_compuertas_n");
+}
+
+#[test]
+fn hc_schmitt() {
+    revisar("hc_schmitt");
+}
+
+#[test]
+fn hc_bus_tres_estados() {
+    revisar("hc_bus_tres_estados");
+}
+
+// Combinacionales de tabla (LUT) de la Librería contra la síntesis de XSPICE: los mismos niveles en los mismos instantes.
+// Los flancos de entradas distintas distan más que el retardo del chip (o coinciden): d_genlut vuelve a disparar sus salidas
+// con cada cambio de entrada y eso reinicia el retardo inercial de la salida, así que un flanco cercano la atrasa en ngspice.
+// Decodificador de 3 a 8 de tabla (LUT) con las tres habilitaciones, en 74HC.
+#[test]
+fn lut_decodificador_138_hc() {
+    revisar("lut_decodificador_138_hc");
+}
+
+// El mismo decodificador en 74LS.
+#[test]
+fn lut_decodificador_138_ls() {
+    revisar("lut_decodificador_138_ls");
+}
+
+// Una unidad del doble decodificador de 2 a 4, en 74LS.
+#[test]
+fn lut_decodificador_139_ls() {
+    revisar("lut_decodificador_139_ls");
+}
+
+// Decodificador BCD a siete segmentos de colector abierto, con BI/RBO al aire y RBI en pulso.
+#[test]
+fn lut_decodificador_7447_ls() {
+    revisar("lut_decodificador_7447_ls");
+}
+
+// El mismo decodificador con la prueba de segmentos en pulso.
+#[test]
+fn lut_decodificador_7447_ls_prueba_lt() {
+    revisar("lut_decodificador_7447_ls_prueba_lt");
+}
+
+// Decodificador BCD a decimal CD4000B.
+#[test]
+fn lut_decodificador_4028_cd() {
+    revisar("lut_decodificador_4028_cd");
+}
+
+// Multiplexor de 8 a 1 con la salida directa y la complementaria.
+#[test]
+fn lut_multiplexor_151_hc() {
+    revisar("lut_multiplexor_151_hc");
+}
+
+// Doble multiplexor de 4 a 1 de rebanadas con selección común.
+#[test]
+fn lut_multiplexor_153_ls() {
+    revisar("lut_multiplexor_153_ls");
+}
+
+// Cuádruple multiplexor de 2 a 1 de rebanadas.
+#[test]
+fn lut_multiplexor_157_hc() {
+    revisar("lut_multiplexor_157_hc");
+}
+
+// Codificador de prioridad de 8 a 3 con GS y EO.
+#[test]
+fn lut_codificador_148_ls() {
+    revisar("lut_codificador_148_ls");
+}
+
+// Sumador de 4 bits de tabla generada.
+#[test]
+fn lut_sumador_283_hc() {
+    revisar("lut_sumador_283_hc");
+}
+
+// Comparador de magnitud de 4 bits con cascada, de tabla generada.
+#[test]
+fn lut_comparador_85_ls() {
+    revisar("lut_comparador_85_ls");
+}
+
+// Búfer octal de tres estados en dos grupos de cuatro.
+#[test]
+fn lut_bufer_244_hc() {
+    revisar("lut_bufer_244_hc");
+}
+
+// Transceptor octal bidireccional entre dos búferes de tres estados que manejan cada lado por turnos.
+#[test]
+fn lut_transceptor_245_hc() {
+    revisar("lut_transceptor_245_hc");
+}
+
+// Contador binario 74HC161 con carga síncrona, borrado asíncrono y habilitaciones al azar contra la síntesis de ngspice.
+#[test]
+fn msi_contador_161_hc() {
+    revisar("msi_contador_161_hc");
+}
+
+// El mismo contador en 74LS con sus retardos de subida y bajada.
+#[test]
+fn msi_contador_161_ls() {
+    revisar("msi_contador_161_ls");
+}
+
+// Contador binario 74HC163 con borrado y carga síncronos y habilitaciones al azar contra la síntesis de ngspice.
+#[test]
+fn msi_contador_163_hc() {
+    revisar("msi_contador_163_hc");
+}
+
+// El mismo contador en 74LS.
+#[test]
+fn msi_contador_163_ls() {
+    revisar("msi_contador_163_ls");
+}
+
+// Contador de década 74HC190 con sentido, habilitación y carga asíncrona al azar contra la síntesis de ngspice, con sus salidas MAX/MIN y RCO.
+#[test]
+fn msi_contador_190_hc() {
+    revisar("msi_contador_190_hc");
+}
+
+// El mismo contador en 74LS.
+#[test]
+fn msi_contador_190_ls() {
+    revisar("msi_contador_190_ls");
+}
+
+// Contador binario 74HC193 de dos relojes con borrado y carga asíncronos al azar contra la síntesis de ngspice, con sus salidas CO y BO.
+#[test]
+fn msi_contador_193_hc() {
+    revisar("msi_contador_193_hc");
+}
+
+// El mismo contador en 74LS.
+#[test]
+fn msi_contador_193_ls() {
+    revisar("msi_contador_193_ls");
+}
+
+// Contador Johnson CD4017B con INH, reloj y borrado al azar contra la síntesis de ngspice, con el 4017 contando también por la bajada de INH.
+#[test]
+fn msi_contador_4017_cd() {
+    revisar("msi_contador_4017_cd");
+}
+
+// El mismo contador en 74HC.
+#[test]
+fn msi_contador_4017_hc() {
+    revisar("msi_contador_4017_hc");
+}
+
+// Modelos comerciales agregados a transistores, diodo, amplificadores, comparador y reguladores, con los circuitos de la librería exportados a JSON.
+#[test]
+fn bjt_bc337() {
+    revisar("bjt_bc337");
+}
+
+#[test]
+fn bjt_bc327() {
+    revisar("bjt_bc327");
+}
+
+#[test]
+fn bjt_2n5551() {
+    revisar("bjt_2n5551");
+}
+
+#[test]
+fn bjt_2n5401() {
+    revisar("bjt_2n5401");
+}
+
+#[test]
+fn bjt_2n3055() {
+    revisar("bjt_2n3055");
+}
+
+#[test]
+fn diodo_1n4001() {
+    revisar("diodo_1n4001");
+}
+
+#[test]
+fn diodo_1n4001_ruptura() {
+    revisar("diodo_1n4001_ruptura");
+}
+
+#[test]
+fn reg_7809_arranque() {
+    revisar("reg_7809_arranque");
+}
+
+#[test]
+fn reg_7815_arranque() {
+    revisar("reg_7815_arranque");
+}
+
+#[test]
+fn reg_7912_arranque() {
+    revisar("reg_7912_arranque");
+}
+
+#[test]
+fn reg_7915_arranque() {
+    revisar("reg_7915_arranque");
+}
+
+#[test]
+fn ao_mcp6002_ac() {
+    revisar("ao_mcp6002_ac");
+}
+
+#[test]
+fn ao_mcp6002_pulso() {
+    revisar("ao_mcp6002_pulso");
+}
+
+#[test]
+fn ao_op27_ac() {
+    revisar("ao_op27_ac");
+}
+
+#[test]
+fn ao_op27_pulso() {
+    revisar("ao_op27_pulso");
+}
+
+#[test]
+fn comp_lm339_pulso() {
+    revisar("comp_lm339_pulso");
+}
+
+#[test]
+fn comp_lm339_seno() {
+    revisar("comp_lm339_seno");
 }

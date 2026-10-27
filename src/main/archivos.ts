@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { closeSync, constants, copyFileSync, fstatSync, mkdirSync, openSync, readdirSync, readSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { closeSync, constants, copyFileSync, fstatSync, mkdirSync, openSync, readdirSync, readSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { isAbsolute, join, normalize, win32 } from 'node:path'
 import { cambiarExtension, esRutaKir, extension, LARGO_MAXIMO_RUTA, LIMITE_KIR, MAX_ARCHIVOS_RECIENTES, nombreDeRuta } from '../compartido/archivos'
 
@@ -86,6 +86,16 @@ export function leerKirDelDisco(ruta: unknown, limite = LIMITE_KIR): Leido {
 export function claveRuta(ruta: string, plataforma: NodeJS.Platform = process.platform): string {
   const n = normalize(ruta)
   return plataforma === 'linux' ? n : n.toLowerCase()
+}
+
+/** La clave de un archivo que existe, por su ruta real: la misma para su nombre corto de Windows (MISAE~1), otra
+ * capitalización o un enlace a la carpeta. Si no se puede resolver, la de `claveRuta`. */
+export function claveRutaReal(ruta: string, plataforma: NodeJS.Platform = process.platform): string {
+  try {
+    return claveRuta(realpathSync.native(ruta), plataforma)
+  } catch {
+    return claveRuta(ruta, plataforma)
+  }
 }
 
 /** Rutas donde la interfaz puede escribir: las elegidas en un diálogo de guardar o exportar y los archivos abiertos en la sesión. */

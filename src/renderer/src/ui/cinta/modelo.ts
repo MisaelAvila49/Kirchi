@@ -84,7 +84,7 @@ export const PESTAÑAS: readonly DefPestaña[] = [
     nombre: 'Inicio',
     grupos: [
       { id: 'archivo', nombre: 'Archivo', icono: 'abrir', prioridad: 1, columnas: [grande('guardar'), pila('nuevo', 'abrir'), pila('guardar-como', 'recientes'), pila('exportar', 'guardar-plantilla')] },
-      { id: 'editar', nombre: 'Editar', icono: 'pegar', prioridad: 7, columnas: [iconos(2, 'cortar', 'copiar', 'pegar', 'duplicar', 'borrar', 'todo')] },
+      { id: 'editar', nombre: 'Editar', icono: 'pegar', prioridad: 7, columnas: [iconos(2, 'cortar', 'copiar', 'pegar', 'duplicar', 'borrar', 'todo', 'agrupar-encapsulados')] },
       { id: 'colocar', nombre: 'Colocar', icono: 'pieza', prioridad: 8, columnas: [grande('pieza'), grande('figura'), iconos(2, 'etiqueta', 'tierra', 'alimentacion', 'nota')] },
       // Avanzar en el tiempo (el menú de qué avanza cada vez) con las flechas Retroceder y Avanzar debajo, junto a Simular y Detener.
       { id: 'vista-previa', nombre: 'Simular', icono: 'simular', prioridad: 9, columnas: [grande('simular'), grande('detener'), par('avanzar-tiempo', 'retroceder', 'avanzar'), grande('grabar')] },
@@ -100,6 +100,7 @@ export const PESTAÑAS: readonly DefPestaña[] = [
       { id: 'paneles', nombre: 'Paneles', icono: 'paneles', prioridad: 3, columnas: [pila('panel-libreria', 'panel-plantillas'), pila('panel-calculadoras', 'panel-inspector'), pila('panel-proyecto', 'panel-mediciones'), pila('panel-instrumentos')] },
       // No van en un grupo propio: la velocidad del tiempo, las animaciones y el sonido van con la vista para no ensanchar Simular.
       { id: 'tiempo', nombre: 'Tiempo y animación', icono: 'velocidad', prioridad: 4, columnas: [grande('velocidad'), pila('mas-lento', 'mas-rapido'), pila('animaciones', 'sonido')] },
+      { id: 'lienzo', nombre: 'Lienzo', icono: 'pieza', prioridad: 5, columnas: [grande('numeros-patilla')] },
       { id: 'ventana', nombre: 'Ventana', icono: 'pantallaCompleta', prioridad: 2, columnas: [grande('limpio'), pila('pantalla-completa', 'control-tamano')] }
     ]
   },

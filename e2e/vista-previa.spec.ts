@@ -1,7 +1,10 @@
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
-import { mkdtempSync, readFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import electronPath from 'electron'
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { fallasGraves } from './axe'
 import { verFranja, verInspector, verMediciones } from './franja'
 import { abrirPaneles, carpetaNueva, lanzar } from './lanzar'
@@ -147,9 +150,9 @@ test('el chip de una red aparece al pasar el ratón por su cable y se mueve un p
   // Mientras se arrastra, la red del chip sigue a la vista aunque el puntero ya no esté sobre él.
   const durante = (await sonda(page, 'chips'))[0]
   const mov = Math.hypot(durante.x - antes.x, durante.y - antes.y)
-  // El desplazo se limita a 8 unidades finas (10 mm) del lugar calculado y no se guarda en el documento.
+  // El chip se aleja a lo más 8 unidades (10 mm) de su red; parte a 1.6 del cable, así que se mueve a lo más 9.6 desde su lugar calculado.
   expect(mov).toBeGreaterThan(0.5)
-  expect(mov).toBeLessThanOrEqual(8.01)
+  expect(mov).toBeLessThanOrEqual(8 + 1.6 + 0.01)
   await page.mouse.up()
   // Al soltar, el puntero quedó lejos del chip (el desplazo está acotado) y de su cable: el chip se oculta.
   await expect.poll(async () => (await sonda(page, 'chips')).length).toBe(0)
@@ -268,6 +271,9 @@ test('un LED directo a una fuente avisa y no deja simular; con una resistencia e
   ))
   await simular(page)
   await expect.poll(async () => (await sonda(page, 'simulacion')).piezas.d1?.i as number).toBeGreaterThan(0.02)
+  // Cada corrida empieza con el Registro vacío: el aviso de la anterior ya no está.
+  await verFranja(page, 'Registro')
+  await expect(page.locator('.registro')).not.toContainText('sin resistencia: agrega una en serie')
   await page.keyboard.press('Shift+F5')
   await app.close()
 })
@@ -441,28 +447,56 @@ async function recolectar(page: Page): Promise<void> {
   await cdp.detach()
 }
 
+/** Carga 1,000 piezas, fuerza el recolector y compara la memoria privada de la aplicación con el umbral de su pantalla. */
+async function memoriaConMilPiezas(app: ElectronApplication, page: Page, etiqueta: string): Promise<void> {
+  await sonda(page, 'cargarDemo', 1000)
+  await page.waitForTimeout(2000)
+  await recolectar(page)
+  await page.waitForTimeout(500)
+  const pantalla = await app.evaluate(({ screen }) => {
+    const d = screen.getPrimaryDisplay()
+    return { w: Math.round(d.size.width * d.scaleFactor), h: Math.round(d.size.height * d.scaleFactor) }
+  })
+  const ventana = await page.evaluate(() => ({ w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio }))
+  const umbral = pantalla.w * pantalla.h > 1920 * 1080 ? 350 : 300
+  const m = await memoria(app)
+  console.log(
+    `memoria RECIEN ABIERTA con 1,000 piezas (${etiqueta}): ${m.priv.toFixed(0)} MB privados, ${m.ws.toFixed(0)} MB de conjunto de trabajo; ` +
+      `pantalla ${pantalla.w}×${pantalla.h}, ventana ${ventana.w}×${ventana.h} a ${ventana.dpr}×, umbral ${umbral} MB`
+  )
+  expect(m.priv).toBeLessThan(umbral)
+}
+
 for (const corrida of [1, 2, 3]) {
   test(`memoria con 1,000 piezas a pantalla completa, aplicación recién abierta y recolector forzado (corrida ${corrida} de 3)`, async () => {
     const { app, page } = await abrir()
-    await sonda(page, 'cargarDemo', 1000)
-    await page.waitForTimeout(2000)
-    await recolectar(page)
-    await page.waitForTimeout(500)
-    const pantalla = await app.evaluate(({ screen }) => {
-      const d = screen.getPrimaryDisplay()
-      return { w: Math.round(d.size.width * d.scaleFactor), h: Math.round(d.size.height * d.scaleFactor) }
-    })
-    const ventana = await page.evaluate(() => ({ w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio }))
-    const umbral = pantalla.w * pantalla.h > 1920 * 1080 ? 350 : 300
-    const m = await memoria(app)
-    console.log(
-      `memoria RECIEN ABIERTA con 1,000 piezas (corrida ${corrida}): ${m.priv.toFixed(0)} MB privados, ${m.ws.toFixed(0)} MB de conjunto de trabajo; ` +
-        `pantalla ${pantalla.w}×${pantalla.h}, ventana ${ventana.w}×${ventana.h} a ${ventana.dpr}×, umbral ${umbral} MB`
-    )
-    expect(m.priv).toBeLessThan(umbral)
+    await memoriaConMilPiezas(app, page, `corrida ${corrida}`)
     await app.close()
   })
 }
+
+test('memoria con 1,000 piezas y el asistente conectado, aplicación recién abierta y recolector forzado', async () => {
+  // El asistente quedó encendido de una sesión anterior y un puente real (`Kirchi --mcp`) se une a la ventana. El puente es
+  // otro proceso: no cuenta en las métricas de la ventana.
+  const datos = carpetaNueva()
+  writeFileSync(join(datos, 'settings.json'), JSON.stringify({ asistente: { activo: true } }))
+  const { app, page } = await abrir({ datos })
+  const env: Record<string, string> = {}
+  for (const [k, v] of Object.entries(process.env)) if (v !== undefined && k !== 'ELECTRON_RUN_AS_NODE') env[k] = v
+  const cliente = new Client({ name: 'Prueba de memoria', version: '1' })
+  cliente.onerror = () => {}
+  try {
+    await cliente.connect(new StdioClientTransport({ command: electronPath as unknown as string, args: ['.', '--mcp', `--datos=${datos}`], env, stderr: 'pipe' }))
+    await expect(page.locator('.chip-asistente')).toHaveAttribute('data-globo-nombre', 'Conectado: Prueba de memoria')
+    await memoriaConMilPiezas(app, page, 'asistente conectado')
+    // La medición se hizo con el puente unido de verdad.
+    const estado = JSON.parse((await cliente.callTool({ name: 'estado', arguments: {} }) as { content: { text: string }[] }).content[0].text)
+    expect(estado).toMatchObject({ ventana: true })
+  } finally {
+    await cliente.close().catch(() => {})
+    await app.close()
+  }
+})
 
 /** 24 filas de 41 resistencias de 1 kΩ en paralelo, cada una con su fuente de 5 V y su tierra: 984 resistencias que sí simulan. */
 function milPiezasSimulables() {

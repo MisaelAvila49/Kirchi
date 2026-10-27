@@ -327,6 +327,40 @@ describe('ServicioArchivos: guardar', () => {
   })
 })
 
+describe('ServicioArchivos: archivo abierto que cambia en el disco', () => {
+  it('sabe qué archivo tiene abierto, avisa si otro lo cambia (no si guarda la ventana) y Recargar lo lee de nuevo', async () => {
+    const ruta = join(dir, 'p.kir')
+    writeFileSync(ruta, kir(1))
+    const avisos: string[] = []
+    const s = new ServicioArchivos({
+      dirDatos: join(dir, 'datos'),
+      dialogos: { abrir: async () => ruta, guardar: async () => null, confirmarReemplazo: async () => false, confirmarRed: async () => false },
+      recientes: () => [],
+      ponerRecientes: () => undefined,
+      abrirCarpeta: async () => undefined,
+      argv: ['kirchi.exe'],
+      sesion: new Sesion(join(dir, 'datos'), ID, 1),
+      plataforma: 'win32',
+      avisarCambioEnDisco: (n) => void avisos.push(n)
+    })
+    try {
+      expect((await s.abrir()).ok).toBe(true)
+      s.diarioBase(kir(1), { ruta, nombre: 'p.kir', sucio: false })
+      expect(s.rutaAbierta).toBe(ruta)
+      expect(s.guardar(ruta, kir(2)).ok).toBe(true)
+      s.revisarDisco()
+      expect(avisos).toEqual([])
+      writeFileSync(ruta, new Uint8Array([...kir(3), 9, 9]))
+      s.revisarDisco()
+      expect(avisos).toEqual(['p.kir'])
+      const r = s.recargar()
+      expect(r.ok && [...r.archivo.bytes]).toEqual([...kir(3), 9, 9])
+    } finally {
+      s.cerrar()
+    }
+  })
+})
+
 describe('ServicioArchivos: no pisar archivos que el diálogo no confirmó', () => {
   it('Guardar como que agrega .kir sobre un archivo que existe pregunta antes; sin confirmar no da permiso', async () => {
     writeFileSync(join(dir, 'tarea.kir'), kir(7))

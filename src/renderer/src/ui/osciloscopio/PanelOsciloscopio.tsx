@@ -10,8 +10,9 @@ import type { FaseSim, LecturaInstrumentos } from '../../sim/control'
 import type { PantallaSab, RegistroFino } from '../../sim/protocoloInstrumentos'
 import { formatearMedida, formatearValor } from '../../valores/valores'
 import { acoplarVista, acoplesDistintos, notasDeAcople } from './acopleVista'
-import { cursoresIniciales } from './cursores'
-import type { CursoresPantalla } from './dibujar'
+import { cursoresDelModo, cursoresIniciales } from './cursores'
+import { cursoresInicialesXY } from './xy'
+import { canalesXY, type CursoresPantalla } from './dibujar'
 import BarraInstrumento from '../instrumento/BarraInstrumento'
 import { accionDeTecla } from '../instrumento/barra'
 import AspectoOsc from './AspectoOsc'
@@ -270,11 +271,14 @@ export default function PanelOsciloscopio(props: Props) {
     e.preventDefault()
     botón.click()
   }
+  /** Los cursores del modo de pantalla actual (en Y/T de tiempo y voltaje, en X-Y de puntos). */
+  const cursoresModo = () => cursoresDelModo(props.cursores, props.ajustes)
   const alternarCursores = () => {
     const a = props.ajustes
     if (props.cursores) return props.onCursores?.(null)
     const p = mostrada()
     if (!a || !p) return
+    if (canalesXY(a)) return props.onCursores?.(cursoresInicialesXY(p, a))
     const canal = a.canales.find((c) => c.on)?.canal ?? 'A'
     props.onCursores?.(cursoresIniciales(a, p.t0, canal))
   }
@@ -345,7 +349,7 @@ export default function PanelOsciloscopio(props: Props) {
             botones={{
               pausa: { onClick: alternarPausa, activo: !!props.congelada, deshabilitado: !puedePausar() },
               auto: { onClick: () => props.onAuto?.(mostrada()), deshabilitado: !mostrada() },
-              cursores: { onClick: alternarCursores, activo: !!props.cursores, deshabilitado: !props.cursores && !mostrada() },
+              cursores: { onClick: alternarCursores, activo: !!cursoresModo(), deshabilitado: !props.cursores && !mostrada() },
               acercar: { onClick: () => props.onEscala?.({ tipo: 'tiempo' }, -1), deshabilitado: !puedeZoomTiempo(-1) },
               alejar: { onClick: () => props.onEscala?.({ tipo: 'tiempo' }, 1), deshabilitado: !puedeZoomTiempo(1) },
               restablecer: { onClick: () => props.onAjuste?.('base', textoDeSerie(BASE_POR_OMISION)), deshabilitado: !props.ajustes || props.ajustes.base === BASE_POR_OMISION },
@@ -355,7 +359,7 @@ export default function PanelOsciloscopio(props: Props) {
               ...(props.onVentana ? { ventana: { onClick: () => props.onVentana!() } } : {})
             }}
             medirExtra={
-              <Show when={props.cursores}>
+              <Show when={cursoresModo()}>
                 <button type="button" class="bi-detalles" aria-pressed={detalleCursores()} onClick={() => setDetalleCursores((d) => !d)}>
                   {detalleCursores() ? 'Ocultar detalles' : 'Ver detalles'}
                 </button>
@@ -462,7 +466,7 @@ export default function PanelOsciloscopio(props: Props) {
                 refOsc={refDelElegido()}
                 ajustes={a()}
                 pantalla={mostrada()}
-                cursores={props.cursores ?? null}
+                cursores={cursoresModo()}
                 onCursores={(c) => props.onCursores?.(c)}
                 onAjuste={(p, t, g) => props.onAjuste?.(p, t, g)}
                 onAspecto={abrirAspecto}

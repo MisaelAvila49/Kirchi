@@ -1,6 +1,6 @@
 /** Configuración de los seis análisis y su validación, en unidades SI y con las piezas por id del documento. `validarAnalisis` trata lo que trae un `.kir` como no confiable y devuelve una copia limpia o un mensaje. */
 import { validarGrafica, type GraficaDoc } from '../grafica/aspecto'
-import { MAX_CORRIDAS, MAX_PUNTOS_AC, puntosAc, puntosDc, puntosTran, TOPE_PUNTOS } from './puntos'
+import { MAX_CORRIDAS, MAX_INCLUIR_AC, MAX_PUNTOS_AC, puntosAc, puntosDc, puntosTran, TOPE_PUNTOS } from './puntos'
 
 export type Id = string
 
@@ -19,7 +19,7 @@ export type ConfigAnalisis =
   /** Barrido de CD de una fuente, con una segunda anidada (la primera recorre todo su rango por cada valor de la segunda). */
   | ({ tipo: 'dc' } & BarridoDeFuente & { segunda?: BarridoDeFuente })
   /** Respuesta en frecuencia: `fuente` es la entrada de CA y `magnitud` su amplitud en volts. */
-  | { tipo: 'ac'; barrido: 'dec' | 'oct' | 'lin'; puntos: number; desde: number; hasta: number; fuente: Id; magnitud: number }
+  | { tipo: 'ac'; barrido: 'dec' | 'oct' | 'lin'; puntos: number; desde: number; hasta: number; fuente: Id; magnitud: number; /** Frecuencias (Hz) que el barrido contiene exactamente además de su rejilla. */ incluir?: number[] }
   /** Transitorio largo. `maximo` es el paso más largo (por omisión, fin / 1000); `inicio` el instante desde el que se guarda. */
   | { tipo: 'tran'; fin: number; maximo?: number; inicio?: number; uic?: boolean }
   /** Fourier de un transitorio: `periodos` es la ventana analizada (los últimos) y `descarte` los periodos que se dejan pasar antes. */
@@ -97,7 +97,7 @@ export function puntosDeConfig(c: ConfigAnalisis): number {
     case 'dc':
       return puntosDc(c.desde, c.hasta, c.paso) * (c.segunda ? puntosDc(c.segunda.desde, c.segunda.hasta, c.segunda.paso) : 1)
     case 'ac':
-      return puntosAc(c.barrido, c.puntos, c.desde, c.hasta)
+      return puntosAc(c.barrido, c.puntos, c.desde, c.hasta, c.incluir?.length ?? 0)
     case 'tran':
       return puntosTran(c.fin, c.maximo ?? c.fin / 1000)
     case 'fourier':
@@ -160,7 +160,21 @@ export function validarConfig(x: unknown): Validacion<ConfigAnalisis> {
       if (!idValido(x.fuente)) return mal('La fuente de entrada de CA no es válida.')
       const magnitud = positivoDe(x.magnitud, 'La magnitud de la entrada de CA', 'V')
       if (typeof magnitud === 'string') return mal(magnitud)
-      return bien({ tipo: 'ac', barrido: x.barrido, puntos, desde, hasta, fuente: x.fuente, magnitud })
+      let incluir: number[] | undefined
+      if (x.incluir !== undefined) {
+        if (!Array.isArray(x.incluir) || x.incluir.length > MAX_INCLUIR_AC) return mal(`Las frecuencias que se incluyen son una lista de hasta ${MAX_INCLUIR_AC}.`)
+        const lista: number[] = []
+        for (const f of x.incluir) {
+          const n = positivoDe(f, 'Una frecuencia incluida', 'Hz')
+          if (typeof n === 'string') return mal(n)
+          if (n < desde || n > hasta) return mal(`La frecuencia incluida ${n} Hz queda fuera del barrido (de ${desde} a ${hasta} Hz).`)
+          lista.push(n)
+        }
+        // Ordenadas y sin repetir: es lo que se guarda y lo que se pide.
+        const unicas = [...new Set(lista)].sort((a, b) => a - b)
+        if (unicas.length > 0) incluir = unicas
+      }
+      return bien({ tipo: 'ac', barrido: x.barrido, puntos, desde, hasta, fuente: x.fuente, magnitud, ...(incluir ? { incluir } : {}) })
     }
     case 'tran': {
       const fin = positivoDe(x.fin, 'El tiempo final', 's')

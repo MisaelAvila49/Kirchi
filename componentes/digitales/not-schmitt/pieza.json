@@ -1,0 +1,96 @@
+{
+  "id": "not-schmitt",
+  "nombre": { "es": "Inversor Schmitt", "en": "Schmitt-trigger inverter" },
+  "categoria": "digitales",
+  "grupo": "Compuertas",
+  "prefijo": "U",
+  "buscar": ["u", "schmitt", "disparador", "trigger", "inversor schmitt", "histéresis", "7414", "74hc14", "40106"],
+  "pines": [
+    { "id": "A", "nombre": "A", "x": -6, "y": 0 },
+    { "id": "Y", "nombre": "Y", "x": 6, "y": 0 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS", "CD4000B"] },
+    { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
+  ],
+  "modelo": { "tipo": "compuerta", "funcion": "not", "entradas": ["A"], "salida": "Y", "histeresis": true, "familia": "familia", "alimentacion": "alimentacion" },
+  "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } },
+  "datos": {
+    "por": "familia",
+    "equivalencias": { "ltspice": "Digital\\schmtinv", "falstad": "183", "sinVerificar": ["ltspice"] },
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC14N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc14.pdf",
+        "equivalencias": { "kicad": "74xx:74HC14" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "Y": "2" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "Y": "2" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "3", "Y": "4" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "5", "Y": "6" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "9", "Y": "8" } },
+              { "nombre": "Compuerta 5", "patillas": { "A": "11", "Y": "10" } },
+              { "nombre": "Compuerta 6", "patillas": { "A": "13", "Y": "12" } }
+            ],
+            "parte": "SN74HC14N",
+            "lcsc": { "numero": "C2907", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC14, pinout p. 3; KiCad 74xx:74HC14" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS14N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls14.pdf",
+        "equivalencias": { "kicad": "74xx:74LS14" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "Y": "2" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "Y": "2" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "3", "Y": "4" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "5", "Y": "6" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "9", "Y": "8" } },
+              { "nombre": "Compuerta 5", "patillas": { "A": "11", "Y": "10" } },
+              { "nombre": "Compuerta 6", "patillas": { "A": "13", "Y": "12" } }
+            ],
+            "parte": "SN74LS14N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS14; TI SN74HC14 (misma función)" }
+      },
+      "CD4000B": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD40106BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd40106b.pdf",
+        "equivalencias": { "kicad": "4xxx:40106" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "Y": "2" },
+            "alimentacion": { "VDD": "14", "VSS": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "Y": "2" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "3", "Y": "4" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "5", "Y": "6" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "9", "Y": "8" } },
+              { "nombre": "Compuerta 5", "patillas": { "A": "11", "Y": "10" } },
+              { "nombre": "Compuerta 6", "patillas": { "A": "13", "Y": "12" } }
+            ],
+            "parte": "CD40106BE",
+            "lcsc": { "numero": "C71251", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD40106B, Pin Configuration p. 3 (texto); KiCad 4xxx:40106" }
+      }
+    }
+  }
+}

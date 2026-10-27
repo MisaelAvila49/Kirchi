@@ -1,0 +1,104 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "cl_pF": 50,
+   "documento": "TI SN74HC153 (SCLS112E)",
+   "paginas": "5, tabla 5.5",
+   "caminos": [
+    {
+     "de": "A, B",
+     "a": "Y",
+     "tPLH": {
+      "tip": 21,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 21,
+      "max": 30
+     },
+     "max_SN74_40_85C": 38
+    },
+    {
+     "de": "C0 a C3",
+     "a": "Y",
+     "tPLH": {
+      "tip": 17,
+      "max": 28
+     },
+     "tPHL": {
+      "tip": 17,
+      "max": 28
+     },
+     "max_SN74_40_85C": 35
+    },
+    {
+     "de": "G",
+     "a": "Y",
+     "tPLH": {
+      "tip": 11,
+      "max": 19
+     },
+     "tPHL": {
+      "tip": 11,
+      "max": 19
+     },
+     "max_SN74_40_85C": 24
+    },
+    {
+     "de": "salida",
+     "a": "transición tt",
+     "tip": 8,
+     "max": 12,
+     "max_SN74_40_85C": 15
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS153 (SDLS055A)",
+   "paginas": "5, switching characteristics",
+   "caminos": [
+    {
+     "de": "Data",
+     "a": "Y",
+     "tPLH": {
+      "tip": 10,
+      "max": 15
+     },
+     "tPHL": {
+      "tip": 17,
+      "max": 26
+     }
+    },
+    {
+     "de": "Select",
+     "a": "Y",
+     "tPLH": {
+      "tip": 19,
+      "max": 29
+     },
+     "tPHL": {
+      "tip": 25,
+      "max": 38
+     }
+    },
+    {
+     "de": "Strobe G",
+     "a": "Y",
+     "tPLH": {
+      "tip": 16,
+      "max": 24
+     },
+     "tPHL": {
+      "tip": 21,
+      "max": 32
+     }
+    }
+   ]
+  }
+ }
+}

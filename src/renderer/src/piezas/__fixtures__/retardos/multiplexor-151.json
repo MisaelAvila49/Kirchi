@@ -1,0 +1,140 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "cl_pF": 50,
+   "documento": "TI SN74HC151 (SCLS110F)",
+   "paginas": "5, tabla 5.5",
+   "caminos": [
+    {
+     "de": "A, B, C",
+     "a": "Y o W",
+     "tPLH": {
+      "tip": 30,
+      "max": 50
+     },
+     "tPHL": {
+      "tip": 30,
+      "max": 50
+     },
+     "max_SN74_40_85C": 63
+    },
+    {
+     "de": "D0 a D7",
+     "a": "Y o W",
+     "tPLH": {
+      "tip": 23,
+      "max": 39
+     },
+     "tPHL": {
+      "tip": 23,
+      "max": 39
+     },
+     "max_SN74_40_85C": 49
+    },
+    {
+     "de": "G",
+     "a": "Y o W",
+     "tPLH": {
+      "tip": 15,
+      "max": 25
+     },
+     "tPHL": {
+      "tip": 15,
+      "max": 25
+     },
+     "max_SN74_40_85C": 32
+    },
+    {
+     "de": "salida",
+     "a": "transición tt",
+     "tip": 9,
+     "max": 15,
+     "max_SN74_40_85C": 19
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS151 (SDLS054)",
+   "paginas": "5, switching characteristics",
+   "caminos": [
+    {
+     "de": "A, B, C",
+     "a": "Y (4 niveles)",
+     "tPLH": {
+      "tip": 27,
+      "max": 43
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 30
+     }
+    },
+    {
+     "de": "A, B, C",
+     "a": "W (3 niveles)",
+     "tPLH": {
+      "tip": 14,
+      "max": 23
+     },
+     "tPHL": {
+      "tip": 20,
+      "max": 32
+     }
+    },
+    {
+     "de": "G",
+     "a": "Y",
+     "tPLH": {
+      "tip": 26,
+      "max": 42
+     },
+     "tPHL": {
+      "tip": 20,
+      "max": 32
+     }
+    },
+    {
+     "de": "G",
+     "a": "W",
+     "tPLH": {
+      "tip": 15,
+      "max": 24
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 30
+     }
+    },
+    {
+     "de": "D",
+     "a": "Y",
+     "tPLH": {
+      "tip": 20,
+      "max": 32
+     },
+     "tPHL": {
+      "tip": 16,
+      "max": 26
+     }
+    },
+    {
+     "de": "D",
+     "a": "W",
+     "tPLH": {
+      "tip": 13,
+      "max": 21
+     },
+     "tPHL": {
+      "tip": 12,
+      "max": 20
+     }
+    }
+   ]
+  }
+ }
+}

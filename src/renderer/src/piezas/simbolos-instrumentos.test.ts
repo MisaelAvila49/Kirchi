@@ -17,7 +17,8 @@ describe('instrumentos', () => {
     ['multimetro', 'XMM', ['+@0,-6', 'COM@0,6']],
     ['osciloscopio', 'XSC', ['A@-8,-6', 'B@-8,-2', 'C@-8,2', 'D@-8,6']],
     ['generador', 'XFG', ['+@0,-6', 'COM@0,6']],
-    ['fuente-variable', 'XPS', ['+@0,-6', '-@0,6']]
+    ['fuente-variable', 'XPS', ['+@0,-6', '-@0,6']],
+    ['punta-logica', 'LP', ['PUNTA@-6,0', '+@0,-6', '-@0,6']]
   ] as const)('%s: categoría instrumentos, prefijo %s y pines', (id, prefijo, esperados) => {
     expect(lib.get(id)).toMatchObject({ categoria: 'instrumentos', prefijo })
     expect(pines(id)).toEqual(esperados)
@@ -26,7 +27,7 @@ describe('instrumentos', () => {
   it('la categoría «Instrumentos» va al final de la Librería con el noveno tono', () => {
     const cats = catalogo(lib)
     expect(cats.at(-1)).toMatchObject({ id: 'instrumentos', nombre: 'Instrumentos', tono: 'ciruela' })
-    expect(cats.at(-1)!.piezas.map((e) => e.def.id).sort()).toEqual(['fuente-variable', 'generador', 'multimetro', 'osciloscopio'])
+    expect(cats.at(-1)!.piezas.map((e) => e.def.id).sort()).toEqual(['fuente-variable', 'generador', 'multimetro', 'osciloscopio', 'punta-logica'])
   })
 
   it.each([
@@ -39,7 +40,9 @@ describe('instrumentos', () => {
     ['generador', 'generador'],
     ['función', 'generador'],
     ['fuente variable', 'fuente-variable'],
-    ['fuente de laboratorio', 'fuente-variable']
+    ['fuente de laboratorio', 'fuente-variable'],
+    ['punta lógica', 'punta-logica'],
+    ['logic probe', 'punta-logica']
   ] as const)('el buscador encuentra «%s» primero: %s', (q, id) => {
     expect(primero(q)).toBe(id)
   })

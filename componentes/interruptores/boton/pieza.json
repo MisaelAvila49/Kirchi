@@ -10,5 +10,21 @@
   ],
   "props": [{ "id": "presionado", "nombre": "Presionado", "defecto": "no", "opciones": ["no", "sí"] }],
   "modelo": { "tipo": "interruptor", "a": "1", "b": "2", "prop": "presionado", "cerrado": "sí", "momentaneo": true },
-  "etiquetas": { "ref": { "x": 0, "y": -4 } }
+  "etiquetas": { "ref": { "x": 0, "y": -4 } },
+  "datos": {
+    "equivalencias": { "kicad": "Switch:SW_Push", "falstad": "s", "proteus": "BUTTON", "sinVerificar": ["proteus"] },
+    "valores": {
+      "*": {
+        "presentaciones": [
+          { "encapsulado": "Boton-6mm", "patillas": { "1": "1", "2": "2" }, "huella": "Button_Switch_THT:SW_PUSH_6mm_H5mm", "representativa": true }
+        ],
+        "pendiente": { "parte": "varía por fabricante", "hoja": "varía por fabricante", "lcsc": "varía por fabricante" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 Button_Switch_THT:SW_PUSH_6mm_H5mm (cuatro pads con nombre 1, 1, 2 y 2: los dos «1» a 6.5 mm uno del otro y los dos «2» igual, 4.5 mm entre pares) y símbolo Switch:SW_Push (1 y 2). Representativa"
+        },
+        "nota": "Cuatro patas físicas y dos terminales: las dos patas de cada terminal están unidas por dentro y la huella de KiCad les da el mismo número de pad (1 o 2). El botón une el terminal 1 con el 2 al pulsarlo."
+      }
+    }
+  }
 }

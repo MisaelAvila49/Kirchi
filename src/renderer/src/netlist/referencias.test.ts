@@ -34,9 +34,17 @@ function comparar(caso: string): Record<string, number> {
   const con = calcularConexiones(d, lib)
   const r = compilarNetlist(d, lib, con)
   expect(r.errores, caso).toEqual([])
-  const sim = new Simulator(JSON.stringify(r.netlist), c.hmax)
-  if (!c.holgada) sim.set_tolerances(1e-4, 1e-12, 1e-7)
   const idDe = (ref: string): Id => Object.values(d.piezas).find((p) => p.ref === ref)!.id
+  // Una perilla que cambia en el tiempo: canal de rampas y sus puntos puestos de antemano (los cambios se encolan por tiempo).
+  const cambios: [number, number, number][] = []
+  for (const pr of c.perillas ?? []) {
+    const canal = r.canalDe.get(`${idDe(pr.ref)}:${pr.prop}`)!
+    r.netlist!.canales![canal].forma = 'rampa'
+    for (const [t, v] of pr.puntos) cambios.push([canal, t, v])
+  }
+  const sim = new Simulator(JSON.stringify(r.netlist), c.hmax)
+  for (const [canal, t, v] of cambios) sim.poner_valor(canal, t, v)
+  if (!c.holgada) sim.set_tolerances(1e-4, 1e-12, 1e-7)
   const redDe = (nombre: string) => con.redes.findIndex((x) => x.nombre === nombre)
   const leer = (): Lectura => {
     const n = sim.element_count()

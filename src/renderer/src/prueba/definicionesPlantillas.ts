@@ -1,5 +1,6 @@
 import { cablesDe, etiquetasDe, parte } from '../calculadoras/disposicion'
 import { FILTROS_DE_BANDA } from './definicionesNuevas'
+import { PLANTILLAS_MSI } from './definicionesMsi'
 import type { DefPlantilla } from './plantillasIncluidas'
 
 
@@ -214,8 +215,45 @@ const BASICAS: DefPlantilla[] = [
     ],
     cables: cablesDe('puente'),
       etiquetas: etiquetasDe('puente')
+  },
+  {
+    id: 'puente-h-discreto',
+    nombre: 'Puente H discreto',
+    descripcion: 'Dos pares TIP31 y TIP32 manejan un motor en los dos sentidos y lo detienen con las dos entradas iguales.',
+    partes: [
+      ['qa1', 'npn', 0, -10, 0, { modelo: 'TIP31' }],
+      ['qa2', 'pnp', 0, 10, 0, { modelo: 'TIP32' }],
+      ['da1', 'diodo', 8, -10, 270, { modelo: '1N4007' }],
+      ['da2', 'diodo', 8, 10, 270, { modelo: '1N4007' }],
+      ['ra', 'resistencia', -12, 0, 0, { valor: '10' }],
+      ['va', 'fuente-dc', -22, 0, 0, { voltaje: '6' }],
+      ['pa1', 'alimentacion', 2, -18, 0, { nombre: '+6V' }],
+      ['pa2', 'alimentacion', 8, -18, 0, { nombre: '+6V' }],
+      ['ga1', 'tierra', 2, 18, 0],
+      ['ga2', 'tierra', 8, 18, 0],
+      ['ga3', 'tierra', -22, 8, 0],
+      ['qb1', 'npn', 0, 36, 0, { modelo: 'TIP31' }],
+      ['qb2', 'pnp', 0, 56, 0, { modelo: 'TIP32' }],
+      ['db1', 'diodo', 8, 36, 270, { modelo: '1N4007' }],
+      ['db2', 'diodo', 8, 56, 270, { modelo: '1N4007' }],
+      ['rb', 'resistencia', -12, 46, 0, { valor: '10' }],
+      ['vb', 'fuente-dc', -22, 46, 0, { voltaje: '0' }],
+      ['pb1', 'alimentacion', 2, 28, 0, { nombre: '+6V' }],
+      ['pb2', 'alimentacion', 8, 28, 0, { nombre: '+6V' }],
+      ['gb1', 'tierra', 2, 64, 0],
+      ['gb2', 'tierra', 8, 64, 0],
+      ['gb3', 'tierra', -22, 54, 0],
+      ['m1', 'motor-dc', 22, 23, 90, { voltaje: '6' }]
+    ],
+    conexiones: [
+      ['va.+', 'ra.1'], ['ra.2', 'qa1.B'], ['ra.2', 'qa2.B'], ['qa1.C', 'pa1.1'], ['qa1.E', 'qa2.E'], ['qa1.E', 'da1.A'], ['qa2.E', 'da2.K'],
+      ['qa2.C', 'ga1.1'], ['da1.K', 'pa2.1'], ['da2.A', 'ga2.1'], ['va.-', 'ga3.1'],
+      ['vb.+', 'rb.1'], ['rb.2', 'qb1.B'], ['rb.2', 'qb2.B'], ['qb1.C', 'pb1.1'], ['qb1.E', 'qb2.E'], ['qb1.E', 'db1.A'], ['qb2.E', 'db2.K'],
+      ['qb2.C', 'gb1.1'], ['db1.K', 'pb2.1'], ['db2.A', 'gb2.1'], ['vb.-', 'gb3.1'],
+      ['qa1.E', 'm1.+'], ['qb1.E', 'm1.-']
+    ]
   }
 ]
 
-/** Las incluidas de siempre y los tres filtros de banda. */
-export const DEFINICIONES: DefPlantilla[] = [...BASICAS, ...FILTROS_DE_BANDA]
+/** Las incluidas de siempre, los tres filtros de banda y las de lógica MSI. */
+export const DEFINICIONES: DefPlantilla[] = [...BASICAS, ...FILTROS_DE_BANDA, ...PLANTILLAS_MSI]

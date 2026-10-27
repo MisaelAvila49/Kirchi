@@ -1,0 +1,39 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 665,
+   "documento": "TI SN5446A/47A/48, SN54LS47 (SDLS111)",
+   "paginas": "11, switching characteristics",
+   "pendiente": "la hoja no da retardo típico: solo máximos de 100 ns",
+   "caminos": [
+    {
+     "de": "A",
+     "a": "a a g",
+     "toff": {
+      "tip": null,
+      "max": 100
+     },
+     "ton": {
+      "tip": null,
+      "max": 100
+     }
+    },
+    {
+     "de": "RBI",
+     "a": "a a f",
+     "toff": {
+      "tip": null,
+      "max": 100
+     },
+     "ton": {
+      "tip": null,
+      "max": 100
+     }
+    }
+   ]
+  }
+ }
+}

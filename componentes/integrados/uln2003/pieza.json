@@ -777,5 +777,46 @@
   ],
   "fuentes": {
     "ULN2003A": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments ULN2002A, ULN2003A y ULN2004A, SLRS027T (dic 1976, rev. mar 2025), https://www.ti.com/lit/ds/symlink/uln2003a.pdf: VCE(sat) de 0.9 V típica y 1.1 V máx con II = 250 µA e IC = 100 mA, 1.0 y 1.3 V con 350 µA y 200 mA, 1.2 y 1.6 V con 500 µA y 350 mA; corriente de entrada de 0.93 mA típica (1.35 máx) con VI = 3.85 V; VI(on) de 2.4 V máx con IC = 200 mA y VCE = 2 V; ICEX de 50 µA máx con 50 V; diodo de bloqueo con VF de 1.7 V típica (2.0 máx) a 350 mA. Siete canales iguales, cada uno con 2.6 kΩ de entrada, un par Darlington (dos NPN con los colectores unidos a la salida; las resistencias de colector, base y emisor ajustan la caída de saturación a esas tres cifras) con 7.2 kΩ del emisor del primero a E, y su diodo al común. Con el modelo compuesto: 7 × 6 elementos y los canales sin usar quedan al aire. No limita la corriente por canal en la simulación (la vista previa avisa con más de 500 mA por canal, el máximo absoluto de la hoja) y no modela los tiempos de conmutación."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Transistor_Array:ULN2003A", "proteus": "ULN2003A", "sinVerificar": ["proteus"] },
+    "valores": {
+      "ULN2003A": {
+        "fabricante": "Texas Instruments",
+        "parte": "ULN2003AN",
+        "hoja": "https://www.ti.com/lit/ds/symlink/uln2003a.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "E": "8",
+              "COM": "9",
+              "1B": "1",
+              "1C": "16",
+              "2B": "2",
+              "2C": "15",
+              "3B": "3",
+              "3C": "14",
+              "4B": "4",
+              "4C": "13",
+              "5B": "5",
+              "5C": "12",
+              "6B": "6",
+              "6C": "11",
+              "7B": "7",
+              "7C": "10"
+            },
+            "huella": "Package_DIP:DIP-16_W7.62mm",
+            "lcsc": { "numero": "C93000", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI ULN2002A/2003A/2004A (SLRS027T, mar 2025) tabla 4-1: 1B-7B patillas 1 a 7, 1C-7C patillas 16 a 10, COM 9, E 8; Transistor_Array:ULN2003A de KiCad 9"
+        },
+        "nota": "LCSC C93000 es el ULN2003A de ST"
+      }
+    }
   }
 }

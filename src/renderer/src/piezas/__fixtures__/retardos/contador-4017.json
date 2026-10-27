@@ -1,0 +1,105 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "CD4000B": {
+   "vcc": 5,
+   "cl_pF": 50,
+   "documento": "TI CD4017B (SCHS027C)",
+   "paginas": "4",
+   "caminos": [
+    {
+     "de": "CLK",
+     "a": "Q",
+     "tPLH": {
+      "tip": 325,
+      "max": 650
+     },
+     "tPHL": {
+      "tip": 325,
+      "max": 650
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "CO",
+     "tPLH": {
+      "tip": 300,
+      "max": 600
+     },
+     "tPHL": {
+      "tip": 300,
+      "max": 600
+     }
+    },
+    {
+     "de": "RESET",
+     "a": "Q, CO",
+     "tPLH": {
+      "tip": 265,
+      "max": 530
+     },
+     "tPHL": {
+      "tip": 265,
+      "max": 530
+     }
+    }
+   ]
+  },
+  "74HC": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "documento": "TI CD74HC4017 (SCHS200D)",
+   "paginas": "4 y 5",
+   "caminos": [
+    {
+     "de": "CP",
+     "a": "Q",
+     "tPLH": {
+      "tip": 19,
+      "max": 46
+     },
+     "tPHL": {
+      "tip": 19,
+      "max": 46
+     }
+    },
+    {
+     "de": "CP",
+     "a": "TC",
+     "tPLH": {
+      "tip": 19,
+      "max": 46
+     },
+     "tPHL": {
+      "tip": 19,
+      "max": 46
+     }
+    },
+    {
+     "de": "CE",
+     "a": "Q, TC",
+     "tPLH": {
+      "tip": 21,
+      "max": 50
+     },
+     "tPHL": {
+      "tip": 21,
+      "max": 50
+     }
+    },
+    {
+     "de": "MR",
+     "a": "Q, TC",
+     "tPLH": {
+      "tip": 19,
+      "max": 46
+     },
+     "tPHL": {
+      "tip": 19,
+      "max": 46
+     }
+    }
+   ]
+  }
+ }
+}

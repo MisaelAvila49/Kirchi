@@ -1,0 +1,54 @@
+{
+ "columnas": [
+  "LT",
+  "RBI",
+  "BIRBO",
+  "D",
+  "C",
+  "B",
+  "A"
+ ],
+ "salidas": [
+  "a",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "BIRBO"
+ ],
+ "filas": [
+  "X X 0 X X X X > 1 1 1 1 1 1 1 0",
+  "1 0 1 0 0 0 0 > 1 1 1 1 1 1 1 0",
+  "0 X 1 X X X X > 0 0 0 0 0 0 0 1",
+  "1 1 1 0 0 0 0 > 0 0 0 0 0 0 1 1",
+  "1 X 1 0 0 0 1 > 1 0 0 1 1 1 1 1",
+  "1 X 1 0 0 1 0 > 0 0 1 0 0 1 0 1",
+  "1 X 1 0 0 1 1 > 0 0 0 0 1 1 0 1",
+  "1 X 1 0 1 0 0 > 1 0 0 1 1 0 0 1",
+  "1 X 1 0 1 0 1 > 0 1 0 0 1 0 0 1",
+  "1 X 1 0 1 1 0 > 1 1 0 0 0 0 0 1",
+  "1 X 1 0 1 1 1 > 0 0 0 1 1 1 1 1",
+  "1 X 1 1 0 0 0 > 0 0 0 0 0 0 0 1",
+  "1 X 1 1 0 0 1 > 0 0 0 0 1 0 0 1",
+  "1 X 1 1 0 1 0 > 1 1 1 0 0 1 0 1",
+  "1 X 1 1 0 1 1 > 1 1 0 0 1 1 0 1",
+  "1 X 1 1 1 0 0 > 1 0 1 1 1 0 0 1",
+  "1 X 1 1 1 0 1 > 0 1 1 0 1 0 0 1",
+  "1 X 1 1 1 1 0 > 1 1 1 0 0 0 0 1",
+  "1 X 1 1 1 1 1 > 1 1 1 1 1 1 1 1"
+ ],
+ "notas": [
+  "Salidas a a g de colector abierto, activas en bajo: 0 = segmento encendido, 1 = apagado (con la salida abierta de la pieza, un 1 es Z).",
+  "BIRBO es la patilla 4 (BI/RBO): columna = nivel que se le aplica desde fuera (H si queda abierta); salida = nivel que toma. Es la AND cableada de la hoja, nota de pie de la tabla.",
+  "Fila 1 (BI): la hoja, nota 2, dice que con un bajo aplicado a BI todas las salidas se apagan sin importar las demas entradas. Fila 2 (RBI): nota 3. Fila 3 (LT): nota 4, con BI/RBO abierta o en alto.",
+  "La combinacion LT = 0 con BI/RBO = 0 no esta en la tabla de la hoja; la resuelve la nota 2 (domina BI), por eso la fila BI va primera."
+ ],
+ "fuente": {
+  "documento": "TI SN5446A/47A/48, SN54LS47/LS48/LS49 (SDLS111)",
+  "pagina": "3, '46A, '47A, 'LS47 FUNCTION TABLE (T1), notas 1 a 4",
+  "figura": "tabla de 16 funciones decimales (0 a 15) y filas BI, RBI y LT",
+  "convencion": "H = 1, L = 0, X = no importa; ON = 0, OFF = 1"
+ }
+}

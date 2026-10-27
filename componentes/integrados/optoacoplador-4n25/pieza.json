@@ -1,0 +1,100 @@
+{
+  "id": "optoacoplador-4n25",
+  "nombre": { "es": "Optoacoplador 4N25", "en": "4N25 optocoupler" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["4n25", "optoacoplador", "optoaislador", "optocoupler", "opto", "fototransistor", "aislador"],
+  "pines": [
+    { "id": "A", "nombre": "ánodo del LED (A)", "x": -6, "y": -2 },
+    { "id": "K", "nombre": "cátodo del LED (K)", "x": -6, "y": 2 },
+    { "id": "C", "nombre": "colector (C)", "x": 6, "y": -2 },
+    { "id": "E", "nombre": "emisor (E)", "x": 6, "y": 2 },
+    { "id": "B", "nombre": "base (B)", "x": 2, "y": -6, "ayuda": "Base del fototransistor, accesible para polarizarla o ponerle una resistencia · sin conectar, el transistor responde solo a la luz del LED" }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "4N25", "opciones": ["4N25"] }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "4N25": { "dis": 1.46e-12, "dn": 2, "drs": 0.92, "k": 0.0024876, "tf": 4.5e-9 }
+    },
+    "internas": ["x"],
+    "opcionales": ["B"],
+    "medida": { "mas": "C", "menos": "E", "i": 2 },
+    "elementos": [
+      { "t": "D", "a": "A", "b": "x", "params": { "is": "dis", "n": "dn", "rs": "drs" } },
+      { "t": "F", "p": "C", "n": "B", "cp": "x", "cn": "K", "ganancia": "k" },
+      { "t": "Q", "c": "C", "b": "B", "e": "E", "params": { "is": 1e-14, "bf": 200, "tf": "tf" } }
+    ]
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "4N25": {
+          "fuente": "Vishay 4N25 (83725, rev. 1.8) p. 132 y onsemi 4N25M (abril 2015) p. 2, Absolute Maximum Ratings: voltaje inverso del LED de 5 V (el más estricto de los dos), colector a emisor de 30 V y emisor a colector de 7 V.",
+          "limites": [
+            { "nombre": "voltaje inverso del LED", "de": "K", "a": "A", "max": 5, "consejo": "protege el LED con un diodo en antiparalelo o evita invertir la polaridad." },
+            { "nombre": "Vce", "de": "C", "a": "E", "max": 30, "consejo": "baja el voltaje del lado del transistor." },
+            { "nombre": "Vec inverso", "de": "E", "a": "C", "max": 7, "consejo": "evita polarizar el transistor al revés." }
+          ]
+        }
+      }
+    },
+    "quema": { "factor": 2, "durante": 0.5, "elemento": 0 },
+    "compuesto": [
+      {
+        "nombre": "corriente del LED",
+        "elementos": [0],
+        "medida": "corriente",
+        "sentido": "positiva",
+        "max": 0.06,
+        "consejo": "agrega o aumenta la resistencia en serie con el LED.",
+        "fuente": "Vishay 4N25 (83725, rev. 1.8) p. 132 y onsemi 4N25M (abril 2015) p. 2, Absolute Maximum Ratings: corriente directa continua del LED de 60 mA."
+      },
+      {
+        "nombre": "corriente del colector",
+        "elementos": [2],
+        "medida": "corriente",
+        "sentido": "positiva",
+        "max": 0.05,
+        "consejo": "aumenta la resistencia de carga del colector.",
+        "fuente": "Vishay 4N25 (83725, rev. 1.8) p. 132, Absolute Maximum Ratings: corriente de colector de 50 mA."
+      }
+    ]
+  },
+  "etiquetas": { "ref": { "x": 8, "y": -4 }, "valor": { "x": 8, "y": 4 } },
+  "fuentes": {
+    "4N25": "Vishay 4N25 (83725, rev. 1.8, 07-Jan-10), https://www.vishay.com/docs/83725/4n25.pdf, y onsemi 4N25M (abril 2015): CTR de 20 % como mínimo y 50 % típico con IF = 10 mA y VCE = 10 V, VF de 1.18 V a 10 mA y 1.3 V a 50 mA, tiempos de subida y bajada de 2 µs típicos con RL = 100 Ω. Kirchi lo arma con el LED, una fuente de corriente que lleva la fracción 0.50 / 201 de la corriente del LED a la base y un transistor de ganancia 200, de modo que el CTR es el típico (50 %) y constante. Los parámetros del LED (N = 2, RS = 0.92 Ω, IS = 1.46e-12 A) se derivaron de los dos puntos de VF con N supuesto, y el TF del transistor (4.5 ns) se ajustó a los 2 µs de la hoja. No modela la variación del CTR con la corriente y la temperatura (solo gráficas), la corriente de oscuridad ni el voltaje de aislamiento."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Isolator:4N25" },
+    "valores": {
+      "4N25": {
+        "fabricante": "Vishay",
+        "parte": "4N25",
+        "hoja": "https://www.vishay.com/docs/83725/4n25.pdf",
+        "aproximada": "CTR constante (50 % típico) sin variación con la corriente ni la temperatura; la curva VF contra IF sale de dos puntos con N supuesto en 2.",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-6",
+            "patillas": { "A": "1", "K": "2", "E": "4", "C": "5", "B": "6" },
+            "sinModelo": { "3": "NC" },
+            "huella": "Package_DIP:DIP-6_W7.62mm",
+            "lcsc": { "numero": "C5241", "comprobado": "2026-10-26" }
+          }
+        ],
+        "pendiente": {
+          "lcsc": "C5241 es el 4N25M de onsemi, no el 4N25 de Vishay: misma base JEDEC y mismas patillas."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Vishay 4N25 (83725, rev. 1.8, 07-Jan-10) p. 1: A 1, C 2, NC 3, E 4, C 5, B 6; onsemi 4N25M (abril 2015) p. 1: 1 ánodo, 2 cátodo, 3 sin conexión, 4 emisor, 5 colector, 6 base. KiCad 9 Isolator:4N25 coincide en la geometría. LCSC C5241 es el 4N25M de onsemi en DIP-6."
+        }
+      }
+    }
+  }
+}

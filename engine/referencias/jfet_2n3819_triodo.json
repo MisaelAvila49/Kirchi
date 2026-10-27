@@ -1,0 +1,51 @@
+{
+  "netlist": {
+    "nodes": 3,
+    "elements": [
+      {
+        "type": "V",
+        "a": 1,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 0.5
+        }
+      },
+      {
+        "type": "V",
+        "a": 2,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": -1
+        }
+      },
+      {
+        "type": "J",
+        "d": 1,
+        "g": 2,
+        "s": 0,
+        "pjf": false,
+        "model": {
+          "vto": -3.63636,
+          "beta": 0.000727891,
+          "lambda": 0.0025974,
+          "is": 1e-14,
+          "n": 1,
+          "pb": 1,
+          "cgs": 1.5e-12,
+          "cgd": 2.8e-12,
+          "rd": 0,
+          "rs": 0
+        }
+      }
+    ]
+  },
+  "fin": 0.02,
+  "hmax": 0.00001,
+  "columnas": {
+    "i(v1)": {
+      "corriente": 0
+    }
+  }
+}

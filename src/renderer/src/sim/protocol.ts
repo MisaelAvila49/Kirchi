@@ -140,6 +140,8 @@ export type ToWorker =
   /** Cambia en caliente elementos de la netlist cargada (cursor de potenciómetro, interruptor, valor de resistencia o
    * fuente) sin reiniciar el tiempo ni la carga de capacitores e inductores. */
   | { type: 'valores'; cambios: CambioEnCaliente[]; h?: number; seq: number }
+  /** Escribe `valor` en el canal de una perilla en vivo a la hora de la isla; un rechazo vuelve como `rechazado` con `indice = -1 - canal`. */
+  | { type: 'perilla'; canal: number; valor: number; seq: number }
   /** Repone el elemento `indice` (un fusible fundido). */
   | { type: 'reponer'; indice: number }
   /** Un solo paso corto, aunque el reloj esté en pausa: calcula las lecturas con un valor recién cambiado. */
@@ -150,7 +152,7 @@ export type FromWorker =
   /** `lazo`: los elementos de un lazo de compuertas que no se asentó al arrancar (oscila solo); vacío si no hay. */
   | { type: 'ready'; id: number; nodes: number; elements: number; digitales: number; lazo: number[] }
   | { type: 'error'; id: number; message: string }
-  /** El motor rechazó un cambio en caliente (`indice` -1 es el paso): no es fatal, el elemento conserva su valor anterior. */
+  /** El motor rechazó un cambio en caliente (`indice` -1 es el paso; menor que -1 es la perilla del canal `-1 - indice`): no es fatal, el elemento conserva su valor anterior. */
   | { type: 'rechazado'; id: number; indice: number; message: string; seq: number }
   /** La captura entera pedida con `captura-amplia` (null si no hay nada que dar). */
   | { type: 'captura-amplia'; id: number; seq: number; pantalla: PantallaSab | null }
@@ -170,6 +172,8 @@ export type FromWorker =
    * por cada uno, cuántos no cupieron y el ancla para pasarlos a reloj (`performance.timeOrigin + performance.now()`,
    * igual en worker y ventana). `velocidad` 0: no corrían al ritmo del reloj. */
   | { type: 'cruces'; id: number; datos: number[]; perdidos: number; ancla: { t: number; reloj: number }; velocidad: number }
+  /** Redes digitales donde dos salidas de tres estados empezaron a manejar un 0 y un 1 a la vez. */
+  | { type: 'conflictos'; id: number; redes: number[] }
 
 /** `ratio`: fracción del tiempo real alcanzada (1 = al ritmo del reloj). `capacity`: segundos simulados por segundo de
  * cálculo. `currents`: corriente de cada elemento, de `a` hacia `b`. `aux` y `estado`: segunda lectura y estado de cada

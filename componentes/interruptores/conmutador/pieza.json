@@ -10,5 +10,28 @@
     { "id": "2", "nombre": "2", "x": 4, "y": 2 }
   ],
   "props": [{ "id": "posicion", "nombre": "Posición", "defecto": "1", "opciones": ["1", "2"] }],
-  "modelo": { "tipo": "interruptor", "a": "COM", "b": "2", "c": "1", "prop": "posicion", "cerrado": "2" }
+  "modelo": { "tipo": "interruptor", "a": "COM", "b": "2", "c": "1", "prop": "posicion", "cerrado": "2" },
+  "datos": {
+    "equivalencias": { "kicad": "Switch:SW_SPDT", "falstad": "S", "proteus": "SW-SPDT", "sinVerificar": ["proteus"] },
+    "valores": {
+      "*": {
+        "fabricante": "C&K",
+        "parte": "OS102011MS2Q",
+        "presentaciones": [
+          {
+            "encapsulado": "Deslizable-SPDT",
+            "patillas": { "1": "1", "2": "3", "COM": "2" },
+            "huella": "Button_Switch_THT:SW_Slide_SPDT_Straight_CK_OS102011MS2Q",
+            "representativa": true
+          }
+        ],
+        "pendiente": { "hoja": "el sitio de C&K devolvió 403 y la hoja no se pudo leer", "lcsc": "no se consultó" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "KiCad 9: símbolo Switch:SW_SPDT (2 es el común, 1 y 3 los tiros) y huella SW_Slide_SPDT_Straight_CK_OS102011MS2Q (nombre de la parte de C&K). Las dos fuentes son de la misma biblioteca: la hoja de C&K no se pudo bajar. Representativa"
+        },
+        "nota": "En un deslizable de tres patillas el común es la del centro."
+      }
+    }
+  }
 }

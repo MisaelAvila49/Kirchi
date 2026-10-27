@@ -100,7 +100,7 @@ export const CAPITULO_3: CapituloDef = {
     {
       id: 'canal-a',
       resumen: 'mide el generador en el canal A',
-      texto: 'Haz {gesto:clic-derecho} sobre el cable de la salida del generador y elige Medir con el osciloscopio, Entrada A.',
+      texto: 'Haz {gesto:clic-derecho} sobre el cable de la salida del generador y elige Medir, Osciloscopio, Entrada A.',
       cumplido: 'Canal A en la salida del generador.',
       objetivo: (ctx) => sobre(ctx, 'generador', sitioGenerador(ctx)),
       focos: verOsciloscopio,
@@ -109,7 +109,7 @@ export const CAPITULO_3: CapituloDef = {
     {
       id: 'canal-b',
       resumen: 'mide el capacitor en el canal B',
-      texto: 'Haz {gesto:clic-derecho} sobre un cable del capacitor y elige Medir con el osciloscopio, Entrada B.',
+      texto: 'Haz {gesto:clic-derecho} sobre un cable del capacitor y elige Medir, Osciloscopio, Entrada B.',
       cumplido: 'Canal B en el capacitor.',
       objetivo: (ctx) => sobre(ctx, 'capacitor', { x: 40, y: 0 }),
       focos: verOsciloscopio,

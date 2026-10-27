@@ -1,0 +1,20 @@
+* LM4040 de 4.096 V con 100 uA: el voltaje inverso de la hoja
+.include modelos.lib
+V1 vcc 0 DC 12
+R1 vcc k 79.04k
+XU1 tap vr g k ae AMPOP a0=20000 gbw=500 sr=15000 rin=1000000000000 rout=500 ilim=0.005 dhi=0.8 dlo=0.01 rq=1000000000000
+VREF vr ae DC 1.225
+Q1 k g ae QTL431
+RS ae 0 0.5
+D1 0 k DTL431
+RK k tap 468710
+RT tap ae 200000
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(k) i(v1)
+.endc
+.end

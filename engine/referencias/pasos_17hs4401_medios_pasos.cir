@@ -1,0 +1,16 @@
+* Motor 17HS4401 con dos fuentes de 12 V y 6 Ohm en serie por fase: ocho medios pasos a 200 por segundo, que dan una vuelta eléctrica
+*@generar pasos mp {"r":1.5,"l":0.0028,"km":0.1664,"dientes":50,"td":0.022,"j":0.0000054,"bm":0.0023}
+V1 na 0 PWL(0 12 0.02 12 0.02001 12 0.025 12 0.02501 0 0.03 0 0.03001 -12 0.035 -12 0.03501 -12 0.04 -12 0.04001 -12 0.045 -12 0.04501 0 0.05 0 0.05001 12 0.055 12 0.05501 12 0.08 12)
+R1 na ma 6
+V2 nb 0 PWL(0 0 0.02 0 0.02001 12 0.025 12 0.02501 12 0.03 12 0.03001 12 0.035 12 0.03501 0 0.04 0 0.04001 -12 0.045 -12 0.04501 -12 0.05 -12 0.05001 -12 0.055 -12 0.05501 0 0.08 0)
+R2 nb mb 6
+X1 ma 0 mb 0 mp tc=0
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20u 0.08 0 20u uic
+wrdata salida.txt v(ma) v(mb) i(v1) i(v2) v(x1.w) v(x1.th)
+.endc
+.end

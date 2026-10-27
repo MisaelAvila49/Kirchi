@@ -12,6 +12,8 @@ import type { OpcionesChips } from './chips'
 import type { Lectura, LecturaDigital } from '../sim/lectura'
 import { cajaTexto } from './apartar'
 import { cajaEnMundo } from '../piezas/transformar'
+import { acotarAlAlcance } from './ajusteChips'
+import { pinesEnMundo } from '../piezas/transformar'
 import { chipsDeVoltaje, FACTOR_ANILLO, SEPARACION_CHIP, TAM_CHIP } from './chips'
 
 const lib = libreriaDePrueba().piezas
@@ -63,14 +65,16 @@ describe('chipsDeVoltaje: qué redes y dónde', () => {
     expect(b.clave).toBe(a.clave)
   })
 
-  it('el desplazo del lector se suma a donde lo puso el reparto, acotado a 8 unidades, y no mueve a los demás', () => {
+  it('el desplazo del lector se suma a donde lo puso el reparto, acotado a 8 unidades de su red, y no mueve a los demás', () => {
     const sin = chipsDeVoltaje(d, lib, con, todas)
     const clave = sin.find((c) => c.texto === '5.00 V')!.clave!
     const con2 = chipsDeVoltaje(d, lib, con, todas, [], { redes: null, desplazos: new Map([[clave, { dx: 1, dy: -2 }]]) })
     const base = sin.find((c) => c.texto === '5.00 V')!, mov = con2.find((c) => c.texto === '5.00 V')!
     expect([mov.x - base.x, mov.y - base.y]).toEqual([1, -2])
     const lejos = chipsDeVoltaje(d, lib, con, todas, [], { redes: null, desplazos: new Map([[clave, { dx: 50, dy: 0 }]]) }).find((c) => c.texto === '5.00 V')!
-    expect(lejos.x - base.x).toBeCloseTo(8, 9)
+    // Más allá del alcance se queda a 8 unidades de la red: lo que no supera su propia red se mueve entero.
+    expect(acotarAlAlcance(d, lib, con.redes.find((r) => r.id === alta)!, lejos.x, lejos.y)).toEqual({ x: lejos.x, y: lejos.y })
+    expect(lejos.x - base.x).toBeGreaterThan(8)
     expect(con2.find((c) => c.texto === '2.50 V')).toEqual(sin.find((c) => c.texto === '2.50 V'))
   })
 })
@@ -244,5 +248,46 @@ describe('chipsDeVoltaje da exactamente lo mismo que su versión de referencia (
       d.cables[`c${i}`] = { id: `c${i}`, puntos: [{ x: x + 4, y }, { x: x + 8, y }, { x: x + 8, y: y + 8 }, { x: x + 12, y: y + 8 }] }
     }
     comparar(d, 5000)
+  })
+})
+
+describe('chips de las entradas de una compuerta', () => {
+  const or5 = () => {
+    const doc = documentoVacio()
+    doc.piezas.u = { id: 'u', tipo: 'or-5', ref: 'U1', x: 0, y: 0, rot: 0, espejo: false, props: {} }
+    const pins = pinesEnMundo(doc.piezas.u, lib.get('or-5')!)
+    for (const p of pins.filter((q) => q.id !== 'Y')) doc.cables['c' + p.id] = { id: 'c' + p.id, puntos: [{ x: p.x - 14, y: p.y }, { x: p.x, y: p.y }] }
+    const c = calcularConexiones(doc, lib)
+    const redes = new Map(c.redes.map((r, i) => [r.id, i + 1] as [number, number]))
+    const l: Lectura = { t: 0, ratio: 1, redes, piezas: new Map() }
+    return { doc, pins, c, l }
+  }
+
+  it('cada chip queda pegado a su entrada (a menos de 2.5 unidades, no a mitad del cable) y en orden, sin encimarse', () => {
+    const { doc, pins, c, l } = or5()
+    const chips = chipsDeVoltaje(doc, lib, c, l, [], { redes: null })
+    expect(chips).toHaveLength(5)
+    for (const t of chips) {
+      const pin = pins.find((q) => t.clave === `p:u:${q.id}`)!
+      expect(t.alinear).toBe('der')
+      expect(Math.hypot(t.x - pin.x, t.y - pin.y)).toBeLessThan(2.5)
+    }
+    const ys = chips.map((t) => t.y)
+    expect(ys).toEqual([...ys].sort((a, b) => a - b))
+    expect(chips).toEqual(chipsDeVoltajeReferencia(doc, lib, c, l, [], { redes: null }))
+  })
+
+  it('se arrastra a lo largo de su cable hasta el otro extremo y no más allá de 8 unidades de la red', () => {
+    const { doc, pins, c, l } = or5()
+    const a = pins.find((q) => q.id === 'A')!
+    const base = chipsDeVoltaje(doc, lib, c, l, [], { redes: null }).find((t) => t.clave === 'p:u:A')!
+    const mover = (dx: number, dy: number) => chipsDeVoltaje(doc, lib, c, l, [], { redes: null, desplazos: new Map([['p:u:A', { dx, dy }]]) }).find((t) => t.clave === 'p:u:A')!
+    // Hasta el inicio del cable (a 14 unidades del pin), que el límite de antes (8 desde el ancla) no alcanzaba.
+    expect(mover(-12, 0).x).toBeCloseTo(base.x - 12, 9)
+    // Fuera del alcance de la red, a 8 unidades de su punto más cercano.
+    const fuera = mover(0, -40)
+    expect(a.y - fuera.y).toBeCloseTo(8, 9)
+    expect(fuera.x).toBeCloseTo(base.x, 9)
+    expect(mover(-12, 0)).toEqual(chipsDeVoltajeReferencia(doc, lib, c, l, [], { redes: null, desplazos: new Map([['p:u:A', { dx: -12, dy: 0 }]]) }).find((t) => t.clave === 'p:u:A'))
   })
 })

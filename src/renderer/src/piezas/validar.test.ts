@@ -289,4 +289,99 @@ describe('validarPieza', () => {
     expect(conProp({ largoMax: 60, defecto: 'x'.repeat(61) }).join(' ')).toContain('1 a 60')
     expect(errores({ ...base, props: [{ id: 'valor', nombre: 'Valor', unidad: 'Ω', defecto: '1k', largoMax: 100 }] }).join(' ')).toContain('largoMax')
   })
+
+  it('rechaza una clave ajena en la raíz y sugiere la parecida', () => {
+    expect(errores({ ...base, hojas: [] })).toEqual(['x/pieza.json: hojas clave desconocida'])
+    expect(errores({ ...base, fuente: {} })).toEqual(['x/pieza.json: fuente clave desconocida, ¿quisiste decir «fuentes»?'])
+  })
+
+  it('rechaza una clave ajena en un pin', () => {
+    const pines = [{ id: '1', nombre: '1', x: -4, y: 0, numero: 1 }, base.pines[1]]
+    expect(errores({ ...base, pines })).toEqual(['x/pieza.json: pines[0].numero clave desconocida'])
+  })
+})
+
+// Modelos nuevos: JFET, termistor, LDR, motor a pasos, puente H, fuentes controladas y PWL, y la perilla en vivo.
+describe('validarPieza, modelos nuevos', () => {
+  const pieza = (pines: string[], props: object[], modelo: object) => ({
+    id: 'nueva', nombre: { es: 'N', en: 'N' }, categoria: 'sensores', prefijo: 'U', buscar: ['n'],
+    pines: pines.map((id, i) => ({ id, nombre: id, x: 4 * i - 8, y: 0 })), props, modelo
+  })
+  const lista = { id: 'modelo', nombre: 'Modelo', defecto: 'A', opciones: ['A', 'B'] }
+  const grados = { id: 'temp', nombre: 'Temperatura', unidad: '°C', defecto: '25', enVivo: { magnitud: 'temperatura', min: -40, max: 150, paso: 5, pasoFino: 1 } }
+  const lux = { id: 'luz', nombre: 'Luz', unidad: 'lx', defecto: '300', enVivo: { magnitud: 'luz', min: 0.1, max: 1e5, paso: 10, pasoFino: 2, escala: 'log' } }
+  const juntos = (o: unknown) => errores(o).join('\n')
+
+  it('acepta un JFET y rechaza la errata de un parámetro con la sugerencia', () => {
+    const j = (modelos: object) => pieza(['D', 'G', 'S'], [lista], { tipo: 'jfet', d: 'D', g: 'G', s: 'S', pjf: false, prop: 'modelo', modelos })
+    expect(errores(j({ A: { vto: -2, beta: 1e-3 }, B: { vto: -1 } }))).toEqual([])
+    expect(juntos(j({ A: { vtp: -2 }, B: {} }))).toMatch(/modelos\.A\.vtp parámetro desconocido, ¿quisiste decir «vto»\?/)
+    expect(juntos(j({ A: { lambda: 50 }, B: {} }))).toMatch(/modelos\.A\.lambda/)
+    expect(juntos({ ...j({ A: {}, B: {} }), modelo: { tipo: 'jfet', d: 'D', g: 'G', s: 'S', prop: 'modelo', modelos: { A: {}, B: {} } } })).toMatch(/modelo\.pjf debe ser verdadero o falso/)
+  })
+
+  it('el termistor pide sus cinco parámetros y una perilla de temperatura', () => {
+    const ok = { r25: 10000, beta: 3950, delta: 0.002, tau: 10, tmax: 150 }
+    const t = (modelos: object, temperatura = 'temp') => pieza(['1', '2'], [lista, grados], { tipo: 'termistor', a: '1', b: '2', prop: 'modelo', modelos, temperatura })
+    expect(errores(t({ A: ok, B: ok }))).toEqual([])
+    expect(juntos(t({ A: { ...ok, bet: 1 }, B: ok }))).toMatch(/modelos\.A\.bet parámetro desconocido, ¿quisiste decir «beta»\?/)
+    const { tmax, ...sinTmax } = ok
+    expect(juntos(t({ A: sinTmax, B: ok }))).toMatch(/modelos\.A\.tmax falta/)
+    expect(juntos(t({ A: ok, B: ok }, 'modelo'))).toMatch(/modelo\.temperatura debe ser una propiedad con perilla de temperatura/)
+  })
+
+  it('la fotorresistencia lee la luz de una perilla de luz', () => {
+    const ok = { r10: 10000, gamma: 0.7, roscuro: 1e7, tau_sube: 0.02, tau_baja: 0.03 }
+    const l = (luz: string) => pieza(['1', '2'], [lista, lux, grados], { tipo: 'ldr', a: '1', b: '2', prop: 'modelo', modelos: { A: ok, B: ok }, luz })
+    expect(errores(l('luz'))).toEqual([])
+    expect(juntos(l('temp'))).toMatch(/modelo\.luz debe ser una propiedad con perilla de luz/)
+  })
+
+  it('el motor a pasos exige 4 nodos bipolares o 6 unipolares', () => {
+    const ok = { r: 30, l: 0.02, km: 0.1, dientes: 50, td: 0.01, j: 1e-6, bm: 1e-5 }
+    const m = (nodos: string[], extra: object = {}) => pieza(['A', 'B', 'C', 'D'], [lista], { tipo: 'pasos', nodos, prop: 'modelo', modelos: { A: ok, B: ok }, ...extra })
+    expect(errores(m(['A', 'B', 'C', 'D']))).toEqual([])
+    expect(juntos(m(['A', 'B', 'C']))).toMatch(/modelo\.nodos debe tener 4 pines \(bipolar\) o 6 \(unipolar\)/)
+    expect(juntos(m(['A', 'B', 'C', 'D'], { unipolar: true }))).toMatch(/modelo\.nodos debe tener 6 pines con unipolar/)
+    expect(juntos(m(['A', 'B', 'C', 'D'], { carga: 'temp' }))).toMatch(/modelo\.carga no es una propiedad de la pieza/)
+  })
+
+  it('el puente H pide sus cuatro entradas, dos habilitaciones y cuatro salidas', () => {
+    const ids = ['I1', 'I2', 'I3', 'I4', 'EA', 'EB', 'O1', 'O2', 'O3', 'O4', 'SA', 'SB', 'VS', 'VSS', 'GND']
+    const h = (entradas: string[]) => pieza(ids, [lista], { tipo: 'puente-h', entradas, habilita: ['EA', 'EB'], salidas: ['O1', 'O2', 'O3', 'O4'], sensa: 'SA', sensb: 'SB', vs: 'VS', vss: 'VSS', gnd: 'GND', prop: 'modelo', modelos: { A: { vil: 1.5 }, B: { vil: 1.5 } } })
+    expect(errores(h(['I1', 'I2', 'I3', 'I4']))).toEqual([])
+    expect(juntos(h(['I1', 'I2', 'I3']))).toMatch(/modelo\.entradas debe ser una lista de 4 pines/)
+    expect(juntos(h(['I1', 'I2', 'I3', 'Z']))).toMatch(/modelo\.entradas\[3\] no es un pin de la pieza/)
+  })
+
+  it('una fuente controlada nombra su forma y una ganancia numérica', () => {
+    const g = (extra: object = {}) => pieza(['P', 'N', 'CP', 'CN'], [{ id: 'k', nombre: 'Ganancia', defecto: '2' }, lista], { tipo: 'controlada', forma: 'E', p: 'P', n: 'N', cp: 'CP', cn: 'CN', prop: 'k', ...extra })
+    expect(errores(g())).toEqual([])
+    expect(juntos(g({ forma: 'X' }))).toMatch(/modelo\.forma debe ser E, G, H o F/)
+    expect(juntos(g({ prop: 'modelo' }))).toMatch(/modelo\.prop debe ser una propiedad numérica/)
+    expect(juntos(g({ cn: 'CP' }))).toMatch(/modelo\.cn debe ser distinto de modelo\.cp/)
+  })
+
+  it('la fuente PWL pide una propiedad de texto, una casilla de repetir y un modo', () => {
+    const props = [{ id: 'puntos', nombre: 'Puntos', texto: true, defecto: '0 0, 1m 5', largoMax: 6000 }, { id: 'repetir', nombre: 'Repetir', defecto: 'No', opciones: ['No', 'Sí'], casilla: true }, { id: 'modo', nombre: 'Modo', defecto: 'Voltaje', opciones: ['Voltaje', 'Corriente'] }]
+    const w = (extra: object = {}) => pieza(['P', 'N'], props, { tipo: 'pwl', a: 'P', b: 'N', puntos: 'puntos', repetir: 'repetir', modo: 'modo', ...extra })
+    expect(errores(w())).toEqual([])
+    expect(juntos(w({ puntos: 'modo' }))).toMatch(/modelo\.puntos debe ser una propiedad de texto/)
+    expect(juntos(w({ repetir: 'puntos' }))).toMatch(/modelo\.repetir debe ser una propiedad de lista de dos opciones/)
+    expect(juntos({ ...w(), modelo: { tipo: 'pwl', a: 'P', b: 'N', punto: 'puntos', repetir: 'repetir', modo: 'modo' } })).toMatch(/clave desconocida en un modelo «pwl», ¿quisiste decir «puntos»\?/)
+  })
+
+  it('la perilla en vivo cierra sus claves, ordena el rango y casa la unidad con la magnitud', () => {
+    const con = (enVivo: object, extra: object = {}) => pieza(['1', '2'], [{ ...grados, ...extra, enVivo }], { tipo: 'R', a: '1', b: '2', prop: 'temp' })
+    const v = grados.enVivo
+    expect(errores(con(v))).toEqual([])
+    expect(juntos(con({ ...v, pasofino: 1 }))).toMatch(/props\[0\]\.enVivo\.pasofino clave desconocida, ¿quisiste decir «pasoFino»\?/)
+    expect(juntos(con({ ...v, magnitud: 'tiempo' }))).toMatch(/enVivo\.magnitud debe ser temperatura, luz o carga/)
+    expect(juntos(con({ ...v, min: 200 }))).toMatch(/enVivo\.max debe ser mayor que min/)
+    expect(juntos(con({ ...v, pasoFino: 10 }))).toMatch(/enVivo\.pasoFino debe ser positivo y no mayor que paso/)
+    expect(juntos(con({ ...v, escala: 'log' }))).toMatch(/enVivo\.escala solo aplica con min mayor que cero/)
+    expect(juntos(con(v, { unidad: 'K' }))).toMatch(/enVivo\.magnitud «temperatura» pide la unidad «°C»/)
+    expect(juntos(con(v, { defecto: '500' }))).toMatch(/props\[0\]\.defecto debe estar entre el min y el max de enVivo/)
+    expect(juntos(con(v, { opciones: ['a'], defecto: 'a' }))).toMatch(/enVivo solo aplica a una propiedad numérica/)
+  })
 })

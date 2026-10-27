@@ -26,6 +26,8 @@ interface Props {
   sinGuardar: boolean
   /** Archivo de un formato más nuevo: se ve y se exporta, pero no se cambia. */
   soloLectura: boolean
+  /** Un asistente está unido a la ventana: se muestra su indicador, que abre Configuración › Asistente. */
+  asistente?: { cliente: string; onAbrir(): void }
   pestaña: PestañaCinta
   plegada: boolean
   onPestaña(p: PestañaCinta): void
@@ -130,6 +132,21 @@ export default function BarraSuperior(props: Props) {
           />
         </Show>
         <div class="derecha">
+          <Show when={props.asistente}>
+            {(a) => (
+              <button
+                type="button"
+                class="chip-asistente"
+                data-tono="verdeazul"
+                data-globo-nombre={`Conectado: ${a().cliente}`}
+                aria-label={`Asistente conectado: ${a().cliente}. Abre Configuración.`}
+                onClick={() => a().onAbrir()}
+              >
+                <i aria-hidden="true" />
+                Asistente
+              </button>
+            )}
+          </Show>
           <div ref={rapido} role="toolbar" aria-label="Acceso rápido" class="acceso-rapido">
             <For each={rapidos()}>{(id) => (id === '|' ? <span class="separador" aria-hidden="true" /> : <BotonCinta id={id} tamaño="solo-icono" ctx={ctx} />)}</For>
           </div>

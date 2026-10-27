@@ -1,0 +1,21 @@
+* Amplificador en fuente comun con JFET 2N5457, capacitores de acoplo y de paso
+.model J2N5457 NJF(VTO=-3.05838 BETA=0.000304692 LAMBDA=0.00350877 IS=1e-14 N=1 PB=1 CGS=3e-12 CGD=6e-12 RD=0 RS=0)
+V1 1 0 DC 15
+VIN 5 0 SIN(0 100m 1k)
+CIN 5 2 1u
+RG 2 0 1Meg
+RS 3 0 1k
+CS 3 0 2.2u
+RD 1 4 2.2k
+COUT 4 6 1u
+RL 6 0 10k
+J1 4 2 3 J2N5457
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 10u 20m 0 2u uic
+wrdata salida.txt v(2) v(3) v(4) v(6) i(v1)
+.endc
+.end

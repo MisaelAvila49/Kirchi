@@ -1,0 +1,27 @@
+{
+ "unidad": "cada una de las dos unidades usa esta tabla",
+ "columnas": [
+  "G",
+  "B",
+  "A"
+ ],
+ "salidas": [
+  "Y0",
+  "Y1",
+  "Y2",
+  "Y3"
+ ],
+ "filas": [
+  "1 X X > 1 1 1 1",
+  "0 0 0 > 0 1 1 1",
+  "0 0 1 > 1 0 1 1",
+  "0 1 0 > 1 1 0 1",
+  "0 1 1 > 1 1 1 0"
+ ],
+ "fuente": {
+  "documento": "TI SN74HC139 (SCLS108E)",
+  "pagina": "7, seccion 7.3 Device Functional Modes",
+  "comprobada_con": "TI SN74LS139A (SDLS013A), p. 1, FUNCTION TABLE: las 5 filas son iguales",
+  "convencion": "H = 1, L = 0, X = no importa. G activo en bajo, salidas activas en bajo"
+ }
+}

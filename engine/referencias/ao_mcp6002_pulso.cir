@@ -1,0 +1,16 @@
+* Seguidor con MCP6002 y escalon de 2 V: velocidad de subida
+.include modelos.lib
+V1 1 0 DC 2.5
+V2 2 0 DC -2.5
+VIN 3 0 PULSE(0 2 0 1p 1p 1e-05 2e-05)
+RL 4 0 10k
+XU1 3 4 4 1 2 AMPOP a0=398000 gbw=1000000 sr=600000 rin=10000000000000 rout=50 ilim=0.023 dhi=0.005 dlo=0.005 rq=55000
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 8e-09 4e-05 0 4e-09 uic
+wrdata salida.txt v(4)
+.endc
+.end

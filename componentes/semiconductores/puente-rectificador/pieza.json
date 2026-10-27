@@ -221,5 +221,20 @@
     "1N4148": "Cuatro diodos iguales en puente (AC1 y AC2 al positivo, el negativo a AC1 y AC2): Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Vishay 1N4148, doc. 81857 rev. 1.6 (7 nov 2024), https://www.vishay.com/docs/81857/1n4148.pdf: V(BR) 100 V a 100 µA, CD 4 pF (VR = 0), IR 25 nA a 20 V (máx), VF 1 V máx a 10 mA. La hoja solo da el máximo de VF: la curva se fijó en 0.72 V a 10 mA. tt = 2 ns sale del trr de 4 ns y no se validó.",
     "1N4007": "Cuatro diodos iguales en puente (AC1 y AC2 al positivo, el negativo a AC1 y AC2): Parámetros ajustados por Kirchi (no copiados) a Diodes Inc. 1N4001-1N4007, ds28002 (julio 2024), https://www.diodes.com/assets/Datasheets/ds28002.pdf: VFM 1.0 V máx a 1 A, IR 5 µA, Cj 15 pF a 4 V, VRRM 1000 V. La curva se fijó en 0.90 V a 1 A. La hoja no da el tiempo de recuperación: tt = 3 µs es un orden de magnitud típico de un rectificador de 1 A y no se validó.",
     "1N5819": "Cuatro diodos iguales en puente (AC1 y AC2 al positivo, el negativo a AC1 y AC2): Parámetros ajustados por Kirchi (no copiados) a Vishay 1N5817/1N5818/1N5819, doc. 88525, https://www.vishay.com/docs/88525/1n5817.pdf: VF máx 0.60 V a 1 A y 0.90 V a 3.1 A, IR máx 1 mA a 25 °C, CJ 110 pF a 4 V, VRRM 40 V. La hoja solo da máximos: la curva se fijó en 0.45 V a 1 A y 0.69 V a 3.1 A."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:D_Bridge_+AA-", "proteus": "BRIDGE", "sinVerificar": ["proteus"] },
+    "valores": {
+      "Genérico": { "virtual": true, "nota": "Cuatro diodos genéricos de Kirchi, sin pieza física" },
+      "1N4148": { "pendiente": { "presentaciones": "No se hallo un puente integrado de señal con este diodo; se arma con cuatro 1N4148 sueltos" } },
+      "1N4007": {
+        "pendiente": {
+          "presentaciones": "El puente integrado equivalente (serie DB10x) no se llenó: no se obtuvo una hoja que numere AC1, AC2, + y - con dos fuentes",
+          "lcsc": "depende del puente elegido"
+        }
+      },
+      "1N5819": { "pendiente": { "presentaciones": "No se hallo un puente integrado Schottky equivalente; se arma con cuatro 1N5819 sueltos" } }
+    }
   }
 }

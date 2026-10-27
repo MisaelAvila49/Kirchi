@@ -1,12 +1,19 @@
 {
-  "nota": "Familias lógicas de Kirchi. Cada punto da los datos típicos de la hoja de datos a una alimentación: tplh y tphl son los retardos de propagación (s) medidos a la mitad de la salida, t_rise y t_fall los tiempos de transición (s) y r_lo y r_hi la resistencia de salida (Ω) en bajo y en alto. Entre dos puntos se interpola en línea recta. Los umbrales y niveles con relativa: true son fracciones de la alimentación.",
+  "nota": "Familias lógicas de Kirchi. Cada punto da los datos típicos de la hoja de datos a una alimentación: tplh y tphl son los retardos de propagación (s) medidos a la mitad de la salida, t_rise y t_fall los tiempos de transición (s) y r_lo y r_hi la resistencia de salida (Ω) en bajo y en alto. Entre dos puntos se interpola en línea recta. Los umbrales y niveles con relativa: true son fracciones de la alimentación. schmitt da, por alimentación, los umbrales de disparo de las entradas con histéresis: vt_pos (subiendo) y vt_neg (bajando), en volts.",
   "omision": "74HC",
   "familias": {
     "74HC": {
       "nombre": "74HC (CMOS)",
-      "fuente": "Retardos y transiciones típicos del 74HC00 de Philips (NXP) con CL = 50 pF a 2, 4.5 y 6 V. Resistencia de salida de la librería 74HC de los ejemplos de ngspice, 60 Ω · 4 V / (VCC - 0.5 V), redondeada.",
+      "fuente": "Retardos y transiciones típicos del 74HC00 de Philips (NXP) con CL = 50 pF a 2, 4.5 y 6 V. Umbrales de disparo típicos del SN74HC14 de TI (SCLS085L, tabla 5.5) a 25 °C. Resistencia de salida de la librería 74HC de los ejemplos de ngspice, 60 Ω · 4 V / (VCC - 0.5 V), redondeada.",
       "alimentacion": { "min": 2, "max": 6, "omision": 5 },
-      "entrada": { "vil": 0.3, "vih": 0.7, "relativa": true, "al_aire": "X" },
+      "entrada": {
+        "vil": 0.3, "vih": 0.7, "relativa": true, "al_aire": "X",
+        "schmitt": [
+          { "vcc": 2, "vt_pos": 1.2, "vt_neg": 0.6 },
+          { "vcc": 4.5, "vt_pos": 2.5, "vt_neg": 1.6 },
+          { "vcc": 6, "vt_pos": 3.3, "vt_neg": 2 }
+        ]
+      },
       "salida": { "vol": 0, "voh": 1, "relativa": true },
       "puntos": [
         { "vcc": 2, "tplh": 25e-9, "tphl": 25e-9, "t_rise": 19e-9, "t_fall": 19e-9, "r_lo": 160, "r_hi": 160 },
@@ -16,17 +23,24 @@
     },
     "74LS": {
       "nombre": "74LS (TTL)",
-      "fuente": "SN74LS00 de TI: tplh 9 ns y tphl 10 ns típicos con CL = 15 pF y RL = 2 kΩ; VIL 0.8 V y VIH 2.0 V; IIL de -0.4 mA a 0.4 V e IIH de 20 µA a 2.7 V (de ahí 5.5 kΩ a 2.6 V); VOL de 0.25 V a 4 mA y 0.35 V a 8 mA (0.15 V y 25 Ω); VOH de 3.4 V a -0.4 mA con unos 50 mA en corto (3.42 V y 68 Ω). La hoja de datos no da los tiempos de transición: 12 ns de subida y 6 ns de bajada, de las curvas típicas de la familia.",
+      "fuente": "SN74LS00 de TI: tplh 9 ns y tphl 10 ns típicos con CL = 15 pF y RL = 2 kΩ; VIL 0.8 V y VIH 2.0 V; IIL de -0.4 mA a 0.4 V e IIH de 20 µA a 2.7 V (de ahí 5.5 kΩ a 2.6 V); VOL de 0.25 V a 4 mA y 0.35 V a 8 mA (0.15 V y 25 Ω); VOH de 3.4 V a -0.4 mA con unos 50 mA en corto (3.42 V y 68 Ω). Umbrales de disparo del SN74LS14: VT+ entre 1.5 y 2.0 V y VT− entre 0.6 y 1.1 V con 0.8 V de histéresis típica, de donde 1.7 y 0.9 V. La hoja de datos no da los tiempos de transición: 12 ns de subida y 6 ns de bajada, de las curvas típicas de la familia.",
       "alimentacion": { "min": 5, "max": 5, "omision": 5 },
-      "entrada": { "vil": 0.8, "vih": 2.0, "relativa": false, "al_aire": "1", "r_in": 5500, "v_in": 2.6 },
+      "entrada": { "vil": 0.8, "vih": 2.0, "relativa": false, "al_aire": "1", "r_in": 5500, "v_in": 2.6, "schmitt": [{ "vcc": 5, "vt_pos": 1.7, "vt_neg": 0.9 }] },
       "salida": { "vol": 0.15, "voh": 3.42, "relativa": false },
       "puntos": [{ "vcc": 5, "tplh": 9e-9, "tphl": 10e-9, "t_rise": 12e-9, "t_fall": 6e-9, "r_lo": 25, "r_hi": 68 }]
     },
     "CD4000B": {
       "nombre": "CD4000B (CMOS)",
-      "fuente": "CD4011B de TI: retardos típicos de 125, 60 y 45 ns y transiciones de 100, 50 y 40 ns a 5, 10 y 15 V con CL = 50 pF; resistencia de salida de la corriente típica en bajo (1 mA a 0.4 V y 5 V, 2.6 mA a 0.5 V y 10 V; a 15 V se estimó de la curva típica).",
+      "fuente": "CD4011B de TI: retardos típicos de 125, 60 y 45 ns y transiciones de 100, 50 y 40 ns a 5, 10 y 15 V con CL = 50 pF; resistencia de salida de la corriente típica en bajo (1 mA a 0.4 V y 5 V, 2.6 mA a 0.5 V y 10 V; a 15 V se estimó de la curva típica). Umbrales de disparo: punto medio de los límites mínimo y máximo del CD40106B de TI.",
       "alimentacion": { "min": 3, "max": 18, "omision": 5 },
-      "entrada": { "vil": 0.3, "vih": 0.7, "relativa": true, "al_aire": "X" },
+      "entrada": {
+        "vil": 0.3, "vih": 0.7, "relativa": true, "al_aire": "X",
+        "schmitt": [
+          { "vcc": 5, "vt_pos": 2.9, "vt_neg": 1.85 },
+          { "vcc": 10, "vt_pos": 5.85, "vt_neg": 3.85 },
+          { "vcc": 15, "vt_pos": 8.8, "vt_neg": 5.7 }
+        ]
+      },
       "salida": { "vol": 0, "voh": 1, "relativa": true },
       "puntos": [
         { "vcc": 5, "tplh": 125e-9, "tphl": 125e-9, "t_rise": 100e-9, "t_fall": 100e-9, "r_lo": 400, "r_hi": 400 },

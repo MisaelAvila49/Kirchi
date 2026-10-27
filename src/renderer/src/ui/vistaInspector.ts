@@ -1,8 +1,10 @@
+import { paqueteDe, patillasDeUnidad, unidadesDe } from '../doc/paquetes'
+import { ocupantesDeUnidades, textoUnidadEnUso } from '../edicion/operaciones/paquetes'
 import { clavePin, type Conexiones, type Red } from '../conexiones/conexiones'
 import { propModelo } from '../editor/colocar'
 import { muestrasDeOpciones } from '../piezas/muestras'
 import { NOMBRE_FIGURA } from '../doc/figuras'
-import type { Documento, FormatoTexto, Id, Rotacion, Sonda } from '../doc/tipos'
+import type { Documento, FormatoTexto, Id, Pieza, Rotacion, Sonda } from '../doc/tipos'
 import { anclaDeSonda } from '../conexiones/anclas'
 import { tocaAlgo } from '../editor/sondas'
 import { pinesEnMundo } from '../piezas/transformar'
@@ -16,6 +18,8 @@ import { alimentacionesDeFamilia, esModeloDigital } from '../netlist/digital'
 import { familiaSpice, textoBaseSpice, textoSpiceDe, type FamiliaSpice } from '../doc/spice'
 import { comunesDeLaFicha, type PiezaDef, type PropDef } from '../piezas/tipos'
 import { columnasDeModelos, type TablaModelos } from '../piezas/columnasModelo'
+import { ENCAPSULADOS } from '../piezas/encapsulados'
+import { filaDe } from '../piezas/validarDatos'
 import { textoDeNumero } from '../instrumentos/ajusteAutomatico'
 import { formatearValor, leerValor } from '../valores/valores'
 import { nombreCategoria } from './catalogo'
@@ -57,6 +61,8 @@ export interface CampoProp {
 
 export interface ConexionPin {
   pin: string
+  /** Número de la patilla física («6»), si los datos de la pieza lo traen. */
+  numero?: string
   /** Nombre de la red, o «sin conectar» si el pin está suelto. */
   red: string
 }
@@ -108,6 +114,34 @@ export const AVISOS_EN_INSPECTOR = 3
 /** Redes con nombre que el inspector lista sin selección; el resto se ve en el panel Proyecto. */
 export const REDES_EN_INSPECTOR = 8
 
+/** Una unidad del chip en el selector «Unidad»: ocupada por otra pieza del paquete se muestra deshabilitada con su texto. */
+export interface OpcionUnidad {
+  nombre: string
+  actual: boolean
+  /** La referencia de la pieza que la ocupa, o null si está libre. */
+  enUso: string | null
+  /** «en uso por U1C» si está ocupada. */
+  texto: string | null
+}
+export interface VistaPaquete {
+  paquete: string
+  unidad: string
+  unidades: OpcionUnidad[]
+}
+
+/** El selector «Unidad» de una pieza agrupada; null si su chip no tiene unidades (la definición cambió). */
+export function vistaPaquete(doc: Documento, def: PiezaDef, p: Pieza): VistaPaquete | null {
+  const pq = paqueteDe(p)
+  const u = pq ? unidadesDe(def, p.props) : null
+  if (!pq || !u) return null
+  const ocupantes = ocupantesDeUnidades(doc, p, u.nombres)
+  return {
+    paquete: pq.paquete,
+    unidad: pq.unidad,
+    unidades: ocupantes.map((o) => ({ nombre: o.nombre, actual: o.nombre === pq.unidad, enUso: o.enUso, texto: o.enUso ? textoUnidadEnUso(o.enUso) : null }))
+  }
+}
+
 export type VistaInspector =
   | {
       tipo: 'nada'
@@ -144,6 +178,10 @@ export type VistaInspector =
       rot: Rotacion
       espejo: boolean
       conexiones: ConexionPin[]
+      /** La sección «Datos de la pieza»; `ninguno` si la pieza no trae datos y entonces no se muestra. */
+      datos: VistaDatos
+      /** El encapsulado de una unidad (U1) y las unidades que tiene; ausente si la pieza no está agrupada. */
+      paquete?: VistaPaquete
     }
   | { tipo: 'desconocida'; id: Id; ref: string; tipoPieza: string }
   | { tipo: 'varias'; total: number; piezas: number; cables: number; etiquetas: number; notas: number; figuras: number; formato: VistaFormato | null }
@@ -249,6 +287,111 @@ export const TEXTO_ETIQUETAS_UNIDAS = 'Las etiquetas con el mismo nombre quedan 
 
 const redLegible = (r: Red | undefined, nombres: Map<number, string>) => (r && esRedVisible(r) ? (nombres.get(r.id) ?? 'sin conectar') : 'sin conectar')
 
+// Textos de la sección «Datos de la pieza»: una idea por texto.
+export const TEXTO_DATOS_TITULO = 'Datos de la pieza'
+export const TEXTO_DATOS_VIRTUAL = 'Pieza ideal: no tiene una versión física.'
+export const TEXTO_DATOS_SIN_FILA = 'No hay un integrado comercial con esta combinación.'
+export const TEXTO_DATOS_HOJA = 'Abrir hoja de datos'
+export const TEXTO_DATOS_HOJA_AVISO = 'Se abre en tu navegador.'
+export const TEXTO_DATOS_SIN_VERIFICAR = 'sin verificar'
+export const TEXTO_DATOS_TIPICO = 'típico'
+export const TEXTO_DATOS_IMPLICITA = 'alimentación implícita'
+export const TEXTO_DATOS_SIN_SIMULAR = 'no se simula'
+const MONTAJE: Record<string, string> = { THT: 'orificio pasante', SMD: 'montaje superficial' }
+/** Cómo se llama cada campo pendiente en la línea «Sin dato de …». */
+const CAMPO_PENDIENTE: Record<string, string> = { lcsc: 'LCSC', hoja: 'la hoja de datos', huella: 'la huella', parte: 'la parte', patillas: 'las patillas', encapsulado: 'el encapsulado', fabricante: 'el fabricante' }
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
+/** Una patilla del encapsulado: su número, qué es y, si no es un pin conectable, por qué. */
+export interface FilaPatilla {
+  numero: string
+  nombre: string
+  nota?: string
+  /** Se muestra en gris: la alimentación implícita y las patillas que el modelo no usa. */
+  atenuada: boolean
+}
+
+export type VistaDatos =
+  | { tipo: 'ninguno' }
+  | { tipo: 'virtual' }
+  | { tipo: 'sinFila' }
+  | {
+      tipo: 'fisica'
+      encapsulado?: string
+      montaje?: string
+      tipico: boolean
+      parte?: string
+      fabricante?: string
+      patillas: FilaPatilla[]
+      /** «2 unidades en el encapsulado (A y B)», si el chip trae más de una. */
+      unidades?: string
+      huella?: string
+      lcsc?: { numero: string; fecha?: string; sinVerificar: boolean }
+      hoja?: string
+      avisos: string[]
+    }
+
+const textoFecha = (iso: string): string => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+  return m ? `${Number(m[3])} ${MESES[Number(m[2]) - 1] ?? m[2]} ${m[1]}` : iso
+}
+const lista = (v: string | string[]): string[] => (Array.isArray(v) ? v : [v])
+const porNumero = (a: string, b: string): number => {
+  const x = Number(a)
+  const y = Number(b)
+  return Number.isFinite(x) && Number.isFinite(y) && x !== y ? x - y : a.localeCompare(b, 'es', { numeric: true })
+}
+
+/** Las patillas de la unidad que la pieza eligió (con las compartidas); sin unidad o si no existe, las de la presentación. */
+const patillasElegidas = (def: PiezaDef, pieza: Pieza, pres: { patillas: Record<string, string | string[]> }): Record<string, string | string[]> =>
+  (pieza.props.unidad ? patillasDeUnidad(def, pieza.props, pieza.props.unidad) : null) ?? pres.patillas
+
+/** Número de patilla de cada pin del símbolo (una sola, o «1, 8» si el pin va a varias). */
+function numerosDePatillas(def: PiezaDef, pieza: Pieza): Map<string, string> {
+  const r = new Map<string, string>()
+  const pres = filaDe(def, pieza.props)?.fila.presentaciones?.[0]
+  if (pres) for (const [pin, v] of Object.entries(patillasElegidas(def, pieza, pres))) r.set(pin, lista(v).join(', '))
+  return r
+}
+
+/** Lo que muestra «Datos de la pieza» para esta pieza con sus valores: la fila de `datos` que le toca y su primera presentación. */
+export function vistaDatos(def: PiezaDef, pieza: Pieza): VistaDatos {
+  if (!def.datos) return { tipo: 'ninguno' }
+  const f = filaDe(def, pieza.props)
+  if (!f) return { tipo: 'sinFila' }
+  const { fila } = f
+  if (fila.virtual) return { tipo: 'virtual' }
+  const pres = fila.presentaciones?.[0]
+  const avisos: string[] = []
+  if (fila.aproximada) avisos.push(fila.aproximada)
+  for (const [campo, motivo] of Object.entries(fila.pendiente ?? {})) avisos.push(`Sin dato de ${CAMPO_PENDIENTE[campo] ?? campo}: ${motivo}.`)
+  const enc = pres ? ENCAPSULADOS.get(pres.encapsulado) : undefined
+  const patillas: FilaPatilla[] = []
+  if (pres) {
+    const nombres = new Map(def.pines.map((p) => [p.id, nombrePin(p.nombre)]))
+    for (const [pin, v] of Object.entries(patillasElegidas(def, pieza, pres))) patillas.push({ numero: lista(v).join(', '), nombre: nombres.get(pin) ?? pin, atenuada: false })
+    for (const [red, v] of Object.entries(pres.alimentacion ?? {})) patillas.push({ numero: lista(v).join(', '), nombre: red, nota: TEXTO_DATOS_IMPLICITA, atenuada: true })
+    for (const [n, que] of Object.entries(pres.sinModelo ?? {})) patillas.push({ numero: n, nombre: /^\p{Lu}\p{Ll}/u.test(que) ? que.charAt(0).toLowerCase() + que.slice(1) : que, nota: TEXTO_DATOS_SIN_SIMULAR, atenuada: true })
+    patillas.sort((a, b) => porNumero(a.numero, b.numero))
+  }
+  const unidades = pres?.unidades
+  const parte = pres?.parte ?? fila.parte
+  const huella = pres?.huella ?? enc?.huella
+  return {
+    tipo: 'fisica',
+    ...(pres ? { encapsulado: pres.encapsulado, ...(enc ? { montaje: MONTAJE[enc.montaje] } : {}) } : {}),
+    tipico: pres?.representativa === true,
+    ...(parte ? { parte } : {}),
+    ...(fila.fabricante ? { fabricante: fila.fabricante } : {}),
+    patillas,
+    ...(unidades && unidades.length > 1 ? { unidades: `${unidades.length} unidades en el encapsulado (${unidades.map((u) => u.nombre).join(' y ')})` } : {}),
+    ...(huella ? { huella } : {}),
+    ...(pres?.lcsc ? { lcsc: { numero: pres.lcsc.numero, ...(pres.lcsc.comprobado ? { fecha: `comprobado el ${textoFecha(pres.lcsc.comprobado)}` } : {}), sinVerificar: pres.lcsc.sinVerificar === true } } : {}),
+    ...(fila.hoja ? { hoja: fila.hoja } : {}),
+    avisos
+  }
+}
+
 /** Lo que muestra el inspector para la selección actual. */
 export function vistaInspector(
   doc: Documento,
@@ -317,7 +460,8 @@ export function vistaInspector(
     const p = doc.piezas[idPieza]
     const def = p ? lib.get(p.tipo) : undefined
     if (!p || !def) return { tipo: 'desconocida', id: idPieza, ref: p?.ref ?? '', tipoPieza: p?.tipo ?? '' }
-    const props = def.props.map((d): CampoProp => {
+    // Una lista de una sola opción no deja elegir nada (la salida «Voltaje» de la fuente PWL); el modelo que se muestra sí se ve.
+    const props = def.props.filter((d) => d.opciones?.length !== 1 || d.mostrar).map((d): CampoProp => {
       const texto = p.props[d.id] ?? d.defecto
       const v = d.opciones || d.texto ? null : leerValor(texto)
       const muestras = muestrasDeOpciones(def, d.id)
@@ -367,13 +511,17 @@ export function vistaInspector(
         props.push({ ...base, enCaliente: true, ayuda: n === 1 ? `Es el voltaje del riel ${riel.nombre}.` : `Cambia el de los ${n} terminales ${riel.nombre}.` })
       }
     }
+    const paquete = vistaPaquete(doc, def, p)
+    const numeros = numerosDePatillas(def, p)
     const conexiones = def.pines.map((pin) => {
       const red = con.redDePin.get(clavePin(p.id, pin.id))
-      return { pin: nombrePin(pin.nombre), red: redLegible(red === undefined ? undefined : con.redes[red], nombres) }
+      const numero = numeros.get(pin.id)
+      return { pin: nombrePin(pin.nombre), ...(numero ? { numero } : {}), red: redLegible(red === undefined ? undefined : con.redes[red], nombres) }
     })
     return {
       tipo: 'pieza', id: p.id, ref: p.ref, nombre: def.nombre.es, categoria: nombreCategoria(def.categoria), defId: def.id, tono: tonoDeCategoria(def.categoria),
-      pines: def.pines.length, props, rot: p.rot, espejo: p.espejo, conexiones
+      pines: def.pines.length, props, rot: p.rot, espejo: p.espejo, conexiones, datos: vistaDatos(def, p),
+      ...(paquete ? { paquete } : {})
     }
   }
   const [idCable] = sel.cables

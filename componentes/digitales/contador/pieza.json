@@ -2,6 +2,7 @@
   "id": "contador",
   "nombre": { "es": "Contador de 4 bits", "en": "4-bit counter" },
   "categoria": "digitales",
+  "grupo": "Biestables y contadores",
   "prefijo": "U",
   "buscar": ["u", "contador", "counter", "4 bits", "74390", "74393", "74163", "4518"],
   "pines": [
@@ -28,5 +29,163 @@
     { "texto": "Q2", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
     { "texto": "Q3", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
     { "texto": "CO", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" }
-  ]
+  ],
+  "datos": {
+    "por": ["familia", "hasta"],
+    "equivalencias": { "falstad": "164" },
+    "valores": {
+      "74HC|9": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD74HC390E",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd74hc390.pdf",
+        "aproximada": "Cuenta en el flanco de bajada y no tiene acarreo (CO); la cuenta hasta 9 pide unir Q0 con el reloj de la sección entre 5.",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "CLK": "1", "RST": "2", "Q0": "3", "Q1": "5", "Q2": "6", "Q3": "7" },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "sinModelo": { "4": "Reloj de la sección entre 5 (se une a Q0 por fuera)", "12": "Reloj de la sección entre 5 (se une a Q0 por fuera)" },
+            "unidades": [
+              { "nombre": "Contador 1", "patillas": { "CLK": "1", "RST": "2", "Q0": "3", "Q1": "5", "Q2": "6", "Q3": "7" } },
+              { "nombre": "Contador 2", "patillas": { "CLK": "15", "RST": "14", "Q0": "13", "Q1": "11", "Q2": "10", "Q3": "9" } }
+            ],
+            "parte": "CD74HC390E"
+          }
+        ],
+        "pendiente": {
+          "lcsc": "no se halló un número LCSC de esta parte",
+          "patillas": "El pin CO (acarreo) no existe en este integrado: CD74HC390E no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC390 (SCHS185E), pinout p. 3 (texto); KiCad 74xx:74LS390 (misma función)" }
+      },
+      "74HC|15": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC393N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc393.pdf",
+        "aproximada": "Cuenta en el flanco de bajada y no tiene salida de acarreo (CO).",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "CLK": "1", "RST": "2", "Q0": "3", "Q1": "4", "Q2": "5", "Q3": "6" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Contador 1", "patillas": { "CLK": "1", "RST": "2", "Q0": "3", "Q1": "4", "Q2": "5", "Q3": "6" } },
+              { "nombre": "Contador 2", "patillas": { "CLK": "13", "RST": "12", "Q0": "11", "Q1": "10", "Q2": "9", "Q3": "8" } }
+            ],
+            "parte": "SN74HC393N",
+            "lcsc": { "numero": "C5329", "comprobado": "2026-10-26" }
+          }
+        ],
+        "pendiente": {
+          "patillas": "El pin CO (acarreo) no existe en este integrado: SN74HC393N no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC393 (SCHS186F), fig. p. 3 (imagen); KiCad 74xx:74LS393 (misma función)" }
+      },
+      "74LS|9": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS390N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls390.pdf",
+        "aproximada": "Cuenta en el flanco de bajada y no tiene acarreo (CO); la cuenta hasta 9 pide unir Q0 con el reloj de la sección entre 5.",
+        "equivalencias": { "kicad": "74xx:74LS390" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "CLK": "1", "RST": "2", "Q0": "3", "Q1": "5", "Q2": "6", "Q3": "7" },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "sinModelo": { "4": "Reloj de la sección entre 5 (se une a Q0 por fuera)", "12": "Reloj de la sección entre 5 (se une a Q0 por fuera)" },
+            "unidades": [
+              { "nombre": "Contador 1", "patillas": { "CLK": "1", "RST": "2", "Q0": "3", "Q1": "5", "Q2": "6", "Q3": "7" } },
+              { "nombre": "Contador 2", "patillas": { "CLK": "15", "RST": "14", "Q0": "13", "Q1": "11", "Q2": "10", "Q3": "9" } }
+            ],
+            "parte": "SN74LS390N"
+          }
+        ],
+        "pendiente": {
+          "lcsc": "no se halló un número LCSC de esta parte",
+          "patillas": "El pin CO (acarreo) no existe en este integrado: SN74LS390N no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS390; TI CD74HC390 (misma función)" }
+      },
+      "74LS|15": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS393N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls393.pdf",
+        "aproximada": "Cuenta en el flanco de bajada y no tiene salida de acarreo (CO).",
+        "equivalencias": { "kicad": "74xx:74LS393" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "CLK": "1", "RST": "2", "Q0": "3", "Q1": "4", "Q2": "5", "Q3": "6" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Contador 1", "patillas": { "CLK": "1", "RST": "2", "Q0": "3", "Q1": "4", "Q2": "5", "Q3": "6" } },
+              { "nombre": "Contador 2", "patillas": { "CLK": "13", "RST": "12", "Q0": "11", "Q1": "10", "Q2": "9", "Q3": "8" } }
+            ],
+            "parte": "SN74LS393N"
+          }
+        ],
+        "pendiente": {
+          "lcsc": "no se halló un número LCSC de esta parte",
+          "patillas": "El pin CO (acarreo) no existe en este integrado: SN74LS393N no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS393; TI CD74HC393 (misma función)" }
+      },
+      "CD4000B|9": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4518BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4518b.pdf",
+        "aproximada": "Cuenta en el flanco de subida con ENABLE en alto y no tiene salida de acarreo (CO).",
+        "equivalencias": { "kicad": "4xxx:4518" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "CLK": "1", "RST": "7", "Q0": "3", "Q1": "4", "Q2": "5", "Q3": "6" },
+            "alimentacion": { "VDD": "16", "VSS": "8" },
+            "sinModelo": {
+              "2": "ENABLE del primer contador (se une a VDD para contar en el flanco de subida)",
+              "10": "ENABLE del segundo contador (se une a VDD)"
+            },
+            "unidades": [
+              { "nombre": "Contador 1", "patillas": { "CLK": "1", "RST": "7", "Q0": "3", "Q1": "4", "Q2": "5", "Q3": "6" } },
+              { "nombre": "Contador 2", "patillas": { "CLK": "9", "RST": "15", "Q0": "11", "Q1": "12", "Q2": "13", "Q3": "14" } }
+            ],
+            "parte": "CD4518BE",
+            "lcsc": { "numero": "C5220", "comprobado": "2026-10-26" }
+          }
+        ],
+        "pendiente": {
+          "patillas": "El pin CO (acarreo) no existe en este integrado: CD4518BE no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4518B/CD4520B, diagrama funcional p. 1 (imagen); KiCad 4xxx:4518" }
+      },
+      "CD4000B|15": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4520BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4520b.pdf",
+        "aproximada": "Cuenta en el flanco de subida con ENABLE en alto y no tiene salida de acarreo (CO).",
+        "equivalencias": { "kicad": "4xxx:4520" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "CLK": "1", "RST": "7", "Q0": "3", "Q1": "4", "Q2": "5", "Q3": "6" },
+            "alimentacion": { "VDD": "16", "VSS": "8" },
+            "sinModelo": {
+              "2": "ENABLE del primer contador (se une a VDD para contar en el flanco de subida)",
+              "10": "ENABLE del segundo contador (se une a VDD)"
+            },
+            "unidades": [
+              { "nombre": "Contador 1", "patillas": { "CLK": "1", "RST": "7", "Q0": "3", "Q1": "4", "Q2": "5", "Q3": "6" } },
+              { "nombre": "Contador 2", "patillas": { "CLK": "9", "RST": "15", "Q0": "11", "Q1": "12", "Q2": "13", "Q3": "14" } }
+            ],
+            "parte": "CD4520BE",
+            "lcsc": { "numero": "C5336", "comprobado": "2026-10-26" }
+          }
+        ],
+        "pendiente": {
+          "patillas": "El pin CO (acarreo) no existe en este integrado: CD4520BE no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4518B/CD4520B, diagrama funcional p. 1 (imagen); KiCad 4xxx:4520" }
+      }
+    }
+  }
 }

@@ -26,6 +26,23 @@ describe('familias lógicas', () => {
     expect([p.t_rise, p.t_fall, p.r_in, p.v_in, p.z_como]).toEqual([12e-9, 6e-9, 5500, 2.6, 'uno'])
   })
 
+  it('los umbrales de disparo se interpolan entre alimentaciones: la 74HC a 5 V da cerca de 2.8 y 1.7 V, y la 74LS sus dos valores', () => {
+    const hc = parametrosDeFamilia(FAMILIAS.familias['74HC'], 5)
+    expect([hc.vt_pos!, hc.vt_neg!].map((v) => Math.round(v * 100) / 100)).toEqual([2.77, 1.73])
+    expect(parametrosDeFamilia(FAMILIAS.familias['74HC'], 9 as number).vt_pos).toBe(3.3)
+    const ls = parametrosDeFamilia(FAMILIAS.familias['74LS'], 5)
+    expect([ls.vt_pos, ls.vt_neg]).toEqual([1.7, 0.9])
+    for (const f of Object.values(FAMILIAS.familias)) for (const p of f.entrada.schmitt ?? []) expect(p.vt_neg).toBeLessThan(p.vt_pos)
+  })
+
+  it('un punto de disparo con vt_neg mayor que vt_pos se rechaza', () => {
+    const f = JSON.parse(JSON.stringify(FAMILIAS)) as typeof FAMILIAS
+    f.familias['74HC'].entrada.schmitt = [{ vcc: 5, vt_pos: 1, vt_neg: 2 }]
+    const r = validarFamilias(f)
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.errores[0]).toContain('familias.74HC.entrada.schmitt[0]')
+  })
+
   it('la CD4000B a 12 V interpola entre 10 y 15 V', () => {
     const p = parametrosDeFamilia(FAMILIAS.familias.CD4000B, 12)
     expect(cerca(p.in_low, 3.6) && cerca(p.in_high, 8.4) && p.v_hi === 12).toBe(true)

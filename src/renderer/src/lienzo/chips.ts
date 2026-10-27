@@ -7,7 +7,8 @@ import { ordenRef } from '../ui/redes'
 import { formatearMedida } from '../valores/valores'
 import { textoNivelRed } from '../sim/lectura'
 import { AIRE_TEXTO, cajaTexto, valores } from './apartar'
-import { claveDeRedChip, limitarDesplazo, redLlevaChip, type Desplazos } from './ajusteChips'
+import { acotarAlAlcance, claveDeRedChip, limitarDesplazo, redLlevaChip, type Desplazos } from './ajusteChips'
+import { candidatosEnEntrada } from './anclaChip'
 import { Cubetas } from './cubetas'
 import { ANCHO_TRAZO, anchoTexto } from './medidas'
 import type { Texto } from './etiquetas'
@@ -219,7 +220,9 @@ export function chipsDeVoltaje(doc: Documento, lib: Map<string, PiezaDef>, con: 
     ancho = anchoTexto(texto, TAM_CHIP)
     n = 0
     const t = tramoMasLargo(doc, r)
-    if (t?.horizontal) {
+    const enEntrada = candidatosEnEntrada(doc, lib, r)
+    if (enEntrada) for (const c of enEntrada) poner(c.x, c.y, c.alinear)
+    else if (t?.horizontal) {
       const cx = (t.a.x + t.b.x) / 2
       poner(cx, t.a.y - SEPARACION_CHIP, 'centro')
       poner(cx, t.a.y + SEPARACION_CHIP, 'centro')
@@ -254,7 +257,8 @@ export function chipsDeVoltaje(doc: Documento, lib: Map<string, PiezaDef>, con: 
     const d = clave ? opciones.desplazos?.get(clave) : undefined
     if (d) {
       const m = limitarDesplazo(d.dx, d.dy)
-      out.push({ ...elegido, x: elegido.x + m.dx, y: elegido.y + m.dy })
+      const q = acotarAlAlcance(doc, lib, r, elegido.x + m.dx, elegido.y + m.dy)
+      out.push({ ...elegido, x: q.x, y: q.y })
     } else out.push(elegido)
   }
   return out

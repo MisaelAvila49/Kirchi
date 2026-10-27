@@ -1,0 +1,88 @@
+{
+  "id": "fuente-ccvs",
+  "nombre": {
+    "es": "Fuente de voltaje controlada por corriente (CCVS)",
+    "en": "Current-controlled voltage source"
+  },
+  "categoria": "fuentes",
+  "prefijo": "H",
+  "buscar": [
+    "h",
+    "fuente ccvs",
+    "fuente controlada",
+    "dependiente",
+    "transresistencia"
+  ],
+  "pines": [
+    {
+      "id": "+",
+      "nombre": "+",
+      "x": 0,
+      "y": -4
+    },
+    {
+      "id": "-",
+      "nombre": "−",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "id": "C+",
+      "nombre": "control +",
+      "x": -4,
+      "y": -2
+    },
+    {
+      "id": "C-",
+      "nombre": "control −",
+      "x": -4,
+      "y": 2
+    }
+  ],
+  "props": [
+    {
+      "id": "r",
+      "nombre": "Transresistencia",
+      "unidad": "Ω",
+      "defecto": "1k",
+      "comunes": [
+        "100",
+        "1k",
+        "10k"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "controlada",
+    "forma": "H",
+    "p": "+",
+    "n": "-",
+    "cp": "C+",
+    "cn": "C-",
+    "prop": "r"
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 3,
+      "y": -1
+    },
+    "valor": {
+      "x": 3,
+      "y": 1
+    }
+  },
+  "datos": {
+    "equivalencias": {
+      "ltspice": "h",
+      "sinVerificar": [
+        "ltspice"
+      ]
+    },
+    "valores": {
+      "*": {
+        "virtual": true,
+        "nota": "Fuente ideal del simulador: su voltaje es la transresistencia por la corriente que entra por C+ y sale por C−."
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+* 4N25 que conmuta una carga de 1 kohm con pulsos de 5 V a 25 kHz en el LED
+.include modelos.lib
+V1 vin 0 PULSE(0 5 0 1p 1p 19.999999u 40u)
+R1 vin a 330
+V2 vcc 0 DC 10
+RL vcc c 1k
+D1 a x DOPT4
+VF1 x 0 0
+F1 c b VF1 0.0024876
+Q1 c b 0 QOPT4
+.options reltol=1e-6 abstol=1e-14 vntol=1e-9
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20n 100u 0 20n
+wrdata salida.txt v(a) v(c) i(v1) i(v2)
+.endc
+.end

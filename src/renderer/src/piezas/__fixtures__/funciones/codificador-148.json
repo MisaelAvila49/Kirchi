@@ -1,0 +1,38 @@
+{
+ "columnas": [
+  "EI",
+  "I0",
+  "I1",
+  "I2",
+  "I3",
+  "I4",
+  "I5",
+  "I6",
+  "I7"
+ ],
+ "salidas": [
+  "A2",
+  "A1",
+  "A0",
+  "GS",
+  "EO"
+ ],
+ "filas": [
+  "1 X X X X X X X X > 1 1 1 1 1",
+  "0 1 1 1 1 1 1 1 1 > 1 1 1 1 0",
+  "0 X X X X X X X 0 > 0 0 0 0 1",
+  "0 X X X X X X 0 1 > 0 0 1 0 1",
+  "0 X X X X X 0 1 1 > 0 1 0 0 1",
+  "0 X X X X 0 1 1 1 > 0 1 1 0 1",
+  "0 X X X 0 1 1 1 1 > 1 0 0 0 1",
+  "0 X X 0 1 1 1 1 1 > 1 0 1 0 1",
+  "0 X 0 1 1 1 1 1 1 > 1 1 0 0 1",
+  "0 0 1 1 1 1 1 1 1 > 1 1 1 0 1"
+ ],
+ "fuente": {
+  "documento": "TI SN74HC148 (SCLS109H)",
+  "pagina": "9, tabla 8-1 Function Table",
+  "comprobada_con": "TI SN74LS148 (SDLS053B), p. 3, FUNCTION TABLE '148, 'LS148: las 10 filas son iguales",
+  "convencion": "entradas y salidas activas en bajo; la entrada 7 tiene la prioridad mas alta"
+ }
+}

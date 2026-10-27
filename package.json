@@ -1,6 +1,6 @@
 {
   "name": "kirchi",
-  "version": "1.2.2",
+  "version": "2.0.0",
   "description": "Simulador de circuitos libre y sin conexión",
   "license": "MIT",
   "private": true,
@@ -38,6 +38,7 @@
     "solid-js": "^1.9.17"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@playwright/test": "^1.64.0",
     "@types/node": "^26.6.5",
     "@types/rbush": "^4.0.0",
@@ -50,7 +51,8 @@
     "vite": "^7.3.7",
     "vite-plugin-solid": "^2.11.14",
     "vitest": "^5.0.4",
-    "wasm-pack": "^0.15.0"
+    "wasm-pack": "^0.15.0",
+    "zod": "4.6.5"
   },
   "author": {
     "name": "Misael Saúl Avila López",

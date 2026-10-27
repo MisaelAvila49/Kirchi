@@ -1,0 +1,36 @@
+{
+ "comunes": [
+  "B",
+  "A"
+ ],
+ "rebanada": "cada rebanada (1 y 2) tiene G, C0 a C3 y Y; B y A son comunes",
+ "columnas": [
+  "B",
+  "A",
+  "G",
+  "C0",
+  "C1",
+  "C2",
+  "C3"
+ ],
+ "salidas": [
+  "Y"
+ ],
+ "filas": [
+  "X X 1 X X X X > 0",
+  "0 0 0 0 X X X > 0",
+  "0 0 0 1 X X X > 1",
+  "0 1 0 X 0 X X > 0",
+  "0 1 0 X 1 X X > 1",
+  "1 0 0 X X 0 X > 0",
+  "1 0 0 X X 1 X > 1",
+  "1 1 0 X X X 0 > 0",
+  "1 1 0 X X X 1 > 1"
+ ],
+ "fuente": {
+  "documento": "TI SN74HC153 (SCLS112E)",
+  "pagina": "9, seccion 7.3 Device Functional Modes",
+  "comprobada_con": "TI SN74LS153 (SDLS055A), p. 1, FUNCTION TABLE: las 9 filas son iguales",
+  "convencion": "G activo en bajo; con G alto Y = 0"
+ }
+}

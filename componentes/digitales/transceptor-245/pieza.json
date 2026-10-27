@@ -1,0 +1,201 @@
+{
+  "id": "transceptor-245",
+  "nombre": { "es": "Transceptor octal bidireccional (74245)", "en": "Octal bus transceiver (74245)" },
+  "categoria": "digitales",
+  "grupo": "Registros y búferes",
+  "prefijo": "U",
+  "buscar": [
+    "u",
+    "transceptor",
+    "transceiver",
+    "bidireccional",
+    "octal",
+    "bus",
+    "tres estados",
+    "74245",
+    "74hc245",
+    "74ls245",
+    "dir"
+  ],
+  "pines": [
+    { "id": "DIR", "nombre": "DIR (sentido: bajo de B a A, alto de A a B)", "x": 0, "y": -14 },
+    { "id": "OE", "nombre": "OE (habilitación, activa en bajo)", "x": 2, "y": -14 },
+    { "id": "A1", "nombre": "A1", "x": -8, "y": -6 },
+    { "id": "B1", "nombre": "B1", "x": 8, "y": -6 },
+    { "id": "A2", "nombre": "A2", "x": -8, "y": -4 },
+    { "id": "B2", "nombre": "B2", "x": 8, "y": -4 },
+    { "id": "A3", "nombre": "A3", "x": -8, "y": -2 },
+    { "id": "B3", "nombre": "B3", "x": 8, "y": -2 },
+    { "id": "A4", "nombre": "A4", "x": -8, "y": 0 },
+    { "id": "B4", "nombre": "B4", "x": 8, "y": 0 },
+    { "id": "A5", "nombre": "A5", "x": -8, "y": 2 },
+    { "id": "B5", "nombre": "B5", "x": 8, "y": 2 },
+    { "id": "A6", "nombre": "A6", "x": -8, "y": 4 },
+    { "id": "B6", "nombre": "B6", "x": 8, "y": 4 },
+    { "id": "A7", "nombre": "A7", "x": -8, "y": 6 },
+    { "id": "B7", "nombre": "B7", "x": 8, "y": 6 },
+    { "id": "A8", "nombre": "A8", "x": -8, "y": 8 },
+    { "id": "B8", "nombre": "B8", "x": 8, "y": 8 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": ["OE", "DIR"],
+    "rebanadas": [
+      { "A": "A1", "B": "B1" },
+      { "A": "A2", "B": "B2" },
+      { "A": "A3", "B": "B3" },
+      { "A": "A4", "B": "B4" },
+      { "A": "A5", "B": "B5" },
+      { "A": "A6", "B": "B6" },
+      { "A": "A7", "B": "B7" },
+      { "A": "A8", "B": "B8" }
+    ],
+    "bidireccionales": ["A", "B"],
+    "tabla": {
+      "columnas": ["OE", "DIR", "A", "B"],
+      "salidas": ["A", "B"],
+      "filas": ["1 X X X > Z Z", "0 0 X X > B Z", "0 1 X X > Z A"]
+    },
+    "retardos": { "74HC": { "vcc": 4.5, "*": [1.5e-8, 1.5e-8] }, "74LS": { "vcc": 5, "*": [8e-9, 8e-9] } }
+  },
+  "caja": {
+    "titulo": "BUS",
+    "forma": "funcional",
+    "izquierda": ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"],
+    "derecha": ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"],
+    "arriba": ["DIR", "!OE"],
+    "marcas": {
+      "A1": ["z"],
+      "B1": ["z"],
+      "A2": ["z"],
+      "B2": ["z"],
+      "A3": ["z"],
+      "B3": ["z"],
+      "A4": ["z"],
+      "B4": ["z"],
+      "A5": ["z"],
+      "B5": ["z"],
+      "A6": ["z"],
+      "B6": ["z"],
+      "A7": ["z"],
+      "B7": ["z"],
+      "A8": ["z"],
+      "B8": ["z"]
+    }
+  },
+  "fuentes": {
+    "74HC": "TI SN74HC245 (SCLS131F): tabla de función p. 9 y retardo típico de 15 ns de A a B o de B a A (p. 6, 4.5 V, CL 50 pF). El modelo pasa de y a alta impedancia con el retardo de subida, y la hoja da 23 y 25 ns.",
+    "74LS": "TI SN54LS245/SN74LS245 (SDLS146B): tabla de función p. 9 y retardo típico de 8 ns de A a B o de B a A (p. 5, 5 V, CL 45 pF). El modelo pasa de y a alta impedancia con el retardo de subida, y la hoja da de 15 a 27 ns."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC245N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc245.pdf",
+        "equivalencias": { "kicad": "74xx:74HC245" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-20",
+            "patillas": {
+              "DIR": "1",
+              "OE": "19",
+              "A1": "2",
+              "B1": "18",
+              "A2": "3",
+              "B2": "17",
+              "A3": "4",
+              "B3": "16",
+              "A4": "5",
+              "B4": "15",
+              "A5": "6",
+              "B5": "14",
+              "A6": "7",
+              "B6": "13",
+              "A7": "8",
+              "B7": "12",
+              "A8": "9",
+              "B8": "11"
+            },
+            "alimentacion": { "VCC": "20", "GND": "10" },
+            "parte": "SN74HC245N",
+            "lcsc": { "numero": "C2899", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SN74HC245 (SCLS131F, ago 2022), p. 3, fig. 5-1; KiCad 74xx:74HC245 (9.0.0, extiende 74LS245; A->B en la 1 y CE en la 19)"
+        }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS245N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls245.pdf",
+        "equivalencias": { "kicad": "74xx:74LS245" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-20",
+            "patillas": {
+              "DIR": "1",
+              "OE": "19",
+              "A1": "2",
+              "B1": "18",
+              "A2": "3",
+              "B2": "17",
+              "A3": "4",
+              "B3": "16",
+              "A4": "5",
+              "B4": "15",
+              "A5": "6",
+              "B5": "14",
+              "A6": "7",
+              "B6": "13",
+              "A7": "8",
+              "B7": "12",
+              "A8": "9",
+              "B8": "11"
+            },
+            "alimentacion": { "VCC": "20", "GND": "10" },
+            "parte": "SN74LS245N",
+            "lcsc": { "numero": "C352966", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN54LS245/SN74LS245 (SDLS146B, sep 2016), p. 3; KiCad 74xx:74LS245" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -16 }, "valor": { "x": 0, "y": 14 } },
+  "rotulos": [
+    { "texto": "A1", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "A2", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "A3", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "A4", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "A5", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "A6", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "A7", "x": -3.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "A8", "x": -3.2, "y": 8, "tam": 1, "alinear": "izq" },
+    { "texto": "B1", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "B2", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "B3", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "B4", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "B5", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "B6", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "B7", "x": 3.2, "y": 6, "tam": 1, "alinear": "der" },
+    { "texto": "B8", "x": 3.2, "y": 8, "tam": 1, "alinear": "der" },
+    { "texto": "DIR", "x": 0, "y": -11.2, "tam": 1, "alinear": "abajo" },
+    { "texto": "OE", "x": 2, "y": -11.2, "tam": 1, "alinear": "abajo" },
+    { "texto": "BUS", "x": 0, "y": -8.4, "tam": 1, "alinear": "centro" }
+  ]
+}

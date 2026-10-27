@@ -5,13 +5,15 @@ import { ladoPorArrastre, posicionXPorArrastre } from '../../../../compartido/gr
 import type { AjustesOsciloscopio, Canal } from '../../instrumentos/ajustes'
 import type { PantallaSab } from '../../sim/protocoloInstrumentos'
 import { ayudaEjeTiempo } from './panel'
-import { cursorCercano, cursorDeTecla, moverCursor, ponerCursor, punteroDeCursor, tiempoDeX, voltajeDeY, type CualCursor } from './cursores'
+import { cursorCercano, cursorDeTecla, cursoresDelModo, moverCursor, ponerCursor, punteroDeCursor, tiempoDeX, voltajeDeY, type CualCursor } from './cursores'
 import { canalesXY, coloresPantalla, dibujarPantalla, type CursoresPantalla } from './dibujar'
 import { estiloCifrasDe, estiloDeAspecto } from './estilo'
 import { lecturaPantalla, type LecturaOsc } from './lectura'
-import { marcaEn, marcoDePantalla, posicionDeY, zonaEn } from './marco'
+import { marcaEn, marcoDePantalla, posicionDeY, zonaEn, type Marco } from './marco'
 import { temaEfectivo } from '../grafica/paleta'
 import { dxDeTecla } from './recorrido'
+import { canalHorizontalXY, marcaHorizontalEn, posicionDeX } from './marco'
+import { cursorXYCercano, lecturaXY, moverCursorXYTecla, ponerCursorXY } from './xy'
 import { Rueda } from './rueda'
 
 /** La escala que cambia la rueda: los voltios por división de un canal o la base de tiempo. */
@@ -71,10 +73,13 @@ export default function Pantalla(props: Props) {
   const [moviendoEje, setMoviendoEje] = createSignal(false)
   const [recorriendo, setRecorriendo] = createSignal(false)
   const cursorDelTeclado = (): CualCursor | null => {
-    const c = props.cursores
+    const c = cursores()
     if (!c || !enfocada()) return null
+    if (c.xy) return activo() === 0 ? 't1' : 't2'
     return c.t ? (activo() === 0 ? 't1' : 't2') : c.v ? (activo() === 0 ? 'v1' : 'v2') : null
   }
+  /** Los cursores del modo de pantalla actual (los del otro modo no se ven ni se toman). */
+  const cursores = () => cursoresDelModo(props.cursores, props.ajustes)
   let pedido = 0
   const aspecto = () => props.aspecto ?? ASPECTO_OSCILOSCOPIO
   const lados = () => Object.fromEntries(Object.entries(props.canales ?? {}).map(([c, t]) => [c, t.lado])) as Partial<Record<Canal, LadoEjeY>>
@@ -91,9 +96,9 @@ export default function Pantalla(props: Props) {
     const a = aspecto()
     const tonos = Object.fromEntries(Object.entries(props.canales ?? {}).map(([c, t]) => [c, t.color]))
     dibujarPantalla(ctx, props.pantalla, props.ajustes, w, h, coloresPantalla(temaEfectivo(a.tema, props.tema), false, tonos), {
-      dpr, cursores: props.cursores, resaltado: arrastrado() ?? sobreCursor() ?? cursorDelTeclado(), ejes: true,
+      dpr, cursores: cursores(), resaltado: arrastrado() ?? sobreCursor() ?? cursorDelTeclado(), ejes: true,
       sinReticula: !a.rejilla, marcas: a.marcas, grosor: a.grosor, marco: opcionesMarco(),
-      estilo: estiloDeAspecto(a, props.canales), asas: true, lectura: a.lectura && !canalesXY(props.ajustes) ? leyendo() : null, detalleCursores: props.detalleCursores
+      estilo: estiloDeAspecto(a, props.canales), asas: true, lectura: a.lectura ? leyendo() : null, detalleCursores: props.detalleCursores
     })
   }
   const pedir = () => {
@@ -141,6 +146,16 @@ export default function Pantalla(props: Props) {
     void tam()
     pedir()
   })
+  const prefijosDeCanales = () => Object.fromEntries(Object.entries(props.canales ?? {}).map(([k, t]) => [k, t.prefijo ?? null]))
+  const leer = (p: PantallaSab, m: Marco, x: number, y: number): LecturaOsc | null => (canalesXY(props.ajustes) ? lecturaXY(p, props.ajustes, m, x, y, prefijosDeCanales()) : lecturaPantalla(p, props.ajustes, m, x, prefijosDeCanales(), aspecto().prefijoX))
+  /** El cursor bajo (x, y): en X-Y, por distancia al punto de la curva; si no, el de tiempo o el de voltaje. */
+  const cursorAqui = (c: CursoresPantalla, x: number, y: number, m: Marco, tol: number): CualCursor | null => {
+    if (c.xy) {
+      const i = cursorXYCercano(c, props.ajustes, m, x, y, tol)
+      return i === null ? null : i === 0 ? 't1' : 't2'
+    }
+    return props.pantalla ? cursorCercano(c, x - m.x, y - m.y, m.w, m.h, props.pantalla.t0, props.ajustes, tol) : null
+  }
   const enPixeles = (e: PointerEvent | WheelEvent) => {
     const r = canvas.getBoundingClientRect()
     const { w, h } = tam()
@@ -154,7 +169,7 @@ export default function Pantalla(props: Props) {
     const q = enPixeles(e)
     const m = marco()
     const tol = TOMAR_PX * tam().dpr
-    const canal = marcaEn(m, props.ajustes, q.x, q.y, tol)
+    const canal = marcaEn(m, props.ajustes, q.x, q.y, tol) ?? marcaHorizontalEn(m, props.ajustes, q.x, q.y, tol)
     if (canal) {
       const pos = props.ajustes.canales.find((c) => c.canal === canal)!.pos
       tomado = { tipo: 'marca', canal, gesto: `marca-${++arrastres}`, pos }
@@ -162,8 +177,8 @@ export default function Pantalla(props: Props) {
       e.preventDefault()
       return
     }
-    const c = props.cursores
-    const cual = c && props.pantalla ? cursorCercano(c, q.x - m.x, q.y - m.y, m.w, m.h, props.pantalla.t0, props.ajustes, tol) : null
+    const c = cursores()
+    const cual = c && props.pantalla ? cursorAqui(c, q.x, q.y, m, tol) : null
     if (c && cual) {
       tomado = { tipo: 'cursor', cual }
       setArrastrado(cual)
@@ -194,16 +209,16 @@ export default function Pantalla(props: Props) {
     const m = marco()
     if (!tomado) {
       const tol = TOMAR_PX * tam().dpr
-      const marca = marcaEn(m, props.ajustes, q.x, q.y, tol) !== null
+      const marca = (marcaEn(m, props.ajustes, q.x, q.y, tol) ?? marcaHorizontalEn(m, props.ajustes, q.x, q.y, tol)) !== null
       setSobreMarca(marca)
-      const c = props.cursores
-      const cur = c && props.pantalla ? cursorCercano(c, q.x - m.x, q.y - m.y, m.w, m.h, props.pantalla.t0, props.ajustes, tol) : null
+      const c = cursores()
+      const cur = c && props.pantalla ? cursorAqui(c, q.x, q.y, m, tol) : null
       setSobreCursor(cur)
       const z = zonaEn(m, q.x, q.y)
       setSobreEje(!marca && cur === null && (z?.tipo === 'canal' || z?.tipo === 'tiempo'))
       setSobreTiempo(z?.tipo === 'tiempo')
       const a = aspecto()
-      const l = a.lectura && !marca && cur === null && z?.tipo === 'pantalla' && props.pantalla ? lecturaPantalla(props.pantalla, props.ajustes, m, q.x, Object.fromEntries(Object.entries(props.canales ?? {}).map(([k, t]) => [k, t.prefijo ?? null])), a.prefijoX) : null
+      const l = a.lectura && !marca && cur === null && z?.tipo === 'pantalla' && props.pantalla ? leer(props.pantalla, m, q.x, q.y) : null
       setLeyendo(l)
       return
     }
@@ -230,14 +245,19 @@ export default function Pantalla(props: Props) {
       return
     }
     if (tomado.tipo === 'marca') {
-      const pos = posicionDeY(m, q.y)
+      // En X-Y la marca del canal horizontal se corre a los lados.
+      const pos = tomado.canal === canalHorizontalXY(props.ajustes) ? posicionDeX(m, q.x) : posicionDeY(m, q.y)
       if (pos === tomado.pos) return
       tomado.pos = pos
       props.onPosicion?.(tomado.canal, pos, tomado.gesto)
       return
     }
-    const c = props.cursores
+    const c = cursores()
     if (!c || !props.pantalla) return
+    if (c.xy) {
+      props.onCursores?.(ponerCursorXY(c, tomado.cual === 't1' ? 0 : 1, props.pantalla, props.ajustes, m, q.x, q.y))
+      return
+    }
     const valor = tomado.cual[0] === 't' ? tiempoDeX(q.x - m.x, m.w, props.pantalla.t0, props.ajustes) : voltajeDeY(q.y - m.y, m.h, props.ajustes, c.canal)
     props.onCursores?.(ponerCursor(c, tomado.cual, valor))
   }
@@ -250,11 +270,16 @@ export default function Pantalla(props: Props) {
   // Con el foco en la pantalla (Tab, solo con cursores): 1 y 2 eligen el cursor, las flechas lo mueven (Shift, una división).
   const tecla = (e: KeyboardEvent) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return
-    const c = props.cursores
+    const c = cursores()
     if (c) {
       if (e.key === '1' || e.key === '2') {
         setActivo(e.key === '1' ? 0 : 1)
         e.preventDefault()
+        return
+      }
+      if (c.xy && props.pantalla && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault()
+        props.onCursores?.(moverCursorXYTecla(c, activo(), e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : -1, e.shiftKey, props.pantalla, props.ajustes, marco()))
         return
       }
       const m = cursorDeTecla(e.key, activo(), c)
@@ -295,7 +320,7 @@ export default function Pantalla(props: Props) {
       ref={canvas}
       class="osc-lienzo"
       classList={{ 'sobre-eje': sobreEje() && !moviendoEje(), 'moviendo-eje': moviendoEje(), 'sobre-marca': sobreMarca(), recorrible: !!props.recorrible && !recorriendo(), recorriendo: recorriendo(), 'sobre-cursor-t': punteroDeCursor(arrastrado() ?? sobreCursor()) === 'ew-resize', 'sobre-cursor-v': punteroDeCursor(arrastrado() ?? sobreCursor()) === 'ns-resize' }}
-      tabindex={props.cursores || props.recorrible ? 0 : undefined}
+      tabindex={cursores() || props.recorrible ? 0 : undefined}
       onKeyDown={tecla}
       onFocus={() => setEnfocada(true)}
       onBlur={() => setEnfocada(false)}

@@ -48,6 +48,162 @@ fn supernodal(a: SymbolicSparseColMatRef<'_, usize>) -> bool {
     }
 }
 
+/// Pivote mínimo de la refactorización relativo a lo mayor de su columna (el `RelThreshold` de ngspice): por debajo se vuelve a
+/// elegir el orden con pivoteo parcial.
+const UMBRAL_PIVOTE: f64 = 1e-3;
+
+/// LU con el orden de pivotes de la última factorización de faer: rehacer solo los números con el mismo orden y el mismo
+/// relleno cuesta una fracción de una factorización con pivoteo.
+#[derive(Default)]
+struct Refactor {
+    /// Fila original de la fila permutada `i`, fila permutada de la original y columna original de la permutada `j`.
+    fila: Vec<usize>,
+    fila_inv: Vec<usize>,
+    col: Vec<usize>,
+    /// L por columnas, sin la diagonal (unitaria), con filas permutadas mayores que la columna.
+    l_ptr: Vec<usize>,
+    l_idx: Vec<usize>,
+    l_val: Vec<f64>,
+    /// U por columnas, sin la diagonal, con filas permutadas menores que la columna en orden creciente.
+    u_ptr: Vec<usize>,
+    u_idx: Vec<usize>,
+    u_val: Vec<f64>,
+    diag: Vec<f64>,
+    x: std::cell::RefCell<Vec<f64>>,
+    /// Los números de la última refactorización valen (si no, se resuelve con faer).
+    lista: bool,
+}
+
+impl Refactor {
+    /// Relleno de L y U con los pivotes dados: el patrón de cada columna es lo que alcanzan sus entradas por las columnas de L
+    /// anteriores (en orden creciente, que es un orden topológico porque L solo apunta hacia abajo).
+    fn analizar(&mut self, col_ptr: &[usize], row_idx: &[usize], fila: &[usize], col: &[usize]) {
+        let n = fila.len();
+        self.fila = fila.to_vec();
+        self.col = col.to_vec();
+        self.fila_inv = vec![0; n];
+        for (i, &r) in fila.iter().enumerate() {
+            self.fila_inv[r] = i;
+        }
+        self.l_ptr = vec![0];
+        self.u_ptr = vec![0];
+        self.l_idx.clear();
+        self.u_idx.clear();
+        let mut marca = vec![usize::MAX; n];
+        let mut pendientes = std::collections::BinaryHeap::new();
+        let mut abajo = Vec::new();
+        for j in 0..n {
+            abajo.clear();
+            let c = col[j];
+            for &r in &row_idx[col_ptr[c]..col_ptr[c + 1]] {
+                let i = self.fila_inv[r];
+                if marca[i] != j {
+                    marca[i] = j;
+                    if i < j {
+                        pendientes.push(std::cmp::Reverse(i));
+                    } else if i > j {
+                        abajo.push(i);
+                    }
+                }
+            }
+            while let Some(std::cmp::Reverse(k)) = pendientes.pop() {
+                self.u_idx.push(k);
+                for q in self.l_ptr[k]..self.l_ptr[k + 1] {
+                    let i = self.l_idx[q];
+                    if marca[i] != j {
+                        marca[i] = j;
+                        if i < j {
+                            pendientes.push(std::cmp::Reverse(i));
+                        } else if i > j {
+                            abajo.push(i);
+                        }
+                    }
+                }
+            }
+            self.u_ptr.push(self.u_idx.len());
+            self.l_idx.extend_from_slice(&abajo);
+            self.l_ptr.push(self.l_idx.len());
+        }
+        self.l_val = vec![0.0; self.l_idx.len()];
+        self.u_val = vec![0.0; self.u_idx.len()];
+        self.diag = vec![0.0; n];
+        *self.x.get_mut() = vec![0.0; n];
+        self.lista = false;
+    }
+
+    /// Rehace los números con el orden guardado; false si un pivote queda chico frente a su columna (o es cero o no finito).
+    fn refactorizar(&mut self, col_ptr: &[usize], row_idx: &[usize], vals: &[f64]) -> bool {
+        self.lista = false;
+        let n = self.col.len();
+        let x = self.x.get_mut();
+        for j in 0..n {
+            let c = self.col[j];
+            for p in col_ptr[c]..col_ptr[c + 1] {
+                x[self.fila_inv[row_idx[p]]] += vals[p];
+            }
+            for p in self.u_ptr[j]..self.u_ptr[j + 1] {
+                let k = self.u_idx[p];
+                let xk = x[k];
+                x[k] = 0.0;
+                self.u_val[p] = xk;
+                if xk != 0.0 {
+                    for q in self.l_ptr[k]..self.l_ptr[k + 1] {
+                        x[self.l_idx[q]] -= self.l_val[q] * xk;
+                    }
+                }
+            }
+            let piv = x[j];
+            x[j] = 0.0;
+            let mut mayor = 0.0f64;
+            for q in self.l_ptr[j]..self.l_ptr[j + 1] {
+                mayor = mayor.max(x[self.l_idx[q]].abs());
+            }
+            if !(piv.is_finite() && piv != 0.0 && piv.abs() >= UMBRAL_PIVOTE * mayor) {
+                x.fill(0.0);
+                return false;
+            }
+            self.diag[j] = piv;
+            let inv = 1.0 / piv;
+            for q in self.l_ptr[j]..self.l_ptr[j + 1] {
+                let i = self.l_idx[q];
+                self.l_val[q] = x[i] * inv;
+                x[i] = 0.0;
+            }
+        }
+        self.lista = true;
+        true
+    }
+
+    fn resolver(&self, b: &[f64], out: &mut [f64]) {
+        let n = self.col.len();
+        let mut y = self.x.borrow_mut();
+        for i in 0..n {
+            y[i] = b[self.fila[i]];
+        }
+        for k in 0..n {
+            let yk = y[k];
+            if yk != 0.0 {
+                for q in self.l_ptr[k]..self.l_ptr[k + 1] {
+                    y[self.l_idx[q]] -= self.l_val[q] * yk;
+                }
+            }
+        }
+        for k in (0..n).rev() {
+            let yk = y[k] / self.diag[k];
+            y[k] = yk;
+            if yk != 0.0 {
+                for p in self.u_ptr[k]..self.u_ptr[k + 1] {
+                    y[self.u_idx[p]] -= self.u_val[p] * yk;
+                }
+            }
+        }
+        for k in 0..n {
+            out[self.col[k]] = y[k];
+            y[k] = 0.0;
+        }
+    }
+}
+
 #[cfg(feature = "perfil")]
 pub static PERFIL_PRE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 #[cfg(feature = "perfil")]
@@ -74,6 +230,11 @@ pub struct SparseLu {
     rhs: std::cell::RefCell<Mat<f64>>,
     ok: bool,
     no_finito: bool,
+    refactor: Refactor,
+    /// El orden de `refactor` es el de la estructura vigente.
+    orden_listo: bool,
+    /// La factorización se llena (supernodal): ahí los bloques densos de faer ganan a la refactorización por columnas.
+    lleno: bool,
 }
 
 impl SparseLu {
@@ -95,6 +256,9 @@ impl SparseLu {
             rhs: std::cell::RefCell::new(Mat::zeros(n, 1)),
             ok: false,
             no_finito: false,
+            refactor: Refactor::default(),
+            orden_listo: false,
+            lleno: false,
         }
     }
 
@@ -121,8 +285,8 @@ impl SparseLu {
         let nnz = row_idx.len();
         let sym = SymbolicSparseColMat::new_checked(self.n, self.n, col_ptr, None, row_idx);
         let mut params = LuSymbolicParams::default();
-        params.supernodal_flop_ratio_threshold =
-            if supernodal(sym.as_ref()) { SupernodalThreshold::FORCE_SUPERNODAL } else { SupernodalThreshold::FORCE_SIMPLICIAL };
+        self.lleno = supernodal(sym.as_ref());
+        params.supernodal_flop_ratio_threshold = if self.lleno { SupernodalThreshold::FORCE_SUPERNODAL } else { SupernodalThreshold::FORCE_SIMPLICIAL };
         let symbolic = factorize_symbolic_lu(sym.as_ref(), params).map_err(|_| EngineError::Singular { element: None })?;
         let par = Par::Seq;
         // Reservar con `try_new`: si no hay memoria el motor da un error en palabras en vez de abortar el proceso.
@@ -133,6 +297,30 @@ impl SparseLu {
         self.sym = Some(sym);
         self.symbolic = Some(symbolic);
         self.key = self.rows.iter().copied().zip(self.cols.iter().copied()).collect();
+        self.orden_listo = false;
+        Ok(())
+    }
+
+    /// Factoriza con faer (pivoteo parcial) y guarda su orden de pivotes para las refactorizaciones siguientes.
+    fn factorizar_faer(&mut self) -> Result<(), EngineError> {
+        let sym = self.sym.as_ref().unwrap();
+        let a = SparseColMatRef::new(sym.as_ref(), &self.csc_vals);
+        let symbolic = self.symbolic.as_ref().unwrap();
+        symbolic
+            .factorize_numeric_lu(&mut self.numeric, a, Par::Seq, MemStack::new(&mut self.fscratch), Default::default())
+            .map_err(|_| EngineError::Singular { element: None })?;
+        if self.lleno {
+            self.refactor.lista = false;
+            return Ok(());
+        }
+        let lu = faer::sparse::linalg::lu::LuRef::new_unchecked(symbolic, &self.numeric);
+        let (fila, _) = lu.row_perm().arrays();
+        let (col, _) = lu.col_perm().arrays();
+        self.refactor.analizar(sym.col_ptr(), sym.row_idx(), fila, col);
+        self.orden_listo = true;
+        // Con los mismos números la refactorización repite lo que hizo faer; si el redondeo la deja fuera del umbral, se
+        // resuelve con faer.
+        self.refactor.refactorizar(sym.col_ptr(), sym.row_idx(), &self.csc_vals);
         Ok(())
     }
 }
@@ -184,12 +372,13 @@ impl LinearSolver for SparseLu {
         }
         #[cfg(feature = "perfil")]
         let t1 = std::time::Instant::now();
-        let a = SparseColMatRef::new(self.sym.as_ref().unwrap().as_ref(), &self.csc_vals);
-        self.symbolic
-            .as_ref()
-            .unwrap()
-            .factorize_numeric_lu(&mut self.numeric, a, Par::Seq, MemStack::new(&mut self.fscratch), Default::default())
-            .map_err(|_| EngineError::Singular { element: None })?;
+        let refactorizada = self.orden_listo && {
+            let sym = self.sym.as_ref().unwrap();
+            self.refactor.refactorizar(sym.col_ptr(), sym.row_idx(), &self.csc_vals)
+        };
+        if !refactorizada {
+            self.factorizar_faer()?;
+        }
         #[cfg(feature = "perfil")]
         {
             let t2 = std::time::Instant::now();
@@ -206,6 +395,10 @@ impl LinearSolver for SparseLu {
 
     fn solve(&self, b: &[f64], x: &mut [f64]) {
         assert!(self.ok, "factor() antes de solve()");
+        if self.refactor.lista {
+            self.refactor.resolver(b, x);
+            return;
+        }
         let mut rhs = self.rhs.borrow_mut();
         for i in 0..self.n {
             rhs[(i, 0)] = b[i];
@@ -354,6 +547,35 @@ mod tests {
         for k in 0..=n {
             let (a, b) = (s.voltage(k), d.voltage(k));
             assert!((a - b).abs() <= 1e-6 * (1.0 + b.abs()), "nodo {k}: {a} contra {b}");
+        }
+    }
+
+    #[test]
+    fn la_refactorizacion_vuelve_a_pivotear_cuando_el_pivote_guardado_se_achica() {
+        // El mismo patrón con números que cambian siete órdenes: el pivote que eligió faer con los primeros queda chico con los
+        // segundos y la solución debe seguir siendo la de la densa.
+        use crate::dense::DenseLu;
+        use crate::mna::{LinearSolver, Stamp};
+        let mut s = super::SparseLu::new(3);
+        for (g, b) in [(1e3, [1.0, 2.0, 3.0]), (1e-4, [3.0, -1.0, 2.0]), (2.0, [0.5, 0.0, -4.0])] {
+            let mut d = DenseLu::new(3);
+            for m in [&mut d as &mut dyn LinearSolver, &mut s as &mut dyn LinearSolver] {
+                m.clear();
+                m.add(0, 0, g);
+                m.add(0, 1, 1.0);
+                m.add(1, 0, 1.0);
+                m.add(1, 1, 1e-3);
+                m.add(1, 2, 2.0);
+                m.add(2, 1, 3.0);
+                m.add(2, 2, 1.0);
+                m.factor().unwrap();
+            }
+            let (mut xd, mut xs) = ([0.0; 3], [0.0; 3]);
+            d.solve(&b, &mut xd);
+            s.solve(&b, &mut xs);
+            for k in 0..3 {
+                assert!((xd[k] - xs[k]).abs() <= 1e-9 * (1.0 + xd[k].abs()), "g = {g}: {xd:?} contra {xs:?}");
+            }
         }
     }
 

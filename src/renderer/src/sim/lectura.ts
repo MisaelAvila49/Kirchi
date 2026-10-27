@@ -2,6 +2,7 @@ import type { Id } from '../doc/tipos'
 import { enumerar, type ModeloDigital } from '../netlist/digital'
 import { formatearMedida } from '../valores/valores'
 import { DIVISIONES_H } from '../instrumentos/ajustes'
+import type { RelojAdc } from '../netlist/convertidores'
 import { ELEMENTOS_DIGITALES, type ElementoMotor, type NetlistMotor, type ResultadoNetlist } from '../netlist/netlist'
 import type { SimReading } from './protocol'
 import type { Tramo } from '../conexiones/corrientes'
@@ -41,36 +42,55 @@ export interface LecturaDigital {
  * veces se lea (contar cambios entre lecturas hacía parpadear entre patrón y nivel). */
 export const F_CONMUTA = 5
 
-/** Región de un transistor bipolar según sus uniones (el estado que da el motor: 0, 1, 2 o 3). */
-export const REGIONES_BJT = ['corte', 'activa', 'saturación', 'activa inversa'] as const
-/** Región de un MOSFET (el estado que da el motor: 0, 1 o 2). */
-export const REGIONES_MOS = ['corte', 'lineal', 'saturación'] as const
+/** Nombre de la región de cada tipo de transistor según el código del motor (`engine/src/devices/region.rs`): 0 no conduce, 1
+ * amplifica, 2 conduce como interruptor y 3 al revés. Todo lo que muestra una región lee de aquí. */
+export const REGIONES = {
+  bjt: ['corte', 'activa', 'saturación', 'activa inversa'],
+  igbt: ['corte', 'activa', 'saturación', 'activa inversa'],
+  mosfet: ['corte', 'saturación', 'lineal'],
+  jfet: ['corte', 'saturación', 'lineal']
+} as const
+export type TipoConRegion = keyof typeof REGIONES
+/** El nombre de la región de `tipo` para el código `estado` del motor; un código desconocido es «corte». */
+export const nombreDeRegion = <T extends TipoConRegion>(tipo: T, estado: number): (typeof REGIONES)[T][number] => (REGIONES[tipo] as readonly string[])[estado] as (typeof REGIONES)[T][number] ?? 'corte'
 /** Corriente (A) por debajo de la cual un zener se cuenta sin conducir. */
 export const CORRIENTE_MINIMA_ZENER = 1e-6
 
 /** Lo propio de cada modelo, además de voltaje, corriente y potencia. */
 export type ExtraMedicion =
   /** `v` es Vce e `i` es Ic; aquí, Vbe e Ib. */
-  | { tipo: 'bjt'; region: (typeof REGIONES_BJT)[number]; vbe: number; ib: number }
+  | { tipo: 'bjt'; region: (typeof REGIONES.bjt)[number]; vbe: number; ib: number }
   /** `v` es Vds e `i` es Id; aquí, Vgs. */
-  | { tipo: 'mosfet'; region: (typeof REGIONES_MOS)[number]; vgs: number }
+  | { tipo: 'mosfet'; region: (typeof REGIONES.mosfet)[number]; vgs: number }
+  /** `v` es Vds e `i` es Id; aquí, Vgs. */
+  | { tipo: 'jfet'; region: (typeof REGIONES.jfet)[number]; vgs: number }
   /** `v` es la salida respecto de tierra; 1 si está detenida contra V+, -1 contra V-. */
   | { tipo: 'ampop'; saturado: -1 | 0 | 1 }
   | { tipo: 'zener'; estado: 'directa' | 'ruptura' | 'corte' }
   /** `calentamiento`: la fracción del que lo funde (la `aux` del motor). */
   | { tipo: 'fusible'; fundido: boolean; calentamiento?: number }
   /** Una pieza compuesta: la corriente y el voltaje de cada elemento de su lista `modelo.elementos` (0 si no se armó), para sus límites. */
-  | { tipo: 'compuesto'; corrientes: number[]; voltajes: number[] }
+  | { tipo: 'compuesto'; corrientes: number[]; voltajes: number[]; region?: string }
   /** `fundido`: el filamento pasó de su temperatura máxima y quedó abierto; `calentamiento`, el θ del motor (1 es el nominal). */
   | { tipo: 'foco'; fundido: boolean; calentamiento?: number }
-  | { tipo: 'motor'; rpm: number }
+  /** `angulo` (rad, del eje de salida) y `pasos` (pasos completos) solo los da un motor a pasos; su `i` y su `v` son los de la fase A. */
+  | { tipo: 'motor'; rpm: number; angulo?: number; pasos?: number }
+  /** `temperatura`: la del termistor con su calentamiento propio (°C, la `aux` del motor). */
+  | { tipo: 'termistor'; temperatura: number }
+  /** `r`: la resistencia que tiene la fotorresistencia ahora (Ω, la `aux` del motor). */
+  | { tipo: 'ldr'; r: number }
   /** `v` e `i` son los de la bobina; `operado`, el común con el normalmente abierto. */
   | { tipo: 'rele'; operado: boolean }
   | { tipo: 'zumbador'; suena: boolean }
   /** Pieza digital: nivel de cada pin en el orden del modelo, con su voltaje si la red es analógica. Los biestables dan
    * además Q y qué la fijó; el contador, su cuenta (null sin definir); el decodificador, el dígito que manda (-1 apagado,
    * null sin definir). */
-  | { tipo: 'digital'; modelo: ModeloDigital['tipo']; pines: { id: string; nombre?: string; nivel: NivelLogico; salida: boolean; v?: number }[]; q?: NivelLogico; causa?: CausaBiestable; cuenta?: number | null; digito?: number | null }
+  | { tipo: 'digital'; modelo: ModeloDigital['tipo']; pines: { id: string; nombre?: string; nivel: NivelLogico; salida: boolean; v?: number }[]; q?: NivelLogico; causa?: CausaBiestable; cuenta?: number | null; digito?: number | null; registro?: RegistroMsi }
+  /** El ADC0804: el código de la última conversión (null con bits sin definir), si hay una en curso, INTR, el fondo de escala
+   * (2 · V de VREF/2; null si no se leyó) y el reloj. */
+  | { tipo: 'convertidor-ad'; codigo: number | null; bits: number; convirtiendo: boolean; intr: NivelLogico; vref: number | null; reloj: RelojAdc | null }
+  /** El DAC0808: el código vigente en sus entradas y la corriente que entra por IO. */
+  | { tipo: 'convertidor-da'; codigo: number; io: number }
   /** El 555: el nivel de su salida, la frecuencia y el ciclo de trabajo de su biestable (0 si no oscila) y los voltajes de THR y TRIG. */
   | { tipo: '555'; salida: NivelLogico; f: number; ciclo: number; thr: number; trig: number; alimentacion: number; vmin: number; vmax: number; modelo: string }
   /** El display: la corriente de cada segmento (a a g y el punto; null si está suelto) y lo que muestra en palabras. */
@@ -79,6 +99,16 @@ export type ExtraMedicion =
   | { tipo: 'led'; inom: number; excedida: boolean }
   /** La fuente variable: `v` e `i` son lo que entrega por sus terminales; su modo. */
   | { tipo: 'fuente-variable'; modo: 'CV' | 'CC' | 'apagada' }
+
+/** El registro que un `MSI` muestra: la cuenta, el registro de desplazamiento o el almacenamiento, como número (null con algún bit sin definir). `nombres` lleva el
+ * de cada bit (el primero es el menos significativo) y `reloj` la frecuencia de su reloj principal con el nombre del pin. */
+export interface RegistroMsi {
+  clase: 'cuenta' | 'registro' | 'almacén'
+  valor: number | null
+  bits: number
+  nombres: string[]
+  reloj?: { hz: number; pin: string }
+}
 
 /** Voltaje entre los terminales `a` y `b` del modelo, corriente de `a` hacia `b` y potencia que absorbe (negativa si entrega). */
 export interface MedicionPieza {
@@ -182,6 +212,23 @@ export function medicionDeElemento(e: ElementoMotor, v: (nodo: number) => number
       const vds = v(e.d) - v(e.s)
       return { v: vds, i, p: vds * i }
     }
+    case 'J': {
+      const vds = v(e.d) - v(e.s)
+      return { v: vds, i, p: vds * i }
+    }
+    case 'E':
+    case 'G':
+    case 'H':
+    case 'F': {
+      // La salida de una fuente controlada: voltaje entre sus bornes y la corriente que la atraviesa (el control no disipa).
+      const dv = v(e.p) - v(e.n)
+      return { v: dv, i, p: dv * i }
+    }
+    case 'PASOS': {
+      // El primer devanado (fase A); la corriente del motor que reporta el motor es la de esa fase.
+      const dv = v(e.nodos[0]) - v(e.nodos[1])
+      return { v: dv, i, p: dv * i }
+    }
     case 'OA': {
       const [vo, vp, vn] = [v(e.out), v(e.vp), v(e.vn)]
       return { v: vo, i, p: (vp - vn) ** 2 / (e.model.rq ?? RQ_OMISION) + (i > 0 ? (vp - vo) * i : (vo - vn) * -i) }
@@ -229,11 +276,15 @@ export function leerResultados(r: ResultadoNetlist, s: SimReading): Lectura {
       const e = elementos[k]
       const m = e ? medicionDeElemento(e, v, s.currents[k] ?? 0, s.aux[k] ?? 0) : null
       voltajes.push(m?.v ?? 0)
-      if (!e || !m || e.type === 'V' || e.type === 'I') continue
+      if (!e || !m || e.type === 'V' || e.type === 'I' || e.type === 'E' || e.type === 'G' || e.type === 'H' || e.type === 'F') continue
       p += m.p
     }
     const dv = nodo(c.mas) - nodo(c.menos)
-    piezas.set(id, { v: dv, i, p: c.elementos.length === 2 && elementos[c.elementos[0]]?.type === 'V' ? dv * i : p, extra: { tipo: 'compuesto', corrientes: c.elementos.map((k) => (k >= 0 ? (s.currents[k] ?? 0) : 0)), voltajes } })
+    // La región del transistor que la pieza declara en `medida.region` (el PNP del IGBT), con los nombres de su tipo.
+    const kr = c.region === undefined ? -1 : (c.elementos[c.region] ?? -1)
+    const tipoR = kr >= 0 ? ({ Q: 'igbt', M: 'mosfet', J: 'jfet' } as const)[elementos[kr]?.type as 'Q' | 'M' | 'J'] : undefined
+    const region = tipoR ? nombreDeRegion(tipoR, s.estado[kr] ?? 0) : undefined
+    piezas.set(id, { v: dv, i, p: c.elementos.length === 2 && elementos[c.elementos[0]]?.type === 'V' ? dv * i : p, extra: { tipo: 'compuesto', corrientes: c.elementos.map((k) => (k >= 0 ? (s.currents[k] ?? 0) : 0)), voltajes, ...(region ? { region } : {}) } })
   }
   medirInstrumentos(r, s, piezas, v)
   for (const [id, red] of r.potenciometros) {
@@ -259,7 +310,25 @@ export function leerResultados(r: ResultadoNetlist, s: SimReading): Lectura {
       x.causa = CAUSAS[aux] ?? 'indefinida'
     } else if (x.modelo === 'contador') x.cuenta = aux >= 0 ? aux : null
     else if (x.modelo === 'decodificador') x.digito = aux >= -1 ? aux : null
+    else if (x.modelo === 'msi') {
+      const reg = registroMsi(r.netlist?.elements[k], p, aux, s.estado[k] ?? -1, s)
+      if (reg) x.registro = reg
+    }
     piezas.set(id, { v: 0, i: 0, p: 0, extra: x })
+  }
+  for (const [id, c] of r.convertidores ?? []) {
+    const e = r.netlist?.elements[c.elemento]
+    if (e?.type === 'MSI') {
+      const codigo = s.aux[c.elemento] ?? -1
+      const vref2 = c.vref2 === undefined ? undefined : redes.get(c.vref2)
+      piezas.set(id, {
+        v: 0, i: 0, p: 0,
+        extra: {
+          tipo: 'convertidor-ad', codigo: codigo >= 0 ? codigo : null, bits: e.nucleo.tipo === 'aproximaciones' ? e.nucleo.bits : 8,
+          convirtiendo: (s.estado[c.elemento] ?? 0) > 0, intr: nivelDe(c.intr === undefined ? undefined : s.niveles[c.intr]), vref: vref2 === undefined ? null : 2 * vref2, reloj: r.relojesAdc.get(id) ?? null
+        }
+      })
+    } else if (e?.type === 'DACM') piezas.set(id, { v: 0, i: s.currents[c.elemento] ?? 0, p: 0, extra: { tipo: 'convertidor-da', codigo: s.estado[c.elemento] ?? 0, io: s.currents[c.elemento] ?? 0 } })
   }
   for (const [id, t] of r.temporizadores) {
     const alimentacion = (redes.get(t.vcc) ?? 0) - (redes.get(t.gnd) ?? 0)
@@ -273,15 +342,38 @@ export function leerResultados(r: ResultadoNetlist, s: SimReading): Lectura {
   return { t: s.time, ratio: s.ratio, redes, piezas, digitales: lecturasDigitales(r, s), ...rapidez }
 }
 
+/** El registro de un `MSI` con sus nombres de bit y su reloj, según su núcleo; null si el núcleo no tiene registro que mostrar. `principal` y `auxiliar` son las dos lecturas del motor. */
+function registroMsi(e: ElementoMotor | undefined, p: { pines: { id: string; nombre: string; red: number; salida: boolean }[] }, principal: number, auxiliar: number, s: SimReading): RegistroMsi | null {
+  if (e?.type !== 'MSI' || e.nucleo.tipo === 'aproximaciones') return null
+  const n = e.nucleo
+  const almacen = n.tipo === 'desplazamiento' && n.almacen !== undefined
+  const clase = n.tipo === 'contador' ? 'cuenta' : almacen ? 'almacén' : 'registro'
+  const valor = almacen ? auxiliar : principal
+  // El nombre de cada bit es el del pin de salida que lo muestra directo (negado o no). Un almacén que sale por una tabla
+  // (el 595 con su habilitación de salida) lleva las salidas de la tabla en el orden de sus bits.
+  const pinDe = (j: number) => p.pines.find((q) => q.salida && q.red === e.salidas[j])?.nombre
+  const directos = Array.from({ length: n.bits }, (_, b) => {
+    const j = e.de.findIndex((d) => d.tipo === 'directa' && (almacen ? 'aux' in d.fuente && d.fuente.aux === b : 'bit' in d.fuente && d.fuente.bit === b))
+    return j < 0 ? undefined : pinDe(j)
+  })
+  const deTabla = e.de.flatMap((d, j) => (d.tipo === 'tabla' ? [pinDe(j)] : []))
+  const nombres = directos.every((x) => x === undefined) && deTabla.length === n.bits && deTabla.every((x) => x !== undefined) ? (deTabla as string[]) : directos.map((x, b) => x ?? String(b))
+  const red = e.entradas[n.reloj.senales[0]?.entrada ?? -1]
+  const pinReloj = red === undefined ? undefined : p.pines.find((q) => !q.salida && q.red === red)
+  return { clase, valor: valor >= 0 ? valor : null, bits: n.bits, nombres, ...(red === undefined ? {} : { reloj: { hz: s.medidas[3 * red] ?? 0, pin: pinReloj?.nombre ?? '' } }) }
+}
+
 /** Lo propio del modelo con la segunda lectura y el estado que da el motor; null si el modelo no tiene nada aparte. */
 export function extraDeElemento(e: ElementoMotor, tipo: string | undefined, m: { v: number; i: number }, v: (nodo: number) => number, aux: number, estado: number, umbral?: number): ExtraMedicion | null {
   // Un comparador es un amplificador y un transistor por dentro: su medición es la de la salida (VCE y corriente), sin región ni saturación.
   if (tipo === 'comparador') return null
   switch (e.type) {
     case 'Q':
-      return { tipo: 'bjt', region: REGIONES_BJT[estado] ?? 'corte', vbe: v(e.b) - v(e.e), ib: aux }
+      return { tipo: 'bjt', region: nombreDeRegion('bjt', estado), vbe: v(e.b) - v(e.e), ib: aux }
     case 'M':
-      return { tipo: 'mosfet', region: REGIONES_MOS[estado] ?? 'corte', vgs: v(e.g) - v(e.s) }
+      return { tipo: 'mosfet', region: nombreDeRegion('mosfet', estado), vgs: v(e.g) - v(e.s) }
+    case 'J':
+      return { tipo: 'jfet', region: nombreDeRegion('jfet', estado), vgs: v(e.g) - v(e.s) }
     case 'OA':
       return { tipo: 'ampop', saturado: estado > 0 ? 1 : estado < 0 ? -1 : 0 }
     case 'FUSE':
@@ -290,8 +382,15 @@ export function extraDeElemento(e: ElementoMotor, tipo: string | undefined, m: {
       return { tipo: 'foco', fundido: estado > 0, calentamiento: aux }
     case 'MOTOR':
       return { tipo: 'motor', rpm: (aux * 60) / (2 * Math.PI) }
+    case 'PASOS':
+      // El ángulo de salida ya viene dividido entre la reducción; un paso completo del rotor es π / (2 · dientes).
+      return { tipo: 'motor', rpm: (aux * 60) / (2 * Math.PI), angulo: estado, pasos: (estado * (e.reduccion ?? 1)) / (Math.PI / (2 * e.dientes)) }
     case 'RELAY':
       return { tipo: 'rele', operado: estado > 0 }
+    case 'TERM':
+      return { tipo: 'termistor', temperatura: aux }
+    case 'LDR':
+      return { tipo: 'ldr', r: aux }
   }
   if (tipo === 'zener') return { tipo: 'zener', estado: m.i > CORRIENTE_MINIMA_ZENER ? 'directa' : m.i < -CORRIENTE_MINIMA_ZENER ? 'ruptura' : 'corte' }
   if (tipo === 'zumbador' && umbral !== undefined) return { tipo: 'zumbador', suena: m.v >= umbral }
@@ -323,7 +422,7 @@ export const PASOS_POR_PANTALLA = 500
 export function pasoDeSimulacion(n: NetlistMotor, bases: readonly number[] = []): number {
   let h = PASO_MAX
   for (const e of n.elements) {
-    if (e.type !== 'V' || e.wave.kind === 'dc') continue
+    if (e.type !== 'V' || e.wave.kind === 'dc' || e.wave.kind === 'pwl') continue
     h = Math.min(h, 1 / (PASOS_POR_PERIODO * e.wave.freq))
   }
   for (const b of bases) h = Math.min(h, (DIVISIONES_H * b) / PASOS_POR_PANTALLA)
@@ -351,6 +450,8 @@ function tramoMinimo(w: Extract<ElementoMotor, { type: 'V' }>['wave']): number {
     }
     case 'stair':
       return 1 / (w.freq * w.steps)
+    case 'pwl':
+      return w.puntos.slice(1).reduce((m, p, k) => Math.min(m, p[0] - w.puntos[k][0]), Infinity)
     default:
       return Infinity
   }
@@ -363,6 +464,11 @@ export function pasoDeVistaPrevia(n: NetlistMotor, bases: readonly number[] = []
   let h = PASO_VISTA
   for (const e of n.elements) {
     if (e.type !== 'V' || e.wave.kind === 'dc') continue
+    // Una onda por tramos no tiene frecuencia: solo cuentan sus esquinas.
+    if (e.wave.kind === 'pwl') {
+      h = Math.min(h, PASO_POR_TRAMO * tramoMinimo(e.wave))
+      continue
+    }
     const f = e.wave.freq
     // Hasta 250 Hz, 200 pasos por periodo (el rectificador a 60 Hz con 50 se alejaba 2.5 % de la cota fina); de ahí en adelante,
     // los 50 de siempre con tope de 20 µs, así que nunca es más fino que `pasoDeSimulacion`.
@@ -387,7 +493,7 @@ export function escalaDeVoltaje(n: NetlistMotor, alimentaciones: Iterable<number
     if (e.type === 'PSU' && Math.abs(e.v) > v) v = Math.abs(e.v)
     if (e.type !== 'V') continue
     const w = e.wave
-    const m = w.kind === 'dc' ? Math.abs(w.v) : w.kind === 'sine' ? Math.abs(w.offset) + Math.abs(w.amp) : Math.max(Math.abs(w.low), Math.abs(w.high))
+    const m = w.kind === 'dc' ? Math.abs(w.v) : w.kind === 'pwl' ? Math.max(...w.puntos.map((p) => Math.abs(p[1]))) : w.kind === 'sine' ? Math.abs(w.offset) + Math.abs(w.amp) : Math.max(Math.abs(w.low), Math.abs(w.high))
     if (m > v) v = m
   }
   return v > 0 ? v : 1

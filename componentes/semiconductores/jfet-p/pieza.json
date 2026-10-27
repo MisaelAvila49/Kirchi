@@ -1,0 +1,185 @@
+{
+  "id": "jfet-p",
+  "nombre": {
+    "es": "JFET canal P",
+    "en": "P-channel JFET"
+  },
+  "categoria": "semiconductores",
+  "prefijo": "J",
+  "buscar": [
+    "jfet",
+    "pjfet",
+    "fet",
+    "canal p",
+    "2n5460",
+    "j175"
+  ],
+  "pines": [
+    {
+      "id": "G",
+      "nombre": "compuerta",
+      "x": -4,
+      "y": 0
+    },
+    {
+      "id": "S",
+      "nombre": "fuente",
+      "x": 2,
+      "y": -4
+    },
+    {
+      "id": "D",
+      "nombre": "drenador",
+      "x": 2,
+      "y": 4
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "2N5460",
+      "opciones": [
+        "2N5460",
+        "J175"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "jfet",
+    "d": "D",
+    "g": "G",
+    "s": "S",
+    "pjf": true,
+    "prop": "modelo",
+    "modelos": {
+      "2N5460": {
+        "vto": -2.12132,
+        "beta": 0.000496904,
+        "lambda": 0,
+        "is": 1e-14,
+        "n": 1,
+        "pb": 1,
+        "cgs": 5e-12,
+        "cgd": 8e-12,
+        "rd": 0,
+        "rs": 0
+      },
+      "J175": {
+        "vto": -4.5,
+        "beta": 0.00101204,
+        "lambda": 0,
+        "is": 1e-14,
+        "n": 1,
+        "pb": 1,
+        "cgs": 1.6734e-11,
+        "cgd": 1.3266e-11,
+        "rd": 0,
+        "rs": 0
+      }
+    }
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 4,
+      "y": -1
+    },
+    "valor": {
+      "x": 4,
+      "y": 1
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "2N5460": {
+          "fuente": "Central Semiconductor, 2N5460 2N5461 2N5462 (R1, 25 ene 2016), Maximum Ratings: VDG 40 V, VGSR 40 V (la hoja no da VDS).",
+          "limites": [
+            {
+              "nombre": "Vgd",
+              "de": "G",
+              "a": "D",
+              "max": 40,
+              "escala": 40,
+              "consejo": "baja el voltaje entre el drenador y la compuerta."
+            },
+            {
+              "nombre": "Vgs inverso",
+              "de": "G",
+              "a": "S",
+              "max": 40,
+              "escala": 40,
+              "consejo": "evita llevar la compuerta al revés de la fuente más allá de lo que admite la unión."
+            }
+          ]
+        },
+        "J175": {
+          "fuente": "onsemi, J175/D (Rev. 2, oct 2017), Absolute Maximum Ratings: VDG −30 V, VGS 30 V (la hoja no da VDS).",
+          "limites": [
+            {
+              "nombre": "Vgd",
+              "de": "G",
+              "a": "D",
+              "max": 30,
+              "escala": 30,
+              "consejo": "baja el voltaje entre el drenador y la compuerta."
+            },
+            {
+              "nombre": "Vgs inverso",
+              "de": "G",
+              "a": "S",
+              "max": 30,
+              "escala": 30,
+              "consejo": "evita llevar la compuerta al revés de la fuente más allá de lo que admite la unión."
+            }
+          ]
+        }
+      }
+    },
+    "quema": {
+      "factor": 2,
+      "durante": 0.5
+    }
+  },
+  "fuentes": {
+    "2N5460": "Parámetros ajustados por Kirchi (no copiados) a Central 2N5460 2N5461 2N5462 (R1, p. 1), que solo da mínimos y máximos: media geométrica de IDSS (1.0 a 5.0 mA, 2.24 mA) y de VGS(off) (0.75 a 6.0 V, 2.12 V); BETA = IDSS/VTO². Las capacitancias son los máximos de la hoja (cotas, no típicos) y no da la conductancia de salida (LAMBDA = 0). Se midió con ngspice 47 (modelo pjf): IDSS 2.236 mA y gfs 2.11 mS, dentro de 1.0 a 4.0 mS. Falta una hoja con valores típicos.",
+    "J175": "Parámetros ajustados por Kirchi (no copiados) a onsemi J175/D (Rev. 2, pp. 4 y 5) y Philips J174-J177 (p. 4): IDSS 7 a 60 mA (media geométrica 20.5 mA), VGS(off) típico 4.5 V de la figura 2 (rango 3.0 a 6.0 V), Cis 30 pF y Crs 4 pF típicos para CGS y CGD con PB = 1 V. Se midió con ngspice 47 (modelo pjf): IDSS 20.49 mA y rDS(on) = 110 Ω contra 125 Ω máximo de la hoja. La hoja no da la conductancia de salida (LAMBDA = 0)."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:Q_PJFET_DGS", "ltspice": "pjf", "falstad": "j", "proteus": "PJF", "sinVerificar": ["ltspice", "falstad", "proteus"] },
+    "valores": {
+      "2N5460": {
+        "fabricante": "Central Semiconductor",
+        "parte": "2N5460",
+        "hoja": "https://my.centralsemi.com/datasheets/2N5460-5462.PDF",
+        "presentaciones": [
+          { "encapsulado": "TO-92", "patillas": {}, "huella": "Package_TO_SOT_THT:TO-92_Inline" }
+        ],
+        "pendiente": {
+          "patillas": "Sin resolver, una sola fuente leida. Central 2N5460/61/62 R1 (25 ene 2016) p. 2, LEAD CODE: 1 drenador, 2 fuente, 3 compuerta. onsemi 2N5460/D (segun resumen de busqueda, PDF no obtenido): 1 fuente, 2 drenador, 3 compuerta. Propuesta: D1 S2 G3 (Central)",
+          "lcsc": "No se hallo pagina de LCSC para el 2N5460 (busqueda del 26 oct 2026)"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "Central 2N5460-5462 p. 1 y 2" },
+        "nota": "Central da solo minimos y maximos; el modelo usa la media geometrica"
+      },
+      "J175": {
+        "fabricante": "onsemi",
+        "parte": "J175",
+        "hoja": "https://www.onsemi.com/pdf/datasheet/j175-d.pdf",
+        "presentaciones": [
+          { "encapsulado": "TO-92", "patillas": {}, "huella": "Package_TO_SOT_THT:TO-92_Inline" }
+        ],
+        "pendiente": {
+          "patillas": "Sin resolver. onsemi J175/D Rev. 2 (oct 2017) p. 2, Figure 1 TO-92: 1 drenador, 2 compuerta, 3 fuente (fuente y drenador intercambiables); lo mismo en onsemi J176 Rev. 3 (ene 2026) p. 1. Philips J174-J177 (abr 1995) p. 2, PINNING: 1 fuente, 2 compuerta, 3 drenador (SOT54). Device:Q_PJFET_DGS de KiCad coincide con onsemi. La compuerta va en medio en todas. Propuesta: D1 G2 S3 (onsemi, fabricante actual)",
+          "hoja": "El enlace de onsemi responde 403 a un cliente sin navegador: se cita el URL normal de onsemi y se leyo la copia J175/D Rev. 2 de un distribuidor",
+          "lcsc": "LCSC C3752988 salio para onsemi J176-D74Z, no para el J175: sin numero para el J175"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "onsemi J175/D Rev. 2 p. 2 y 4 (PDF) y Philips J174-J177 p. 2 y 3" },
+        "nota": "Fabricante actual onsemi (ex Fairchild, proceso 88); el J175 figura obsoleto en Octopart"
+      }
+    }
+  }
+}

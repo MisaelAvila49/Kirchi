@@ -4,6 +4,7 @@ import type { PantallaSab } from '../../sim/protocoloInstrumentos'
 import { formatearMedida } from '../../valores/valores'
 import Bloque from '../exportar/Bloque'
 import ControlNumero from './ControlNumero'
+import { lecturaCursoresXY } from './xy'
 import { lecturaCursores, ponerCursor, vdivDe, type CualCursor } from './cursores'
 import type { CursoresPantalla } from './dibujar'
 import { alternarMedida, NOMBRE_CORTO } from './medidasVista'
@@ -113,7 +114,13 @@ export default function MasAjustes(props: Props) {
         </Bloque>
         <Show when={props.cursores}>
           {(c) => (
-            <Bloque titulo="Cursores" resumen={`canal ${letra(c().canal)}`} abierto>
+            <Bloque titulo="Cursores" resumen={c().xy ? 'puntos de la curva' : `canal ${letra(c().canal)}`} abierto>
+              <Show when={c().xy}>
+                <p class="osc-cursores cifra" data-canal={c().canal}>
+                  <For each={lecturaCursoresXY(c(), props.ajustes)}>{(l) => <span class="osc-cursores-linea">{l}</span>}</For>
+                </p>
+              </Show>
+              <Show when={c().t && c().v}>
               <label class="osc-fila-ajuste" data-canal={c().canal}>
                 <span>Canal de los cursores</span>
                 <select value={c().canal} onChange={(e) => props.onCursores({ ...c(), canal: e.currentTarget.value as CanalOMatematico })}>
@@ -152,6 +159,7 @@ export default function MasAjustes(props: Props) {
                   return `Δt ${l.dt}   1/Δt ${l.inv}   ΔV ${l.dv}`
                 })()}
               </p>
+              </Show>
             </Bloque>
           )}
         </Show>

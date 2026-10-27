@@ -120,6 +120,8 @@ function publicar(forzar = false, cerrar = false) {
     const velocidad = avance || sinTope ? 0 : speed
     ctx.postMessage({ type: 'cruces', id: idCarga, datos: Array.from(c.subarray(1)), perdidos: c[0], ancla: { t: sim.time(), reloj: performance.timeOrigin + performance.now() }, velocidad })
   }
+  const bus = sim.take_conflictos()
+  if (bus.length > 0) ctx.postMessage({ type: 'conflictos', id: idCarga, redes: Array.from(bus) })
   // Los instrumentos después: sus lecturas usan la memoria del WASM y el búfer de arriba ya se escribió.
   if (instrumentos) for (const c of instrumentos.publicar(ahora, forzar)) ctx.postMessage({ type: 'rango', id: idCarga, multimetro: c.multimetro, rango: c.rango })
 }
@@ -366,6 +368,16 @@ ctx.onmessage = async (e) => {
     }
     // Lo que se promediaba antes del cambio ya no es lo que se ve: hasta el siguiente intervalo se lee el último paso.
     promedioInvalido = true
+    calcularYa()
+  } else if (m.type === 'perilla') {
+    if (!sim) return
+    // La perilla escribe al canal a la hora de la isla: no reinicia nada ni invalida el promedio de los demás.
+    try {
+      sim.poner_valor(m.canal, sim.time(), m.valor)
+    } catch (err) {
+      ctx.postMessage({ type: 'rechazado', id: idCarga, indice: -1 - m.canal, message: textoDe(err), seq: m.seq })
+      return
+    }
     calcularYa()
   } else if (m.type === 'reponer') {
     promedioInvalido = true

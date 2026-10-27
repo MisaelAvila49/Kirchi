@@ -220,3 +220,31 @@ describe('plantillas incluidas: filtros de banda', () => {
     expect(amplitudEn(d, 'c2.2', f0 / 10, 4)).toBeCloseTo(0.927, 1)
   })
 })
+
+describe('plantillas incluidas: lógica MSI', () => {
+  it('contador de 0 a 99: cada flanco del reloj suma uno en los displays, arrastra de 9 a 10 y vuelve a 00 después de 99', () => {
+    const d = construir(DEFINICIONES.find((x) => x.id === 'contador-0-a-99')!, lib)
+    // El reloj de 2 Hz se acelera a 1 kHz para no simular medio minuto.
+    d.piezas.p_v1.props = { ...d.piezas.p_v1.props, frecuencia: '1k', retardo: '400u' }
+    const con = calcularConexiones(d, lib)
+    const r = compilarNetlist(d, lib, con)
+    expect(r.errores).toEqual([])
+    const sim = new Simulator(JSON.stringify(r.netlist), 2e-6)
+    const nodo = (clave: string) => r.nodoDeRed.get(con.redDePin.get(`p_${clave.split('.')[0]}:${clave.split('.')[1]}`)!)!
+    const tabla = ['abcdef', 'bc', 'abdeg', 'abcdg', 'bcfg', 'acdfg', 'cdefg', 'abc', 'abcdefg', 'abcdfg']
+    // Un segmento encendido está a menos de 0.5 V; uno apagado queda cerca de 1 V.
+    const digito = (display: string) => {
+      const v = sim.voltages()
+      return String(tabla.indexOf([...'abcdefg'].filter((s) => v[nodo(`${display}.${s}`)] < 0.5).join('')))
+    }
+    const leidos: Record<number, string> = {}
+    const pedidos = [1, 2, 9, 10, 11, 19, 20, 99, 100, 101]
+    for (const k of pedidos) {
+      // El k-ésimo flanco de subida cae en 0.4 ms + (k - 1) ms; se lee 0.25 ms después.
+      sim.advance_to(0.65e-3 + (k - 1) * 1e-3, 400000)
+      leidos[k] = `${digito('d2')}${digito('d1')}`
+    }
+    sim.free()
+    expect(leidos).toEqual({ 1: '01', 2: '02', 9: '09', 10: '10', 11: '11', 19: '19', 20: '20', 99: '99', 100: '00', 101: '01' })
+  })
+})

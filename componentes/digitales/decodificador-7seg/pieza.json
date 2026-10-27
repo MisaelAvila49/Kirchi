@@ -2,6 +2,7 @@
   "id": "decodificador-7seg",
   "nombre": { "es": "Decodificador BCD", "en": "BCD decoder" },
   "categoria": "digitales",
+  "grupo": "Decodificadores y multiplexores",
   "prefijo": "U",
   "buscar": ["u", "decodificador", "decoder", "bcd", "4511", "7447", "74ls47"],
   "pines": [
@@ -36,5 +37,101 @@
     { "texto": "e", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
     { "texto": "f", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
     { "texto": "g", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" }
-  ]
+  ],
+  "datos": {
+    "por": ["familia", "salidas"],
+    "equivalencias": { "falstad": "197" },
+    "valores": {
+      "74HC|activas en alto": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD74HC4511E",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd74hc4511.pdf",
+        "aproximada": "Tiene retención (LE) y entradas de prueba (LT) y de apagado (BL) que el modelo no usa; se conectan a nivel fijo.",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "A": "7", "B": "1", "C": "2", "D": "6", "a": "13", "b": "12", "c": "11", "d": "10", "e": "9", "f": "15", "g": "14" },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "sinModelo": {
+              "3": "LT: prueba de lámparas (activa en bajo, se une a VCC)",
+              "4": "BL: apagado (activo en bajo, se une a VCC)",
+              "5": "LE: retención (activa en alto, se une a GND)"
+            },
+            "parte": "CD74HC4511E"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI CD74HC4511 (SCHS279E), fig. 4-1 p. 3 (imagen); TI CD4511B (mismas patillas); KiCad 74xx:74LS47 (mismas posiciones de A a g)"
+        }
+      },
+      "74LS|activas en alto": {
+        "fabricante": "Texas Instruments",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls47.pdf",
+        "aproximada": "Las salidas tienen resistencia interna a la alimentación y niveles de TTL.",
+        "equivalencias": { "kicad": "74xx:74LS48" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "A": "7", "B": "1", "C": "2", "D": "6", "a": "13", "b": "12", "c": "11", "d": "10", "e": "9", "f": "15", "g": "14" },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "sinModelo": {
+              "3": "LT: prueba de lámparas (activa en bajo, se une a VCC)",
+              "4": "BI/RBO: apagado (activo en bajo, se une a VCC)",
+              "5": "RBI: supresión de ceros (activa en bajo, se une a VCC)"
+            }
+          }
+        ],
+        "pendiente": { "parte": "el número SN74LS48N no figura en la lista de pedido de la hoja SDLS111", "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SN74LS47 y SN74LS48 (SDLS111, una sola hoja para ambos), vista superior p. 1 (imagen); KiCad 74xx:74LS48"
+        }
+      },
+      "74LS|activas en bajo": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS47N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls47.pdf",
+        "aproximada": "Las salidas son de colector abierto y de 15 V; necesitan resistencias de colector.",
+        "equivalencias": { "kicad": "74xx:74LS47" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "A": "7", "B": "1", "C": "2", "D": "6", "a": "13", "b": "12", "c": "11", "d": "10", "e": "9", "f": "15", "g": "14" },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "sinModelo": {
+              "3": "LT: prueba de lámparas (activa en bajo, se une a VCC)",
+              "4": "BI/RBO: apagado (activo en bajo, se une a VCC)",
+              "5": "RBI: supresión de ceros (activa en bajo, se une a VCC)"
+            },
+            "parte": "SN74LS47N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74LS47 y SN74LS48 (SDLS111), vista superior p. 1 (imagen); KiCad 74xx:74LS47" }
+      },
+      "CD4000B|activas en alto": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4511BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4511b.pdf",
+        "aproximada": "Tiene retención (LE) y entradas de prueba (LT) y de apagado (BI) que el modelo no usa; se conectan a nivel fijo.",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "A": "7", "B": "1", "C": "2", "D": "6", "a": "13", "b": "12", "c": "11", "d": "10", "e": "9", "f": "15", "g": "14" },
+            "alimentacion": { "VDD": "16", "VSS": "8" },
+            "sinModelo": {
+              "3": "LT: prueba de lámparas (activa en bajo, se une a VDD)",
+              "4": "BI: apagado (activo en bajo, se une a VDD)",
+              "5": "LE: retención (activa en alto, se une a VSS)"
+            },
+            "parte": "CD4511BE",
+            "lcsc": { "numero": "C5327", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4511B, diagrama funcional p. 1 (imagen); TI CD74HC4511 (mismas patillas)" }
+      }
+    }
+  }
 }

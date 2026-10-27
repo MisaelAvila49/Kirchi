@@ -8,6 +8,8 @@ import { tmpdir } from 'node:os'
 import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { WINDOWS } from './ngspice-fuente.mjs'
+import { generarSintesis } from '../src/compartido/spice/sintesis.ts'
+import { generarSubcircuito } from '../src/compartido/spice/subcircuitos.ts'
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..')
 const carpeta = join(raiz, 'engine', 'referencias')
@@ -100,6 +102,13 @@ export function leerEventos(texto) {
   return { columnas: ['t', ...nombres], filas }
 }
 
+/** Un renglón `*@generar clase nombre {json}` se sustituye por el subcircuito o la síntesis del exportador (`lut` y `msi`), para que referencia y exportación usen el mismo texto. */
+export function expandirGenerados(texto) {
+  return texto.replace(/^\*@generar\s+(\w+)\s+(\w+)\s+(\{.*\})\s*$/gm, (_, clase, nombre, json) =>
+    clase === 'lut' || clase === 'msi' ? generarSintesis(clase, nombre, JSON.parse(json)) : generarSubcircuito(clase, nombre, JSON.parse(json))
+  )
+}
+
 /** Archivos que cada caso necesita junto a su `.cir`: las bibliotecas de modelos y los archivos de estados de `d_state`. */
 function auxiliares() {
   return readdirSync(carpeta).filter((f) => f === 'modelos.lib' || f === 'digital.lib' || f.endsWith('.in'))
@@ -112,7 +121,7 @@ async function main() {
   for (const caso of casos) {
     const tmp = mkdtempSync(join(tmpdir(), 'kirchi-ref-'))
     try {
-      copyFileSync(join(carpeta, `${caso}.cir`), join(tmp, `${caso}.cir`))
+      writeFileSync(join(tmp, `${caso}.cir`), expandirGenerados(readFileSync(join(carpeta, `${caso}.cir`), 'utf8')))
       for (const f of auxiliares()) copyFileSync(join(carpeta, f), join(tmp, f))
       const r = spawnSync(ng, ['-b', `${caso}.cir`], { cwd: tmp, encoding: 'utf8' })
       const salida = join(tmp, 'salida.txt')

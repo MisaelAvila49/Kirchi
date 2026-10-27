@@ -1,0 +1,183 @@
+{
+  "id": "contador-4017",
+  "nombre": { "es": "Contador Johnson de década (4017)", "en": "Decade Johnson counter (4017)" },
+  "categoria": "digitales",
+  "grupo": "Biestables y contadores",
+  "prefijo": "U",
+  "buscar": ["u", "contador", "counter", "johnson", "decada", "decade", "secuenciador", "4017", "cd4017", "74hc4017", "inh"],
+  "pines": [
+    { "id": "CLK", "nombre": "CLK (reloj, flanco de subida)", "x": -6, "y": -8 },
+    { "id": "INH", "nombre": "INH (inhibición del reloj, activa en alto)", "x": -6, "y": -6 },
+    { "id": "RESET", "nombre": "RESET (borrado, activo en alto)", "x": -6, "y": -10 },
+    { "id": "Q0", "nombre": "Q0", "x": 6, "y": -10 },
+    { "id": "Q1", "nombre": "Q1", "x": 6, "y": -8 },
+    { "id": "Q2", "nombre": "Q2", "x": 6, "y": -6 },
+    { "id": "Q3", "nombre": "Q3", "x": 6, "y": -4 },
+    { "id": "Q4", "nombre": "Q4", "x": 6, "y": -2 },
+    { "id": "Q5", "nombre": "Q5", "x": 6, "y": 0 },
+    { "id": "Q6", "nombre": "Q6", "x": 6, "y": 2 },
+    { "id": "Q7", "nombre": "Q7", "x": 6, "y": 4 },
+    { "id": "Q8", "nombre": "Q8", "x": 6, "y": 6 },
+    { "id": "Q9", "nombre": "Q9", "x": 6, "y": 8 },
+    { "id": "CO", "nombre": "CO (acarreo)", "x": 6, "y": 12 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "CD4000B", "opciones": ["CD4000B", "74HC"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "msi",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "nucleo": {
+      "tipo": "contador",
+      "bits": 4,
+      "modulo": 10,
+      "reloj": { "senales": ["CLK", "!INH"], "combina": "Y", "flanco": "subida" },
+      "borra": { "senal": "RESET", "sincrona": false }
+    },
+    "salidas": {
+      "Q0": "tabla",
+      "Q1": "tabla",
+      "Q2": "tabla",
+      "Q3": "tabla",
+      "Q4": "tabla",
+      "Q5": "tabla",
+      "Q6": "tabla",
+      "Q7": "tabla",
+      "Q8": "tabla",
+      "Q9": "tabla",
+      "CO": "tabla"
+    },
+    "tabla": {
+      "columnas": ["estado"],
+      "salidas": ["Q0", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8", "Q9", "CO"],
+      "filas": [
+        "0 > 1 0 0 0 0 0 0 0 0 0 1",
+        "1 > 0 1 0 0 0 0 0 0 0 0 1",
+        "2 > 0 0 1 0 0 0 0 0 0 0 1",
+        "3 > 0 0 0 1 0 0 0 0 0 0 1",
+        "4 > 0 0 0 0 1 0 0 0 0 0 1",
+        "5 > 0 0 0 0 0 1 0 0 0 0 0",
+        "6 > 0 0 0 0 0 0 1 0 0 0 0",
+        "7 > 0 0 0 0 0 0 0 1 0 0 0",
+        "8 > 0 0 0 0 0 0 0 0 1 0 0",
+        "9 > 0 0 0 0 0 0 0 0 0 1 0",
+        "10-15 > 0 0 0 0 0 0 0 0 0 0 0"
+      ]
+    },
+    "retardos": {
+      "CD4000B": { "vcc": 5, "Q*": [3.25e-7, 3.25e-7], "CO": [3e-7, 3e-7] },
+      "74HC": { "vcc": 5, "Q*": [1.9e-8, 1.9e-8], "CO": [1.9e-8, 1.9e-8] }
+    }
+  },
+  "caja": {
+    "titulo": "CTR DIV 10",
+    "forma": "funcional",
+    "izquierda": ["RESET", "CLK", "INH"],
+    "derecha": ["Q0", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8", "Q9", null, "CO"],
+    "marcas": { "CLK": ["dinamico"] }
+  },
+  "fuentes": {
+    "CD4000B": "TI CD4017B (SCHS027C): función p. 1 y retardos típicos de 325 ns de CLK a las salidas decodificadas y 300 ns a CO (p. 4, 5 V, CL 50 pF). RESET a salida usa el retardo de CLK.",
+    "74HC": "TI CD74HC4017 (SCHS200D): función p. 1 y retardo típico de 19 ns de CP a las salidas y a TC (p. 4, 5 V, CL 15 pF). La hoja llama CP, CE (activo en bajo), MR y TC a CLK, INH, RESET y CO."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "CD4000B": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4017BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4017b.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0 (Q0 en alto).",
+        "equivalencias": { "kicad": "4xxx:4017" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "CLK": "14",
+              "INH": "13",
+              "RESET": "15",
+              "CO": "12",
+              "Q0": "3",
+              "Q1": "2",
+              "Q2": "4",
+              "Q3": "7",
+              "Q4": "10",
+              "Q5": "1",
+              "Q6": "5",
+              "Q7": "6",
+              "Q8": "9",
+              "Q9": "11"
+            },
+            "alimentacion": { "VDD": "16", "VSS": "8" },
+            "parte": "CD4017BE",
+            "lcsc": { "numero": "C34519", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4017B (SCHS027C, feb 2004), p. 1 (3-51), CD4017B Terminal Diagram; KiCad 4xxx:4017 (9.0.0)" }
+      },
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD74HC4017E",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd74hc4017.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0. La hoja de TI llama CP, CE (activo en bajo), MR y TC a lo que la fila llama CLK, INH, RESET y CO; CE bajo es INH bajo.",
+        "equivalencias": { "kicad": "4xxx:4017" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "CLK": "14",
+              "INH": "13",
+              "RESET": "15",
+              "CO": "12",
+              "Q0": "3",
+              "Q1": "2",
+              "Q2": "4",
+              "Q3": "7",
+              "Q4": "10",
+              "Q5": "1",
+              "Q6": "5",
+              "Q7": "6",
+              "Q8": "9",
+              "Q9": "11"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "CD74HC4017E",
+            "lcsc": { "numero": "C354048", "comprobado": "2026-10-26" }
+          }
+        ],
+        "pendiente": {
+          "comportamiento": "La tabla de verdad de la hoja de TI (SCHS200D, p. 2) define ↑ como alto a bajo y ↓ como bajo a alto, y con eso 'CP ↑, CE bajo: incrementa' contradice la descripción de la p. 1 ('low to high transition') y las características 'Positive Edge Clocking'. Con las flechas invertidas la tabla coincide con la descripción y con el CD4017B. Se usa el flanco de subida; falta la segunda hoja (Nexperia 74HC4017 dio 403) que lo confirme."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI CD74HC4017 (SCHS200D, oct 2003), p. 1, Pinout y p. 2, diagrama funcional; KiCad 4xxx:4017 (9.0.0, no hay símbolo 74HC4017; mismo número de patilla)"
+        }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -16 }, "valor": { "x": 0, "y": 16 } },
+  "rotulos": [
+    { "texto": "RESET", "x": -3.2, "y": -10, "tam": 1, "alinear": "izq" },
+    { "texto": "CLK", "x": -2.3, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "INH", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "Q0", "x": 3.2, "y": -10, "tam": 1, "alinear": "der" },
+    { "texto": "Q1", "x": 3.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "Q2", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "Q3", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "Q4", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "Q5", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "Q6", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "Q7", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "Q8", "x": 3.2, "y": 6, "tam": 1, "alinear": "der" },
+    { "texto": "Q9", "x": 3.2, "y": 8, "tam": 1, "alinear": "der" },
+    { "texto": "CO", "x": 3.2, "y": 12, "tam": 1, "alinear": "der" },
+    { "texto": "CTR DIV 10", "x": 0, "y": -13, "tam": 1, "alinear": "centro" }
+  ]
+}

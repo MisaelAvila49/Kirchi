@@ -23,5 +23,6 @@
   ],
   "modelo": { "tipo": "generador", "sal": "+", "com": "COM", "forma": "forma", "frecuencia": "frecuencia", "amplitud": "amplitud", "desplazamiento": "desplazamiento", "simetria": "simetria", "ciclo": "ciclo", "desfase": "desfase", "retardo": "retardo", "pasos": "pasos", "salida": "salida", "ideal": "ideal" },
   "etiquetas": { "ref": { "x": 4, "y": -2 }, "valor": { "x": 4, "y": 2 } },
-  "variantes": { "prop": "forma", "simbolos": { "Senoidal": "simbolo-senoidal.svg", "Cuadrada": "simbolo-cuadrada.svg", "Triangular": "simbolo-triangular.svg", "Diente de sierra": "simbolo-sierra.svg", "Pulso": "simbolo-pulso.svg", "Escalón": "simbolo-escalon.svg", "Escalera": "simbolo-escalera.svg" } }
+  "variantes": { "prop": "forma", "simbolos": { "Senoidal": "simbolo-senoidal.svg", "Cuadrada": "simbolo-cuadrada.svg", "Triangular": "simbolo-triangular.svg", "Diente de sierra": "simbolo-sierra.svg", "Pulso": "simbolo-pulso.svg", "Escalón": "simbolo-escalon.svg", "Escalera": "simbolo-escalera.svg" } },
+  "datos": { "valores": { "*": { "virtual": true, "nota": "Generador de funciones del simulador." } } }
 }

@@ -7,7 +7,7 @@ export const MODELOS_DIGITALES = ['compuerta', 'biestable-d', 'biestable-jk', 'c
 
 /** Las claves de cada uno: una errata se rechaza en vez de ignorarse. */
 export const CLAVES_DIGITALES: Record<string, string[]> = {
-  compuerta: ['tipo', 'funcion', 'entradas', 'salida', 'familia', 'alimentacion'],
+  compuerta: ['tipo', 'funcion', 'entradas', 'salida', 'histeresis', 'habilitacion', 'activo', 'familia', 'alimentacion'],
   'biestable-d': ['tipo', 'd', 'clk', 'pre', 'clr', 'q', 'qn', 'familia', 'alimentacion'],
   'biestable-jk': ['tipo', 'j', 'k', 'clk', 'pre', 'clr', 'q', 'qn', 'familia', 'alimentacion'],
   contador: ['tipo', 'clk', 'rst', 'q', 'co', 'hasta', 'familia', 'alimentacion'],
@@ -29,7 +29,7 @@ export function pinesDelModeloDigital(m: any): [string, unknown][] {
   const campos = (cs: string[]) => cs.map((c): [string, unknown] => [c, m[c]])
   switch (m.tipo) {
     case 'compuerta':
-      return [...enLista(m, 'entradas'), ['salida', m.salida]]
+      return [...enLista(m, 'entradas'), ...(m.habilitacion !== undefined ? [['habilitacion', m.habilitacion] as [string, unknown]] : []), ['salida', m.salida]]
     case 'biestable-d':
       return campos(['d', 'clk', 'pre', 'clr', 'q', 'qn'])
     case 'biestable-jk':
@@ -70,9 +70,12 @@ export function validarModeloDigital(m: any, pinExiste: (id: unknown) => boolean
   }
   switch (m.tipo) {
     case 'compuerta': {
-      const funciones = ['not', 'and', 'or', 'nand', 'nor', 'xor']
+      const funciones = ['not', 'buf', 'and', 'or', 'nand', 'nor', 'xor', 'xnor']
       if (!funciones.includes(m.funcion)) err('modelo.funcion', `debe ser una de ${funciones.join(', ')}`)
-      else if (!Array.isArray(m.entradas) || m.entradas.length !== (m.funcion === 'not' ? 1 : 2)) err('modelo.entradas', m.funcion === 'not' ? 'debe tener una entrada' : 'debe tener dos entradas')
+      else if (!Array.isArray(m.entradas) || m.entradas.length !== (m.funcion === 'not' || m.funcion === 'buf' ? 1 : 2)) err('modelo.entradas', m.funcion === 'not' || m.funcion === 'buf' ? 'debe tener una entrada' : 'debe tener dos entradas')
+      if ((m.habilitacion === undefined) !== (m.activo === undefined)) err('modelo.activo', 'va junto con modelo.habilitacion')
+      else if (m.activo !== undefined && m.activo !== 'bajo' && m.activo !== 'alto') err('modelo.activo', 'debe ser «bajo» o «alto»')
+      if (m.histeresis !== undefined && (m.histeresis !== true || m.funcion !== 'not')) err('modelo.histeresis', 'solo puede ser verdadero y solo lo lleva una compuerta NOT')
       break
     }
     case 'contador': {

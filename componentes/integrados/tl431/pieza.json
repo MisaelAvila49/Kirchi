@@ -1,0 +1,97 @@
+{
+  "id": "tl431",
+  "nombre": { "es": "TL431 referencia", "en": "TL431 reference" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["u", "tl431", "431", "referencia", "reference", "shunt", "zener ajustable", "zener programable", "programmable zener"],
+  "pines": [
+    { "id": "K", "nombre": "cátodo (K)", "x": 0, "y": -6 },
+    { "id": "A", "nombre": "ánodo (A)", "x": 0, "y": 6 },
+    { "id": "REF", "nombre": "referencia (REF)", "x": -6, "y": 0, "ayuda": "Conduce de K a A lo que haga falta para que REF valga 2.495 V · con R1 de K a REF y R2 de REF a A: Vk = 2.495 V · (1 + R1/R2) · corriente de K de 1 mA a 100 mA" }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "TL431", "opciones": ["TL431"] }
+  ],
+  "modelo": {
+    "tipo": "compuesto", "prop": "modelo",
+    "modelos": {
+      "TL431": { "vref": 2.493, "a0": 20000, "gbw": 500, "rout": 500, "ilim": 0.005, "dhi": 0.8, "dlo": 0.01, "rq": 1000000000000, "rs": 0.2, "rref": 1250000 }
+    },
+    "internas": ["vr", "g", "ae"],
+    "medida": { "mas": "K", "menos": "A", "i": 3 },
+    "elementos": [
+      { "t": "OA", "mas": "REF", "menos": "vr", "sal": "g", "vmas": "K", "vmenos": "ae", "params": { "a0": "a0", "gbw": "gbw", "sr": 15000, "rin": 1000000000000, "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" } },
+      { "t": "V", "a": "vr", "b": "ae", "volts": "vref" },
+      { "t": "Q", "c": "K", "b": "g", "e": "ae", "params": { "is": 1e-14, "bf": 150, "nf": 1, "br": 1 } },
+      { "t": "R", "a": "ae", "b": "A", "ohms": "rs" },
+      { "t": "D", "a": "A", "b": "K", "params": { "is": 1e-14, "n": 1 } },
+      { "t": "R", "a": "REF", "b": "A", "ohms": "rref" }
+    ]
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "TL431": {
+          "fuente": "Texas Instruments TL431/TL432, SLVS543S, Absolute Maximum Ratings: voltaje de cátodo de 37 V respecto al ánodo.",
+          "limites": [
+            {"nombre": "cátodo contra ánodo", "de": "K", "a": "A", "max": 37, "consejo": "baja el voltaje que alimenta la resistencia de K o pon un regulador antes."}
+          ]
+        }
+      }
+    },
+    "quema": {"factor": 2, "durante": 0.5, "elemento": 2},
+    "compuesto": [
+      {
+        "nombre": "corriente de cátodo",
+        "elementos": [3],
+        "medida": "corriente",
+        "sentido": "positiva",
+        "max": 0.15,
+        "consejo": "agrega una resistencia en serie con K que limite la corriente a menos de 100 mA.",
+        "fuente": "Texas Instruments TL431/TL432, SLVS543S, Absolute Maximum Ratings: corriente de cátodo continua de 150 mA como máximo (rango de operación de 1 mA a 100 mA)."
+      },
+      {
+        "nombre": "corriente directa",
+        "elementos": [4],
+        "medida": "corriente",
+        "sentido": "positiva",
+        "max": 0.1,
+        "consejo": "K quedó por debajo de A: limita la corriente con una resistencia o invierte la conexión.",
+        "fuente": "Texas Instruments TL431/TL432, SLVS543S, Absolute Maximum Ratings: corriente de cátodo continua de −100 mA como mínimo."
+      }
+    ]
+  },
+  "etiquetas": { "ref": { "x": 3, "y": -3 }, "valor": { "x": 3, "y": 3 } },
+  "fuentes": {
+    "TL431": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments TL431/TL432, SLVS543S (ago 2004, rev. may 2024), https://www.ti.com/lit/ds/symlink/tl431.pdf: referencia de 2.495 V típica entre REF y A con K unido a REF y 10 mA (2.44 a 2.55 V), corriente de REF de 2 µA típica (4 µA máx), impedancia dinámica de 0.2 Ω típica (0.5 Ω máx) de 1 mA a 100 mA y corriente de cátodo de 37 V y 150 mA como máximos absolutos. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador entre REF y una fuente interna que maneja un transistor de K a A, una resistencia de 0.2 Ω entre el emisor y A que fija la impedancia dinámica, el diodo de A a K de la hoja y una resistencia de REF a A que da la corriente de REF. La fuente interna es de 2.493 V para que a 10 mA entre K y A queden los 2.495 V de la hoja. El amplificador interno tiene un producto ganancia-ancho de banda de 500 Hz: con la ganancia del transistor el lazo cruza cerca de 200 kHz, y más rápido la regla trapezoidal de la vista previa oscilaba; el arranque tarda unos 100 µs y con un capacitor en K se asienta sin oscilar. No modela la corriente mínima de regulación (la salida sigue regulando con menos de 1 mA), la regulación de línea de −1.4 mV/V, el ruido ni la deriva con la temperatura."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Reference_Voltage:TL431P" },
+    "valores": {
+      "TL431": {
+        "fabricante": "Texas Instruments",
+        "parte": "TL431ACP",
+        "hoja": "https://www.ti.com/lit/ds/symlink/tl431.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "K": "1", "A": "6", "REF": "8" },
+            "sinModelo": { "2": "NC", "3": "NC", "4": "NC", "5": "NC", "7": "NC" },
+            "huella": "Package_DIP:DIP-8_W7.62mm"
+          },
+          { "encapsulado": "TO-92", "patillas": {}, "huella": "Package_TO_SOT_THT:TO-92_Inline" }
+        ],
+        "pendiente": {
+          "patillas": "TO-92 sin confirmar: TI (TL431 SLVS543S, figura LP vista superior y tabla 5-1) da 1 Cátodo, 2 Ánodo, 3 Referencia y Reference_Voltage:TL431LP de KiCad 9 da 1 Referencia, 2 Ánodo, 3 Cátodo",
+          "lcsc": "No se halló el número de un TL431 TI de DIP-8 ni de TO-92"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI TL431 (SLVS543S, may 2024) figura PDIP: CATHODE 1, ANODE 6, REF 8, resto NC; Reference_Voltage:TL431P de KiCad 9 (1 K, 6 A, 8 REF)"
+        }
+      }
+    }
+  }
+}

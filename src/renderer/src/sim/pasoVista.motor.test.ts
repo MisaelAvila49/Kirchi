@@ -26,6 +26,13 @@ describe('pasoDeVistaPrevia', () => {
     const pulso = { type: 'V', a: 1, b: 0, wave: { kind: 'pulse', low: 0, high: 5, freq: 0.1, rise: 1e-8, fall: 1e-8, width: 1, phase: 0, continua: true } } as const
     expect(pasoDeVistaPrevia(con(pulso))).toBeCloseTo(0.5e4 * 1e-8, 15)
   })
+  it('la esquina más corta de una onda por tramos acota el paso como el flanco de un pulso', () => {
+    const tramos = (puntos: [number, number][]) => ({ type: 'V', a: 1, b: 0, wave: { kind: 'pwl', puntos, repetir: false } }) as const
+    expect(pasoDeVistaPrevia(con(tramos([[0, 0], [1e-8, 5], [1, 5]])))).toBeCloseTo(0.5e4 * 1e-8, 15)
+    // Los tramos largos no lo acortan y un solo punto es una constante.
+    expect(pasoDeVistaPrevia(con(tramos([[0, 0], [1e-3, 5], [2e-3, 0]])))).toBe(PASO_VISTA)
+    expect(pasoDeVistaPrevia(con(tramos([[0, 3]])))).toBe(PASO_VISTA)
+  })
   it('una base de tiempo lo acota a 500 pasos por pantalla', () => {
     expect(pasoDeVistaPrevia(con(seno(0.05)), [1e-3])).toBeCloseTo((10 * 1e-3) / 500, 15)
     expect(pasoDeVistaPrevia(con(seno(0.05)), [10])).toBe(PASO_VISTA)

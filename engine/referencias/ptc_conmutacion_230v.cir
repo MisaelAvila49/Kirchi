@@ -1,0 +1,13 @@
+* PTC B59339A1202P020 conectada a 230 V desde fria: corriente de arranque de unos 100 mA que cae a menos de 2 mA al saltar de resistencia
+*@generar termistor tm1 {"tipo":"ptc","r25":2210,"beta":557,"rt":[[-20,3600],[0,2890],[10,2590],[20,2330],[25,2210],[30,2100],[40,1900],[50,1740],[60,1590],[70,1480],[80,1410],[90,1450],[100,1620],[105,1780],[110,2040],[115,2500],[120,3470],[125,5470],[130,10500],[135,28600],[140,93700],[145,376000],[150,1460000],[155,5420000],[160,16400000],[165,40300000],[170,85700000],[175,126000000],[180,156000000],[190,184000000],[200,172000000],[210,144000000],[220,112000000]],"delta":0.0046,"tau":40}
+V1 1 0 DC 230
+X1 1 0 tm1 amb=25
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 5m 30 0 5m uic
+wrdata salida.txt i(v1)
+.endc
+.end

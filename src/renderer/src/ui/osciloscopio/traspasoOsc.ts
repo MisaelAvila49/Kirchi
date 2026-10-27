@@ -43,8 +43,8 @@ export function copiarPantalla(p: PantallaSab): PantallaOsc {
 
 export const pantallaDeOsc = (p: PantallaOsc): PantallaSab => p as unknown as PantallaSab
 
-export const cursoresDeOsc = (c: DatosOsc['cursores']): CursoresPantalla | null => (c ? ({ canal: c.canal, t: c.t, v: c.v } as CursoresPantalla) : null)
-export const cursoresAOsc = (c: CursoresPantalla | null): DatosOsc['cursores'] => (c ? { canal: c.canal, t: c.t ? [c.t[0], c.t[1]] : null, v: c.v ? [c.v[0], c.v[1]] : null } : null)
+export const cursoresDeOsc = (c: DatosOsc['cursores']): CursoresPantalla | null => (c ? ({ canal: c.canal, t: c.t, v: c.v, ...(c.xy ? { xy: c.xy } : {}) } as CursoresPantalla) : null)
+export const cursoresAOsc = (c: CursoresPantalla | null): DatosOsc['cursores'] => (c ? { canal: c.canal, t: c.t ? [c.t[0], c.t[1]] : null, v: c.v ? [c.v[0], c.v[1]] : null, ...(c.xy ? { xy: [{ ...c.xy[0] }, { ...c.xy[1] }] as [{ x: number; y: number }, { x: number; y: number }] } : {}) } : null)
 
 /** Lo que el editor sabe hacer cuando la ventana se lo pide. */
 export interface AccionesOsc {

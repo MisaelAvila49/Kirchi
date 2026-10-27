@@ -7,16 +7,19 @@ export const MAX_CORRIDAS = 200
 /** Puntos por década, octava o en total de un barrido de CA. */
 export const MAX_PUNTOS_AC = 100_000
 
+/** Frecuencias que un barrido de CA puede incluir además de su rejilla. */
+export const MAX_INCLUIR_AC = 16
+
 /** Puntos del barrido de CD de una fuente (inclusive en los dos extremos). */
 export function puntosDc(desde: number, hasta: number, paso: number): number {
   return Math.floor(Math.abs(hasta - desde) / paso + 1e-9) + 1
 }
 
 /** Puntos de un barrido de CA de ngspice (`dec`, `oct` o `lin` con ese número de puntos). */
-export function puntosAc(barrido: 'dec' | 'oct' | 'lin', puntos: number, desde: number, hasta: number): number {
-  if (barrido === 'lin') return puntos
+export function puntosAc(barrido: 'dec' | 'oct' | 'lin', puntos: number, desde: number, hasta: number, incluir = 0): number {
+  if (barrido === 'lin') return puntos + incluir
   const cuantas = barrido === 'dec' ? Math.log10(hasta / desde) : Math.log2(hasta / desde)
-  return Math.ceil(puntos * cuantas) + 1
+  return Math.ceil(puntos * cuantas) + 1 + incluir
 }
 
 /** Pasos de un transitorio: el paso más largo que se permite fija el mínimo (ngspice puede dar más en un flanco). */

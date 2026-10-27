@@ -11,5 +11,11 @@
   "props": [{ "id": "voltaje", "nombre": "Voltaje", "unidad": "V", "defecto": "5", "comunes": ["1.5", "3.3", "5", "9", "12"] }],
   "modelo": { "tipo": "V", "a": "+", "b": "-", "prop": "voltaje" },
   "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
-  "rotulos": [{ "texto": "−", "x": 0, "y": 0.85, "tam": 1.6 }]
+  "rotulos": [{ "texto": "−", "x": 0, "y": 0.85, "tam": 1.6 }],
+  "datos": {
+    "equivalencias": { "kicad": "Simulation_SPICE:VDC", "ltspice": "voltage", "falstad": "v", "proteus": "BATTERY", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "*": { "virtual": true, "nota": "Fuente ideal de voltaje continuo del simulador." }
+    }
+  }
 }

@@ -1,9 +1,22 @@
 import { camposDeGenerador, resolverCamposGenerador } from '../instrumentos/generadorEdicion'
-import { calcularConexiones, clavePin, type Conexiones } from '../conexiones/conexiones'
+import { clavePin, type Conexiones } from '../conexiones/conexiones'
 import { compilarNetlist } from '../netlist/netlist'
-import { CAMPO_VOLTAJE, cambioDeRiel, MENSAJE_VOLTAJE_DEL_NOMBRE, nombreDeRiel, rielDeTerminal, voltajeDeRiel } from '../netlist/alimentaciones'
-import { aplicar, borrar, crear, fusionar, juntar, modificar, type Comando } from '../doc/comandos'
-import { Historial } from '../doc/historial'
+import { cambioDeRiel, MENSAJE_VOLTAJE_DEL_NOMBRE, nombreDeRiel, rielDeTerminal, voltajeDeRiel } from '../netlist/alimentaciones'
+import { aplicar, borrar, crear, juntar, modificar, type Comando } from '../doc/comandos'
+import type { Historial } from '../doc/historial'
+import { MENSAJE_SIMULANDO, MENSAJE_SOLO_LECTURA, NucleoEdicion } from '../edicion/nucleo'
+import type { LectorDeArchivos } from '../edicion/operaciones/fragmento'
+import type { Orden } from '../edicion/ordenes'
+import type { Resultado } from '../edicion/resultado'
+import { borrarElegidos } from '../edicion/operaciones/borrar'
+import { propiedadDePieza } from '../edicion/operaciones/propiedad'
+import { ajustesAlSoltar, ajustesAlSoltarTramo, moverElegidos } from '../edicion/operaciones/mover'
+import { pegarEn } from '../edicion/operaciones/fragmento'
+import { etiquetaEn, notaEn } from '../edicion/operaciones/texto'
+import { transformarElegidos } from '../edicion/operaciones/transformar'
+import { cablearPuntos, pasaPor } from '../edicion/operaciones/cablear'
+import { esRechazo } from '../edicion/plan'
+import { puntoAMm } from '../edicion/unidades'
 import { idAleatorio, type GeneradorId } from '../doc/ids'
 import { ALTO_NOTA_MAX, formatoCompleto, formatoConCambio, siguienteTam, type FormatoCompleto, type ParcheFormato } from '../doc/formato'
 import { conCaja, conEstilo, figurasDe, ordenesAlFrente, tieneTamaño, type EstiloFigura } from '../doc/figuras'
@@ -19,29 +32,31 @@ import { comunesDeLaFicha, type PiezaDef, type PropDef } from '../piezas/tipos'
 import { columnasDeModelos, type TablaModelos } from '../piezas/columnasModelo'
 import { alimentacionAlCambiarFamilia, alimentacionesDeFamilia, esModeloDigital } from '../netlist/digital'
 import { muestrasDeOpciones } from '../piezas/muestras'
-import { borrarSeleccion, esGiro, orientar, transformarSeleccion, type Orientacion, type Transformacion } from './acciones'
+import { esGiro, orientar, type Orientacion, type Transformacion } from './acciones'
 import { moverTramo, pasoArrastre, planArrastre, type PlanArrastre } from './arrastre'
 import { CableEnCurso } from './cableado'
 import { choqueDeGrupo, colisiona, cuerpoEnMundo } from './colision'
-import { cableEncimado, cableEnCuerpo, conflictoDeTocados, lugarParaPegar, piezaCruzada } from './conflictos'
-import { enrutar, repararCable } from './enrutar'
+import { cableEncimado, cableEnCuerpo, lugarParaPegar, piezaCruzada } from './conflictos'
+import { enrutar } from './enrutar'
 import { insertarEnCable } from './insertar'
 import { limpiarTexto } from '../doc/limpiar'
 import { familiaSpice, sinSpiceSinFamilia, spiceDeTexto, spiceVigente, textoBaseSpice, textoSpiceDe, type FamiliaSpice } from '../doc/spice'
-import { comandoDentroDelMundo, coordenadaValida, MOTIVO_FUERA_DEL_MUNDO } from '../doc/limites'
-import { cambiarProp, modeloDe, nombreConModelo, nuevaEtiqueta, nuevaNota, nuevaPieza, nuevoCable, propModelo, valorEditable } from './colocar'
+import { comandoDentroDelMundo, MOTIVO_FUERA_DEL_MUNDO } from '../doc/limites'
+import { cambiarEntradas } from './entradas'
+import { agrupar as agruparDoc, paqueteDe, PROPS_COMPARTIDAS, renombrarPaquete, siguienteUnidad, refDe } from '../doc/paquetes'
+import { cambiarProp, modeloDe, nombreConModelo, nuevaNota, nuevaPieza, nuevoCable, propModelo, valorEditable } from './colocar'
 import { imanEn } from './iman'
 import { Indice, type Golpe } from './indice'
-import { partirEnUniones } from './normalizar'
-import { copiar, pegar, type Fragmento } from './portapapeles'
+import { copiar, type Fragmento } from './portapapeles'
 import { unionesDeNombre } from './uniones'
 import { errorDeReferencia, errorDeReferenciaMedidor } from '../doc/referencias'
 import { formatearValor, leerValor } from '../valores/valores'
+import { leerEnVivo, pasosEnVivo, textoEnVivo } from '../valores/enVivo'
 import { textoDeNumero } from '../instrumentos/ajusteAutomatico'
 import { PASO_POT, PASO_POT_FINO, posicionDeProp, textoPosicion } from '../sim/potenciometro'
 import { alFondo, asasDeFigura, conMedida, dosDecimales, figuraDeArrastre, fino, leerMedida, moverAsaFigura, type AsaFigura } from './figuras'
 import { seleccionarEnRectangulo } from './rectangulo'
-import { ajustar, ALCANCE_MAX_NODO, iguales, juntarCables, limpiarPolilinea, PASO_REJILLA, proyectarEnTramo, proyectarSinAjustar } from './rutas'
+import { ajustar, ALCANCE_MAX_NODO, iguales, limpiarPolilinea, PASO_REJILLA, proyectarEnTramo, proyectarSinAjustar } from './rutas'
 import { alternar, depurar, seleccionDe, seleccionVacia, tamañoSeleccion, todo, unir, type Seleccion } from './seleccion'
 import { editableEnCaliente, MENSAJE_SOLO_EN_CALIENTE } from './enCaliente'
 import { esModeloInstrumento } from '../piezas/validarInstrumentos'
@@ -52,8 +67,8 @@ import { pantallaDeMedidor } from '../lienzo/medidores'
 import { MAX_PANTALLA_MEDIDOR } from '../doc/sondas'
 import { leerAnalisis, MAX_ANALISIS } from '../doc/analisis'
 import type { AnalisisDoc } from '../../../compartido/analisis/config'
-import { destinoDeSonda, esDeOtraRed, imanDeSonda, mantenerSondas, MOTIVO_CONVERTIR_CORRIENTE, MOTIVO_CORRIENTE_AC, MOTIVO_MEDIDOR_DE_CORRIENTE, MOTIVO_SONDA_SIN_CABLE, siguienteDeSonda, tocaAlgo, type DestinoSonda } from './sondas'
-import { planDeEtiqueta } from './etiquetaEnTramo'
+import { destinoDeSonda, esDeOtraRed, imanDeSonda, MOTIVO_CONVERTIR_CORRIENTE, MOTIVO_CORRIENTE_AC, MOTIVO_MEDIDOR_DE_CORRIENTE, MOTIVO_SONDA_SIN_CABLE, siguienteDeSonda, tocaAlgo, type DestinoSonda } from './sondas'
+ './etiquetaEnTramo'
 import { banderaEn, banderasDelDocumento, type Bandera } from '../lienzo/sondas'
 
 export type Herramienta = 'seleccionar' | 'colocar' | 'cablear' | 'etiqueta' | 'nota' | 'figura'
@@ -195,12 +210,10 @@ const idsDePrueba = (): GeneradorId => {
 }
 /** Flechas seguidas con menos de esto entre una y otra se deshacen en un solo paso. */
 export const ESPERA_FLECHAS_MS = 800
-/** Lo que dice el Registro al intentar cambiar un circuito abierto en solo lectura. */
-export const MENSAJE_SOLO_LECTURA = 'Este circuito es de una versión más nueva de Kirchi y se abrió en solo lectura: se puede ver y exportar, pero no cambiar.'
-/** Lo que dice el Registro al intentar cambiar el circuito mientras corre la vista previa. */
-export const MENSAJE_SIMULANDO = 'Mientras corre la vista previa el circuito no se edita: detenla para cambiarlo.'
+export { MENSAJE_SIMULANDO, MENSAJE_SOLO_LECTURA }
 /** El campo de la referencia (o del nombre de un terminal) mientras corre la vista previa: su valor sí cambia en caliente. */
 export const MOTIVO_REFERENCIA_SIMULANDO = 'Detén la vista previa para cambiar la referencia.'
+export const MOTIVO_UNIDAD_SIMULANDO = 'Detén la vista previa para cambiar la unidad.'
 export const MOTIVO_LISTA_SIMULANDO = 'Detén la vista previa para cambiarlo.'
 export const MOTIVO_NOMBRE_SIMULANDO = 'Detén la vista previa para cambiar el nombre.'
 /** Entre dos avisos de solo lectura pasa al menos esto: un arrastre no llena el Registro. */
@@ -314,15 +327,6 @@ function conSpice(p: Pieza, spice: Record<string, number> | null): Pieza {
   return spice ? { ...resto, spice } : resto
 }
 
-function pasaPor(c: Cable, p: Punto): boolean {
-  for (let i = 1; i < c.puntos.length; i++) {
-    const a = c.puntos[i - 1], b = c.puntos[i]
-    if (a.x === b.x && p.x === a.x && p.y >= Math.min(a.y, b.y) && p.y <= Math.max(a.y, b.y)) return true
-    if (a.y === b.y && p.y === a.y && p.x >= Math.min(a.x, b.x) && p.x <= Math.max(a.x, b.x)) return true
-  }
-  return false
-}
-
 /** Por qué se rechazó un cambio, para el Registro: con qué pieza se encimaría o qué cable estorba. */
 function motivo(doc: Documento, pieza: { con: Id } | null, conflicto: { con: Id; col: 'piezas' | 'cables' } | null): string {
   if (pieza) return `se encimaría con ${doc.piezas[pieza.con]?.ref ?? 'otra pieza'}`
@@ -338,10 +342,9 @@ function motivoDeChoque(c: Choque, sujeto: string | null, soloCables = false): s
 }
 
 export class Editor {
-  readonly historial: Historial
-  readonly indice = new Indice()
+  /** El documento y su único camino de escritura; el editor agrega los gestos. */
+  private readonly nucleo: NucleoEdicion
   readonly lib: Map<string, PiezaDef>
-  con: Conexiones
   seleccion: Seleccion = seleccionVacia()
   hover: Golpe | null = null
   herramienta: Herramienta = 'seleccionar'
@@ -364,11 +367,32 @@ export class Editor {
   /** Cuenta los cambios de valor en caliente: cada uno es su propio paso de deshacer. */
   private nValor = 0
   /** Archivo de un formato más nuevo: se ve, se selecciona y se exporta, pero ningún comando lo cambia. */
-  soloLectura = false
+  get soloLectura(): boolean {
+    return this.nucleo.soloLectura
+  }
+  set soloLectura(v: boolean) {
+    this.nucleo.soloLectura = v
+  }
   /** Corre la vista previa: se selecciona y se recorre, pero ningún comando cambia el documento ni el historial. */
-  simulando = false
+  get simulando(): boolean {
+    return this.nucleo.simulando
+  }
+  set simulando(v: boolean) {
+    this.nucleo.simulando = v
+  }
   private avisoSoloLectura = -Infinity
-  private gen: GeneradorId
+  get historial(): Historial {
+    return this.nucleo.historial
+  }
+  get indice(): Indice {
+    return this.nucleo.indice
+  }
+  get con(): Conexiones {
+    return this.nucleo.con
+  }
+  private get gen(): GeneradorId {
+    return this.nucleo.gen
+  }
   private cable: CableEnCurso | null = null
   private rect: { a: Punto; b: Punto; sumar: boolean } | null = null
   private arrastre: Arrastre | null = null
@@ -434,7 +458,9 @@ export class Editor {
   private nFlechas = 0
   private formatoSeguido: { grupo: string; t: number; control: string; sel: string } | null = null
   private nFormato = 0
-  private potSeguido: { grupo: string; t: number } | null = null
+  private perillaSeguida: { clave: string; grupo: string; t: number } | null = null
+  /** Lo último que movió una perilla, para que `revertirEnCaliente` solo deshaga lo que sigue siendo lo último. */
+  private perillaUltima: { id: Id; propId: string; texto: string; anterior: string | undefined; marca: unknown; grupo: string; pasos: number; etiqueta: string } | null = null
   private nPot = 0
   /** El último ajuste de instrumento (pieza y propiedad), para juntar los seguidos en un paso de deshacer. */
   private ajusteSeguido: { clave: string; grupo: string; t: number } | null = null
@@ -446,15 +472,13 @@ export class Editor {
 
   constructor(lib: Map<string, PiezaDef>, doc: Documento = documentoVacio(), gen: GeneradorId = idAleatorio, ganchos: Partial<Ganchos> = {}) {
     this.lib = lib
-    this.gen = gen
     this.ponerGanchos(ganchos)
-    this.historial = new Historial(doc)
-    this.con = calcularConexiones(this.historial.doc, lib)
-    this.indice.reconstruir(this.historial.doc, lib)
+    this.nucleo = new NucleoEdicion(lib, doc, gen)
+    // Durante un gesto no se recalcula a cada paso: se recalcula al soltar.
+    this.nucleo.enGesto = () => !!(this.arrastre || this.arrastreAsa || this.arrastreTexto || this.arrastreAsaFigura)
     this.historial.suscribir(() => {
       this.versionDoc++
-      // Durante un gesto no se recalcula a cada paso: se recalcula al soltar.
-      if (!this.arrastre && !this.arrastreAsa && !this.arrastreTexto && !this.arrastreAsaFigura) this.recalcular()
+      if (!this.nucleo.enGesto?.()) this.seleccion = depurar(this.seleccion, this.doc)
     })
   }
 
@@ -850,14 +874,13 @@ export class Editor {
   }
 
   private recalcular(): void {
-    this.con = calcularConexiones(this.doc, this.lib)
-    this.indice.reconstruir(this.doc, this.lib)
+    this.nucleo.recalcular()
     this.seleccion = depurar(this.seleccion, this.doc)
   }
 
   /** En solo lectura o simulando avisa en el Registro (como mucho una vez por segundo) y devuelve false. */
   private editable(): boolean {
-    if (!this.soloLectura && !this.simulando) return true
+    if (this.nucleo.editable() === null) return true
     const t = this.ahora()
     if (t - this.avisoSoloLectura >= ESPERA_AVISO_SOLO_LECTURA_MS) {
       this.avisoSoloLectura = t
@@ -881,18 +904,51 @@ export class Editor {
 
   /** Todo cambio del documento pasa por aquí. En solo lectura no se aplica ninguno, ni uno que deje algo fuera del mundo
    * de un `.kir` (se descartaría al reabrir). */
-  private ejecutar(cmd: Comando): void {
-    if (!this.editable() || !comandoDentroDelMundo(cmd)) return
-    // Las sondas que el cambio deja sin tocar nada se mudan o se borran en el mismo paso (solo si el circuito tiene alguna).
-    const sondas = haySondas(this.doc) ? mantenerSondas(this.doc, () => aplicar(this.doc, cmd), this.lib, this.con, cmd.cambios) : null
-    this.historial.ejecutar(sondas?.cmd ? fusionar(cmd, sondas.cmd) : cmd)
-    for (const a of sondas?.avisos ?? []) this.ganchos.registrar(a)
+  private ejecutar(cmd: Comando, normalizar = false): void {
+    if (!this.editable()) return
+    // Los gestos ya comprobaron el invariante de cables al decidir qué proponer: aquí no se repite.
+    const r = this.nucleo.ejecutar(cmd, { normalizar, verificar: false })
+    if (r.ok) for (const a of r.avisos) this.ganchos.registrar(a)
+  }
+
+  /** Una orden del núcleo (la misma que usa el asistente) con las reglas del editor: avisa si no se puede editar y pasa al
+   * Registro lo que el núcleo avisa. El rechazo lo cuenta quien llama. */
+  private aplicarOrden(orden: Orden): Resultado {
+    if (!this.editable()) return { ok: false, motivo: this.simulando ? MENSAJE_SIMULANDO : MENSAJE_SOLO_LECTURA }
+    const r = this.nucleo.aplicar(orden)
+    if (r.ok) for (const a of r.avisos) this.ganchos.registrar(a)
+    return r
+  }
+
+  /** Por qué ahora no se puede editar (solo lectura o vista previa), o null. No avisa a nadie. */
+  motivoNoEditable(): string | null {
+    return this.nucleo.editable()
+  }
+
+  /** Si ahora hay un gesto del usuario en curso (arrastre de piezas, asas o textos). */
+  enGesto(): boolean {
+    return !!this.nucleo.enGesto?.()
+  }
+
+  /** La entrada del asistente: una orden por el núcleo, con `nombre` como paso de deshacer. Avisa a la interfaz del cambio.
+   * `lector` da los `.kir` que pide una orden de fragmento. */
+  aplicarDelAsistente(orden: Orden, nombre?: string, lector?: LectorDeArchivos): Resultado {
+    const motivo = this.nucleo.editable()
+    if (motivo) return { ok: false, motivo }
+    this.nucleo.lectorDeArchivos = lector
+    try {
+      const r = this.nucleo.aplicar(orden, nombre ? { nombre } : {})
+      if (r.ok) for (const a of r.avisos) this.ganchos.registrar(a)
+      this.avisar()
+      return r
+    } finally {
+      this.nucleo.lectorDeArchivos = undefined
+    }
   }
 
   /** Ejecuta `cmd` y, en el mismo paso del historial, parte los cables en las uniones en T que resulten. */
   private ejecutarNormalizado(cmd: Comando): void {
-    const extra = partirEnUniones(aplicar(this.doc, cmd), this.gen)
-    this.ejecutar(extra ? fusionar(cmd, extra) : cmd)
+    this.ejecutar(cmd, true)
   }
 
   /** La selección puede moverse en la rejilla fina con Alt: solo notas, figuras y etiquetas en las que no termina ningún cable. */
@@ -917,7 +973,7 @@ export class Editor {
     const t = a.tramo!
     if (!t.plan) {
       const antes = new Set(Object.keys(this.doc.cables))
-      const extra = partirEnUniones(this.doc, this.gen)
+      const extra = this.nucleo.uniones()
       if (extra) {
         this.ejecutar({ ...extra, grupo: a.grupo })
         // Durante un arrastre el historial no recalcula: aquí sí, para que el índice y las redes vean los cables partidos.
@@ -1018,40 +1074,22 @@ export class Editor {
       return true
     }
     if (a.movio && a.tramo?.plan) {
-      const antes = new Set(Object.keys(this.doc.cables))
-      const extra = partirEnUniones(this.doc, this.gen)
-      if (extra) this.ejecutar({ ...extra, grupo: a.grupo })
-      // El cable arrastrado y los trozos en que lo partan las uniones nuevas.
-      const tocados = Object.keys(this.doc.cables).filter((id) => id === a.tramo!.plan!.id || !antes.has(id))
-      const conflicto = conflictoDeTocados(this.doc, this.lib, { cables: tocados })
-      if (conflicto) {
-        this.revertirArrastre(motivo(this.doc, null, conflicto))
+      const r = ajustesAlSoltarTramo(this.nucleo, a.tramo.plan.id, new Set(Object.keys(this.doc.cables)))
+      if ('motivo' in r) {
+        this.revertirArrastre(r.motivo)
         return true
       }
+      if (r.cmd) this.ejecutar({ ...r.cmd, grupo: a.grupo })
     }
     if (a.movio && a.plan) {
-      // Una pieza de dos pines soltada sobre un cable queda en serie (no cuentan los cables que se arrastran con ella).
-      for (const id of this.seleccion.piezas) {
-        const p = this.doc.piezas[id]
-        const ins = p ? insertarEnCable(this.doc, this.lib, p, this.gen, this.seleccion.cables) : null
-        if (ins) this.ejecutar({ ...ins, grupo: a.grupo })
-      }
-      // Los cables estirados (no los que el usuario arrastra) que cruzan un cuerpo o hacen una vuelta en U se vuelven a enrutar entre sus extremos.
-      const estirados = a.plan.estirados.map((e) => e.cable.id)
-      for (const id of estirados) {
-        const c = this.doc.cables[id]
-        const r = c ? repararCable(this.doc, this.lib, id) : null
-        if (c && r) this.ejecutar(modificar('enrutar', 'cables', c, { ...c, puntos: r }, a.grupo))
-      }
-      const extra = partirEnUniones(this.doc, this.gen)
-      if (extra) this.ejecutar({ ...extra, grupo: a.grupo })
-      // El invariante: ningún cable atraviesa una pieza ni corre encima de otra red. Si no se cumple, el arrastre no se queda.
-      const tocados = { piezas: this.seleccion.piezas, cables: [...this.seleccion.cables, ...estirados] }
-      const conflicto = conflictoDeTocados(this.doc, this.lib, tocados)
-      if (conflicto) {
-        this.revertirArrastre(motivo(this.doc, null, conflicto))
+      // Una pieza de dos pines soltada sobre un cable queda en serie, los cables estirados que cruzan un cuerpo se vuelven a
+      // enrutar y, si queda un cable atravesando una pieza o encima de otra red, el arrastre no se queda.
+      const r = ajustesAlSoltar(this.nucleo, this.seleccion, a.plan.estirados.map((e) => e.cable.id))
+      if ('motivo' in r) {
+        this.revertirArrastre(r.motivo)
         return true
       }
+      if (r.cmd) this.ejecutar({ ...r.cmd, grupo: a.grupo })
     }
     this.arrastre = null
     this.historial.cerrarGrupo()
@@ -1257,7 +1295,7 @@ export class Editor {
       }
       if (!a.plan) {
         // Antes del primer paso, las uniones en T pasan a ser extremos de cable para que se muevan con lo que tocan.
-        const extra = partirEnUniones(this.doc, this.gen)
+        const extra = this.nucleo.uniones()
         if (extra) this.ejecutar({ ...extra, grupo: a.grupo })
         a.plan = planArrastre(this.doc, this.lib, this.seleccion)
       }
@@ -1594,7 +1632,8 @@ export class Editor {
     const g = this.indice.golpe(p, this.tolerancia)
     if (g) {
       const [col, id]: [Coleccion, Id] = g.tipo === 'pin' ? ['piezas', g.piezaId] : colDeGolpe(g)
-      this.ejecutar(borrarSeleccion(this.doc, seleccionDe(col, id)))
+      const plan = borrarElegidos(this.nucleo, seleccionDe(col, id))
+      if (!esRechazo(plan)) this.ejecutar(plan.cmd)
       this.hover = null
       this.ganchos.alBorrarConClicDerecho?.()
     }
@@ -1747,26 +1786,6 @@ export class Editor {
     else this.avisar()
   }
 
-  /** Único cable que termina justo en `p` sin pin, etiqueta ni otro cable ahí: el nuevo lo continúa. */
-  private cableQueContinua(p: Punto, descartados: Set<Id>): Cable | null {
-    if (this.indice.pinesEn(p.x, p.y).length) return null
-    if (Object.values(this.doc.etiquetas).some((e) => e.x === p.x && e.y === p.y)) return null
-    const ids = new Set(this.indice.buscar({ minX: p.x, minY: p.y, maxX: p.x, maxY: p.y }).filter((it) => it.col === 'cables').map((it) => it.id))
-    let hallado: Cable | null = null
-    for (const id of ids) {
-      const c = this.doc.cables[id]
-      if (!c || descartados.has(id) || c.puntos.length < 2) continue
-      const toca = iguales(c.puntos[0], p) || iguales(c.puntos[c.puntos.length - 1], p)
-      if (!toca) {
-        if (pasaPor(c, p)) return null
-        continue
-      }
-      if (hallado) return null
-      hallado = c
-    }
-    return hallado
-  }
-
   private terminarCable(en: Punto): void {
     const c = this.cable
     if (!c) return
@@ -1779,39 +1798,32 @@ export class Editor {
         this.avisar()
         return
       }
-      const cmds: Comando[] = []
-      const descartados = new Set<Id>()
-      for (const extremo of [puntos[0], puntos[puntos.length - 1]]) {
-        const otro = this.cableQueContinua(extremo, descartados)
-        const unido = otro ? juntarCables(otro.puntos, puntos) : null
-        if (otro && unido) {
-          puntos = unido
-          descartados.add(otro.id)
-          cmds.push(borrar('cablear', 'cables', otro))
-        }
-      }
-      if (puntos.length >= 2) cmds.push(crear('cablear', 'cables', nuevoCable(puntos, this.gen)))
-      const cmd = juntar('cablear', cmds)
-      const extra = partirEnUniones(aplicar(this.doc, cmd), this.gen)
-      const total = extra ? fusionar(cmd, extra) : cmd
-      const despues = aplicar(this.doc, total)
-      // El cable nuevo puede quedar fundido con otro o partido en uniones: cuentan (y brillan) los cables que no existían.
-      const nuevos = Object.keys(despues.cables).filter((id) => !(id in this.doc.cables))
-      const conflicto = conflictoDeTocados(despues, this.lib, { cables: nuevos })
-      if (conflicto) {
-        this.choque = this.choqueCon(conflicto.con)
-        this.rechazarCable()
+      // El cable se arma y se comprueba en el núcleo (uniones en T, invariante y mundo). Si lo rechaza, el cable sigue en
+      // curso, en rojo; fuera del área de dibujo se rechaza antes de cancelarlo, como un choque.
+      if (!this.editable()) {
+        this.cancelarCable()
         this.avisar()
         return
       }
-      // Fuera del área de dibujo se rechaza antes de cancelar el cable en curso, como un choque.
-      if (!comandoDentroDelMundo(total)) {
-        this.rechazarCable('cable', MOTIVO_FUERA_DEL_MUNDO)
+      const plan = cablearPuntos(this.nucleo, puntos)
+      if (esRechazo(plan)) {
+        this.cancelarCable()
+        this.avisar()
+        return
+      }
+      const r = this.nucleo.ejecutar(plan.cmd)
+      if (!r.ok) {
+        if (r.con) {
+          this.choque = this.choqueCon(r.con.con)
+          this.rechazarCable()
+        } else this.rechazarCable('cable', r.motivo)
         this.avisar()
         return
       }
       this.cancelarCable()
-      this.ejecutar(total)
+      for (const a of r.avisos) this.ganchos.registrar(a)
+      // El cable nuevo puede quedar fundido con otro o partido en uniones: brillan los cables que no existían.
+      const nuevos = r.creados.cables ?? []
       if (nuevos.length) this.ganchos.animar({ tipo: 'brillo', cables: nuevos })
     } else this.cancelarCable()
     this.avisar()
@@ -1847,6 +1859,9 @@ export class Editor {
     this.herramienta = 'colocar'
     this.valorColocar = valor
     this.fantasma = nuevaPieza(this.doc, def, q, 0, false, () => ID_FANTASMA, valor)
+    // El fantasma ya muestra la unidad que tomará al colocarse (U1B).
+    const su = siguienteUnidad(this.doc, this.lib, def.id, this.fantasma.props)
+    if (su) this.fantasma = { ...this.fantasma, ref: refDe(su.paquete, su.unidad), props: { ...this.fantasma.props, paquete: su.paquete, unidad: su.unidad } }
     this.revisarFantasma()
     this.avisar()
   }
@@ -1976,16 +1991,14 @@ export class Editor {
     const f = this.fantasma
     const def = f ? this.lib.get(f.tipo) : undefined
     if (!f || !def) return false
-    if (!coordenadaValida(f.x, f.y)) {
+    // Sobre un cable, una pieza de dos pines lo parte y queda en serie, en el mismo paso.
+    const r = this.aplicarOrden({ orden: 'colocar', tipo: f.tipo, ...(this.valorColocar !== undefined ? { valor: this.valorColocar } : {}), en: puntoAMm(f), rot: f.rot, espejo: f.espejo })
+    if (!r.ok) {
       this.ganchos.animar({ tipo: 'sacudida', piezas: [ID_FANTASMA] })
-      this.ganchos.registrar(`No se colocó ${f.ref}: ${MOTIVO_FUERA_DEL_MUNDO}.`)
+      this.ganchos.registrar(r.motivo)
       return false
     }
-    const nueva = nuevaPieza(this.doc, def, { x: f.x, y: f.y }, f.rot, f.espejo, this.gen, this.valorColocar)
-    const alta = crear('colocar', 'piezas', nueva)
-    // Sobre un cable, una pieza de dos pines lo parte y queda en serie, en el mismo paso.
-    const ins = insertarEnCable(this.doc, this.lib, nueva, this.gen)
-    this.ejecutarNormalizado(ins ? juntar('colocar', [alta, ins]) : alta)
+    const nueva = this.doc.piezas[Object.values(r.creados)[0]]
     this.ganchos.animar({ tipo: 'pulso', caja: cuerpoEnMundo(nueva, def, AIRE_PULSO) })
     return true
   }
@@ -2012,15 +2025,14 @@ export class Editor {
       inicial: '',
       multilinea: false,
       aceptar: (t) => {
-        if (!limpiarTexto(t).trim()) return 'Escribe el nombre de la red.'
         // Sobre un cable, en un tramo corto perpendicular: no se encima con él. Tramo y etiqueta, un paso de deshacer.
-        const plan = planDeEtiqueta(this.doc, this.lib, en, limpiarTexto(t).trim())
-        const e = { ...nuevaEtiqueta(limpiarTexto(t), plan.etiqueta, this.gen), rot: plan.etiqueta.rot }
+        const r = etiquetaEn(this.nucleo, en, t)
+        if ('motivo' in r) return r.motivo
         this.textoPendiente = null
         this.herramienta = 'seleccionar'
-        if (plan.cable) this.ejecutarNormalizado(juntar('etiqueta', [crear('etiqueta', 'cables', nuevoCable(plan.cable, this.gen)), crear('etiqueta', 'etiquetas', e)]))
-        else this.ejecutar(crear('etiqueta', 'etiquetas', e))
-        this.seleccion = seleccionDe('etiquetas', e.id)
+        if (r.normalizar) this.ejecutarNormalizado(r.cmd)
+        else this.ejecutar(r.cmd)
+        this.seleccion = seleccionDe('etiquetas', r.etiqueta.id)
         this.avisar()
         return null
       },
@@ -2045,13 +2057,12 @@ export class Editor {
       inicial: '',
       multilinea: true,
       aceptar: (t) => {
-        const texto = limpiarTexto(t).replace(/\s+$/, '')
-        if (!texto.trim()) return 'Escribe el texto de la nota.'
-        const n = nuevaNota(texto, en, this.gen)
+        const r = notaEn(this.nucleo, en, t)
+        if ('motivo' in r) return r.motivo
         this.textoPendiente = null
         this.herramienta = 'seleccionar'
-        this.ejecutar(crear('nota', 'notas', n))
-        this.seleccion = seleccionDe('notas', n.id)
+        this.ejecutar(r.cmd)
+        this.seleccion = seleccionDe('notas', r.nota.id)
         this.avisar()
         return null
       },
@@ -2197,7 +2208,8 @@ export class Editor {
     const v = valorEditable(p, def)
     const enCaliente = !!v && editableEnCaliente(def, v.prop.id)
     if (this.soloLectura || (this.simulando && !enCaliente)) return void this.editable()
-    const campos: CampoPedido[] = [{ id: 'ref', titulo: 'Referencia', inicial: p.ref }]
+    // Una unidad de un encapsulado edita la referencia de su paquete (U1), que cambia en todas sus unidades.
+    const campos: CampoPedido[] = [{ id: 'ref', titulo: 'Referencia', inicial: paqueteDe(p)?.paquete ?? p.ref }]
     if (v)
       campos.push({
         id: 'valor',
@@ -2219,7 +2231,8 @@ export class Editor {
     const m = def.modelo
     for (const d of def.props) {
       if (!d.opciones || (m?.tipo === 'pot' && d.id === m.posicion)) continue
-      const inicial = p.props[d.id] ?? d.defecto
+      // La cantidad de entradas cambia la pieza entera (`cambiarEntradas`): su valor vigente es el de la pieza, no el del documento.
+      const inicial = d.id === 'entradas' && def.entradas ? String(def.entradas.n) : (p.props[d.id] ?? d.defecto)
       let opciones = d.opciones
       if (esModeloDigital(m) && d.id === m.alimentacion) {
         const validas = alimentacionesDeFamilia(opciones, p.props[m.familia] ?? def.props.find((x) => x.id === m.familia)?.defecto ?? '')
@@ -2255,7 +2268,10 @@ export class Editor {
         const ref: RevisionCampo = {}
         if (this.simulando) ref.fijo = { texto: actual.ref, motivo: MOTIVO_REFERENCIA_SIMULANDO }
         else {
-          const e = errorDeReferencia(this.doc, id, limpiarTexto(vals[0] ?? ''))
+          const pq = paqueteDe(actual)
+          const texto = limpiarTexto(vals[0] ?? '').trim()
+          const r = pq ? (texto === pq.paquete ? null : renombrarPaquete(this.doc, pq.paquete, texto)) : null
+          const e = pq ? (r && !r.ok ? r.error : null) : errorDeReferencia(this.doc, id, texto)
           if (e) ref.error = e
         }
         // Simulando, una lista queda fija salvo que cambie en caliente (el ciclo de trabajo de una fuente de pulsos).
@@ -2329,9 +2345,12 @@ export class Editor {
           return null
         }
         const ref = limpiarTexto(vals[0] ?? '').trim()
-        const e = errorDeReferencia(this.doc, id, ref)
+        const pq = paqueteDe(actual)
+        const e = pq ? (ref === pq.paquete ? null : (() => { const r = renombrarPaquete(this.doc, pq.paquete, ref); return r.ok ? null : r.error })()) : errorDeReferencia(this.doc, id, ref)
         if (e) return { campo: 0, error: e }
-        let nueva: Pieza = { ...actual, ref }
+        // La referencia de una unidad y lo que comparten sus unidades cambian en todas, cada uno por su camino (un paso cada uno).
+        const alPaquete: [string, string, number][] = []
+        let nueva: Pieza = { ...actual, ...(pq ? {} : { ref }) }
         let cambioValor = false
         let cambioAjustes = false
         if (esGenerador) {
@@ -2357,11 +2376,24 @@ export class Editor {
         }
         // Las listas: solo se escribe la que cambió (una que se queda en su opción no se agrega al documento).
         const cambiadas: string[] = []
+        let entradasNuevas: { n: number; campo: number } | null = null
         for (const [i, c] of campos.entries()) {
           if (!c.opciones) continue
           const prop = c.id.slice(5)
           const texto = vals[i] ?? c.inicial
+          if (prop === 'entradas' && def.entradas) {
+            if (texto === c.inicial) continue
+            // Se prueba antes de tocar nada: si la pieza no cabe, no queda a medias.
+            const probe = cambiarEntradas(this.doc, this.lib, id, Number(texto))
+            if ('error' in probe) return { campo: i, error: probe.error }
+            entradasNuevas = { n: Number(texto), campo: i }
+            continue
+          }
           if (texto === (actual.props[prop] ?? def.props.find((d) => d.id === prop)?.defecto)) continue
+          if (pq && PROPS_COMPARTIDAS.includes(prop)) {
+            alPaquete.push([prop, texto, i])
+            continue
+          }
           const r = cambiarProp(nueva, def, prop, texto)
           if ('error' in r) return { campo: i, error: r.error }
           nueva = r.pieza
@@ -2385,11 +2417,26 @@ export class Editor {
             cambioSpice = true
           }
         }
+        const cambioPaquete = !!pq && ref !== pq.paquete
         const cambioRef = nueva.ref !== actual.ref
-        if (!cambioRef && !cambioValor && !cambioAjustes && !cambioSpice && cambiadas.length === 0) return null
+        if (!cambioRef && !cambioPaquete && !cambioValor && !cambioAjustes && !cambioSpice && cambiadas.length === 0 && !entradasNuevas && alPaquete.length === 0) return null
+        if (entradasNuevas) cambiadas.push('entradas')
         const nombres = [...(cambioRef ? ['referencia'] : []), ...(cambioValor ? ['valor'] : []), ...(cambioAjustes ? ['ajustes'] : []), ...(cambioSpice ? ['modelo propio'] : []), ...cambiadas]
         const nombre = nombres.length === 1 ? nombres[0] : `${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}`
-        this.ejecutar(modificar(nombre, 'piezas', actual, nueva))
+        const hayOtros = cambioRef || cambioValor || cambioAjustes || cambioSpice || cambiadas.length > (entradasNuevas ? 1 : 0)
+        if (hayOtros) this.ejecutar(modificar(nombre, 'piezas', actual, nueva))
+        if (entradasNuevas) {
+          const e = this.cambiarPropiedad(id, 'entradas', String(entradasNuevas.n))
+          if (e) return { campo: entradasNuevas.campo, error: e }
+        }
+        if (cambioPaquete) {
+          const e = this.cambiarReferencia(id, ref)
+          if (e) return { campo: 0, error: e }
+        }
+        for (const [prop, texto, campo] of alPaquete) {
+          const e = this.cambiarPropiedad(id, prop, texto)
+          if (e) return { campo, error: e }
+        }
         this.avisar()
         return null
       },
@@ -2406,10 +2453,10 @@ export class Editor {
     const p = this.doc.piezas[id]
     const familia = p ? familiaSpice(this.lib.get(p.tipo)?.modelo) : null
     if (!p || !familia) return null
-    const r = spiceDeTexto(texto, familia)
-    if (!r.ok) return r.error
-    if (JSON.stringify(r.spice) === JSON.stringify(spiceVigente(p))) return null
-    this.ejecutar(modificar('modelo propio', 'piezas', p, conSpice(p, r.spice)))
+    const plan = propiedadDePieza(this.nucleo, p, 'spice', texto)
+    if (esRechazo(plan)) return plan.motivo
+    if (plan.cmd.cambios.length === 0) return null
+    this.ejecutar(plan.cmd)
     this.avisar()
     return null
   }
@@ -2433,13 +2480,51 @@ export class Editor {
     }
     const p = this.doc.piezas[id]
     if (!p) return null
-    const ref = limpiarTexto(texto).trim()
-    const e = errorDeReferencia(this.doc, id, ref)
-    if (e) return e
-    if (ref === p.ref) return null
-    this.ejecutar(modificar('referencia', 'piezas', p, { ...p, ref }))
+    const plan = propiedadDePieza(this.nucleo, p, 'ref', texto)
+    if (esRechazo(plan)) return plan.motivo
+    if (plan.cmd.cambios.length === 0) return null
+    this.ejecutar(plan.cmd)
     this.avisar()
     return null
+  }
+
+  /** Pasa la pieza a otra unidad libre de su encapsulado (U1A a U1B). Devuelve el motivo si no se aplica, o null. Un paso de
+   * deshacer; simulando queda fija. */
+  cambiarUnidad(id: Id, unidad: string): string | null {
+    if (this.gestoEnCurso) return 'Termina el arrastre antes de cambiar la unidad.'
+    if (this.soloLectura) return MENSAJE_SOLO_LECTURA
+    if (this.simulando) return MOTIVO_UNIDAD_SIMULANDO
+    const p = this.doc.piezas[id]
+    if (!p) return null
+    const r = this.aplicarOrden({ orden: 'unidad', ref: p.ref, unidad })
+    if (!r.ok) return r.motivo
+    this.avisar()
+    return null
+  }
+
+  /** Renombra el paquete de una unidad en todas sus unidades (U1 a U2: U1A a U2A, U1B a U2B), en un solo paso. */
+  renombrarPaquete(id: Id, texto: string): string | null {
+    const p = this.doc.piezas[id]
+    if (p && !paqueteDe(p)) return `${p.ref} no forma parte de un encapsulado.`
+    return this.cambiarReferencia(id, texto)
+  }
+
+  /** «Agrupar en encapsulados»: reparte las piezas multiunidad sueltas en paquetes (U1A, U1B…) en orden de lectura, en un
+   * solo paso. Devuelve cuántas piezas agrupó; 0 si no había o no se pudo (el Registro dice por qué). */
+  agruparEncapsulados(): number {
+    if (this.gestoEnCurso || this.herramienta !== 'seleccionar') return 0
+    const n = agruparDoc(this.doc, this.lib).length
+    if (n === 0) {
+      this.ganchos.registrar('No hay piezas sueltas que agrupar.')
+      return 0
+    }
+    const r = this.aplicarOrden({ orden: 'agrupar' })
+    if (!r.ok) {
+      this.ganchos.registrar(r.motivo)
+      return 0
+    }
+    this.avisar()
+    return n
   }
 
   /** `editarValor` de un terminal de alimentación: su nombre (la red) y el voltaje de su riel, en un paso de deshacer. */
@@ -2525,6 +2610,60 @@ export class Editor {
     return id && pz && this.lib.get(pz.tipo)?.modelo?.tipo === 'pot' ? id : null
   }
 
+  /** La primera propiedad `enVivo` de una pieza (su perilla), o null. */
+  private perillaDe(id: Id): string | null {
+    const p = this.doc.piezas[id]
+    return (p && this.lib.get(p.tipo)?.props.find((d) => d.enVivo)?.id) ?? null
+  }
+
+  /** La pieza que es lo único seleccionado; null si no hay o hay más. */
+  unicaPiezaSeleccionada(): Id | null {
+    const s = this.seleccion
+    if (s.piezas.size !== 1 || s.cables.size + s.etiquetas.size + s.notas.size + s.figuras.size > 0) return null
+    return [...s.piezas][0]
+  }
+
+  /** La pieza con perilla que es lo único seleccionado; null si no hay o hay más. */
+  perillaSeleccionada(): { id: Id; propId: string } | null {
+    const s = this.seleccion
+    if (s.piezas.size !== 1 || s.cables.size + s.etiquetas.size + s.notas.size + s.figuras.size > 0) return null
+    const [id] = s.piezas
+    const propId = this.perillaDe(id)
+    return propId ? { id, propId } : null
+  }
+
+  /** La pieza con perilla bajo el puntero (su cuerpo o uno de sus pines); null si no hay. No cambia la selección. */
+  perillaEn(p: Punto): { id: Id; propId: string } | null {
+    const g = this.indice.golpe(p, this.tolerancia)
+    const id = g?.tipo === 'pin' ? g.piezaId : g?.tipo === 'pieza' ? g.id : null
+    const propId = id ? this.perillaDe(id) : null
+    return id && propId ? { id, propId } : null
+  }
+
+  /** Valor numérico actual de una perilla (el guardado o el de omisión); null si no es una perilla. */
+  valorPerilla(id: Id, propId: string): number | null {
+    const p = this.doc.piezas[id]
+    const prop = p ? this.lib.get(p.tipo)?.props.find((d) => d.id === propId) : undefined
+    if (!p || !prop?.enVivo) return null
+    const l = leerEnVivo(prop, p.props[propId] ?? prop.defecto ?? '')
+    return 'valor' in l ? l.valor : prop.enVivo.min
+  }
+
+  /** Mueve una perilla `pasos` muescas (rueda, `+`, `−` y flechas): 5 % del rango, 1 % en fino. Seguidas son un paso de deshacer. */
+  pasoPerilla(id: Id, propId: string, pasos: number, fino: boolean): boolean {
+    const p = this.doc.piezas[id]
+    const prop = p ? this.lib.get(p.tipo)?.props.find((d) => d.id === propId) : undefined
+    const actual = this.valorPerilla(id, propId)
+    if (!prop?.enVivo || actual === null) return false
+    return this.cambiarPerilla(id, propId, textoEnVivo(prop, pasosEnVivo(prop.enVivo, actual, pasos, fino)))
+  }
+
+  /** `+` y `−` sobre la perilla seleccionada. */
+  pasoPerillaSeleccionada(dir: 1 | -1, fino: boolean): void {
+    const s = this.perillaSeleccionada()
+    if (s) this.pasoPerilla(s.id, s.propId, dir, fino)
+  }
+
   /** Posición actual (0 a 100) del cursor de un potenciómetro; null si la pieza no lo es. */
   posicionPot(id: Id): number | null {
     const p = this.doc.piezas[id]
@@ -2539,27 +2678,71 @@ export class Editor {
    * Devuelve false si la pieza no es potenciómetro o el archivo es de solo lectura. */
   cambiarPosicionPot(id: Id, porcentaje: number, gesto?: string): boolean {
     const p = this.doc.piezas[id]
+    const m = p ? this.lib.get(p.tipo)?.modelo : undefined
+    if (!p || m?.tipo !== 'pot') return false
+    return this.cambiarPerilla(id, m.posicion, textoPosicion(porcentaje), gesto)
+  }
+
+  /** Mueve una perilla (la posición de un potenciómetro o una propiedad `enVivo`) con o sin vista previa, directo al historial
+   * porque `ejecutar` rechaza todo mientras se simula. Un mismo `gesto` es un paso; sin él, los cambios de la misma perilla
+   * dentro de 800 ms también. Devuelve false si no es una perilla, el texto no vale o el archivo es de solo lectura. */
+  cambiarPerilla(id: Id, propId: string, texto: string, gesto?: string): boolean {
+    const p = this.doc.piezas[id]
     const def = p ? this.lib.get(p.tipo) : undefined
     const m = def?.modelo
-    if (!p || !def || m?.tipo !== 'pot') return false
+    const prop = def?.props.find((d) => d.id === propId)
+    const esPot = m?.tipo === 'pot' && propId === m.posicion
+    if (!p || !def || !prop || (!esPot && !prop.enVivo)) return false
     if (this.soloLectura) return this.editable()
     if (this.gestoEnCurso) return false
-    const texto = textoPosicion(porcentaje)
-    const actual = p.props[m.posicion] ?? def.props.find((d) => d.id === m.posicion)?.defecto
-    if (actual === texto) return true
+    let nuevo = texto
+    if (!esPot) {
+      const l = leerEnVivo(prop, texto)
+      if ('error' in l) return false
+      nuevo = textoEnVivo(prop, l.valor)
+    }
+    const anterior: string | undefined = Object.hasOwn(p.props, propId) ? p.props[propId] : undefined
+    if ((anterior ?? prop.defecto) === nuevo) return true
+    const prefijo = esPot ? 'pot' : 'perilla'
     let grupo: string
-    if (gesto !== undefined) grupo = `pot-${gesto}`
+    if (gesto !== undefined) grupo = `${prefijo}-${gesto}`
     else {
       const t = this.ahora()
-      const s = this.potSeguido
-      grupo = s && t - s.t <= ESPERA_FLECHAS_MS && this.historial.grupoEnCurso === s.grupo ? s.grupo : `pot-${++this.nPot}`
-      this.potSeguido = { grupo, t }
+      const clave = `${id} ${propId}`
+      const s = this.perillaSeguida
+      grupo = s && s.clave === clave && t - s.t <= ESPERA_FLECHAS_MS && this.historial.grupoEnCurso === s.grupo ? s.grupo : `${prefijo}-${++this.nPot}`
+      this.perillaSeguida = { clave, grupo, t }
     }
-    // Directo al historial: `ejecutar` rechaza todo mientras se simula, y esto es lo único que se permite.
-    this.historial.ejecutar({ ...modificar('posición del cursor', 'piezas', p, { ...p, props: { ...p.props, [m.posicion]: texto } }), grupo })
+    const etiqueta = esPot ? 'posición del cursor' : prop.nombre.toLowerCase()
+    const abre = this.historial.grupoEnCurso !== grupo
+    const pasos = abre || this.perillaUltima?.grupo !== grupo ? 1 : this.perillaUltima.pasos + 1
+    this.historial.ejecutar({ ...modificar(etiqueta, 'piezas', p, { ...p, props: { ...p.props, [propId]: nuevo } }), grupo })
+    this.perillaUltima = { id, propId, texto: nuevo, anterior, marca: this.historial.marca(), grupo, pasos, etiqueta }
     this.versionCaliente = this.versionDoc
     this.avisar()
     return true
+  }
+
+  /** El motor rechazó el último valor de una perilla: vuelve a `texto` (el último aceptado) en el mismo grupo de deshacer, sin
+   * dejar rastro del rechazado. No hace nada si después llegó otro cambio del documento o del mismo elemento. */
+  revertirEnCaliente(id: Id, propId: string, texto: string): void {
+    const u = this.perillaUltima
+    const p = this.doc.piezas[id]
+    if (!u || !p || u.id !== id || u.propId !== propId || this.historial.marca() !== u.marca || p.props[propId] !== u.texto) return
+    this.perillaUltima = null
+    this.perillaSeguida = null
+    if (u.pasos === 1 && this.historial.grupoEnCurso === u.grupo) this.historial.revertirGrupo()
+    else {
+      // El gesto ya tenía pasos aceptados: se quita solo lo rechazado, con el valor que el motor aceptó.
+      const defecto = this.lib.get(p.tipo)?.props.find((d) => d.id === propId)?.defecto
+      const props = { ...p.props }
+      // Sin valor guardado antes (el de omisión) la clave se quita, para que el documento quede como estaba.
+      if (u.anterior === undefined && texto === defecto) delete props[propId]
+      else props[propId] = texto
+      this.historial.ejecutar({ ...modificar(u.etiqueta, 'piezas', p, { ...p, props }), grupo: u.grupo })
+    }
+    this.versionCaliente = this.versionDoc
+    this.avisar()
   }
 
   /** Cambia un ajuste de instrumento con o sin vista previa. Los cambios seguidos de la misma propiedad a menos de 800 ms,
@@ -2608,7 +2791,7 @@ export class Editor {
     return null
   }
 
-  /** «Medir con el osciloscopio ▸ Entrada X» o «con el multímetro» sobre el cable o etiqueta `o`: coloca o reutiliza el
+  /** «Medir ▸ Sonda, Multímetro u Osciloscopio» sobre el cable o etiqueta `o`: coloca o reutiliza el
    * instrumento y lo conecta, en un paso. Devuelve el error (al Registro) o null; no actúa simulando ni en solo lectura. */
   medirCon(o: ObjetivoMenu, pedido: PedidoMedir): string | null {
     if (!this.editable()) return this.simulando ? MENSAJE_SIMULANDO : MENSAJE_SOLO_LECTURA
@@ -2781,38 +2964,21 @@ export class Editor {
     if (this.simulando && !editableEnCaliente(def, propId)) return MENSAJE_SOLO_EN_CALIENTE
     if (!p || !def) return null
     if (propId === 'spice') return this.cambiarSpice(id, texto)
-    // El periodo de una fuente de pulso no se guarda: es la frecuencia al revés.
-    if (propId === 'periodo' && def.modelo?.tipo === 'pulso') {
-      const t = leerValor(texto)
-      if (!t) return `«${texto}» no es un valor válido.`
-      if (!(t.valor > 0)) return 'El periodo debe ser un número mayor que cero.'
-      return this.cambiarPropiedad(id, def.modelo.frecuencia, textoDeNumero(1 / t.valor, 6))
-    }
-    // El voltaje de un terminal es el de su riel: cambiarlo cambia el de todos los terminales con su nombre.
-    if (def.modelo?.tipo === 'alimentacion' && propId === CAMPO_VOLTAJE) return this.cambiarRiel(nombreDeRiel(p, def), texto)
-    const r = cambiarProp(p, def, propId, texto)
-    if ('error' in r) return r.error
-    const antes = p.props[propId] ?? def.props.find((d) => d.id === propId)?.defecto
-    if (r.pieza.props[propId] === antes) return null
-    // La familia nueva de una pieza digital puede no admitir su alimentación: pasa a la más cercana en el mismo paso.
-    const md = def.modelo
-    const ajuste = esModeloDigital(md) && propId === md.familia ? alimentacionAlCambiarFamilia(p, def, md, r.pieza.props[propId]) : null
-    if (ajuste && esModeloDigital(md)) {
-      r.pieza = { ...r.pieza, props: { ...r.pieza.props, [md.alimentacion]: ajuste.alimentacion } }
-      this.ganchos.registrar(ajuste.aviso)
-    }
+    const plan = propiedadDePieza(this.nucleo, p, propId, texto)
+    if (esRechazo(plan)) return plan.motivo
+    // La familia nueva de una pieza digital puede no admitir su alimentación: el plan la pasa a la más cercana y lo avisa.
+    for (const a of plan.avisos) this.ganchos.registrar(a)
+    if (plan.cmd.cambios.length === 0) return null
     if (this.simulando) {
       // Antes de tocar el documento se arma la netlist con el valor nuevo: uno que el motor no admitiría (cero, negativo, fuera de
       // su rango) se dice en el campo, y la vista previa no se detiene ni el documento se queda con el valor malo.
       // El circuito se podía simular al arrancar: cualquier error es del cambio, aunque nombre a otra pieza.
-      const error = this.errorEnCaliente({ ...this.doc, piezas: { ...this.doc.piezas, [id]: r.pieza } })
+      const error = this.errorEnCaliente(aplicar(this.doc, plan.cmd))
       if (error) return error
-    }
-    if (this.simulando) {
       // Directo al historial, como la posición de un potenciómetro: `ejecutar` rechaza todo mientras se simula.
-      this.historial.ejecutar({ ...modificar('valor', 'piezas', p, r.pieza), grupo: `valor-${++this.nValor}` })
+      this.historial.ejecutar({ ...plan.cmd, grupo: `valor-${++this.nValor}` })
       this.versionCaliente = this.versionDoc
-    } else this.ejecutar(modificar('valor', 'piezas', p, r.pieza))
+    } else this.ejecutar(plan.cmd)
     this.avisar()
     return null
   }
@@ -2985,10 +3151,15 @@ export class Editor {
     // Un giro absoluto que ya tienen todas las piezas no cambia nada ni deja paso.
     const yaEsta = (id: Id, o: Orientacion) => !this.doc.piezas[id] || (this.doc.piezas[id].rot === o.rot && this.doc.piezas[id].espejo === o.espejo)
     if (typeof op === 'object' && sel.piezas.size > 0 && [...sel.piezas].every((id) => yaEsta(id, op))) return
-    const nombre = typeof op === 'object' ? 'orientar' : op
-    let total = transformarSeleccion(this.doc, sel, op, this.lib)
+    const plan = transformarElegidos(this.nucleo, sel, op)
+    if (esRechazo(plan)) {
+      this.ganchos.animar({ tipo: 'sacudida', piezas: [...sel.piezas], cables: [...sel.cables] })
+      this.ganchos.registrar(plan.motivo)
+      this.avisar()
+      return
+    }
     // Solo cables o notas: R, Shift+R, X e Y no los cambian.
-    if (total.cambios.length === 0) {
+    if (plan.cmd.cambios.length === 0) {
       this.ganchos.animar({ tipo: 'sacudida', piezas: [], cables: [...sel.cables] })
       this.ganchos.registrar(
         typeof op === 'object' ? 'Cambiar la orientación solo afecta a piezas.' : esGiro(op) ? 'Girar solo cambia piezas y etiquetas de red.' : 'Reflejar solo cambia piezas y etiquetas de red.'
@@ -2996,34 +3167,7 @@ export class Editor {
       this.avisar()
       return
     }
-    let doc = aplicar(this.doc, total)
-    // Las puntas que se estiraron hasta los pines nuevos se vuelven a enrutar si cruzan un cuerpo o hacen una vuelta en U.
-    // Los cables elegidos giran con el grupo y conservan su forma: solo se reparan los que se estiraron.
-    const estirados = [...new Set(total.cambios.filter((c) => c.col === 'cables' && !sel.cables.has(c.id)).map((c) => c.id))]
-    for (const id of estirados) {
-      const r = repararCable(doc, this.lib, id)
-      if (!r) continue
-      const m = modificar(nombre, 'cables', doc.cables[id], { ...doc.cables[id], puntos: r })
-      total = fusionar(total, m)
-      doc = aplicar(doc, m)
-    }
-    const extra = partirEnUniones(doc, this.gen)
-    if (extra) {
-      total = fusionar(total, extra)
-      doc = aplicar(doc, extra)
-    }
-    const movidas = [...sel.piezas].map((id) => doc.piezas[id]).filter(Boolean)
-    const pieza = choqueDeGrupo(doc, this.lib, movidas, sel.piezas)
-    const conflicto = pieza ? null : conflictoDeTocados(doc, this.lib, { piezas: sel.piezas, cables: [...sel.cables, ...estirados] })
-    if (pieza || conflicto) {
-      this.ganchos.animar({ tipo: 'sacudida', piezas: [...sel.piezas], cables: [...sel.cables] })
-      const verbo = typeof op === 'object' ? 'cambiar la orientación' : esGiro(op) ? 'girar' : 'reflejar'
-      const sujeto = this.sujetoUnico()
-      this.ganchos.registrar(`${sujeto ? `${sujeto} no se pudo` : 'Las piezas no se pudieron'} ${verbo}: ${motivo(doc, pieza, conflicto)}.`)
-      this.avisar()
-      return
-    }
-    this.ejecutar(total)
+    this.ejecutar(plan.cmd)
     this.avisar()
   }
 
@@ -3055,40 +3199,23 @@ export class Editor {
       if (dx !== 0) this.pasoPotenciometro(dx > 0 ? 1 : -1, Math.abs(dx) > PASO_REJILLA)
       return true
     }
+    // Lo mismo con una pieza de perilla en vivo (temperatura, luz, carga).
+    if (this.simulando && this.perillaSeleccionada()) {
+      if (dx !== 0) this.pasoPerillaSeleccionada(dx > 0 ? 1 : -1, Math.abs(dx) > PASO_REJILLA)
+      return true
+    }
     if (this.gestoEnCurso || this.herramienta !== 'seleccionar' || this.textoPendiente) return true
     const sel = this.seleccion
     if (tamañoSeleccion(sel) === 0) return false
     if (!this.editable()) return true
     // Solo banderas seleccionadas: la flecha las lleva por su red, no por la rejilla en el aire.
     if (sel.sondas.size > 0 && sel.piezas.size + sel.cables.size + sel.etiquetas.size + sel.notas.size + sel.figuras.size === 0) return this.desplazarSondas(dx, dy)
-    let doc = this.doc
-    let total: Comando | null = null
-    const sumar = (c: Comando | null) => {
-      if (!c || c.cambios.length === 0) return
-      total = total ? fusionar(total, c) : c
-      doc = aplicar(doc, c)
-    }
-    sumar(partirEnUniones(doc, this.gen))
-    const plan = planArrastre(doc, this.lib, sel)
-    sumar(pasoArrastre(plan, dx, dy))
-    for (const id of sel.piezas) {
-      const p = doc.piezas[id]
-      if (p) sumar(insertarEnCable(doc, this.lib, p, this.gen, sel.cables))
-    }
-    const estirados = plan.estirados.map((e) => e.cable.id)
-    for (const id of estirados) {
-      const r = repararCable(doc, this.lib, id)
-      if (r) sumar(modificar('enrutar', 'cables', doc.cables[id], { ...doc.cables[id], puntos: r }))
-    }
-    sumar(partirEnUniones(doc, this.gen))
-    const movidas = [...sel.piezas].map((id) => doc.piezas[id]).filter(Boolean)
-    const pieza = total ? choqueDeGrupo(doc, this.lib, movidas, sel.piezas) : null
-    const conflicto = total && !pieza ? conflictoDeTocados(doc, this.lib, { piezas: sel.piezas, cables: [...sel.cables, ...estirados] }) : null
-    const fuera = !!total && !pieza && !conflicto && !comandoDentroDelMundo(total as Comando)
-    if (!total || pieza || conflicto || fuera) {
+    const plan = moverElegidos(this.nucleo, sel, dx, dy)
+    const sinCambios = !esRechazo(plan) && plan.cmd.cambios.length === 0
+    if (esRechazo(plan) || sinCambios) {
       this.ganchos.animar({ tipo: 'sacudida', piezas: [...sel.piezas], cables: [...sel.cables] })
-      // Sin cambios (total nulo) no hay ninguna causa que dar: solo se sacude.
-      if (total) this.ganchos.registrar(`No se pudo mover la selección: ${fuera ? MOTIVO_FUERA_DEL_MUNDO : motivo(doc, pieza, conflicto)}.`)
+      // Sin cambios no hay ninguna causa que dar: solo se sacude.
+      if (esRechazo(plan)) this.ganchos.registrar(plan.motivo)
       this.avisar()
       return true
     }
@@ -3096,7 +3223,7 @@ export class Editor {
     const f = this.flechas
     const grupo = f && t - f.t <= ESPERA_FLECHAS_MS && this.historial.grupoEnCurso === f.grupo ? f.grupo : `teclas-${++this.nFlechas}`
     this.flechas = { grupo, t }
-    this.ejecutar({ ...(total as Comando), grupo })
+    this.ejecutar({ ...plan.cmd, grupo })
     this.avisar()
     return true
   }
@@ -3126,7 +3253,8 @@ export class Editor {
   borrar(): void {
     if (this.gestoEnCurso || this.herramienta !== 'seleccionar' || tamañoSeleccion(this.seleccion) === 0) return
     if (!this.editable()) return
-    this.ejecutar(borrarSeleccion(this.doc, this.seleccion))
+    const plan = borrarElegidos(this.nucleo, this.seleccion)
+    if (!esRechazo(plan)) this.ejecutar(plan.cmd)
     this.seleccion = seleccionVacia()
     this.avisar()
   }
@@ -3181,15 +3309,15 @@ export class Editor {
       this.ganchos.registrar('No se pegó: no hay lugar libre cerca del cursor.')
       return false
     }
-    const r = pegar(this.doc, this.lib, f, lugar.en, this.gen, exacto)
-    if (!comandoDentroDelMundo(r.cmd)) {
+    const r = pegarEn(this.nucleo, f, lugar.en, exacto)
+    if ('motivo' in r) {
       this.ganchos.animar({ tipo: 'sacudida', piezas: [...this.seleccion.piezas], cables: [...this.seleccion.cables] })
-      this.ganchos.registrar(`No se pegó: ${MOTIVO_FUERA_DEL_MUNDO}.`)
+      this.ganchos.registrar(`No se pegó: ${r.motivo}.`)
       return false
     }
     this.ejecutarNormalizado(r.cmd)
     this.seleccion = r.seleccion
-    if (r.renombradas.length) this.ganchos.registrar(`Se renombraron redes para que no se unan con las que ya hay: ${r.renombradas.map(([a, b]) => `${a} a ${b}`).join(', ')}.`)
+    for (const a of r.avisos) this.ganchos.registrar(a)
     if (!lugar.libre) {
       this.ganchos.animar({ tipo: 'sacudida', piezas: [...r.seleccion.piezas] })
       this.ganchos.registrar('Se pegó encimado: no hubo lugar libre cerca del cursor.')

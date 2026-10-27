@@ -3,8 +3,12 @@ import { leerCiclo, leerPosicion, leerValor } from '../valores/valores'
 import { MAX_TEXTO_LARGO, MAX_TEXTO_PROP, type AnimacionDef, type LimitesDef, type ModeloDef, type PiezaDef, type PinDef, type PropDef, type Rotulo } from './tipos'
 import { CLAVES_COMPUESTO, validarCompuesto } from './validarCompuesto'
 import { LEYES_POT } from '../valores/leyPot'
+import { validarDatos } from './validarDatos'
 import { CLAVES_DIGITALES, MODELOS_DIGITALES, validarModeloDigital } from './validarDigital'
+import { CLAVES_NUEVOS, MODELOS_NUEVOS, validarEnVivo, validarModeloNuevo } from './validarModelosNuevos'
+import { CLAVES_MSI, MODELOS_MSI, validarCaja, validarModeloMsi } from './validarMsi'
 import { CLAVES_INSTRUMENTOS, MODELOS_INSTRUMENTOS, validarModeloInstrumento } from './validarInstrumentos'
+import { PROPS_DE_DOCUMENTO } from '../doc/paquetes'
 
 /** Lo que valida `validarPieza`: la pieza sin su dibujo, con los archivos de sus variantes (la librería los carga). */
 export type DefSinGeometria = Omit<PiezaDef, 'geometria' | 'variantes'> & { variantes?: { prop: string; simbolos: Record<string, string> } }
@@ -12,7 +16,7 @@ export type Validacion = { ok: true; def: DefSinGeometria } | { ok: false; error
 
 /** Las series que una propiedad puede fijar (`elegida`: la de Configuración). */
 const SERIES_DE_PROP = ['elegida', 'E6', 'E12', 'E24']
-const MODELOS = ['R', 'C', 'L', 'V', 'I', 'D', 'zener', 'bjt', 'mosfet', 'ampop', 'comparador', 'compuesto', 'foco', 'fusible', 'motor', 'rele', 'zumbador', 'interruptor', 'senoidal', 'pulso', 'pot', 'alimentacion', 'tierra', ...MODELOS_DIGITALES, ...MODELOS_INSTRUMENTOS]
+const MODELOS = ['R', 'C', 'L', 'V', 'I', 'D', 'zener', 'bjt', 'mosfet', 'ampop', 'comparador', 'compuesto', 'foco', 'fusible', 'motor', 'rele', 'zumbador', 'interruptor', 'senoidal', 'pulso', 'pot', 'alimentacion', 'tierra', ...MODELOS_NUEVOS, ...MODELOS_DIGITALES, ...MODELOS_MSI, ...MODELOS_INSTRUMENTOS]
 /** Las claves que lleva cada tipo de modelo: una errata («tua» por «tau») se rechaza en vez de ignorarse. */
 const CLAVES: Record<string, string[]> = {
   R: ['tipo', 'a', 'b', 'prop'], C: ['tipo', 'a', 'b', 'prop', 'rserie'], L: ['tipo', 'a', 'b', 'prop', 'rserie'], V: ['tipo', 'a', 'b', 'prop', 'rserie'], I: ['tipo', 'a', 'b', 'prop'],
@@ -34,7 +38,9 @@ const CLAVES: Record<string, string[]> = {
   compuesto: CLAVES_COMPUESTO,
   alimentacion: ['tipo', 'pin', 'nombre'],
   tierra: ['tipo', 'pin'],
+  ...CLAVES_NUEVOS,
   ...CLAVES_DIGITALES,
+  ...CLAVES_MSI,
   ...CLAVES_INSTRUMENTOS
 }
 /** Terminales de los modelos de más de dos pines, en el orden en que entran al motor. */
@@ -63,17 +69,19 @@ const CLAVES_ANIMACION: Record<AnimacionDef['tipo'], string[]> = {
   giro: ['tipo', 'vueltasMax'],
   contacto: ['tipo', 'manda'],
   cursor: ['tipo', 'prop', 'desde', 'hasta', 'codo'],
-  sonido: ['tipo', 'frecuencia', 'onda']
+  sonido: ['tipo', 'frecuencia', 'onda'],
+  luces: ['tipo', 'luces']
 }
 /** El modelo que admite cada animación. */
 const MODELO_DE_ANIMACION: Record<AnimacionDef['tipo'], readonly string[]> = {
   brillo: ['D', 'display'],
   filamento: ['foco'],
-  giro: ['motor'],
+  giro: ['motor', 'pasos'],
   // El interruptor y el botón se dibujan con accionado.svg.
   contacto: ['rele'],
   cursor: ['pot'],
-  sonido: ['zumbador']
+  sonido: ['zumbador'],
+  luces: ['compuesto']
 }
 /** Lo más rápido que se dibuja un giro (vueltas por segundo de pantalla): más se vería falso por el efecto estroboscópico. */
 export const VUELTAS_MAX = 10
@@ -127,6 +135,21 @@ function validarAnimacion(a: any, modelo: any, props: PropDef[], linea: number |
       const ondas = ['triangular', 'senoidal', 'cuadrada']
       if (!ondas.includes(a.onda)) e('.onda', `debe ser ${ondas.join(', ')}`)
       return { tipo: 'sonido', frecuencia: a.frecuencia, onda: a.onda }
+    }
+    case 'luces': {
+      const elementos: any[] = modelo?.tipo === 'compuesto' && Array.isArray(modelo.elementos) ? modelo.elementos : []
+      const salida: { elemento: number; x: number; y: number; color: string }[] = []
+      if (!Array.isArray(a.luces) || a.luces.length === 0) return void e('.luces', 'debe ser una lista con al menos una luz')
+      a.luces.forEach((l: any, k: number) => {
+        const c = `.luces[${k}]`
+        if (l === null || typeof l !== 'object' || Array.isArray(l)) return void e(c, 'debe ser un objeto')
+        for (const clave of Object.keys(l)) if (!['elemento', 'x', 'y', 'color'].includes(clave)) e(`${c}.${clave}`, 'clave desconocida: van elemento, x, y y color')
+        if (!(esEntero(l.elemento) && elementos[l.elemento]?.t === 'D')) e(`${c}.elemento`, 'debe ser el índice de un diodo (t: "D") de modelo.elementos')
+        for (const eje of ['x', 'y']) if (!(esEntero(l[eje]) && l[eje] % 2 === 0)) e(`${c}.${eje}`, 'debe ser un entero par (rejilla de 2.5 mm)')
+        if (!(COLORES_DE_LUZ as readonly string[]).includes(l.color)) e(`${c}.color`, `debe ser un color de luz (${COLORES_DE_LUZ.join(', ')})`)
+        salida.push({ elemento: l.elemento, x: l.x, y: l.y, color: l.color })
+      })
+      return { tipo: 'luces', luces: salida }
     }
   }
 }
@@ -204,7 +227,7 @@ function validarLimites(l: any, modelo: any, props: PropDef[], pines: { id: stri
     const a = l.absolutos
     const q = a?.prop !== undefined ? props.find((p) => p.id === a.prop) : undefined
     const ids = new Set(pines.map((x) => x.id))
-    const tipos = ['ampop', 'comparador', 'bjt', 'mosfet', 'D', 'zener', 'compuesto', '555']
+    const tipos = ['ampop', 'comparador', 'bjt', 'mosfet', 'jfet', 'D', 'zener', 'termistor', 'ldr', 'compuesto', '555', 'puente-h']
     if (!tipos.includes(modelo?.tipo)) err('limites.absolutos', `solo ${tipos.join(', ')} tienen máximos absolutos`)
     else if (a === null || typeof a !== 'object' || Array.isArray(a) || a.valores === null || typeof a.valores !== 'object' || Array.isArray(a.valores)) err('limites.absolutos', 'debe ser un objeto con valores')
     else if (a.prop !== undefined && !q?.opciones) err('limites.absolutos.prop', 'debe ser una propiedad de lista de la pieza')
@@ -254,7 +277,7 @@ function validarLimites(l: any, modelo: any, props: PropDef[], pines: { id: stri
     // El capacitor se quema al pasar de su límite (factor 1); las demás piezas, de un múltiplo suyo.
     const factorMin = modelo?.tipo === 'C' ? 1 : 1 + Number.EPSILON
     if (!(q && typeof q.factor === 'number' && q.factor >= factorMin && typeof q.durante === 'number' && q.durante > 0)) err('limites.quema', modelo?.tipo === 'C' ? 'debe tener factor de 1 o más y durante positivo (s)' : 'debe tener factor mayor que 1 y durante positivo (s)')
-    else if (!['D', 'R', 'bjt', 'mosfet', 'C', 'motor', 'ampop', 'comparador', 'zener', 'compuesto'].includes(modelo?.tipo)) err('limites.quema', 'solo se queman el LED y el diodo, la resistencia, los transistores, el capacitor electrolítico, el motor, el amp-op, el Zener y las piezas compuestas')
+    else if (!['D', 'R', 'bjt', 'mosfet', 'jfet', 'C', 'motor', 'ampop', 'comparador', 'zener', 'compuesto'].includes(modelo?.tipo)) err('limites.quema', 'solo se queman el LED y el diodo, la resistencia, los transistores y JFET, el capacitor electrolítico, el motor, el amp-op, el Zener y las piezas compuestas')
     else if (q.elemento !== undefined && !(modelo?.tipo === 'compuesto' && Number.isInteger(q.elemento) && q.elemento >= 0 && q.elemento < (Array.isArray(modelo.elementos) ? modelo.elementos.length : 0))) err('limites.quema.elemento', 'solo una pieza compuesta lo lleva: un índice de modelo.elementos')
     else if (modelo?.tipo === 'compuesto' && q.elemento === undefined) err('limites.quema.elemento', 'una pieza compuesta necesita el índice de modelo.elementos que se abre')
     else out.quema = { factor: q.factor, durante: q.durante, ...(q.elemento !== undefined ? { elemento: q.elemento } : {}) }
@@ -271,6 +294,10 @@ export function lineaDeError(texto: string, error: unknown): number | null {
   return null
 }
 
+/** Las claves que admite el nivel superior de `pieza.json` y cada pin: una errata («hojas» por «hoja») se rechaza en vez de ignorarse. */
+const CLAVES_RAIZ = ['id', 'nombre', 'categoria', 'prefijo', 'buscar', 'pines', 'props', 'modelo', 'etiquetas', 'rotulos', 'entradas', 'oculta', 'variantes', 'animacion', 'limites', 'fuentes', 'datos', 'caja', 'grupo']
+const CLAVES_PIN = ['id', 'nombre', 'x', 'y', 'ayuda']
+
 export function validarPieza(texto: string, ruta: string): Validacion {
   let d: any
   texto = texto.replace(/^﻿/, '')
@@ -284,6 +311,11 @@ export function validarPieza(texto: string, ruta: string): Validacion {
   const errores: string[] = []
   const err = (campo: string, msg: string) => errores.push(`${ruta}: ${campo} ${msg}`)
 
+  for (const k of Object.keys(d)) {
+    if (CLAVES_RAIZ.includes(k)) continue
+    const parecida = nombreParecido(k, CLAVES_RAIZ)
+    err(k, `clave desconocida${parecida ? `, ¿quisiste decir «${parecida}»?` : ''}`)
+  }
   if (!esTexto(d?.id) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(d.id)) err('id', 'debe ser texto en minúsculas con guiones')
   if (!esTexto(d?.nombre?.es) || !esTexto(d?.nombre?.en)) err('nombre', 'debe tener «es» y «en»')
   if (!esTexto(d?.categoria)) err('categoria', 'es obligatoria')
@@ -296,6 +328,11 @@ export function validarPieza(texto: string, ruta: string): Validacion {
   else
     d.pines.forEach((p: any, i: number) => {
       if (!esObj(p)) return err(`pines[${i}]`, 'debe ser un objeto')
+      for (const k of Object.keys(p)) {
+        if (CLAVES_PIN.includes(k)) continue
+        const parecida = nombreParecido(k, CLAVES_PIN)
+        err(`pines[${i}].${k}`, `clave desconocida${parecida ? `, ¿quisiste decir «${parecida}»?` : ''}`)
+      }
       if (!esTexto(p.id)) err(`pines[${i}].id`, 'es obligatorio')
       if (!esTexto(p.nombre)) err(`pines[${i}].nombre`, 'es obligatorio')
       for (const eje of ['x', 'y'] as const) {
@@ -315,6 +352,7 @@ export function validarPieza(texto: string, ruta: string): Validacion {
       if (!esObj(p)) return err(c, 'debe ser un objeto')
       if (!esTexto(p.id)) err(`${c}.id`, 'es obligatorio')
       else if (props.some((q) => q.id === p.id)) err(`${c}.id`, `repetido: ${p.id}`)
+      else if ((PROPS_DE_DOCUMENTO as readonly string[]).includes(p.id)) err(`${c}.id`, `«${p.id}» está reservado para el documento`)
       if (!esTexto(p.nombre)) err(`${c}.nombre`, 'es obligatorio')
       const hayOpciones = p.opciones !== undefined
       if (hayOpciones && (!Array.isArray(p.opciones) || p.opciones.length === 0 || !p.opciones.every(esTexto))) err(`${c}.opciones`, 'debe ser una lista de textos no vacía')
@@ -324,6 +362,7 @@ export function validarPieza(texto: string, ruta: string): Validacion {
       }
       if (p.ajuste !== undefined && typeof p.ajuste !== 'boolean') err(`${c}.ajuste`, 'debe ser verdadero o falso')
       if (p.omitir !== undefined && typeof p.omitir !== 'boolean') err(`${c}.omitir`, 'debe ser verdadero o falso')
+      if (p.enVivo !== undefined) validarEnVivo(p, c, err)
       // Valores comerciales: `serie` ofrece una serie en el editor; `catalogo` toma `comunes` como los valores del
       // catálogo y deja cualquier otro como «Personalizado». Solo en una propiedad numérica.
       const numericaProp = !hayOpciones && p.texto !== true
@@ -365,6 +404,10 @@ export function validarPieza(texto: string, ruta: string): Validacion {
         const tope = Number.isInteger(p.largoMax) ? p.largoMax : MAX_TEXTO_PROP
         if (p.defecto.trim() === '' || p.defecto.length > tope) err(`${c}.defecto`, `debe ser un texto de 1 a ${tope} caracteres`)
       } else if (!leerValor(p.defecto)) err(`${c}.defecto`, `no es un valor válido: «${p.defecto}»`)
+      else if (esObj(p.enVivo) && esNumero(p.enVivo.min) && esNumero(p.enVivo.max)) {
+        const x = leerValor(p.defecto)?.valor
+        if (x !== undefined && (x < p.enVivo.min || x > p.enVivo.max)) err(`${c}.defecto`, 'debe estar entre el min y el max de enVivo')
+      }
       props.push(p)
     })
 
@@ -424,8 +467,12 @@ export function validarPieza(texto: string, ruta: string): Validacion {
           for (const k of Object.keys(m.modelos)) if (!prop.opciones.includes(k)) err(`modelo.modelos.${k}`, 'no es una de las opciones de la propiedad')
         }
       }
+    } else if ((MODELOS_NUEVOS as readonly string[]).includes(m.tipo)) {
+      validarModeloNuevo(m, pinExiste, props, err)
     } else if ((MODELOS_DIGITALES as readonly string[]).includes(m.tipo)) {
       validarModeloDigital(m, pinExiste, props, err)
+    } else if ((MODELOS_MSI as readonly string[]).includes(m.tipo)) {
+      validarModeloMsi(m, pinExiste, props, err, pines.map((p) => p.id))
     } else if ((MODELOS_INSTRUMENTOS as readonly string[]).includes(m.tipo)) {
       validarModeloInstrumento(m, pinExiste, props, err)
     } else if (m.tipo === 'compuesto') {
@@ -606,6 +653,17 @@ export function validarPieza(texto: string, ruta: string): Validacion {
       })
     })
 
+  // Compuerta de entradas variables: la pieza es la de dos entradas y la librería arma las demás.
+  let entradas: PiezaDef['entradas']
+  if (d?.entradas !== undefined) {
+    const e = d.entradas
+    const lista = props.find((q) => q.id === 'entradas')
+    if (!esObj(e) || !(esEntero(e.max) && e.max >= 3 && e.max <= 8)) err('entradas', 'debe ser un objeto con max, un entero de 3 a 8')
+    else if (modelo?.tipo !== 'compuerta' || modelo.funcion === 'not' || modelo.entradas.length !== 2) err('entradas', 'solo lo lleva una compuerta de dos entradas (no NOT)')
+    else if (!lista?.opciones || lista.opciones.join() !== Array.from({ length: e.max - 1 }, (_, k) => String(k + 2)).join() || lista.defecto !== '2') err('props', `debe tener la propiedad de lista «entradas» con las opciones de 2 a ${e.max} y «2» por omisión`)
+    else entradas = { base: d.id, n: 2, max: e.max }
+  }
+
   let variantes: DefSinGeometria['variantes']
   if (d?.variantes !== undefined) {
     const v = d.variantes
@@ -635,16 +693,25 @@ export function validarPieza(texto: string, ruta: string): Validacion {
     else fuentes = { ...d.fuentes }
   }
 
+  const datos = d?.datos !== undefined ? validarDatos(d.datos, pines, props, err) : undefined
+
+  if (d?.caja !== undefined) validarCaja(d.caja, (id) => pines.some((p) => p.id === id), err)
+  if (d?.grupo !== undefined && !esTexto(d.grupo)) err('grupo', 'debe ser un texto')
+
   if (errores.length) return { ok: false, errores }
   return {
     ok: true,
     def: {
       id: d.id, nombre: d.nombre, categoria: d.categoria, prefijo: d.prefijo, buscar: d.buscar, pines, props, modelo, etiquetas: { ref, valor },
       ...(rotulos.length ? { rotulos } : {}),
+      ...(entradas ? { entradas } : {}),
       ...(variantes ? { variantes } : {}),
       ...(animacion ? { animacion } : {}),
       ...(limites ? { limites } : {}),
-      ...(fuentes ? { fuentes } : {})
+      ...(fuentes ? { fuentes } : {}),
+      ...(datos ? { datos } : {}),
+      ...(d.caja !== undefined ? { caja: d.caja } : {}),
+      ...(d.grupo !== undefined ? { grupo: d.grupo } : {})
     }
   }
 }

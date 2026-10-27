@@ -85,3 +85,85 @@ describe('validarPieza, modelo compuesto', () => {
     expect(errores({ ...c, modelo: { tipo: 'R', a: 'A', b: 'B', prop: 'valor', rserie: 'esr' } }).join('\n')).toMatch(/clave desconocida en un modelo «R»/)
   })
 })
+
+// Elementos nuevos en un compuesto: M, J, E, G, H, F y EXT, y los valores lineales en una propiedad.
+describe('validarPieza, compuesto con elementos nuevos', () => {
+  const pieza = () => ({
+    id: 'sensor', nombre: { es: 'Sensor', en: 'Sensor' }, categoria: 'sensores', prefijo: 'U', buscar: ['s'],
+    pines: ['P', 'N', 'CP', 'CN'].map((id, i) => ({ id, nombre: id, x: 4 * i - 8, y: 0 })),
+    props: [
+      { id: 'temp', nombre: 'Temperatura', unidad: '°C', defecto: '25', enVivo: { magnitud: 'temperatura', min: -40, max: 150, paso: 5, pasoFino: 1 } },
+      { id: 'k', nombre: 'Ganancia', defecto: '2' }
+    ],
+    modelo: {
+      tipo: 'compuesto',
+      medida: { mas: 'P', menos: 'N', i: 0 } as Record<string, unknown>,
+      elementos: [
+        { t: 'E', p: 'P', n: 'N', cp: 'CP', cn: 'CN', ganancia: 'k' },
+        { t: 'R', a: 'P', b: 'N', ohms: 1000 }
+      ] as object[]
+    }
+  })
+  const juntos = (o: unknown) => errores(o).join('\n')
+
+  it('acepta E, G, H y F con un nodo de control compartido', () => {
+    const o = pieza()
+    o.modelo.elementos = [
+      { t: 'E', p: 'P', n: 'N', cp: 'CP', cn: 'N', ganancia: 'k' },
+      { t: 'G', p: 'P', n: 'N', cp: 'CP', cn: 'CN', gm: 0.01 },
+      { t: 'H', p: 'P', n: 'N', cp: 'CP', cn: 'CN', r: 'k' },
+      { t: 'F', p: 'P', n: 'N', cp: 'CP', cn: 'CN', ganancia: -2 }
+    ]
+    expect(errores(o)).toEqual([])
+  })
+
+  it('rechaza una fuente controlada sin su ganancia, con una errata o con la salida en un solo nodo', () => {
+    const o = pieza()
+    o.modelo.elementos = [{ t: 'G', p: 'P', n: 'N', cp: 'CP', cn: 'CN', gm: 0.01 }, { t: 'F', p: 'P', n: 'P', cp: 'CP', cn: 'CN' }]
+    expect(juntos(o)).toMatch(/elementos\[1\]\.ganancia debe ser un número o el nombre/)
+    expect(juntos(o)).toMatch(/elementos\[1\] su salida y su control deben ser dos nodos distintos/)
+    o.modelo.elementos[0] = { t: 'E', p: 'P', n: 'N', cp: 'CP', cn: 'CN', ganacia: 1 }
+    expect(juntos(o)).toMatch(/clave desconocida en un elemento «E», ¿quisiste decir «ganancia»\?/)
+  })
+
+  it('acepta M y J con parámetros de su familia y rechaza la errata con la sugerencia', () => {
+    const o = pieza()
+    o.modelo.elementos = [{ t: 'M', d: 'P', g: 'CP', s: 'N', params: { vto: 2, kp: 0.1 } }, { t: 'J', d: 'CP', g: 'CN', s: 'N', pjf: true, params: { vto: -2 } }]
+    expect(errores(o)).toEqual([])
+    ;(o.modelo.elementos[1] as { params: object }).params = { vtp: -2 }
+    expect(juntos(o)).toMatch(/elementos\[1\]\.params\.vtp parámetro desconocido, ¿quisiste decir «vto»\?/)
+    ;(o.modelo.elementos[0] as Record<string, unknown>).pmos = 'si'
+    expect(juntos(o)).toMatch(/elementos\[0\]\.pmos debe ser verdadero o falso/)
+  })
+
+  it('EXT lee una perilla: modo, canal con enVivo y valores', () => {
+    const o = pieza()
+    o.modelo.elementos = [{ t: 'EXT', a: 'P', b: 'N', modo: 'v', canal: 'temp', k: 0.01, c: 0.5, r: 'k' }, { t: 'R', a: 'CP', b: 'CN', ohms: 1000 }]
+    expect(errores(o)).toEqual([])
+    ;(o.modelo.elementos[0] as Record<string, unknown>).canal = 'k'
+    expect(juntos(o)).toMatch(/elementos\[0\]\.canal debe ser una propiedad con perilla/)
+    ;(o.modelo.elementos[0] as Record<string, unknown>).modo = 'x'
+    expect(juntos(o)).toMatch(/elementos\[0\]\.modo debe ser «v» o «i»/)
+  })
+
+  it('un valor lineal en una propiedad cierra sus claves y exige una propiedad numérica', () => {
+    const o = pieza()
+    o.modelo.elementos = [{ t: 'R', a: 'P', b: 'N', ohms: { prop: 'temp', por: 10, mas: 500 } }, { t: 'R', a: 'CP', b: 'CN', ohms: 1 }]
+    expect(errores(o)).toEqual([])
+    o.modelo.elementos[0] = { t: 'R', a: 'P', b: 'N', ohms: { prop: 'temp', pr: 10, mas: 500 } }
+    expect(juntos(o)).toMatch(/elementos\[0\]\.ohms\.pr clave desconocida, ¿quisiste decir «por»\?/)
+    o.modelo.elementos[0] = { t: 'R', a: 'P', b: 'N', ohms: { prop: 'nada', por: 10, mas: 500 } }
+    expect(juntos(o)).toMatch(/elementos\[0\]\.ohms\.prop «nada» no es una propiedad de la pieza/)
+    o.modelo.elementos[0] = { t: 'R', a: 'P', b: 'N', ohms: { prop: 'temp', por: 'x', mas: 500 } }
+    expect(juntos(o)).toMatch(/elementos\[0\]\.ohms\.por debe ser un número/)
+  })
+
+  it('medida.region apunta a un transistor', () => {
+    const o = pieza()
+    o.modelo.elementos = [{ t: 'J', d: 'P', g: 'CP', s: 'N', params: {} }, { t: 'R', a: 'CN', b: 'N', ohms: 1 }]
+    o.modelo.medida = { mas: 'P', menos: 'N', i: 0, region: 0 }
+    expect(errores(o)).toEqual([])
+    o.modelo.medida = { mas: 'P', menos: 'N', i: 0, region: 1 }
+    expect(juntos(o)).toMatch(/modelo\.medida\.region debe ser el índice de un transistor \(Q, M o J\)/)
+  })
+})

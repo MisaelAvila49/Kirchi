@@ -29,6 +29,12 @@ describe('armarMazo', () => {
     expect(m.texto).toMatch(/^v3 n2 0 .* ac 0\.5$/m)
     expect(m.texto).toContain('ac dec 10 1 1000\n')
   })
+  it('CA con frecuencias incluidas: la rejilla y un punto exacto por cada una, en el mismo archivo', () => {
+    const m = armarMazo(validarPeticion({ netlist, analisis: { tipo: 'ac', barrido: 'dec', puntos: 10, desde: 1, hasta: 1000, fuente: 3, incluir: [120, 60, 60] } }))
+    expect(m.texto).toContain('set appendwrite\n')
+    expect(m.texto).toContain('ac dec 10 1 1000\nwrite salida.raw\nac lin 1 60 60\nwrite salida.raw\nac lin 1 120 120\nwrite salida.raw\n')
+    expect(() => validarPeticion({ netlist, analisis: { tipo: 'ac', barrido: 'dec', puntos: 10, desde: 1, hasta: 1000, incluir: [5000] } })).toThrow(/fuera del barrido/)
+  })
   it('barrido de parametro con alter dentro de un bucle', () => {
     const m = armarMazo(validarPeticion({ netlist, analisis: { tipo: 'op' }, parametro: { elemento: 1, valores: [100, 2000] } }))
     expect(m.texto).toContain('set appendwrite\n')

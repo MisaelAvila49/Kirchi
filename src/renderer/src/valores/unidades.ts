@@ -19,10 +19,13 @@ const OPCIONES: Record<string, OpcionUnidad[]> = {
   V: [P('m', -3), P('', 0), P('k', 3)],
   A: [P('µ', -6), P('m', -3), P('', 0)],
   Hz: [P('', 0), P('k', 3), P('M', 6)],
-  s: [P('n', -9), P('µ', -6), P('m', -3), P('', 0)]
+  s: [P('n', -9), P('µ', -6), P('m', -3), P('', 0)],
+  // Magnitudes de las perillas en vivo: los °C no llevan prefijos y por eso no están aquí.
+  lx: [P('', 0), P('k', 3)],
+  'N·m': [P('µ', -6), P('m', -3), P('', 0)]
 }
 /** Donde cae un cero, que no dice nada de la escala: el prefijo con que se suele escribir cada unidad. */
-const DE_CERO: Record<string, string> = { 'Ω': '', F: 'n', H: 'm', V: '', A: 'm', Hz: '', s: 'm' }
+const DE_CERO: Record<string, string> = { 'Ω': '', F: 'n', H: 'm', V: '', A: 'm', Hz: '', s: 'm', lx: '', 'N·m': 'm' }
 
 /** Las opciones del selector de una unidad, o null si la unidad no lleva prefijos (%, grados, sin unidad, W). */
 export const opcionesDeUnidad = (unidad: string): OpcionUnidad[] | null => OPCIONES[unidad] ?? null
@@ -62,7 +65,7 @@ export function partirValor(valor: number, unidad: string): { numero: string; pr
 
 const SOLO_NUMERO = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/
 /** Lo mismo que lee `leerValor`, para saber qué prefijo y qué unidad escribió quien tecleó. */
-const CON_PREFIJO = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*([fpnuµμmRkKMGT]?)\d*\s*([A-Za-zΩ]*)$/
+const CON_PREFIJO = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*([fpnuµμmRkKMGT]?)\d*\s*([A-Za-zΩ°·]*)$/
 
 const NORMAL: Record<string, string> = { u: 'µ', 'μ': 'µ', K: 'k', R: '' }
 

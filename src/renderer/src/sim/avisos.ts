@@ -76,7 +76,9 @@ export function limitesDelCircuito(doc: Documento, lib: Map<string, PiezaDef>, r
     if (!p || !def || !m) continue
     const q = def.limites?.quema
     // Una pieza compuesta abre el elemento que dice su `pieza.json` (el transistor de paso de un regulador).
-    const abierto = q?.elemento !== undefined ? (r.compuestos?.get(id)?.elementos[q.elemento] ?? k) : k
+    // -1 es un elemento que la netlist omitió por tener sus dos extremos en la misma red.
+    const delCompuesto = q?.elemento !== undefined ? r.compuestos?.get(id)?.elementos[q.elemento] : undefined
+    const abierto = delCompuesto !== undefined && delCompuesto >= 0 ? delCompuesto : k
     const quema = q ? { factor: q.factor, durante: q.durante, elemento: abierto } : undefined
     const e = el[k]
     // Los máximos absolutos solo se resuelven con las conexiones (los pines son de la pieza, las redes del documento).
@@ -86,7 +88,7 @@ export function limitesDelCircuito(doc: Documento, lib: Map<string, PiezaDef>, r
       const inom = corrienteNominal(p, def)
       if (inom !== null) out.set(id, { tipo: 'led', corriente: inom, ...(quema ? { quema } : {}) })
       else if (maximos) out.set(id, { tipo: 'absolutos', ...conMaximos, ...(quema ? { quema } : {}) })
-    } else if (maximos && (m.tipo === 'ampop' || m.tipo === 'comparador' || m.tipo === 'zener' || m.tipo === '555')) {
+    } else if (maximos && (m.tipo === 'ampop' || m.tipo === 'comparador' || m.tipo === 'zener' || m.tipo === '555' || m.tipo === 'jfet' || m.tipo === 'puente-h')) {
       out.set(id, { tipo: 'absolutos', ...conMaximos, ...(quema ? { quema } : {}) })
     } else if (m.tipo === 'display') {
       out.set(id, { tipo: 'display', corriente: m.inom ?? INOM_SEGMENTO })

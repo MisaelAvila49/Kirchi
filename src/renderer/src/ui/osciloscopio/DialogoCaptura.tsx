@@ -60,7 +60,7 @@ export default function DialogoCaptura(props: Props) {
       .filter((s) => s.id !== MATEMATICO)
       .map((s) => {
         const c = e.trazas[s.id]
-        return { clave: s.id, etiqueta: s.nombre, tono: c?.color ?? tonoDeCanal(props.opciones, s.id as never), lado: c?.lado ?? 'izquierda', tonoElegido: c?.color ?? null, grosor: c?.grosor ?? null, prefijo: c?.prefijo ?? null, decimales: c?.decimales, unidad: 'V' }
+        return { clave: s.id, etiqueta: s.nombre, tono: c?.color ?? tonoDeCanal(props.opciones, s.id as never), lado: c?.lado ?? 'izquierda', tonoElegido: c?.color ?? null, grosor: c?.grosor ?? null, prefijo: c?.prefijo ?? null, decimales: c?.decimales, unidad: 'V', rango: c?.rango }
       })
   return (
     <EditorFigura
@@ -77,7 +77,7 @@ export default function DialogoCaptura(props: Props) {
         ...(props.ajustes.matematico ? [{ id: MATEMATICO as string, nombre: 'A − B', canal: MATEMATICO as string, activo: !e.ocultas.includes(MATEMATICO), sinDato: false }] : [])
       ]}
       claveDeTraza={(id) => id}
-      ejeX={{ etiqueta: 'Eje del tiempo', unidad: 's' }}
+      ejeX={props.ajustes.modoXY && props.ajustes.modoXY !== 'yt' ? { etiqueta: 'Eje horizontal', unidad: 'V' } : { etiqueta: 'Eje del tiempo', unidad: 's', sinRango: true }}
       unidadTramo="s"
       vistaCsv={(e) => <VistaCsv texto={csv(e)} filas={FILAS_VISTA_CSV} separador={CARACTER_SEPARADOR[props.opciones.separadorCsv]} />}
       pieCsv={(e) => `${tabla(e).total} instantes`}

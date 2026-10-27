@@ -43,6 +43,12 @@ const salida = (): Rango[] => [
   r('t_fall', 'su tiempo de bajada', 's', RETARDO)
 ]
 
+/** Cotas de los elementos nuevos del motor (las constantes de `engine/src/netlist.rs`). */
+const GANANCIA: [number, number] = [-1e9, 1e9]
+const FUENTE_EXT: [number, number] = [-1e9, 1e9]
+const PWL_MAX_PUNTOS = 1000
+const TERM_MAX_PUNTOS = 256
+
 /** Valores de los elementos con parámetros propios (sin modelo de SPICE). */
 export const DIRECTOS: Partial<Record<ElementoMotor['type'], Rango[]>> = {
   GATE: retardos(),
@@ -51,6 +57,8 @@ export const DIRECTOS: Partial<Record<ElementoMotor['type'], Rango[]>> = {
   COUNTER: retardos(),
   DECODER: retardos(),
   LATCH555: [r('delay', 'el retardo de su biestable', 's', RETARDO)],
+  DACM: [r('t_asentamiento', 'su tiempo de asentamiento', 's', RETARDO)],
+  INTC: [r('r_on', 'su resistencia cerrado', 'Ω', R), r('r_off', 'su resistencia abierto', 'Ω', R)],
   ADC: [r('in_low', 'su umbral bajo', 'V', UMBRAL), r('in_high', 'su umbral alto', 'V', UMBRAL)],
   DAC: salida(),
   OUT555: [...salida(), r('g_on', 'la conductancia de su descarga cerrada', 'S', CONDUCTANCIA), r('g_off', 'la conductancia de su descarga abierta', 'S', CONDUCTANCIA)],
@@ -68,6 +76,34 @@ export const DIRECTOS: Partial<Record<ElementoMotor['type'], Rango[]>> = {
     r('bm', 'su fricción', 'N·m·s/rad', [1e-12, 1e6])
   ],
   FUSE: [r('ohms', 'su resistencia', 'Ω', R), r('inom', 'su corriente nominal', 'A', [1e-6, 1e5]), r('ifusion', 'su corriente de fusión', 'A', [1e-6, 1e5]), r('tau', 'su inercia térmica', 's', TAU)],
+  E: [r('ganancia', 'su ganancia', 'V/V', GANANCIA)],
+  F: [r('ganancia', 'su ganancia', 'A/A', GANANCIA)],
+  G: [r('gm', 'su transconductancia', 'S', [-1e6, 1e6])],
+  H: [r('r', 'su transresistencia', 'Ω', [-1e12, 1e12])],
+  TERM: [
+    r('r25', 'su resistencia a 25 °C', 'Ω', R),
+    r('beta', 'su constante beta', 'K', [1, 1e5]),
+    r('delta', 'su constante de disipación', 'W/K', [1e-6, 1e3]),
+    r('tau', 'su constante térmica', 's', TAU),
+    r('tmax', 'su temperatura de quema', '°C', [1, 2000])
+  ],
+  LDR: [
+    r('r10', 'su resistencia a 10 lx', 'Ω', R),
+    r('gamma', 'su pendiente (gamma)', '', [0.05, 5]),
+    r('roscuro', 'su resistencia en oscuridad', 'Ω', R),
+    r('tau_sube', 'su tiempo de subida', 's', TAU),
+    r('tau_baja', 'su tiempo de bajada', 's', TAU)
+  ],
+  PASOS: [
+    r('r', 'la resistencia de cada fase', 'Ω', R),
+    r('l', 'la inductancia de cada fase', 'H', L),
+    r('km', 'su constante de par', 'V·s/rad', [1e-6, 1e3]),
+    r('dientes', 'los dientes de su rotor', '', [1, 1000]),
+    r('td', 'su par de retén', 'N·m', [0, 1e3]),
+    r('j', 'su inercia', 'kg·m²', [1e-12, 1e6]),
+    r('bm', 'su fricción', 'N·m·s/rad', [1e-12, 1e6])
+  ],
+  EXT: [r('k', 'su factor', '', FUENTE_EXT), r('c', 'su desplazamiento', '', [-FUENTE, FUENTE])],
   XFMR: [r('l1', 'la inductancia de su primario', 'H', L), r('l2', 'la inductancia de su secundario', 'H', L), r('k', 'su acoplamiento (k)', '', [0, 0.9999])],
   RELAY: [r('r', 'la resistencia de su bobina', 'Ω', R), r('l', 'la inductancia de su bobina', 'H', L), r('ion', 'su corriente de operación', 'A', [1e-9, 1e3]), r('ioff', 'su corriente de liberación', 'A', [0, 1e3])]
 }
@@ -116,6 +152,20 @@ export const MODELOS: Partial<Record<ElementoMotor['type'], Rango[]>> = {
     r('mje', 'el exponente de la unión base-emisor (mje)', '', ENTRE_0_Y_1, { sinLo: true, sinHi: true }),
     r('mjc', 'el exponente de la unión base-colector (mjc)', '', ENTRE_0_Y_1, { sinLo: true, sinHi: true }),
     r('xcjc', 'la fracción de cjc hacia la base interna (xcjc)', '', ENTRE_0_Y_1),
+    r('fc', 'el coeficiente de capacitancia en directo (fc)', '', ENTRE_0_Y_1, { sinHi: true })
+  ],
+  J: [
+    r('vto', 'el voltaje de corte (vto)', 'V', [-100, 100]),
+    r('beta', 'la transconductancia (beta)', 'A/V²', [1e-9, 1e4]),
+    r('lambda', 'la modulación del canal (lambda)', '1/V', [0, 10]),
+    r('is', 'la corriente de saturación (is)', 'A', IS, { sinLo: true }),
+    r('n', 'el coeficiente de emisión (n)', '', N),
+    r('pb', 'el potencial de unión (pb)', 'V', [0.1, 10]),
+    r('rd', 'la resistencia de drenador (rd)', 'Ω', R_SERIE),
+    r('rs', 'la resistencia de fuente (rs)', 'Ω', R_SERIE),
+    r('cgs', 'la capacitancia compuerta-fuente (cgs)', 'F', CAP_MODELO),
+    r('cgd', 'la capacitancia compuerta-drenador (cgd)', 'F', CAP_MODELO),
+    r('b', 'el parámetro de la compuerta (b)', '', [1e-3, 1e3]),
     r('fc', 'el coeficiente de capacitancia en directo (fc)', '', ENTRE_0_Y_1, { sinHi: true })
   ],
   M: [
@@ -183,6 +233,35 @@ function especiales(ref: string, e: ElementoMotor): string | null {
     const rin = r('r_in', 'la resistencia de su entrada', 'Ω', R)
     if (e.r_in !== undefined && !dentro(e.r_in, rin)) return texto(ref, rin, e.r_in)
   }
+  if (e.type === 'DACM' && e.r_out !== undefined) {
+    const rs = r('r_out', 'su resistencia de salida', 'Ω', R)
+    if (!dentro(e.r_out, rs)) return texto(ref, rs, e.r_out)
+  }
+  if (e.type === 'LUT' || e.type === 'MSI') {
+    // Un par [subida, bajada] por salida.
+    const retardo = r('retardos', 'un retardo suyo', 's', RETARDO)
+    for (const par of e.retardos) for (const v of par) if (!dentro(v, retardo)) return texto(ref, retardo, v)
+  }
+  if (e.type === 'EXT' && e.r !== undefined) {
+    const rs = r('r', 'su resistencia en serie', 'Ω', R)
+    if (!dentro(e.r, rs)) return texto(ref, rs, e.r)
+  }
+  if (e.type === 'PASOS') {
+    const mutua = r('k_mutua', 'su acoplamiento entre mitades (k_mutua)', '', [0, 0.9999])
+    if (e.k_mutua !== undefined && !dentro(e.k_mutua, mutua)) return texto(ref, mutua, e.k_mutua)
+    const reduccion = r('reduccion', 'su reducción', '', [1, 1e6])
+    if (e.reduccion !== undefined && !dentro(e.reduccion, reduccion)) return texto(ref, reduccion, e.reduccion)
+    const esperados = e.unipolar ? 6 : 4
+    if (e.nodos.length !== esperados) return `${ref}: debe tener ${esperados} terminales y tiene ${e.nodos.length}.`
+  }
+  if (e.type === 'TERM' && e.rt !== undefined) {
+    const resistencia = r('rt', 'una resistencia de su tabla', 'Ω', R)
+    if (e.rt.length < 2 || e.rt.length > TERM_MAX_PUNTOS) return `${ref}: su tabla de resistencia debe tener de 2 a ${TERM_MAX_PUNTOS} puntos.`
+    for (const [i, [t, ohms]] of e.rt.entries()) {
+      if (!Number.isFinite(t) || (i > 0 && !(t > e.rt[i - 1][0]))) return `${ref}: las temperaturas de su tabla deben ser crecientes.`
+      if (!dentro(ohms, resistencia)) return texto(ref, resistencia, ohms)
+    }
+  }
   if (e.type === 'RELAY' && !(e.ioff < e.ion)) {
     return `${ref}: su corriente de liberación (${formatearValor(e.ioff, 'A')}) debe ser menor que la de operación (${formatearValor(e.ion, 'A')}).`
   }
@@ -196,10 +275,15 @@ function especiales(ref: string, e: ElementoMotor): string | null {
 }
 
 /** Nombres de los parámetros de cada modelo de SPICE que lee el motor, y cómo se llama la pieza en el mensaje. */
-export const PARAMETROS: Record<'bjt' | 'mosfet' | 'ampop', { nombres: string[]; pieza: string }> = {
+export type FamiliaParametros = 'bjt' | 'mosfet' | 'ampop' | 'jfet' | 'termistor' | 'ldr' | 'pasos'
+export const PARAMETROS: Record<FamiliaParametros, { nombres: string[]; pieza: string }> = {
   bjt: { pieza: 'un transistor', nombres: ['is', 'bf', 'nf', 'vaf', 'ikf', 'ise', 'ne', 'br', 'nr', 'var', 'ikr', 'isc', 'nc', 'rb', 'irb', 'rbm', 're', 'rc', 'cje', 'vje', 'mje', 'tf', 'xtf', 'vtf', 'itf', 'cjc', 'vjc', 'mjc', 'xcjc', 'tr', 'fc'] },
   mosfet: { pieza: 'un MOSFET', nombres: ['vto', 'kp', 'lambda', 'rd', 'rs', 'cbd', 'cbs', 'is', 'pb', 'mj', 'fc', 'cgso', 'cgdo', 'w', 'l'] },
-  ampop: { pieza: 'un amplificador', nombres: ['a0', 'gbw', 'sr', 'rin', 'rout', 'ilim', 'dhi', 'dlo', 'rq'] }
+  ampop: { pieza: 'un amplificador', nombres: ['a0', 'gbw', 'sr', 'rin', 'rout', 'ilim', 'dhi', 'dlo', 'rq'] },
+  jfet: { pieza: 'un JFET', nombres: ['vto', 'beta', 'lambda', 'is', 'n', 'pb', 'rd', 'rs', 'cgs', 'cgd', 'b', 'fc'] },
+  termistor: { pieza: 'un termistor', nombres: ['r25', 'beta', 'delta', 'tau', 'tmax'] },
+  ldr: { pieza: 'una fotorresistencia', nombres: ['r10', 'gamma', 'roscuro', 'tau_sube', 'tau_baja'] },
+  pasos: { pieza: 'un motor a pasos', nombres: ['r', 'l', 'km', 'dientes', 'td', 'j', 'bm', 'k_mutua', 'reduccion'] }
 }
 
 /** Lo que está mal con el parámetro `campo` de un modelo SPICE (nombre que el motor no lee o valor fuera de rango), para validar `pieza.json`; null si está bien. */
@@ -233,7 +317,7 @@ export function nombreParecido(texto: string, conocidos: readonly string[]): str
   return mejor
 }
 
-export function problemaDeParametro(modelo: 'bjt' | 'mosfet' | 'ampop', campo: string, valor: number): string | null {
+export function problemaDeParametro(modelo: FamiliaParametros, campo: string, valor: number): string | null {
   const { nombres, pieza } = PARAMETROS[modelo]
   if (!nombres.includes(campo)) {
     const parecido = nombreParecido(campo, nombres)
@@ -246,7 +330,8 @@ export function problemaDeParametro(modelo: 'bjt' | 'mosfet' | 'ampop', campo: s
     const g = MODELOS.Q?.find((x) => x.campo === campo)
     return g && !dentro(valor, g) ? queDice(g, valor) : null
   }
-  const g = MODELOS[modelo === 'mosfet' ? 'M' : 'OA']?.find((x) => x.campo === campo)
+  const grupo = modelo === 'mosfet' ? MODELOS.M : modelo === 'ampop' ? MODELOS.OA : modelo === 'jfet' ? MODELOS.J : modelo === 'termistor' ? DIRECTOS.TERM : modelo === 'ldr' ? DIRECTOS.LDR : DIRECTOS.PASOS
+  const g = grupo?.find((x) => x.campo === campo)
   return g && !dentro(valor, g) ? queDice(g, valor) : null
 }
 
@@ -260,7 +345,14 @@ export function errorDeRango(e: ElementoMotor, ref: string): string | null {
     else if (w.kind === 'sine') lista.push([r('offset', 'su nivel', 'V', [-FUENTE, FUENTE]), w.offset], [r('amp', 'su amplitud', 'V', [-FUENTE, FUENTE]), w.amp], [r('freq', 'su frecuencia', 'Hz', [-1e9, 1e9]), w.freq])
     else if (w.kind === 'square') lista.push([r('low', 'su nivel bajo', 'V', [-FUENTE, FUENTE]), w.low], [r('high', 'su nivel alto', 'V', [-FUENTE, FUENTE]), w.high], [r('freq', 'su frecuencia', 'Hz', [1e-6, 1e9]), w.freq], [r('duty', 'su ciclo de trabajo', '', [0, 1], { sinLo: true, sinHi: true }), w.duty])
     else if (w.kind === 'stair') lista.push([r('low', 'su nivel bajo', 'V', [-FUENTE, FUENTE]), w.low], [r('high', 'su nivel alto', 'V', [-FUENTE, FUENTE]), w.high], [r('freq', 'su frecuencia', 'Hz', [1e-6, 1e9]), w.freq], [r('steps', 'sus pasos', '', [2, 256]), w.steps])
-    else lista.push([r('low', 'su nivel bajo', 'V', [-FUENTE, FUENTE]), w.low], [r('high', 'su nivel alto', 'V', [-FUENTE, FUENTE]), w.high], [r('freq', 'su frecuencia', 'Hz', [1e-6, 1e9]), w.freq], [r('rise', 'su tiempo de subida', 's', [0, 1e3]), w.rise], [r('fall', 'su tiempo de bajada', 's', [0, 1e3]), w.fall], [r('width', 'su ancho', 's', [0, 1e3]), w.width])
+    else if (w.kind === 'pwl') {
+      const valor = r('v', 'un valor de su forma de onda', 'V', [-FUENTE, FUENTE])
+      if (w.puntos.length < 1 || w.puntos.length > PWL_MAX_PUNTOS) return `${ref}: su forma de onda debe tener de 1 a ${PWL_MAX_PUNTOS} puntos.`
+      if (w.puntos[0][0] !== 0 || w.puntos.some(([t], i) => !Number.isFinite(t) || (i > 0 && !(t > w.puntos[i - 1][0])))) {
+        return `${ref}: los tiempos de su forma de onda deben empezar en 0 y ser crecientes.`
+      }
+      for (const [, v] of w.puntos) lista.push([valor, v])
+    } else lista.push([r('low', 'su nivel bajo', 'V', [-FUENTE, FUENTE]), w.low], [r('high', 'su nivel alto', 'V', [-FUENTE, FUENTE]), w.high], [r('freq', 'su frecuencia', 'Hz', [1e-6, 1e9]), w.freq], [r('rise', 'su tiempo de subida', 's', [0, 1e3]), w.rise], [r('fall', 'su tiempo de bajada', 's', [0, 1e3]), w.fall], [r('width', 'su ancho', 's', [0, 1e3]), w.width])
     for (const [g, v] of lista) if (!dentro(v, g)) return texto(ref, g, v)
     return null
   }

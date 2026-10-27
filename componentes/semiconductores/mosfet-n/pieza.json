@@ -81,5 +81,95 @@
     "IRF540N": "Parámetros ajustados por Kirchi (no copiados) a Infineon IRF540NPbF Rev. 2.1, https://www.infineon.com/dgdl/irf540npbf.pdf?fileId=5546d462533600a4015355e39d7d1930: RDS(on) 44 mΩ máx a VGS = 10 V e ID = 16 A (el modelo da 35 mΩ, 0.8 del máximo), VGS(th) de 2 a 4 V (3 V), gfs 21 S mín a 16 A (el nivel 1 da 25 S), Ciss 1960 pF, Coss 250 pF y Crss 40 pF a 25 V (cgdo = Crss, cgso = Ciss - Crss, cbd = (Coss - Crss) por 5.68, el factor de la unión a 25 V).",
     "IRLZ44N": "Parámetros ajustados por Kirchi (no copiados) a Infineon (International Rectifier) IRLZ44NPbF PD-94831, https://www.infineon.com/dgdl/irlz44npbf.pdf?fileId=5546d462533600a4015356b2f38a1d6b: RDS(on) 22 mΩ máx a 10 V y 25 A, 25 mΩ a 5 V y 25 A, 35 mΩ a 4 V y 21 A (el modelo da 17.6, 20.2 y 22.1 mΩ), VGS(th) de 1 a 2 V (1.5 V), gfs 21 S mín, Ciss 1700 pF, Coss 400 pF y Crss 150 pF a 25 V. Un solo kp no sigue las tres resistencias a la vez: se ajustó a 10 V y 5 V y el punto de 4 V queda por debajo del máximo.",
     "IRF520": "Parámetros ajustados por Kirchi (no copiados) a Vishay IRF520, doc. 91017 rev. C (2 ago 2021), https://www.vishay.com/docs/91017/irf520.pdf: RDS(on) 0.27 Ω máx a VGS = 10 V e ID = 5.5 A (el modelo da 0.216 Ω), VGS(th) de 2 a 4 V (3 V), gfs 2.7 S mín a 5.5 A (el nivel 1 da 3.6 S), Ciss 360 pF, Coss 150 pF y Crss 34 pF a 25 V."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Transistor_FET:Q_NMOS_GDS", "ltspice": "nmos", "falstad": "f", "proteus": "NMOS", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "2N7000": {
+        "fabricante": "onsemi",
+        "parte": "2N7000",
+        "hoja": "https://www.onsemi.com/download/data-sheet/pdf/2n7000-d.pdf",
+        "equivalencias": { "kicad": "Transistor_FET:2N7000" },
+        "presentaciones": [
+          {
+            "encapsulado": "TO-92",
+            "patillas": { "S": "1", "G": "2", "D": "3" },
+            "huella": "Package_TO_SOT_THT:TO-92_Inline",
+            "lcsc": { "numero": "C232838", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "onsemi 2N7000G (rev. 8, abr 2011) p. 2, TO-92 caso 29 estilo 22: 1 Fuente, 2 Compuerta, 3 Drenador; coincide con Transistor_FET:2N7000 de KiCad 9"
+        }
+      },
+      "IRFZ44N": {
+        "fabricante": "Infineon",
+        "parte": "IRFZ44NPBF",
+        "hoja": "https://www.infineon.com/dgdl/irfz44npbf.pdf?fileId=5546d462533600a40153563b3a9f220d",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": { "G": "1", "D": "2", "S": "3" },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical",
+            "lcsc": { "numero": "C2586", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "Infineon IRFZ44NPbF (rev. 1.0) p. 1: Gate pin 1, Drain pin 2 y lengüeta, Source pin 3" },
+        "nota": "KiCad 9 no trae el IRFZ44N; la segunda fuente es el IRLZ44N de KiCad (G1 D2 S3) y la hoja IRLZ44NPbF (LEAD ASSIGNMENTS 1 Gate, 2 Drain, 3 Source), mismo encapsulado"
+      },
+      "IRF540N": {
+        "fabricante": "Infineon",
+        "parte": "IRF540NPBF",
+        "hoja": "https://www.infineon.com/dgdl/irf540npbf.pdf?fileId=5546d462533600a4015355e39d7d1930",
+        "equivalencias": { "kicad": "Transistor_FET:IRF540N" },
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": { "G": "1", "D": "2", "S": "3" },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical",
+            "lcsc": { "numero": "C2566", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Infineon IRF540NPbF (rev. 2.1) p. 1: Gate pin 1, Drain pin 2 y lengüeta, Source pin 3; coincide con Transistor_FET:IRF540N de KiCad 9"
+        }
+      },
+      "IRLZ44N": {
+        "fabricante": "Infineon",
+        "parte": "IRLZ44NPBF",
+        "hoja": "https://www.infineon.com/dgdl/irlz44npbf.pdf?fileId=5546d462533600a4015356b2f38a1d6b",
+        "equivalencias": { "kicad": "Transistor_FET:IRLZ44N" },
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": { "G": "1", "D": "2", "S": "3" },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical",
+            "lcsc": { "numero": "C38774", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Infineon IRLZ44NPbF (PD-94831), LEAD ASSIGNMENTS: 1 Gate, 2 Drain, 3 Source, 4 Drain; coincide con Transistor_FET:IRLZ44N de KiCad 9"
+        }
+      },
+      "IRF520": {
+        "fabricante": "Vishay",
+        "parte": "IRF520PBF",
+        "hoja": "https://www.vishay.com/docs/91017/irf520.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": { "G": "1", "D": "2", "S": "3" },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical",
+            "lcsc": { "numero": "C2597", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "Vishay IRF520 (doc. 91017) p. 1, TO-220AB: terminales G, D, S en ese orden" },
+        "nota": "KiCad 9 no trae el IRF520; la segunda fuente es el mismo orden G-D-S de TO-220AB en IRF540N (Infineon e KiCad)"
+      }
+    }
   }
 }

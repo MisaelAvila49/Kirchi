@@ -1,0 +1,46 @@
+{
+  "id": "punta-logica",
+  "nombre": { "es": "Punta lógica", "en": "Logic probe" },
+  "categoria": "instrumentos",
+  "prefijo": "LP",
+  "buscar": ["punta lógica", "punta logica", "logic probe", "sonda lógica", "probe", "lp", "nivel lógico"],
+  "pines": [
+    { "id": "PUNTA", "nombre": "punta (PUNTA)", "x": -6, "y": 0, "ayuda": "Toca el nodo que quieres revisar · al aire no enciende ninguna luz" },
+    { "id": "+", "nombre": "pinza + (alimentación)", "x": 0, "y": -6, "ayuda": "Se conecta a la alimentación del circuito que revisas" },
+    { "id": "-", "nombre": "pinza − (tierra)", "x": 0, "y": 6, "ayuda": "Se conecta a la tierra del circuito que revisas" }
+  ],
+  "props": [{ "id": "familia", "nombre": "Familia", "mostrar": true, "defecto": "CMOS", "opciones": ["CMOS", "TTL"] }],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "familia",
+    "modelos": {
+      "CMOS": { "a0": 100000, "gbw": 1000000, "sr": 1000000, "rin": 1000000000000, "rout": 100, "ilim": 0.02, "dhi": 0.1, "dlo": 0.1, "rq": 50000, "rled": 470, "rup": 1000000, "rdn": 1000000, "rht": 30000, "rhb": 70000, "rlt": 70000, "rlb": 30000 },
+      "TTL": { "a0": 100000, "gbw": 1000000, "sr": 1000000, "rin": 1000000000000, "rout": 100, "ilim": 0.02, "dhi": 0.1, "dlo": 0.1, "rq": 50000, "rled": 470, "rup": 2570000, "rdn": 1000000, "rht": 60000, "rhb": 40000, "rlt": 84000, "rlb": 16000 }
+    },
+    "internas": ["thh", "thl", "oh", "ol", "ah", "al"],
+    "opcionales": ["PUNTA"],
+    "medida": { "mas": "+", "menos": "-", "i": 6 },
+    "elementos": [
+      { "t": "R", "a": "+", "b": "PUNTA", "ohms": "rup" },
+      { "t": "R", "a": "PUNTA", "b": "-", "ohms": "rdn" },
+      { "t": "R", "a": "+", "b": "thh", "ohms": "rht" },
+      { "t": "R", "a": "thh", "b": "-", "ohms": "rhb" },
+      { "t": "R", "a": "+", "b": "thl", "ohms": "rlt" },
+      { "t": "R", "a": "thl", "b": "-", "ohms": "rlb" },
+      { "t": "OA", "mas": "PUNTA", "menos": "thh", "sal": "oh", "vmas": "+", "vmenos": "-", "params": { "a0": "a0", "gbw": "gbw", "sr": "sr", "rin": "rin", "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" } },
+      { "t": "OA", "mas": "thl", "menos": "PUNTA", "sal": "ol", "vmas": "+", "vmenos": "-", "params": { "a0": "a0", "gbw": "gbw", "sr": "sr", "rin": "rin", "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" } },
+      { "t": "R", "a": "oh", "b": "ah", "ohms": "rled" },
+      { "t": "D", "a": "ah", "b": "-", "params": { "is": 1.5e-17, "n": 2 } },
+      { "t": "R", "a": "ol", "b": "al", "ohms": "rled" },
+      { "t": "D", "a": "al", "b": "-", "params": { "is": 4.59e-20, "n": 2 } }
+    ]
+  },
+  "animacion": { "tipo": "luces", "luces": [{ "elemento": 9, "x": 2, "y": -2, "color": "rojo" }, { "elemento": 11, "x": 2, "y": 2, "color": "verde" }] },
+  "etiquetas": { "ref": { "x": 6, "y": -3 }, "valor": { "x": 6, "y": 3 } },
+  "rotulos": [{ "texto": "H", "x": -1.6, "y": -2, "tam": 1.6 }, { "texto": "L", "x": -1.6, "y": 2, "tam": 1.6 }],
+  "fuentes": {
+    "CMOS": "Criterio de Kirchi, el de una punta lógica de laboratorio: enciende la luz roja (H) con la punta sobre el 70 % de la alimentación y la verde (L) bajo el 30 %, los umbrales de entrada de un CMOS. Entre los dos la punta queda al aire y ninguna luz enciende: un divisor de 1 MΩ y 1 MΩ la deja en la mitad de la alimentación. Dos comparadores (el amplificador del motor con salida de 0.1 V a cada riel) manejan cada LED con 470 Ω. Con pulsos rápidos las dos luces encienden a medias, como en la punta real.",
+    "TTL": "Criterio de Kirchi, el de una punta lógica de laboratorio: enciende la luz roja (H) con la punta sobre 2.0 V y la verde (L) bajo 0.8 V con una alimentación de 5 V, los umbrales de entrada de un TTL (VIH y VIL de un 74LS). Los umbrales son fracciones fijas de la alimentación (40 % y 16 %), así que valen 2.0 V y 0.8 V con 5 V. Al aire la punta queda en 1.4 V, entre los dos umbrales, con un divisor de 2.57 MΩ y 1 MΩ. Dos comparadores (el amplificador del motor con salida de 0.1 V a cada riel) manejan cada LED con 470 Ω."
+  },
+  "datos": { "valores": { "*": { "virtual": true, "nota": "Instrumento, sin encapsulado" } } }
+}

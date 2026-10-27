@@ -6,6 +6,7 @@ import { calcularConexiones } from '../conexiones/conexiones'
 import { documentoVacio, type Documento } from '../doc/tipos'
 import { conEtiquetas, type Parte } from '../prueba/circuitos'
 import { libreriaDePrueba } from '../prueba/libreria'
+import { resolverAbsolutos, medirAbsoluto } from '../sim/absolutos'
 import { excesoDe, limitesDelCircuito } from '../sim/avisos'
 import { leerResultados, type Lectura as LecturaCruda } from '../sim/lectura'
 import init, { Simulator } from '../sim/pkg/kirchi_engine.js'
@@ -710,5 +711,319 @@ describe('límites de las piezas compuestas (ULN2003 y reguladores)', () => {
     const reg = (vin: string, vout: string) => [DC('V1', vin, 'in'), DC('V2', vout, 'ext'), R('RS', '10', 'ext', 'out'), { tipo: 'regulador-negativo', ref: 'U1', props: { modelo: '7905' }, pines: { IN: 'in', OUT: 'out', GND: '0' } } as Parte]
     expect(punto(reg('-10', '0'), 0.02, 1e-5).avisos().U1).toBeUndefined()
     expect(punto(reg('0', '-5'), 0.02, 1e-5).avisos().U1).toMatch(/^salida sobre la entrada/)
+  })
+})
+
+describe('referencia TL431 contra su hoja de datos', () => {
+  const tl431 = (k: string, ref: string, a = '0'): Parte => ({ tipo: 'tl431', ref: 'U1', props: { modelo: 'TL431' }, pines: { K: k, A: a, REF: ref } })
+  /** K unido a REF y alimentado desde 12 V por `r`: la prueba de la hoja (Figura 7-1). */
+  const vka = (r: string) => punto([DC('V1', '12', 'vcc'), R('R1', r, 'vcc', 'k'), tl431('k', 'k')], 0.2, 1e-4)
+
+  it('VKA = Vref con 10 mA: 2.495 V típicos dentro de los 2.44 a 2.55 V de la hoja, y con 1 mA, la corriente mínima de regulación, sigue dentro', () => {
+    const a = vka('950').v('k'), b = vka('9.5k').v('k')
+    expect(Math.abs(a - 2.495)).toBeLessThan(0.005)
+    for (const v of [a, b]) {
+      expect(v).toBeGreaterThan(2.44)
+      expect(v).toBeLessThan(2.55)
+    }
+  })
+
+  it('la corriente de REF con 10 kΩ de K a REF es de 2 µA típica, bajo los 4 µA máximos', () => {
+    const r = punto([DC('V1', '12', 'vcc'), R('R1', '950', 'vcc', 'k'), R('R2', '10k', 'k', 'ref'), tl431('k', 'ref')], 0.2, 1e-4)
+    const iref = (r.v('k') - r.v('ref')) / 10e3
+    expect(iref).toBeGreaterThan(1e-6)
+    expect(iref).toBeLessThan(4e-6)
+  })
+
+  it('la impedancia dinámica de 1 mA a 100 mA es de 0.2 Ω típica, bajo los 0.5 Ω máximos', () => {
+    const baja = vka('9.5k'), alta = vka('95')
+    const z = (alta.v('k') - baja.v('k')) / (-alta.m('V1').i + baja.m('V1').i)
+    expect(z).toBeGreaterThan(0.1)
+    expect(z).toBeLessThan(0.5)
+  })
+
+  it('como regulador de 5 V con un divisor de 10 kΩ y 10 kΩ da 2 × Vref y la regulación de línea de 12 a 20 V es de menos de 11 mV (1.4 mV/V típicos de la hoja)', () => {
+    const reg = (vin: string) => punto([DC('V1', vin, 'vcc'), R('R1', '470', 'vcc', 'k'), R('R2', '10k', 'k', 'ref'), R('R3', '10k', 'ref', '0'), R('RL', '1k', 'k', '0'), tl431('k', 'ref')], 0.2, 1e-4).v('k')
+    const a = reg('12'), b = reg('20')
+    expect(Math.abs(a - 5.0)).toBeLessThan(0.03)
+    expect(Math.abs(b - a)).toBeLessThan(0.011)
+  })
+
+  it('apagado (REF en tierra) con 36 V deja pasar menos del 1 µA de la corriente de apagado', () => {
+    const r = punto([DC('V1', '36', 'vcc'), R('R1', '1k', 'vcc', 'k'), tl431('k', '0')], 0.05, 1e-4)
+    expect((36 - r.v('k')) / 1e3).toBeLessThan(1e-6)
+  })
+
+  it('con un capacitor de 100 nF en K y la salida de 5 V no oscila, y con 10 µF se asienta en menos de 50 ms', () => {
+    const con = (c: string, fin: number) => punto([DC('V1', '12', 'vcc'), R('R1', '470', 'vcc', 'k'), R('R2', '10k', 'k', 'ref'), R('R3', '10k', 'ref', '0'), C('CK', c, 'k', '0'), tl431('k', 'ref')], fin, 1e-5).v('k')
+    expect(Math.abs(con('100n', 0.01) - 5.0)).toBeLessThan(0.03)
+    expect(Math.abs(con('10u', 0.05) - 5.0)).toBeLessThan(0.03)
+  })
+
+  it('avisa con más de los 150 mA de cátodo, y su máximo de voltaje es de 37 V de K a A', () => {
+    expect(punto([DC('V1', '12', 'vcc'), R('R1', '47', 'vcc', 'k'), tl431('k', 'k')], 0.05, 1e-4).avisos().U1).toMatch(/corriente de cátodo/)
+    const d = conEtiquetas(lib, [DC('V1', '40', 'vcc'), R('R1', '10k', 'vcc', 'k'), tl431('k', '0')])
+    const con = calcularConexiones(d, lib)
+    const u = Object.values(d.piezas).find((p) => p.ref === 'U1')!
+    const [maximo] = resolverAbsolutos(u, lib.get('tl431')!, con)!.lista
+    expect(maximo).toMatchObject({ nombre: 'cátodo contra ánodo', max: 37 })
+    const redK = con.redes.findIndex((x) => x.nombre === 'k')
+    expect(medirAbsoluto(maximo, new Map([[redK, 40]]), undefined, undefined)).toMatchObject({ arriba: true, limite: 37 })
+    expect(medirAbsoluto(maximo, new Map([[redK, 36]]), undefined, undefined)).toBeUndefined()
+  })
+})
+
+describe('referencia LM4040 contra su hoja de datos', () => {
+  const lm4040 = (modelo: string, k: string): Parte => ({ tipo: 'lm4040', ref: 'U1', props: { modelo }, pines: { K: k, A: '0' } })
+  const enCorriente = (modelo: string, vin: number, ir: number) => punto([DC('V1', String(vin), 'vcc'), R('R1', String((vin - Number(modelo.split(' ')[0])) / ir), 'vcc', 'k'), lm4040(modelo, 'k')], 0.2, 1e-4)
+
+  it.each([
+    ['2.048 V', 2.048, 100e-6], ['2.5 V', 2.5, 100e-6], ['3 V', 3, 100e-6], ['4.096 V', 4.096, 100e-6], ['5 V', 5, 100e-6], ['10 V', 10, 150e-6]
+  ] as const)('%s: voltaje inverso de la hoja con la corriente de prueba, dentro de la tolerancia de ±0.1 % del grado A', (modelo, vz, ir) => {
+    expect(Math.abs(enCorriente(modelo, 15, ir).v('k') - vz)).toBeLessThan(vz * 1e-3)
+  })
+
+  it.each([
+    ['2.048 V', 0.3, 0.8], ['2.5 V', 0.3, 0.8], ['3 V', 0.4, 0.9], ['4.096 V', 0.5, 1], ['5 V', 0.5, 1.1], ['10 V', 0.7, 1.7]
+  ] as const)('%s: impedancia dinámica a 1 mA de %s Ω típica, bajo los %s Ω máximos de la hoja', (modelo, tipica, maxima) => {
+    const vz = Number(modelo.split(' ')[0])
+    const a = enCorriente(modelo, 15, 0.9e-3), b = enCorriente(modelo, 15, 1.1e-3)
+    const z = (b.v('k') - a.v('k')) / (-b.m('V1').i + a.m('V1').i)
+    expect(vz).toBeGreaterThan(0)
+    expect(Math.abs(z - tipica)).toBeLessThan(0.1)
+    expect(z).toBeLessThan(maxima)
+  })
+
+  it('el cambio de voltaje de 1 mA a 15 mA es de unos 4.5 mV (2.5 V: 2.5 mV típicos y 8 mV máximos en la hoja)', () => {
+    const dv = enCorriente('2.5 V', 15, 15e-3).v('k') - enCorriente('2.5 V', 15, 1e-3).v('k')
+    expect(dv).toBeGreaterThan(0)
+    expect(dv).toBeLessThan(8e-3)
+  })
+
+  it('avisa con más de los 20 mA inversos y con 10 mA directos', () => {
+    expect(punto([DC('V1', '12', 'vcc'), R('R1', '300', 'vcc', 'k'), lm4040('2.5 V', 'k')], 0.05, 1e-4).avisos().U1).toMatch(/corriente inversa/)
+    expect(punto([DC('V1', '-12', 'vcc'), R('R1', '300', 'vcc', 'k'), lm4040('2.5 V', 'k')], 0.05, 1e-4).avisos().U1).toMatch(/corriente directa/)
+  })
+})
+
+describe('amplificador de instrumentación INA128 contra su hoja de datos', () => {
+  const ina = (rg: string | null): Parte => ({ tipo: 'ina128', ref: 'U1', props: { modelo: 'INA128' }, pines: { 'IN-': 'inm', 'IN+': 'inp', RG1: rg ? 'rg1' : 'aire1', RG2: rg ? 'rg2' : 'aire2', REF: '0', OUT: 'out', 'V+': 'vp', 'V-': 'vm' } })
+  const base = (carga = '10k'): Parte[] => [DC('V1', '15', 'vp'), DC('V2', '-15', 'vm'), R('RL', carga, 'out', '0')]
+  const salida = (rg: string | null, vinm: string, vinp: string) => punto([...base(), DC('V3', vinm, 'inm'), DC('V4', vinp, 'inp'), ...(rg ? [R('RG', rg, 'rg1', 'rg2')] : []), ina(rg)], 0.2, 1e-4).v('out')
+  const ganancia = (rg: number | null) => (rg === null ? 1 : 1 + 50e3 / rg)
+
+  it.each([
+    [null, 0.024, 1], [5.556e3, 0.4, 0.5], [505.1, 0.5, 0.05], [50.05, 1, 0.005]
+  ] as const)('G = 1 + 50 kΩ/RG con RG = %s Ω: el error de ganancia queda bajo el máximo de la hoja (%s %)', (rg, maxPorCiento, vdif) => {
+    const g = ganancia(rg)
+    const v = salida(rg === null ? null : String(rg), String(1 - vdif / 2), String(1 + vdif / 2))
+    expect(Math.abs((v / (vdif * g) - 1) * 100)).toBeLessThan(maxPorCiento)
+  })
+
+  it.each([
+    [null, 80], [5.556e3, 100], [505.1, 120], [50.05, 120]
+  ] as const)('rechazo de modo común con RG = %s Ω: pasa los %s dB mínimos de la hoja (10 V de modo común)', (rg, minimoDb) => {
+    const g = ganancia(rg)
+    const v = salida(rg === null ? null : String(rg), '10', '10')
+    expect(20 * Math.log10((g * 10) / Math.abs(v))).toBeGreaterThan(minimoDb)
+  })
+
+  it('la salida llega a 1.4 V de cada alimentación con 10 kΩ y no pasa de ahí', () => {
+    const alto = salida('5.556k', '0', '3'), bajo = salida('5.556k', '3', '0')
+    expect(alto).toBeGreaterThan(13.4)
+    expect(alto).toBeLessThan(13.7)
+    expect(bajo).toBeLessThan(-13.4)
+    expect(bajo).toBeGreaterThan(-13.7)
+  })
+
+  it('REF desplaza la salida: con 2 V en REF y entradas iguales la salida queda en 2 V', () => {
+    const r = punto([...base(), DC('V3', '1', 'inm'), DC('V4', '1', 'inp'), DC('VR', '2', 'ref'), { ...ina(null), pines: { ...ina(null).pines, REF: 'ref' } }], 0.2, 1e-4)
+    expect(Math.abs(r.v('out') - 2)).toBeLessThan(0.01)
+  })
+
+  it('consume unos 700 µA en reposo con ±15 V (750 µA máx)', () => {
+    const r = punto([...base('1G'), DC('V3', '0', 'inm'), DC('V4', '0', 'inp'), ina(null)], 0.2, 1e-4)
+    expect(-r.m('V1').i).toBeGreaterThan(0.6e-3)
+    expect(-r.m('V1').i).toBeLessThan(0.75e-3)
+  })
+
+  /** Amplitud de la salida (el pico de las últimas dos vueltas) con una senoidal de `pico` volts. */
+  function amplitud(rg: string | null, pico: string, hz: number, h: number): number {
+    const fin = 12 / hz
+    let maximo = 0
+    correr([...base(), DC('V3', '0', 'inm'), AC('V4', pico, String(hz), 'inp'), ...(rg ? [R('RG', rg, 'rg1', 'rg2')] : []), ina(rg)], fin, h, h, (t, l) => {
+      if (t > fin - 2 / hz) maximo = Math.max(maximo, Math.abs(l.v('out')))
+    })
+    return maximo
+  }
+
+  it('el ancho de banda de −3 dB es de 200 kHz con G = 100 y de 1.3 MHz con G = 1 (±25 %)', () => {
+    const cien = amplitud('505.1', '10m', 200e3, 25e-9) / (0.01 * 100)
+    expect(cien).toBeGreaterThan(0.707 * 0.75)
+    expect(cien).toBeLessThan(0.707 * 1.25)
+    const uno = amplitud(null, '0.2', 1.3e6, 5e-9) / 0.2
+    expect(uno).toBeGreaterThan(0.707 * 0.75)
+    expect(uno).toBeLessThan(0.707 * 1.25)
+  })
+
+  it('la velocidad de subida es de 4 V/µs (±20 %)', () => {
+    let previo = 0, maxima = 0
+    correr([...base(), DC('V3', '0', 'inm'), { tipo: 'fuente-pulso', ref: 'V4', props: { alto: '1', frecuencia: '20k', ciclo: '50 %', retardo: '1u' }, pines: { '+': 'inp', '-': '0' } }, R('RG', '5.556k', 'rg1', 'rg2'), ina('rg')], 8e-6, 10e-9, 10e-9, (_t, l) => {
+      const v = l.v('out')
+      maxima = Math.max(maxima, (v - previo) / 10e-9)
+      previo = v
+    })
+    expect(maxima).toBeGreaterThan(3.2e6)
+    expect(maxima).toBeLessThan(4.8e6)
+  })
+
+  it('RG1 y RG2 al aire (G = 1) y con una RG muy chica compilan sin error', () => {
+    for (const rg of [null, '0.001']) {
+      const d = conEtiquetas(lib, [...base(), DC('V3', '0', 'inm'), DC('V4', '0', 'inp'), ...(rg ? [R('RG', rg, 'rg1', 'rg2')] : []), ina(rg)])
+      expect(compilarNetlist(d, lib, calcularConexiones(d, lib)).errores).toEqual([])
+    }
+  })
+})
+
+describe('amplificador de audio LM386 contra su hoja de datos', () => {
+  const lm386 = (entrada: string, ganancia200 = false): Parte => ({ tipo: 'lm386', ref: 'U1', props: { modelo: 'LM386' }, pines: { 'IN-': '0', 'IN+': entrada, GAIN1: ganancia200 ? 'g1' : 'aire1', GAIN8: ganancia200 ? 'g8' : 'aire8', BYP: 'byp', OUT: 'out', VS: 'vs', GND: '0' } })
+  const bocina: Parte[] = [C('CO', '250u', 'out', 'rl'), R('RL', '8', 'rl', '0')]
+
+  /** Pico (la mitad del pico a pico) de `red` en las últimas dos vueltas de una senoidal en IN+. */
+  function pico(red: string, entrada: string, hz: number, fin: number, h: number, ganancia200 = false): number {
+    let maximo = -Infinity, minimo = Infinity
+    correr([DC('V1', '6', 'vs'), AC('V3', entrada, String(hz), 'inp'), ...(ganancia200 ? [C('CG', '10u', 'g1', 'g8')] : []), ...bocina, lm386('inp', ganancia200)], fin, h, h * 4, (t, l) => {
+      if (t <= fin - 2 / hz) return
+      maximo = Math.max(maximo, l.v(red))
+      minimo = Math.min(minimo, l.v(red))
+    })
+    return (maximo - minimo) / 2
+  }
+
+  it('en reposo la salida queda en la mitad de la alimentación y consume 4 mA típicos (8 mA máx) con 6 V', () => {
+    const r = punto([DC('V1', '6', 'vs'), R('RX', '1G', 'out', '0'), lm386('0')], 0.1, 1e-4)
+    expect(Math.abs(r.v('out') - 3)).toBeLessThan(0.1)
+    expect(-r.m('V1').i).toBeGreaterThan(3e-3)
+    expect(-r.m('V1').i).toBeLessThan(8e-3)
+  })
+
+  it('sin nada entre las patillas 1 y 8 la ganancia es de 26 dB (±0.5 dB)', () => {
+    const g = pico('out', '10m', 1e3, 6e-3, 2e-6) / 0.01
+    expect(20 * Math.log10(g)).toBeGreaterThan(25.5)
+    expect(20 * Math.log10(g)).toBeLessThan(26.5)
+  })
+
+  it('con 10 µF entre las patillas 1 y 8 la ganancia es de 46 dB (±1 dB)', () => {
+    const g = pico('out', '1m', 1e3, 0.1, 5e-6, true) / 0.001
+    expect(20 * Math.log10(g)).toBeGreaterThan(45)
+    expect(20 * Math.log10(g)).toBeLessThan(47)
+  })
+
+  it('la resistencia de entrada es de 50 kΩ', () => {
+    const r = punto([DC('V1', '6', 'vs'), DC('V3', '0.1', 'inp'), R('RX', '1G', 'out', '0'), lm386('inp')], 0.05, 1e-4)
+    expect(Math.abs(-r.m('V3').i - 0.1 / 50e3) / (0.1 / 50e3)).toBeLessThan(0.05)
+  })
+
+  it('sobreexcitado entrega entre 250 mW (mínimo) y 500 mW a una bocina de 8 Ω con 6 V', () => {
+    const vpk = pico('rl', '0.3', 1e3, 6e-3, 2e-6)
+    const p = (vpk * vpk) / (2 * 8)
+    expect(p).toBeGreaterThan(0.25)
+    expect(p).toBeLessThan(0.5)
+  })
+
+  it('el ancho de banda con ganancia 20 es de 300 kHz (±25 %)', () => {
+    const g = pico('out', '5m', 300e3, 40e-6, 20e-9) / 0.005
+    expect(g / 20).toBeGreaterThan(0.707 * 0.75)
+    expect(g / 20).toBeLessThan(0.707 * 1.25)
+  })
+
+  it('sus máximos son 15 V de alimentación y ±0.4 V de entrada', () => {
+    const d = conEtiquetas(lib, [DC('V1', '6', 'vs'), DC('V3', '0.1', 'inp'), lm386('inp')])
+    const con = calcularConexiones(d, lib)
+    const u = Object.values(d.piezas).find((p) => p.ref === 'U1')!
+    const [alimentacion, entrada] = resolverAbsolutos(u, lib.get('lm386')!, con)!.lista
+    expect(alimentacion).toMatchObject({ max: 15 })
+    expect(entrada).toMatchObject({ min: -0.4, max: 0.4, sinQuema: true })
+    const vs = con.redes.findIndex((x) => x.nombre === 'vs'), inp = con.redes.findIndex((x) => x.nombre === 'inp')
+    expect(medirAbsoluto(alimentacion, new Map([[vs, 16]]), undefined, undefined)).toMatchObject({ arriba: true })
+    expect(medirAbsoluto(entrada, new Map([[inp, 0.5]]), undefined, undefined)).toMatchObject({ arriba: true })
+    expect(medirAbsoluto(entrada, new Map([[inp, -0.3]]), undefined, undefined)).toBeUndefined()
+  })
+
+  it('con IN− en tierra y las patillas 1 y 8 unidas por un alambre compila sin error', () => {
+    const d = conEtiquetas(lib, [DC('V1', '6', 'vs'), R('RX', '1G', 'out', '0'), { ...lm386('0', true), pines: { ...lm386('0', true).pines, GAIN8: 'g1' } }])
+    expect(compilarNetlist(d, lib, calcularConexiones(d, lib)).errores).toEqual([])
+  })
+})
+
+describe('punta lógica', () => {
+  const punta = (familia: string, red: string): Parte => ({ tipo: 'punta-logica', ref: 'LP1', props: { familia }, pines: { PUNTA: red, '+': 'vcc', '-': '0' } })
+  /** Corriente (A) de la luz roja (alto) y de la verde (bajo): los diodos 9 y 11 de la pieza. */
+  const luces = (l: Medicion): [number, number] => {
+    const x = (l as unknown as { extra: { corrientes: number[] } }).extra.corrientes
+    return [x[9], x[11]]
+  }
+  /** Una compuerta NOT de la familia, con su entrada en 0 o 5 V, maneja la punta. */
+  const conCompuerta = (familia: string, entrada: string, modelo: string) => punto([DC('V1', '5', 'vcc'), DC('VI', entrada, 'a'), { tipo: 'not', ref: 'U2', props: { familia }, pines: { A: 'a', Y: 'y' } }, punta(modelo, 'y')], 5e-3, 1e-5)
+
+  it('CMOS con un 74HC a 5 V: alto enciende la roja, bajo la verde', () => {
+    const [rAlto, vAlto] = luces(conCompuerta('74HC', '0', 'CMOS').m('LP1'))
+    const [rBajo, vBajo] = luces(conCompuerta('74HC', '5', 'CMOS').m('LP1'))
+    expect(rAlto).toBeGreaterThan(3e-3)
+    expect(vAlto).toBeLessThan(1e-4)
+    expect(vBajo).toBeGreaterThan(3e-3)
+    expect(rBajo).toBeLessThan(1e-4)
+  })
+
+  it('TTL con un 74LS a 5 V: alto enciende la roja, bajo la verde', () => {
+    const [rAlto, vAlto] = luces(conCompuerta('74LS', '0', 'TTL').m('LP1'))
+    const [rBajo, vBajo] = luces(conCompuerta('74LS', '5', 'TTL').m('LP1'))
+    expect(rAlto).toBeGreaterThan(3e-3)
+    expect(vAlto).toBeLessThan(1e-4)
+    expect(vBajo).toBeGreaterThan(3e-3)
+    expect(rBajo).toBeLessThan(1e-4)
+  })
+
+  it.each([['CMOS', 2.5], ['TTL', 1.4]] as const)('%s con la punta al aire: ninguna luz enciende y la punta queda en %s V, entre sus dos umbrales', (familia, v) => {
+    const r = punto([DC('V1', '5', 'vcc'), punta(familia, 'p')], 0.05, 1e-4)
+    const [roja, verde] = luces(r.m('LP1'))
+    expect(roja).toBeLessThan(1e-4)
+    expect(verde).toBeLessThan(1e-4)
+    expect(Math.abs(r.v('p') - v)).toBeLessThan(0.02)
+  })
+
+  it('los umbrales son el 70 % y el 30 % de la alimentación en CMOS, y 2.0 V y 0.8 V con 5 V en TTL', () => {
+    const luz = (familia: string, v: number) => luces(punto([DC('V1', '5', 'vcc'), DC('VP', String(v), 'p'), punta(familia, 'p')], 0.05, 1e-4).m('LP1'))
+    expect(luz('CMOS', 3.45)[0]).toBeLessThan(1e-4)
+    expect(luz('CMOS', 3.55)[0]).toBeGreaterThan(3e-3)
+    expect(luz('CMOS', 1.55)[1]).toBeLessThan(1e-4)
+    expect(luz('CMOS', 1.45)[1]).toBeGreaterThan(3e-3)
+    expect(luz('TTL', 1.95)[0]).toBeLessThan(1e-4)
+    expect(luz('TTL', 2.05)[0]).toBeGreaterThan(3e-3)
+    expect(luz('TTL', 0.85)[1]).toBeLessThan(1e-4)
+    expect(luz('TTL', 0.75)[1]).toBeGreaterThan(3e-3)
+  })
+
+  it('con pulsos de 1 kHz las dos luces encienden a medias', () => {
+    const medias = [0, 0]
+    let n = 0
+    correr([DC('V1', '5', 'vcc'), { tipo: 'fuente-pulso', ref: 'VI', props: { alto: '5', frecuencia: '1k', ciclo: '50 %' }, pines: { '+': 'a', '-': '0' } }, { tipo: 'not', ref: 'U2', props: { familia: '74HC' }, pines: { A: 'a', Y: 'y' } }, punta('CMOS', 'y')], 8e-3, 2e-6, 20e-6, (t, l) => {
+      if (t < 4e-3) return
+      const [r, v] = luces(l.m('LP1'))
+      medias[0] += r
+      medias[1] += v
+      n++
+    })
+    for (const m of medias) {
+      expect(m / n).toBeGreaterThan(1.5e-3)
+      expect(m / n).toBeLessThan(5e-3)
+    }
+  })
+
+  it('con la punta en la pinza + o en tierra compila sin error (el divisor de polarización queda en corto)', () => {
+    for (const red of ['vcc', '0']) {
+      const d = conEtiquetas(lib, [DC('V1', '5', 'vcc'), punta('CMOS', red)])
+      expect(compilarNetlist(d, lib, calcularConexiones(d, lib)).errores).toEqual([])
+    }
   })
 })

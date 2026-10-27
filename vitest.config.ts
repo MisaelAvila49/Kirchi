@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [solid({ hot: false })],
   test: {
     passWithNoTests: true,
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
     // Las mediciones de tiempo corren aparte y en serie (vitest.rendimiento.config.ts): en paralelo se inflan al doble.
     exclude: [...configDefaults.exclude, 'src/**/*.rendimiento.test.ts'],
     environment: 'node'

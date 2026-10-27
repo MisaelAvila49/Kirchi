@@ -1,0 +1,34 @@
+* Cuadruple multiplexor 74HC157 a 4.5 V con seleccion y estrobo comunes y los ocho datos en pulsos
+.model adc_0 adc_bridge(in_low=1.3499999999999999 in_high=3.15 rise_delay=1e-12 fall_delay=1e-12)
+.model uno_d d_pullup(load=1e-12)
+V1 n1 0 PULSE(0 4.5 3e-7 1e-12 1e-12 0.000001499999 0.000003000000000003)
+V2 n2 0 PULSE(0 4.5 0.000009 1e-12 1e-12 9.99999e-7 0.000011000000000011)
+V3 n3 0 PULSE(0 4.5 1e-7 1e-12 1e-12 3.99999e-7 8e-7)
+V4 n4 0 PULSE(0 4.5 1.53e-7 1e-12 1e-12 4.999990000000001e-7 0.000001)
+V5 n5 0 PULSE(0 4.5 2.06e-7 1e-12 1e-12 5.99999e-7 0.00000120000000000048)
+V6 n6 0 PULSE(0 4.5 2.59e-7 1e-12 1e-12 9.98999e-7 0.0000019979999999980063)
+V7 n7 0 PULSE(0 4.5 8.4e-7 1e-12 1e-12 0.000001124999 0.0000022500000000022498)
+V8 n8 0 PULSE(0 4.5 9.92e-7 1e-12 1e-12 0.000001198999 0.000002398000000000393)
+V9 n9 0 PULSE(0 4.5 5.39e-7 1e-12 1e-12 9.99999e-7 0.000002)
+V10 n10 0 PULSE(0 4.5 9.33e-7 1e-12 1e-12 0.000001502999 0.000003005999999996892)
+AIN0 [n2] [d4] adc_0
+AIN1 [n1] [d5] adc_0
+AIN2 [n3] [d6] adc_0
+AIN3 [n4] [d7] adc_0
+AIN4 [n5] [d8] adc_0
+AIN5 [n6] [d9] adc_0
+AIN6 [n7] [d10] adc_0
+AIN7 [n8] [d11] adc_0
+AIN8 [n9] [d12] adc_0
+AIN9 [n10] [d13] adc_0
+*@generar lut u0 {"comunes":["d4","d5"],"rebanadas":[{"entradas":["d6","d7"],"salidas":["d0"]},{"entradas":["d8","d9"],"salidas":["d1"]},{"entradas":["d10","d11"],"salidas":["d2"]},{"entradas":["d12","d13"],"salidas":["d3"]}],"tabla":[0,0,1,1,0,1,0,1,0,0,0,0,0,0,0,0],"retardos":[[1.4499999999999999e-8,1.4499999999999999e-8]]}
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 12000n 0 0.1n uic
+wrdata salida.txt v(n1)
+eprint d0 d1 d2 d3 > eventos.txt
+.endc
+.end

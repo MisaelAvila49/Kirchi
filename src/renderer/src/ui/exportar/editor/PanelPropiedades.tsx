@@ -37,7 +37,7 @@ interface Props {
   trazas: readonly TrazaVista[]
   /** De la clave de un objeto de la figura a la de la traza que guarda su estilo (en un Bode, quita la unidad). */
   claveDeTraza(id: string): string
-  ejeX: { etiqueta: string; unidad: string; log?: boolean } | null
+  ejeX: { etiqueta: string; unidad: string; log?: boolean; sinRango?: boolean } | null
   aplicar: Aplicar
   todas: readonly string[]
   /** Sube cada vez que hay que llevar el foco al texto (se acaba de poner uno nuevo o se hizo doble clic). */
@@ -315,7 +315,7 @@ export default function PanelPropiedades(props: Props) {
         <Show when={esX() ? props.ejeX : null} fallback={<Show when={traza()}>{(tv) => <PastillasDecimales nombre="Decimales del eje" valor={tv().decimales} omision={decimalesPorOmision(tv().unidad)} onCambiar={(d) => a((x) => cambiarTraza(x, claveT(), { decimales: d }))} />}</Show>}>
           {(ex) => <PastillasDecimales nombre="Decimales del eje" valor={asp().decimalesX} omision={decimalesPorOmision(ex().unidad)} onCambiar={(d) => a((x) => cambiarAspecto(x, { decimalesX: d }))} />}
         </Show>
-        <Show when={props.conRango && (esX() ? props.ejeX && !props.ejeX.log : traza())}>
+        <Show when={props.conRango && (esX() ? props.ejeX && !props.ejeX.log && !props.ejeX.sinRango : traza())}>
           <CamposRango
             clase={{ fila: 'editor-campo', rotulo: 'editor-rotulo' }}
             nombre={nombre()}

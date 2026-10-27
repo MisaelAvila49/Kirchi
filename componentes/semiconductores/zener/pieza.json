@@ -73,5 +73,39 @@
   "fuentes": {
     "1N47xxA": "Vishay 1N4728A a 1N4761A (1 W), doc. 85816 rev. 2.7 (7 nov 2024), https://www.vishay.com/docs/85816/1n4728a.pdf, tabla de características eléctricas: VZ nominal, corriente de prueba IZT y ZZT a IZT. Se copian IZT y ZZT; rs = ZZT - 0.0259 V / IZT y bv = VZ - IZT·rs salen de ahí. Las piezas de 82, 91 y 100 V (1N4762A a 1N4764A) quedan fuera: no se pudo leer su hoja.",
     "BZX55C": "Vishay BZX55 (500 mW), doc. 85604 rev. 1.5 (5 jul 2007), copia en https://static.chipdip.ru/lib/224/DOC000224555.pdf (vishay.com ya no la sirve en esa ruta). IZT = 5 mA hasta 36 V y 2.5 mA desde 39 V. La hoja da la resistencia dinámica rzj como máximo («<»), y esa cifra es la ZZT del modelo: el Zener simulado es algo menos preciso que uno típico."
+  },
+  "datos": {
+    "por": "familia",
+    "equivalencias": { "kicad": "Device:D_Zener", "ltspice": "zener", "falstad": "z", "proteus": "ZENER", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "1N47xxA": {
+        "fabricante": "Vishay",
+        "hoja": "https://www.vishay.com/docs/85816/1n4728a.pdf",
+        "equivalencias": { "kicad": "Diode:1N47xxA" },
+        "presentaciones": [
+          { "encapsulado": "DO-41", "patillas": { "A": "2", "K": "1" }, "huella": "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" }
+        ],
+        "pendiente": { "parte": "1N4728A a 1N4761A según el voltaje", "lcsc": "un número por voltaje" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Vishay 1N4728A-1N4761A (doc. 85816 rev. 2.7), DO-41 (DO-204AL); Las hojas de diodo no numeran patillas: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D; Diode:1N47xxA de KiCad 9"
+        }
+      },
+      "BZX55C": {
+        "fabricante": "Vishay",
+        "presentaciones": [
+          { "encapsulado": "DO-35", "patillas": { "A": "2", "K": "1" }, "huella": "Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal" }
+        ],
+        "pendiente": {
+          "hoja": "Vishay ya no sirve la hoja del BZX55 en su ruta; la única copia hallada es de un distribuidor y no se enlaza",
+          "parte": "BZX55Cxx según el voltaje",
+          "lcsc": "un número por voltaje"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Convención de pads de KiCad 9 (pad 1 cátodo, pad 2 ánodo) y encapsulado DO-35 de la copia de la hoja Vishay BZX55 rev. 1.5; una sola fuente de patillas"
+        }
+      }
+    }
   }
 }

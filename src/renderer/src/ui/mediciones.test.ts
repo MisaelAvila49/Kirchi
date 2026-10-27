@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { calcularConexiones, clavePin } from '../conexiones/conexiones'
 import { divisor } from '../prueba/circuitos'
 import { libreriaDePrueba } from '../prueba/libreria'
-import type { Lectura } from '../sim/lectura'
+import type { ExtraMedicion, Lectura, MedicionPieza } from '../sim/lectura'
 import { cssRgba, PALETA_CLARA } from '../lienzo/paleta'
 import { colorDeVoltaje } from '../lienzo/voltajes'
-import { cifrasDe, colorDeRed, fichasDe, vistaMediciones } from './mediciones'
+import { cifrasDe, colorDeRed, fichaLogica, fichasDe, vistaMediciones } from './mediciones'
 import { nombresDeRedes } from './redes'
 
 const lib = libreriaDePrueba().piezas
@@ -92,5 +92,57 @@ describe('Mediciones P1', () => {
 
   it('las dos cifras rotuladas del potenciómetro también llevan su magnitud', () => {
     expect(fichasDe({ id: 'p', ref: 'RV1', voltaje: '5.00 V', cursor: '2.50 V', corriente: '1.00 mA', potencia: '5.00 mW' }).map((f) => f.magnitud)).toEqual(['v', 'v', 'i', 'p'])
+  })
+})
+
+describe('Mediciones de lógica y convertidores', () => {
+  const contador: ExtraMedicion = {
+    tipo: 'digital', modelo: 'msi',
+    pines: [{ id: 'QA', nombre: 'QA', nivel: '1', salida: true }, { id: 'QD', nombre: 'QD', nivel: '1', salida: true }, { id: 'RCO', nombre: 'RCO', nivel: '0', salida: true }, { id: 'CLK', nombre: 'CLK', nivel: '0', salida: false }],
+    registro: { clase: 'cuenta', valor: 9, bits: 4, nombres: ['QA', 'QB', 'QC', 'QD'], reloj: { hz: 1000, pin: 'CLK' } }
+  }
+
+  it('un contador da la cuenta, sus formas, los bits del más al menos significativo con su nivel y el reloj', () => {
+    expect(fichaLogica('p', 'U1', 'Contador · 74HC161', contador)).toEqual({
+      id: 'p', ref: 'U1', titulo: 'Contador · 74HC161', rotulo: 'cuenta', cifra: '9', formas: ['0x9', '0b1001', 'RCO 0'],
+      bits: [{ nombre: 'QD', valor: '1' }, { nombre: 'QC', valor: '0' }, { nombre: 'QB', valor: '0' }, { nombre: 'QA', valor: '1' }],
+      renglones: [{ rotulo: 'Reloj', valor: '1.00 kHz (CLK)' }]
+    })
+  })
+
+  it('con bits sin definir no hay bits ni formas, y muchas salidas sueltas no se repiten en la ficha', () => {
+    const f = fichaLogica('p', 'U1', 'x', { ...contador, registro: { ...(contador as { registro: object }).registro, valor: null } as never })!
+    expect(f).toMatchObject({ cifra: 'sin definir', formas: ['RCO 0'], bits: [] })
+    const muchas = { ...contador, pines: [...Array.from({ length: 3 }, (_, k) => ({ id: `Y${k}`, nombre: `Y${k}`, nivel: '0' as const, salida: true }))] } as ExtraMedicion
+    expect(fichaLogica('p', 'U1', 'x', muchas)!.formas).toEqual(['0x9', '0b1001'])
+  })
+
+  it('el ADC0804 da el código, lo que representa, INTR y el reloj, con su estado para la pastilla', () => {
+    const adc: ExtraMedicion = { tipo: 'convertidor-ad', codigo: 128, bits: 8, convirtiendo: false, intr: '0', vref: 5, reloj: { tipo: 'rc', hz: 606e3, r: 10e3, c: 150e-12 } }
+    expect(fichaLogica('a', 'U2', 'ADC0804', adc)).toEqual({
+      id: 'a', ref: 'U2', titulo: 'ADC0804', rotulo: '', estado: { texto: 'listo', tono: 'verdeazul' }, cifra: '128', formas: ['0x80', '0b10000000'], bits: [],
+      renglones: [{ rotulo: 'Representa', valor: '2.50 V de 5.00 V' }, { rotulo: 'INTR', valor: '0' }, { rotulo: 'Reloj', valor: '606 kHz (R 10 kΩ, C 150 pF)' }]
+    })
+    expect(fichaLogica('a', 'U2', 'ADC0804', { ...adc, convirtiendo: true } as ExtraMedicion)!.estado).toEqual({ texto: 'convirtiendo', tono: 'ambar' })
+  })
+
+  it('el DAC0808 pone el código en su rótulo y la corriente de IO en un renglón', () => {
+    expect(fichaLogica('d', 'U5', 'DAC0808', { tipo: 'convertidor-da', codigo: 64, io: 0.5e-3 })).toMatchObject({ rotulo: 'código 64', renglones: [{ rotulo: 'Corriente IO', valor: '500 µA' }] })
+  })
+
+  it('la vista los separa de las piezas, los ordena por referencia, los titula con su modelo y los filtra', () => {
+    const lect: Lectura = {
+      ...l,
+      piezas: new Map<string, MedicionPieza>([
+        ['p_r1', { v: 2.5, i: 2.5e-3, p: 6.25e-3 }],
+        ['p_r2', { v: 0, i: 0, p: 0, extra: contador }],
+        ['p_v1', { v: 0, i: 0, p: 0, extra: { tipo: 'convertidor-da', codigo: 64, io: 0.5e-3 } }]
+      ])
+    }
+    const v = vistaMediciones(d, nombres, lect, '', lib)!
+    expect(v.piezas.map((p) => p.ref)).toEqual(['R1'])
+    expect(v.logica.map((f) => f.ref)).toEqual(['R2', 'V1'])
+    expect(vistaMediciones(d, nombres, lect, 'corriente io', lib)!.logica.map((f) => f.ref)).toEqual(['V1'])
+    expect(vistaMediciones(d, nombres, lect, '')!.logica[0].titulo).toBe('R2')
   })
 })

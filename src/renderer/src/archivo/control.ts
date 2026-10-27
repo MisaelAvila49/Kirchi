@@ -3,6 +3,8 @@ import { documentoVacio, type Documento } from '../doc/tipos'
 import type { Historial } from '../doc/historial'
 import { recuperar, type Diario } from './diario'
 import { escribirKir, leerKir } from './kir'
+import { faltantesDe } from './requisitos'
+import type { PiezaDef } from '../piezas/tipos'
 
 /** El archivo del documento abierto. */
 export interface EstadoArchivo {
@@ -67,6 +69,8 @@ export interface DependenciasArchivo {
   diario: Diario
   version: string
   ui: InterfazArchivo
+  /** La librería cargada: con ella el aviso de lo que el archivo usa y falta. */
+  lib?: Map<string, PiezaDef>
 }
 
 /** Toda operación que reemplaza el documento pregunta antes si hay cambios sin guardar. El disco solo se toca por `api`. */
@@ -164,6 +168,20 @@ export class ControlArchivo {
     }, undefined)
   }
 
+  /** El archivo abierto cambió en el disco y el usuario eligió Recargar: se lee de nuevo sin preguntar, porque ya decidió. */
+  recargar(): Promise<boolean> {
+    return this.una(async () => {
+      const api = this.d.api
+      if (!api?.recargar) return false
+      const r = await api.recargar()
+      if (!r.ok) {
+        if ('error' in r) this.d.ui.error(r.error)
+        return false
+      }
+      return this.cargarLeido(r.archivo)
+    }, false)
+  }
+
   /** Un archivo de Recientes: el proceso principal solo lo abre si su ruta está en la lista. */
   abrirReciente(ruta: string): Promise<void> {
     return this.una(async () => {
@@ -212,6 +230,8 @@ export class ControlArchivo {
     this.poner({ ruta: a.ruta, nombre: a.nombre, soloLectura: l.soloLectura })
     this.nuevaBase(a.bytes, false)
     for (const aviso of l.avisos) this.d.ui.registrar(aviso)
+    const falta = this.d.lib ? faltantesDe(l.requiere, this.d.lib, l.doc).aviso : null
+    if (falta) this.d.ui.registrar(falta)
     this.d.ui.cargado()
     return true
   }

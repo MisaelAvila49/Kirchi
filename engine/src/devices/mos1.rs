@@ -1,5 +1,6 @@
 //! MOSFET nivel 1 de SPICE (mos1load.c y mos1temp.c a 27 °C) con el sustrato unido a la fuente: el diodo de cuerpo es la unión sustrato-drenador. Sin `tox` no hay capacitancias de Meyer y sin `gamma` no hay efecto de cuerpo.
 
+use super::region::{AMPLIFICA, CORTE, INTERRUPTOR};
 use super::{close, depletion, entry, exp_tope, limexp, init_charge, init_current, integrate, inject, pnjlim, predict, stamp_g, terr, volt, Alloc, Ctx, Device, Hist, Mode, Reading, Tol, U, VT};
 use crate::netlist::MosModel;
 
@@ -276,7 +277,7 @@ impl Device for Mos1 {
         let (vgs, vds) = (s0[s + VGS], s0[s + VDS]);
         let (vg, vd) = if vds >= 0.0 { (vgs, vds) } else { (vgs - vds, -vds) };
         let vgst = vg - self.von;
-        let region = if vgst <= 0.0 { 0.0 } else if vgst <= vd { 2.0 } else { 1.0 };
+        let region = if vgst <= 0.0 { CORTE } else if vgst <= vd { AMPLIFICA } else { INTERRUPTOR };
         Reading { i: self.tipo * (s0[s + CD] - s0[s + QGD + 1]), aux: 0.0, estado: region }
     }
 
@@ -298,6 +299,7 @@ impl Device for Mos1 {
 
 #[cfg(test)]
 mod tests {
+    use crate::devices::region::{AMPLIFICA, CORTE, INTERRUPTOR};
     use crate::{Netlist, Transient};
 
     /// MOSFET con la compuerta a `vg` y 100 Ω al drenador desde 12 V (o -12 V el de canal P).
@@ -317,13 +319,13 @@ mod tests {
     #[test]
     fn regiones_del_mosfet() {
         // Apagado, en saturación (2.6 V: 22 mA, Vds cerca de 10 V) y en la región lineal (10 V: casi 12 V en la R).
-        assert_eq!(con_compuerta(1.0, false).readings()[3].estado, 0.0);
+        assert_eq!(con_compuerta(1.0, false).readings()[3].estado, CORTE);
         let sat = con_compuerta(2.6, false);
-        assert_eq!(sat.readings()[3].estado, 2.0);
+        assert_eq!(sat.readings()[3].estado, AMPLIFICA);
         let id = 0.09 * 0.5f64.powi(2);
         assert!((sat.readings()[3].i - id).abs() / id < 0.25, "id = {}", sat.readings()[3].i);
         let lin = con_compuerta(10.0, false);
-        assert_eq!(lin.readings()[3].estado, 1.0);
+        assert_eq!(lin.readings()[3].estado, INTERRUPTOR);
         assert!(lin.voltage(3) < 0.5, "vds = {}", lin.voltage(3));
     }
 
@@ -331,7 +333,7 @@ mod tests {
     fn el_canal_p_es_el_espejo_del_n() {
         let (n, p) = (con_compuerta(2.6, false), con_compuerta(2.6, true));
         assert!((n.voltage(3) + p.voltage(3)).abs() < 1e-9, "{} {}", n.voltage(3), p.voltage(3));
-        assert_eq!(p.readings()[3].estado, 2.0);
+        assert_eq!(p.readings()[3].estado, AMPLIFICA);
     }
 
     #[test]

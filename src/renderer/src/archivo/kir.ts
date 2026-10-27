@@ -7,10 +7,12 @@ import { coordenadaValida, LIMITE_COORDENADA } from '../doc/limites'
 import { limpiarTexto } from '../doc/limpiar'
 import { documentoVacio, type Documento, type Pieza } from '../doc/tipos'
 import { leerSpice } from '../doc/spice'
+import { invarianteDePaquete, PROPS_DE_DOCUMENTO } from '../doc/paquetes'
 import { hayAnalisis, leerAnalisis, MAX_ANALISIS } from '../doc/analisis'
 import { leerTextos } from '../doc/textos'
 import { claveDeNombre, voltajeDeNombre, voltajeDeOmision } from '../netlist/alimentaciones'
 import { formatoDe } from './formatos'
+import { requisitosDe, requisitosLeidos } from './requisitos'
 import { formatearValor, leerValor } from '../valores/valores'
 
 /** Formatos: 2 alimentaciones, 3 textos de pieza, 4 figuras, 5 sondas, 6 `spice` propio, 7 análisis, 8 medidores rápidos.
@@ -25,7 +27,7 @@ export type Migracion = (datos: unknown, avisos: string[]) => unknown
 const MIGRACIONES: Record<number, Migracion> = { 1: voltajesATabla, 2: (datos) => datos, 3: (datos) => datos, 4: (datos) => datos, 5: (datos) => datos, 6: (datos) => datos, 7: (datos) => datos }
 export const FECHA_FIJA = new Date(2026, 0, 1)
 
-export type Lectura = { ok: true; doc: Documento; soloLectura: boolean; avisos: string[] } | { ok: false; error: string }
+export type Lectura = { ok: true; doc: Documento; soloLectura: boolean; avisos: string[]; requiere: string[] } | { ok: false; error: string }
 
 /** Mensajes de lectura: oraciones completas con punto, con la referencia o el nombre como sujeto y sin nombres internos
  * del archivo. */
@@ -103,7 +105,8 @@ export { formatoDe }
 /** `extras`: entradas del zip además del circuito. El lector solo mira `manifest.json` y `circuito.json`, así que
  * cualquier versión abre un `.kir` con extras. */
 export function escribirKir(doc: Documento, version: string, extras: Record<string, Uint8Array> = {}): Uint8Array {
-  const manifiesto = JSON.stringify({ app: 'kirchi', formato: formatoDe(doc), version }, null, 2) + '\n'
+  const requiere = requisitosDe(doc)
+  const manifiesto = JSON.stringify({ app: 'kirchi', formato: formatoDe(doc), version, ...(requiere.length > 0 ? { requiere } : {}) }, null, 2) + '\n'
   return zipSync(
     { ...extras, 'manifest.json': strToU8(manifiesto), 'circuito.json': [strToU8(serializarDocumento(doc)), { level: 6 }] },
     { mtime: FECHA_FIJA }
@@ -152,7 +155,7 @@ export function leerKirCon(
     }
   }
   try {
-    return { ok: true, doc: validarDocumento(datos, avisos), soloLectura, avisos }
+    return { ok: true, doc: validarDocumento(datos, avisos), soloLectura, avisos, requiere: requisitosLeidos(m.requiere) }
   } catch {
     return { ok: false, error: ERRORES_KIR.danado }
   }
@@ -230,6 +233,11 @@ const pieza: Constructor = (p, avisos) => {
   for (const [k, v] of Object.entries(p.props as Record<string, string>)) {
     if (k === '__proto__') avisos.push(`Se descartó la propiedad «__proto__» de ${sujeto('piezas', p)}.`)
     else props[limpiarTexto(k)] = limpiarTexto(v)
+  }
+  // Paquete y unidad solo valen si la referencia es su suma: si no, la pieza queda como encapsulado propio.
+  if (!invarianteDePaquete(limpiarTexto(p.ref), props)) {
+    for (const k of PROPS_DE_DOCUMENTO) delete props[k]
+    avisos.push(`Se quitaron el paquete y la unidad de ${textoDe(p.ref) ?? p.id}: no coinciden con su referencia.`)
   }
   // El nombre de un terminal es su red: se recorta al largo de una propiedad de texto, como lo dibuja el rótulo.
   if (p.tipo === 'alimentacion' && typeof props.nombre === 'string' && props.nombre.length > MAX_NOMBRE_RIEL) {

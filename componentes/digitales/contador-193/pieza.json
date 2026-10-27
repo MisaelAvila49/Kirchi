@@ -1,0 +1,180 @@
+{
+  "id": "contador-193",
+  "nombre": {
+    "es": "Contador binario arriba y abajo de dos relojes (74193)",
+    "en": "Up/down binary counter, dual clock (74193)"
+  },
+  "categoria": "digitales",
+  "grupo": "Biestables y contadores",
+  "prefijo": "U",
+  "buscar": [
+    "u",
+    "contador",
+    "counter",
+    "binario",
+    "arriba abajo",
+    "up down",
+    "dos relojes",
+    "dual clock",
+    "74193",
+    "74hc193",
+    "74ls193",
+    "co",
+    "bo"
+  ],
+  "pines": [
+    { "id": "UP", "nombre": "UP (reloj de cuenta hacia arriba)", "x": -6, "y": -4 },
+    { "id": "DOWN", "nombre": "DOWN (reloj de cuenta hacia abajo)", "x": -6, "y": -2 },
+    { "id": "CLR", "nombre": "CLR (borrado asíncrono, activo en alto)", "x": -6, "y": -8 },
+    { "id": "LOAD", "nombre": "LOAD (carga asíncrona, activa en bajo)", "x": -6, "y": -6 },
+    { "id": "A", "nombre": "A", "x": -6, "y": 2 },
+    { "id": "B", "nombre": "B", "x": -6, "y": 4 },
+    { "id": "C", "nombre": "C", "x": -6, "y": 6 },
+    { "id": "D", "nombre": "D", "x": -6, "y": 8 },
+    { "id": "QA", "nombre": "QA", "x": 6, "y": -8 },
+    { "id": "QB", "nombre": "QB", "x": 6, "y": -6 },
+    { "id": "QC", "nombre": "QC", "x": 6, "y": -4 },
+    { "id": "QD", "nombre": "QD", "x": 6, "y": -2 },
+    { "id": "CO", "nombre": "CO (acarreo, activo en bajo)", "x": 6, "y": 2 },
+    { "id": "BO", "nombre": "BO (préstamo, activo en bajo)", "x": 6, "y": 4 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "msi",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "nucleo": {
+      "tipo": "contador",
+      "bits": 4,
+      "modulo": 16,
+      "reloj": { "senales": ["UP"], "flanco": "subida" },
+      "abajo": { "senales": ["DOWN"], "flanco": "subida" },
+      "borra": { "senal": "CLR", "sincrona": false },
+      "carga": { "senal": "!LOAD", "sincrona": false, "datos": ["A", "B", "C", "D"] }
+    },
+    "salidas": { "QA": "q0", "QB": "q1", "QC": "q2", "QD": "q3", "CO": "tabla", "BO": "tabla" },
+    "tabla": {
+      "columnas": ["UP", "DOWN", "estado"],
+      "salidas": ["CO", "BO"],
+      "filas": [
+        "0 X 15 > 0 1",
+        "0 0 0 > 1 0",
+        "0 0 1-14 > 1 1",
+        "0 1 0-14 > 1 1",
+        "1 0 0 > 1 0",
+        "1 0 1-15 > 1 1",
+        "1 1 X > 1 1"
+      ]
+    },
+    "retardos": {
+      "74HC": { "vcc": 5, "Q*": [1.8e-8, 1.8e-8], "CO": [1e-8, 1e-8], "BO": [1e-8, 1e-8] },
+      "74LS": { "vcc": 5, "Q*": [2.7e-8, 3e-8], "CO": [1.7e-8, 1.8e-8], "BO": [1.6e-8, 1.5e-8] }
+    }
+  },
+  "caja": {
+    "titulo": "CTR DIV 16",
+    "forma": "funcional",
+    "izquierda": ["CLR", "!LOAD", "UP", "DOWN", null, "A", "B", "C", "D"],
+    "derecha": ["QA", "QB", "QC", "QD", null, "!CO", "!BO"],
+    "marcas": { "UP": ["dinamico"], "DOWN": ["dinamico"] }
+  },
+  "fuentes": {
+    "74HC": "TI CD74HC193 (SCHS163F): función p. 2 y retardos típicos de 18 ns de UP o DOWN a Q y 10 ns a CO y BO (pp. 6 y 7, 5 V, CL 15 pF). La hoja llama CPU, CPD, MR, PL, TCU y TCD a UP, DOWN, CLR, LOAD, CO y BO.",
+    "74LS": "TI SN74LS193 (SDLS074): función p. 1 y retardos típicos de UP o DOWN a Q (27 ns de subida, 30 de bajada), de UP a CO (17 y 18) y de DOWN a BO (16 y 15) (p. 8, 5 V, CL 15 pF)."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD74HC193E",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd74hc193.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0; el retardo de CLR y LOAD a Q usa el de CLK a Q. La hoja de TI llama P0 a P3, MR, PL, CPU, CPD, TCU y TCD a lo que la fila llama A a D, CLR, LOAD, UP, DOWN, CO y BO.",
+        "equivalencias": { "kicad": "74xx:74HC193" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "A": "15",
+              "B": "1",
+              "C": "10",
+              "D": "9",
+              "QA": "3",
+              "QB": "2",
+              "QC": "6",
+              "QD": "7",
+              "CLR": "14",
+              "LOAD": "11",
+              "UP": "5",
+              "DOWN": "4",
+              "CO": "12",
+              "BO": "13"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "CD74HC193E"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de CD74HC193E de TI (solo SN74HC193N(LX), otro fabricante)" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC192/193 (SCHS163F, oct 2003), p. 1, Pinout; KiCad 74xx:74HC193 (9.0.0)" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS193N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls193.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0; el retardo de CLR y LOAD a Q usa el de UP o DOWN a Q.",
+        "equivalencias": { "kicad": "74xx:74LS193" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "A": "15",
+              "B": "1",
+              "C": "10",
+              "D": "9",
+              "QA": "3",
+              "QB": "2",
+              "QC": "6",
+              "QD": "7",
+              "CLR": "14",
+              "LOAD": "11",
+              "UP": "5",
+              "DOWN": "4",
+              "CO": "12",
+              "BO": "13"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS193N",
+            "lcsc": { "numero": "C354425", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74LS193 (SDLS074, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS193 (9.0.0)" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -14 }, "valor": { "x": 0, "y": 14 } },
+  "rotulos": [
+    { "texto": "CLR", "x": -3.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "LOAD", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "UP", "x": -2.3, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "DOWN", "x": -2.3, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "A", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "C", "x": -3.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "D", "x": -3.2, "y": 8, "tam": 1, "alinear": "izq" },
+    { "texto": "QA", "x": 3.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "QB", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "QC", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "QD", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "CO", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "BO", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "CTR DIV 16", "x": 0, "y": -11, "tam": 1, "alinear": "centro" }
+  ]
+}

@@ -250,6 +250,7 @@ mod tests {
     fn en_el_escalamiento_de_fuentes_baja_como_las_demas() {
         // El rescate de convergencia sube las fuentes de 10 % a 100 % (`Ctx::src`): a la cuarta parte, la fuente variable de
         // 12 V es de 3 V. Con 3 V entre sus terminales no entrega corriente (el centro de la rodilla).
+        use crate::canales::Canales;
         use crate::dense::DenseLu;
         use crate::devices::{Alloc, Ctx, Device, Mode};
         let mut f = super::FuenteLab::new(1, 0, 12.0, 0.1, 0.005, true);
@@ -257,7 +258,7 @@ mod tests {
         let mut m = DenseLu::new(1);
         let (x, mut rhs) = ([3.0], [0.0]);
         let (mut s0, mut s1, s2) = ([0.0; 0], [0.0; 0], [0.0; 0]);
-        let mut c = Ctx { x: &x, m: &mut m, rhs: &mut rhs, s0: &mut s0, s1: &mut s1, s2: &s2, mode: Mode::Float, order: 1, ag0: 0.0, ag1: 0.0, xfact: 1.0, t: 0.0, h: 1e-6, gmin: 1e-12, src: 0.25 };
+        let mut c = Ctx { x: &x, m: &mut m, rhs: &mut rhs, s0: &mut s0, s1: &mut s1, s2: &s2, mode: Mode::Float, order: 1, ag0: 0.0, ag1: 0.0, xfact: 1.0, t: 0.0, h: 1e-6, gmin: 1e-12, src: 0.25, canales: &Canales::default() };
         f.load(&mut c);
         // La corriente de `a` a `b` por dentro es −io + g·vd, que entra al lado derecho de `a` con el signo cambiado: io − g·vd,
         // con io = 0 en el centro de la rodilla y g = −ilim/vk: 20 S · 3 V = 60 A. Con la fuente entera (12 V), 3 V está en el

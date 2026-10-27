@@ -1,10 +1,12 @@
 // Genera src/renderer/src/ui/licenciasTerceros.json con las licencias de lo que viaja con Kirchi. `--revisar` falla si no coincide con package.json, node_modules, Cargo.lock y licencias/, o si un paquete queda sin su texto.
+// Entra lo de `dependencies` y todo paquete que Vite empaqueta en el proceso principal (se averigua con esbuild); una licencia fuera de MIT, BSD, ISC, 0BSD, Apache-2.0 u OFL-1.1 falla.
 // Cada paquete lleva SU texto de licencia y avisos; si un crate no los publica, se toma del repositorio en el commit exacto (ORIGEN.txt) y nunca del de otro paquete. Electron, Chromium y ngspice se agregan aparte. No descarga nada.
 import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { build } from 'esbuild'
 import { FUENTES as NGSPICE_FUENTES, VERSION as NGSPICE_VERSION } from './ngspice-fuente.mjs'
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -43,20 +45,58 @@ function licenciaNpm(pkg) {
   return 'desconocida'
 }
 
-function paquetesNpm() {
+/** Licencias que pueden ir dentro de lo empaquetado: MIT, BSD, ISC, 0BSD, Apache-2.0 y la OFL de las tipografías. */
+export const PERMITIDAS = new Set(['MIT', 'BSD-2-Clause', 'BSD-3-Clause', '0BSD', 'ISC', 'Apache-2.0', 'OFL-1.1'])
+
+/** Una expresión SPDX es admisible si cada término unido por AND tiene al menos una alternativa (OR) permitida. */
+export function licenciaPermitida(expresion) {
+  const limpia = String(expresion).replace(/[()]/g, ' ').trim()
+  if (!limpia || limpia === 'desconocida') return false
+  return limpia.split(/\s+AND\s+/).every((termino) => termino.split(/\s+OR\s+|\//).some((l) => PERMITIDAS.has(l.trim())))
+}
+
+/** Paquetes de node_modules que Vite mete dentro de out/main (los externos no cuentan), según un empaquetado de esbuild del mismo punto de entrada. */
+export async function paquetesDelProcesoPrincipal() {
+  const r = await build({
+    entryPoints: [join(RAIZ, 'src', 'main', 'index.ts')],
+    bundle: true,
+    write: false,
+    metafile: true,
+    platform: 'node',
+    format: 'esm',
+    outdir: join(RAIZ, 'out', 'comprobacion'),
+    external: ['electron'],
+    loader: { '.wasm': 'empty', '.svg': 'empty' },
+    logLevel: 'silent'
+  })
+  const nombres = new Set()
+  for (const f of Object.keys(r.metafile.inputs)) {
+    const m = f.replaceAll('\\', '/').match(/node_modules\/((?:@[^/]+\/)?[^/]+)/)
+    if (m) nombres.add(m[1])
+  }
+  return [...nombres].sort()
+}
+
+function paquetesNpm(empaquetadosEnMain) {
   const raiz = leerJson(join(RAIZ, 'package.json'))
   const vistos = new Map()
-  const pendientes = Object.keys(raiz.dependencies ?? {})
-  while (pendientes.length) {
-    const nombre = pendientes.pop()
-    if (vistos.has(nombre)) continue
+  const agregar = (nombre) => {
     const carpeta = join(RAIZ, 'node_modules', nombre)
     if (!existsSync(join(carpeta, 'package.json'))) throw new Error(`Falta ${nombre} en node_modules: corre npm ci.`)
     const pkg = leerJson(join(carpeta, 'package.json'))
     const t = textosDePaquete(carpeta, join(LICENCIAS, 'npm', `${nombre.replace('/', '__')}-${pkg.version}`))
     vistos.set(nombre, { nombre, version: pkg.version, licencia: licenciaNpm(pkg), origen: 'npm', ...t, commit: null })
-    pendientes.push(...Object.keys(pkg.dependencies ?? {}))
+    return pkg
   }
+  // `dependencies` viaja en la interfaz con todo lo que arrastra.
+  const pendientes = Object.keys(raiz.dependencies ?? {})
+  while (pendientes.length) {
+    const nombre = pendientes.pop()
+    if (vistos.has(nombre)) continue
+    pendientes.push(...Object.keys(agregar(nombre).dependencies ?? {}))
+  }
+  // Lo que solo entra al proceso principal (SDK de MCP, zod y lo que importa) sale del análisis de empaquetado: sin sumar lo que el SDK declara pero no se importa.
+  for (const nombre of empaquetadosEnMain) if (!vistos.has(nombre)) agregar(nombre)
   return [...vistos.values()]
 }
 
@@ -130,6 +170,7 @@ export function problemas(paquetes, carpetasExtra) {
   const usadas = new Set()
   for (const p of paquetes) {
     const id = `${p.nombre}@${p.version}`
+    if (p.origen === 'npm' && !licenciaPermitida(p.licencia)) lista.push(`${id}: licencia ${p.licencia} fuera de la lista permitida (${[...PERMITIDAS].join(', ')})`)
     if (!p.principal) lista.push(`${id}: sin archivo de licencia propio; agrega licencias/${p.origen}/${p.nombre}-${p.version}/LICENSE desde su repositorio`)
     if (PIDE_AVISO.test(p.licencia) && !/(^|\n).*\bcopyright\b/i.test(p.texto) && !/^(Apache|Unlicense)/.test(p.licencia)) lista.push(`${id}: el texto no trae ninguna línea de derechos de autor`)
     if (p.extra) {
@@ -153,8 +194,8 @@ export function carpetasExtra() {
   })
 }
 
-export function generar() {
-  const todos = [...paquetesNpm(), ...paquetesCargo()].sort((a, b) => a.origen.localeCompare(b.origen) || a.nombre.localeCompare(b.nombre) || a.version.localeCompare(b.version))
+export async function generar() {
+  const todos = [...paquetesNpm(await paquetesDelProcesoPrincipal()), ...paquetesCargo()].sort((a, b) => a.origen.localeCompare(b.origen) || a.nombre.localeCompare(b.nombre) || a.version.localeCompare(b.version))
   const errores = problemas(todos, carpetasExtra())
   const textos = []
   const indice = (texto) => {
@@ -171,7 +212,7 @@ export function generar() {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const { datos, errores } = generar()
+  const { datos, errores } = await generar()
   if (errores.length) {
     console.error(`Licencias con problemas:\n  ${errores.join('\n  ')}`)
     process.exit(1)

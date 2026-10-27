@@ -8,5 +8,6 @@
   "props": [{ "id": "nombre", "nombre": "Nombre", "defecto": "VCC", "texto": true, "comunes": ["+15V", "-15V", "+5V", "VCC", "VEE"] }],
   "modelo": { "tipo": "alimentacion", "pin": "1", "nombre": "nombre" },
   "etiquetas": { "ref": { "x": 3, "y": -2 }, "valor": { "trasRotulo": 0 } },
-  "rotulos": [{ "prop": "nombre", "x": 0, "y": -4.4, "tam": 1.8, "alinear": "arriba" }]
+  "rotulos": [{ "prop": "nombre", "x": 0, "y": -4.4, "tam": 1.8, "alinear": "arriba" }],
+  "datos": { "equivalencias": { "kicad": ["power:VCC", "power:VDD", "power:VEE", "power:+5V"], "falstad": "R" }, "valores": { "*": { "virtual": true } } }
 }

@@ -11,6 +11,7 @@ import type { LecturaEn } from './lectura'
 import { dominioBonito, dominioEnDivisiones, ticksDeDivisiones } from './divisiones'
 import { aPixel, deltaCursores, interpolar, zoomCaja, type Dominio, type Escala } from './vista'
 import { conAlfa } from '../exportar/color'
+import { lineasDeCursoresXY, pixelCursorXY } from './xy'
 
 /**
  * Dibujo de una gráfica de datos, la misma función para pantalla, PNG, SVG y PDF (`ContextoSvg`). `geometriaGrafica` calcula dónde cae todo sin dibujar y lo usan los gestos del ratón.
@@ -408,8 +409,9 @@ function dibujarPanel(ctx: Lienzo2D, m: ModeloGrafica, v: VistaGrafica, a: Aspec
   ctx.clip()
   if (m.tipo === 'barras' && m.barras) dibujarBarras(ctx, m, c, g, pan)
   else dibujarTrazas(ctx, m, v, a, c, g, pan, p, o.resplandor === true)
-  // Los cursores del eje horizontal.
-  if (m.tipo === 'lineas' && v.cursores) {
+  // Los cursores del eje horizontal (en X-Y, puntos de la curva).
+  if (m.tipo === 'lineas' && m.xy && v.cursores) dibujarCursoresXY(ctx, m, v, g, c, pan, tip, o.cursorResaltado ?? null, d)
+  else if (m.tipo === 'lineas' && v.cursores) {
     ctx.setLineDash([3 * d, 3 * d])
     ctx.strokeStyle = c.texto
     ctx.lineWidth = d
@@ -752,9 +754,40 @@ function dibujarBarras(ctx: Lienzo2D, m: ModeloGrafica, c: ColoresGrafica, g: Ge
   })
 }
 
+/** Los cursores de una gráfica X-Y: una cruz discontinua y un cuadro sobre cada punto de la curva. */
+function dibujarCursoresXY(ctx: Lienzo2D, m: ModeloGrafica, v: VistaGrafica, g: Geometria, c: ColoresGrafica, pan: PanelGeom, tip: Tipografia, resaltado: 0 | 1 | null, d: number): void {
+  for (const i of [0, 1] as const) {
+    const p = pixelCursorXY(m, v, g, i)
+    if (!p) continue
+    const y = p.y - pan.y0
+    const grueso = resaltado === i
+    ctx.setLineDash(grueso ? [] : [3 * d, 3 * d])
+    ctx.strokeStyle = c.texto
+    ctx.lineWidth = grueso ? Math.max(2, 2.5 * d) : d
+    ctx.beginPath()
+    ctx.moveTo(Math.round(p.x) + 0.5, pan.col.y)
+    ctx.lineTo(Math.round(p.x) + 0.5, pan.col.y + pan.col.h)
+    ctx.moveTo(pan.col.x, Math.round(y) + 0.5)
+    ctx.lineTo(pan.col.x + pan.col.w, Math.round(y) + 0.5)
+    ctx.stroke()
+    ctx.setLineDash([])
+    ctx.fillStyle = c.fondo
+    ctx.fillRect(p.x - 5 * d, y - 5 * d, 10 * d, 10 * d)
+    ctx.beginPath()
+    ctx.rect(p.x - 4 * d, y - 4 * d, 8 * d, 8 * d)
+    ctx.stroke()
+    ctx.font = fuenteCifras(tip, d)
+    ctx.fillStyle = c.texto
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'bottom'
+    ctx.fillText(String(i + 1), p.x + 7 * d, y - 4 * d)
+  }
+}
+
 /** La lectura de los dos cursores: la diferencia en el eje horizontal y el valor de cada traza visible bajo cada uno. */
 export function lineasDeCursores(m: ModeloGrafica, v: VistaGrafica, g: Geometria): string[] {
   if (!v.cursores) return []
+  if (m.xy) return lineasDeCursoresXY(m, v, true)
   const [x1, x2] = v.cursores
   const u = m.ejeX.unidad
   const dl = deltaCursores(v.cursores, g.escalaX)
@@ -774,6 +807,7 @@ export function lineasDeCursores(m: ModeloGrafica, v: VistaGrafica, g: Geometria
 /** La lectura de los cursores en pocas líneas: solo las diferencias (de x y de cada traza); los valores van en el detalle. */
 export function lineasDeCursoresCompactas(m: ModeloGrafica, v: VistaGrafica, g: Geometria): string[] {
   if (!v.cursores) return []
+  if (m.xy) return lineasDeCursoresXY(m, v, false)
   const u = m.ejeX.unidad
   const dl = deltaCursores(v.cursores, g.escalaX)
   const eje = (m.ejeX.nombre || 'x').charAt(0).toLowerCase()

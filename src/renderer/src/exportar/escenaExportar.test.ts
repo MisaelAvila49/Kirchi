@@ -50,4 +50,13 @@ describe('escenaDeExportar', () => {
     const f = fuente({ area: { x: 900, y: 900, ancho: 10, alto: 10 } })
     expect(escenaDeExportar(f, 'area', op(), PALETA_CLARA).caja).toBeNull()
   })
+
+  it('los números de patilla salen en el archivo solo si están visibles', () => {
+    const f = fuente()
+    f.doc.piezas.u1 = { id: 'u1', tipo: 'nand', ref: 'U1', x: 0, y: 40, rot: 0, espejo: false, props: {} }
+    f.con = calcularConexiones(f.doc, lib)
+    const textos = (v: boolean) => escenaDeExportar({ ...f, numerosPatilla: v }, 'todo', op(), PALETA_CLARA).textos.map((t) => t.texto)
+    expect(textos(false)).not.toContain('3')
+    expect(textos(true)).toEqual(expect.arrayContaining(['1', '2', '3']))
+  })
 })

@@ -1,0 +1,25 @@
+* INA128 con ganancia 1 y 10 V de modo comun: el rechazo de 86 dB deja unos 0.5 mV a la salida
+.include modelos.lib
+V1 vp 0 DC 15
+V2 vm 0 DC -15
+V3 inm 0 DC 10
+V4 inp 0 DC 10
+XU1 inm rg1 o1 vp vm AMPOP a0=1000000 gbw=20000000 sr=4000000 rin=1000000000000 rout=1 ilim=0.006 dhi=1 dlo=1 rq=128600
+XU2 inp rg2 o2 vp vm AMPOP a0=1000000 gbw=20000000 sr=4000000 rin=1000000000000 rout=1 ilim=0.006 dhi=1 dlo=1 rq=128600
+R1 o1 rg1 25000
+R2 o2 rg2 25000
+R3 o1 nn 40000
+R4 nn out 40004
+R5 o2 np 40000
+R6 np 0 40000
+XU3 np nn out vp vm AMPOP a0=1000000 gbw=2600000 sr=4000000 rin=1000000000000 rout=1 ilim=0.006 dhi=1.4 dlo=1.4 rq=128600
+RL out 0 10k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(out) i(v1)
+.endc
+.end

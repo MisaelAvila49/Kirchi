@@ -20,6 +20,13 @@
 .model QTIP125 PNP(IS=5.1e-15 BF=3450 NF=1.4 VAF=100 ISE=5.52e-18 NE=1.5 BR=5 RB=4.03 RC=0.0166 RE=0.2547 CJE=5e-10 VJE=0.75 MJE=0.33 TF=3e-08 CJC=7.2e-10 VJC=0.75 MJC=0.33 TR=5e-07)
 .model QBD140 PNP(IS=2.19e-13 BF=115.7 NF=1 VAF=100 IKF=0.89 ISE=7.07e-14 NE=1.5 BR=5 RB=5.84 RC=0.171 RE=0.126 CJE=6e-11 VJE=0.75 MJE=0.33 TF=1.6e-09 CJC=2e-11 VJC=0.75 MJC=0.33 TR=1e-07)
 
+* Transistores del lote A: los mismos parametros de componentes/semiconductores/npn y pnp.
+.model QBC337 NPN(IS=1.264e-13 BF=550 NF=1 VAF=100 IKF=0.07736 ISE=3.106e-19 NE=1.5 BR=5 RB=4.756 RC=2.976e-5 RE=0.3614 CJE=3e-11 VJE=0.75 MJE=0.33 TF=7.6e-10 CJC=1.2e-11 VJC=0.75 MJC=0.33 TR=1e-7)
+.model QBC327 PNP(IS=1.264e-13 BF=550 NF=1 VAF=100 IKF=0.07736 ISE=3.106e-19 NE=1.5 BR=5 RB=4.756 RC=2.976e-5 RE=0.3614 CJE=3e-11 VJE=0.75 MJE=0.33 TF=7.6e-10 CJC=1.2e-11 VJC=0.75 MJC=0.33 TR=1e-7)
+.model Q2N5551 NPN(IS=1.281e-14 BF=211.5 NF=1 VAF=100 IKF=0.01594 ISE=1.083e-13 NE=1.5 BR=5 RB=7.43 RC=0.2667 RE=6.196e-9 CJE=3e-11 VJE=0.75 MJE=0.33 TF=1.2e-9 CJC=1.2e-11 VJC=0.75 MJC=0.33 TR=1e-7)
+.model Q2N5401 PNP(IS=8.98e-15 BF=180 NF=1 VAF=100 IKF=0.06607 ISE=2.572e-13 NE=1.5 BR=5 RB=1.233 RC=3.151 RE=1.903e-5 CJE=3e-11 VJE=0.75 MJE=0.33 TF=1.2e-9 CJC=1.2e-11 VJC=0.75 MJC=0.33 TR=1e-7)
+.model Q2N3055 NPN(IS=1.277e-11 BF=96.2 NF=1 VAF=100 IKF=1.397 ISE=8.154e-12 NE=1.5 BR=5 RB=0.854 RC=1.285e-7 RE=0.08437 CJE=1e-9 VJE=0.75 MJE=0.33 TF=4e-8 CJC=4e-10 VJC=0.75 MJC=0.33 TR=5e-7)
+
 * MOSFET de nivel 1, con W y L de 1 m en la instancia: CGSO y CGDO quedan en faradios y KP es la beta.
 .model M2N7000 NMOS(LEVEL=1 VTO=2.1 KP=0.18 LAMBDA=0.02 RD=0.3 RS=0.2 CBD=34p PB=0.8 MJ=0.5 FC=0.5
 + IS=1e-15 CGSO=15p CGDO=5p)
@@ -45,6 +52,7 @@
 * Diodos de la serie: parametros ajustados a las hojas de datos, los mismos de componentes/semiconductores/diodo/pieza.json.
 .model D1N4148 D(IS=2.2n N=1.8 RS=0.6 CJO=4p VJ=0.6 M=0.4 TT=2n BV=100 IBV=100u)
 .model D1N4007 D(IS=7.5n N=1.8 RS=0.03 CJO=38p VJ=0.75 M=0.5 TT=3u BV=1000 IBV=5u)
+.model D1N4001 D(IS=7.5n N=1.8 RS=0.03 CJO=38p VJ=0.75 M=0.5 TT=3u BV=50 IBV=5u NBV=1)
 .model D1N5819 D(IS=2.7u N=1.05 RS=0.1 CJO=330p VJ=0.5 M=0.5 TT=0.1n BV=40 IBV=1m)
 
 * Zener de la serie 1N47xxA (Vishay 85816) y BZX55C (Vishay 85604): rs = zzt - vt/izt y bv = vz - izt rs, como el motor.
@@ -54,6 +62,7 @@
 
 * Transistor de salida de los comparadores LM393 y LM311 (componentes/integrados/comparador): el amplificador es AMPOP y su resistencia de base va en el circuito.
 .model QCMP393 NPN(IS=1e-14 BF=60 RC=23 CJE=2e-12 CJC=2e-12 TF=5e-09 TR=1e-07)
+.model QCMP339 NPN(IS=1e-14 BF=60 RC=28 CJE=2e-12 CJC=2e-12 TF=5e-09 TR=1e-07)
 .model QCMP311 NPN(IS=1e-14 BF=60 RC=12 CJE=2e-12 CJC=2e-12 TF=3e-09 TR=1e-09)
 
 * Amplificador operacional de una etapa (el mismo que el motor): ganancia a0, polo dominante a0/gbw,
@@ -89,3 +98,30 @@ BON vn sal I=0.5*({ilim}*tanh((V(x)-V(sal))/({rout}*{ilim}))-sqrt(({ilim}*tanh((
 .model QULN1 NPN(IS=1e-15 BF=100 VAF=50 RB=20 RC=3 RE=1)
 .model QULN2 NPN(IS=1e-14 BF=100 VAF=50 RB=10 RC=0.5 RE=0.8)
 .model DULN D(IS=1e-9 N=1.3 RS=2.9 BV=100 IBV=1e-4)
+
+* Referencia TL431 (componentes/integrados/tl431): transistor de K a A y diodo de A a K, los mismos parametros de su pieza.json.
+.model QTL431 NPN(IS=1e-14 BF=150 NF=1 BR=1)
+.model DTL431 D(IS=1e-14 N=1)
+
+* LED verde de la punta logica (componentes/instrumentos/punta-logica): el mismo de componentes/semiconductores/led.
+.model DLEDVERDE D(IS=4.59e-20 N=2)
+
+* Optoacoplador 4N25 (componentes/integrados/optoacoplador-4n25): el LED y el fototransistor, los mismos parametros de su pieza.json.
+.model DOPT4 D(IS=1.46e-12 N=2 RS=0.92)
+.model QOPT4 NPN(IS=1e-14 BF=200 TF=4.5n)
+
+* Optoacoplador PC817 (componentes/integrados/optoacoplador-pc817): el LED y el fototransistor, los mismos parametros de su pieza.json.
+.model DOPT8 D(IS=2.36e-12 N=2 RS=0.9)
+.model QOPT8 NPN(IS=1e-14 BF=200 TF=8n)
+
+* IGBT IRG4BC30UD y FGA25N120ANTD (componentes/semiconductores/igbt): MOSFET que maneja un PNP, con el diodo en antiparalelo; los mismos parametros de su pieza.json.
+.model MIGBT1 NMOS(LEVEL=1 VTO=4.4873 KP=1.027467 LAMBDA=0)
+.model QIGBT1 PNP(IS=2.1245e-11 BF=2 NF=2)
+.model DIGBT1 D(IS=4.35e-14 N=1 RS=0.045 TT=6.7n)
+.model MIGBT2 NMOS(LEVEL=1 VTO=5.4118 KP=2.14056 LAMBDA=0)
+.model QIGBT2 PNP(IS=2.6406e-11 BF=2 NF=2)
+.model DIGBT2 D(IS=6.2877e-12 N=1 RS=0.05 TT=125n)
+
+* UJT 2N2646 (componentes/semiconductores/ujt): equivalente de un PUT con un PNP y un NPN realimentados; los mismos parametros de su pieza.json.
+.model QUJTP PNP(IS=1e-14 BF=10 VAF=50 RB=0.5 RC=0.05 RE=0.05)
+.model QUJTN NPN(IS=1e-14 BF=4 VAF=50 RB=0.5 RC=0.05 RE=0.05)

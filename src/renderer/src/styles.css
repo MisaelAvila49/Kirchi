@@ -335,6 +335,29 @@ button, input, select, textarea { font: inherit; }
 .muestra { width: 22px; height: 4px; border-radius: 2px; }
 .nota-dialogo { margin: 4px 0 0; }
 .opciones .nota-dialogo { margin: 0 0 8px; }
+/* Configuración: grupos rotulados, pistas con globo (i), interruptor y estado del asistente. */
+.panel-config .grupo { margin: 0; padding: 10px 0 12px; border: 0; border-bottom: 1px solid var(--bordes); min-inline-size: 0; }
+.panel-config .grupo:last-of-type { border-bottom: 0; }
+.panel-config .grupo > legend { padding: 0; margin-bottom: 6px; font-weight: 650; }
+.panel-config .fila { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 28px; }
+.panel-config .fila .opcion { padding: 0; }
+.panel-config .fld-campo input[type='range'] { accent-color: var(--seleccion); }
+.pista { display: flex; align-items: center; gap: 5px; margin: 2px 0 4px; color: var(--texto-secundario); }
+.info { position: relative; display: inline-grid; place-items: center; width: 16px; height: 16px; padding: 0; flex: none; border: 1px solid var(--borde-campo); border-radius: 50%; background: transparent; color: var(--texto-secundario); font: 600 10px/1 var(--fuente-interfaz); cursor: help; }
+.info:hover, .info:focus-visible, .info[data-visible] { color: var(--seleccion); border-color: var(--seleccion); }
+.info:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 2px; }
+.info .globo-pista { display: none; position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-30%); width: 230px; padding: 6px 9px; z-index: 5; background: var(--paneles); color: var(--trazo); border: 1px solid var(--bordes); border-radius: 6px; box-shadow: var(--sombra); font: 400 12px/1.35 var(--fuente-interfaz); text-align: left; white-space: normal; cursor: default; }
+.info[data-visible] .globo-pista { display: block; }
+.carpeta { padding: 3px 8px; border: 1px solid var(--bordes); border-radius: 5px; background: var(--lienzo); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.interruptor { position: relative; width: 34px; height: 20px; padding: 0; flex: none; border: 0; border-radius: 10px; background: var(--borde-campo); cursor: pointer; }
+.interruptor::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--paneles); }
+.interruptor[aria-checked='true'] { background: var(--seleccion); }
+.interruptor[aria-checked='true']::after { left: 16px; }
+.interruptor:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 2px; }
+.estado { display: inline-flex; align-items: center; gap: 6px; }
+.estado i { width: 8px; height: 8px; border-radius: 50%; background: var(--borde-campo); display: inline-block; }
+.estado[data-estado='esperando'] i, .estado[data-estado='conectado'] i { background: var(--seleccion); }
+@media (forced-colors: active) { .interruptor { border: 1px solid ButtonText; } .interruptor[aria-checked='true'] { background: Highlight; } .interruptor::after { background: ButtonText; } }
 /* Preguntas (guardar los cambios, recuperar): el botón principal relleno con el color de selección, a la derecha. */
 .dialogo.pregunta p { margin: 0 0 8px; }
 .tiempos-rapidos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
@@ -386,6 +409,15 @@ kbd { display: inline-block; min-width: 18px; margin-left: 2px; padding: 0 4px; 
 .categoria-flecha { width: 9px; height: 6px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .categoria-plegar[aria-expanded='false'] .categoria-flecha { transform: rotate(-90deg); }
 .categoria-boton { width: 100%; display: flex; justify-content: space-between; padding: 2px 0; border: 0; background: transparent; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+/* Grupos plegables de una categoría de la Librería: título en renglón propio con su flecha, sin mayúsculas. */
+.grupo-libreria { margin-top: 2px; }
+.grupo-titulo { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--trazo); }
+.grupo-boton { align-items: center; gap: 6px; padding: 4px 0 4px 2px; }
+.grupo-boton .cat-nombre { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; }
+.grupo-boton .cat-nombre::before { content: ''; flex: none; border: 4px solid transparent; border-left: 5px solid currentColor; border-right: 0; }
+.grupo-boton[aria-expanded='true'] .cat-nombre::before { transform: rotate(90deg); }
+.grupo-boton .cifra { font-size: 10.5px; font-weight: 400; color: var(--texto-secundario); }
+.grupo-boton:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 2px; border-radius: 3px; }
 .lista { list-style: none; margin: 0; padding: 0; }
 .entrada { width: 100%; min-height: 25px; display: flex; align-items: center; gap: 8px; padding: 2px 6px; border: 0; border-radius: 6px; background: transparent; color: var(--trazo); text-align: left; cursor: pointer; }
 .entrada:hover { background: var(--resalte); }
@@ -466,6 +498,10 @@ kbd { display: inline-block; min-width: 18px; margin-left: 2px; padding: 0 4px; 
 .fld-pos .deslizador { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: var(--seleccion); }
 .fld-pos .deslizador:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 2px; }
 .multimetro .fld-pos { max-width: 32rem; }
+/* Perilla en vivo: el campo con su unidad a la derecha del rótulo, el deslizador debajo y su escala. */
+.fld-perilla { grid-template-columns: 1fr auto; }
+.fld-perilla .escala { grid-column: 1 / -1; display: flex; justify-content: space-between; margin-top: -2px; font-size: 11px; color: var(--texto-secundario); }
+.fld-perilla p { grid-column: 1 / -1; margin: 0; min-height: 1em; font-size: 11px; }
 
 /* ---------- Color ----------
    Solo variables (valores en ui/colores.css). Un elemento con data-tono recibe --t, --t-suave, --t-tenue y --t-texto; las reglas traen respaldo gris

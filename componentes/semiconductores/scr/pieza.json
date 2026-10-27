@@ -158,5 +158,23 @@
   },
   "fuentes": {
     "2N5060": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a onsemi 2N5060 a 2N5064, 2N5060/D rev. 11 (oct 2024), https://www.onsemi.com/download/data-sheet/pdf/2n5060-d.pdf: corriente de disparo de la compuerta de 200 µA máx (VAK = 7 V, RL = 100 Ω), voltaje de disparo de 0.8 V máx, corriente de mantenimiento de 5 mA máx, VTM de 1.7 V máx a 1.2 A y corriente de bloqueo de 10 µA máx a 25 °C. Es el par clásico de dos transistores (un PNP y un NPN realimentados) con una resistencia de compuerta de 50 Ω y una de compuerta a cátodo de 47 kΩ: con 1 nF de capacitancia en sus dos nodos internos (el disparo sin ella no siempre converge) el modelo da 110 µA de disparo, 2.0 mA de mantenimiento, 1.4 V a 1 A y menos de 1 nA de fuga a 30 V. La ganancia a poca corriente la fija la corriente de fuga de base (ise = 1.8 nA con ne = 2). No modela dv/dt, di/dt, el tiempo de apagado ni la temperatura."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:Q_SCR_AKG", "falstad": "177", "proteus": "SCR", "sinVerificar": ["proteus"] },
+    "valores": {
+      "2N5060": {
+        "fabricante": "onsemi",
+        "parte": "2N5060G",
+        "hoja": "https://www.onsemi.com/download/data-sheet/pdf/2n5060-d.pdf",
+        "equivalencias": { "kicad": "Device:Q_SCR_KGA" },
+        "presentaciones": [
+          { "encapsulado": "TO-92", "patillas": { "K": "1", "G": "2", "A": "3" }, "huella": "Package_TO_SOT_THT:TO-92_Inline" }
+        ],
+        "pendiente": { "lcsc": "El 2N5060 no aparece en LCSC (solo el 2N5063 de Central, C17546878)" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "onsemi 2N5060-2N5064 (rev. 11) p. 1, TO-92 caso 29 estilo 10 (1 Cátodo, 2 Compuerta, 3 Ánodo)" },
+        "nota": "Una sola fuente: KiCad 9 no trae el 2N5060"
+      }
+    }
   }
 }

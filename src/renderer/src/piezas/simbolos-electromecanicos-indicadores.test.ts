@@ -21,6 +21,8 @@ describe('electromecánicos e indicadores', () => {
   it.each([
     ['rele', 'electromecanicos', 'K', ['A1@-4,-4', 'A2@-4,4', 'NC@0,-4', 'NA@4,-4', 'COM@2,4']],
     ['motor-dc', 'electromecanicos', 'M', ['+@-4,0', '-@4,0']],
+    ['motor-pasos-bipolar', 'electromecanicos', 'M', ['A+@-4,-2', 'A-@-4,2', 'B+@4,-2', 'B-@4,2']],
+    ['motor-pasos-unipolar', 'electromecanicos', 'M', ['A@-4,-2', "A2@-4,2", 'B@4,-2', 'B2@4,2', 'COM@0,4']],
     ['foco', 'indicadores', 'LP', ['1@-4,0', '2@4,0']],
     ['zumbador', 'indicadores', 'BZ', ['+@-2,2', '-@2,2']],
     ['display-7seg', 'indicadores', 'DS', ['a@-6,-8', 'b@-6,-6', 'c@-6,-4', 'd@-6,-2', 'e@-6,0', 'f@-6,2', 'g@-6,4', 'dp@-6,6', 'COM@6,0']]
@@ -35,6 +37,9 @@ describe('electromecánicos e indicadores', () => {
     ['rele', 'rele'],
     ['relé', 'rele'],
     ['motor', 'motor-dc'],
+    ['nema 17', 'motor-pasos-bipolar'],
+    ['17hs4401', 'motor-pasos-bipolar'],
+    ['28byj-48', 'motor-pasos-unipolar'],
     ['foco 12', 'foco'],
     ['buzzer', 'zumbador'],
     ['7 segmentos', 'display-7seg']

@@ -1,0 +1,66 @@
+{
+  "netlist": {
+    "nodes": 4,
+    "digital_nets": 0,
+    "elements": [
+      {
+        "type": "V",
+        "a": 1,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 5
+        }
+      },
+      {
+        "type": "R",
+        "a": 2,
+        "b": 0,
+        "ohms": 10000
+      },
+      {
+        "type": "EXT",
+        "a": 3,
+        "b": 0,
+        "modo": "v",
+        "canal": 0,
+        "k": 0.01,
+        "c": 0
+      },
+      {
+        "type": "OA",
+        "p": 3,
+        "n": 2,
+        "out": 2,
+        "vp": 1,
+        "vn": 0,
+        "model": {
+          "a0": 100000,
+          "gbw": 1000000,
+          "sr": 1000000,
+          "rin": 1000000000000,
+          "rout": 0.5,
+          "ilim": 0.01,
+          "dhi": 1.5,
+          "dlo": 0.01,
+          "rq": 89286
+        }
+      }
+    ],
+    "canales": [
+      {
+        "inicial": 100
+      }
+    ]
+  },
+  "fin": 0.2,
+  "hmax": 0.001,
+  "columnas": {
+    "v(out)": {
+      "nodo": 2
+    },
+    "i(v1)": {
+      "corriente": 0
+    }
+  }
+}

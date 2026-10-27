@@ -16,11 +16,29 @@ describe('ajustes', () => {
       simulacion: { corriente: false, animaciones: true, sonido: true, volumen: 50, velocidadFlechas: 1, quemar: false },
       tutorial: { ofertaVista: false, avanzarSolo: true, avance: {} },
       plantillasPlegadas: [],
+      libreriaPlegada: [],
       proyectoPlegado: [],
+      inspectorDatosPlegado: true,
+      numerosPatilla: true,
       ventana: null,
       carpetas: { abrir: null, guardar: null, exportar: null },
-      grabacion: { que: 'ventana', calidad: '1080p', microfono: null, resaltarClics: true }
+      grabacion: { que: 'ventana', calidad: '1080p', microfono: null, resaltarClics: true },
+      asistente: { activo: false }
     })
+  })
+
+  it('numerosPatilla: visibles la primera vez, lo no booleano se ignora y un parche ajeno lo conserva', () => {
+    expect(normalizarAjustes({}).numerosPatilla).toBe(true)
+    expect(normalizarAjustes({ numerosPatilla: false }).numerosPatilla).toBe(false)
+    expect(normalizarAjustes({ numerosPatilla: 'no' }).numerosPatilla).toBe(true)
+    expect(aplicarParche(normalizarAjustes({ numerosPatilla: false }), { tema: 'oscuro' }).numerosPatilla).toBe(false)
+  })
+
+  it('inspectorDatosPlegado: plegado la primera vez, lo no booleano se ignora y un parche ajeno lo conserva', () => {
+    expect(normalizarAjustes({}).inspectorDatosPlegado).toBe(true)
+    expect(normalizarAjustes({ inspectorDatosPlegado: false }).inspectorDatosPlegado).toBe(false)
+    expect(normalizarAjustes({ inspectorDatosPlegado: 'no' }).inspectorDatosPlegado).toBe(true)
+    expect(aplicarParche(normalizarAjustes({ inspectorDatosPlegado: false }), { tema: 'oscuro' }).inspectorDatosPlegado).toBe(false)
   })
 
   it('las opciones de grabación: valores válidos, microfono null o texto, un parche parcial conserva el resto', () => {
@@ -41,6 +59,27 @@ describe('ajustes', () => {
     const base = { ...ajustesPorOmision(), carpetaGrabaciones: 'D:\\videos' }
     expect(normalizarAjustes({}, base).carpetaGrabaciones).toBe('D:\\videos')
     expect(aplicarParche(base, { carpetaGrabaciones: 'D:\\otra' }).carpetaGrabaciones).toBe('D:\\videos')
+  })
+
+  it('el asistente nace apagado, un settings.json viejo lo abre apagado y un valor ajeno se descarta', () => {
+    expect(ajustesPorOmision().asistente).toEqual({ activo: false })
+    expect(normalizarAjustes({ tema: 'oscuro' }).asistente).toEqual({ activo: false })
+    expect(normalizarAjustes({ asistente: { activo: true } }).asistente).toEqual({ activo: true })
+    expect(normalizarAjustes({ asistente: { activo: 'si' } }).asistente).toEqual({ activo: false })
+    expect(normalizarAjustes({ asistente: 7 }).asistente).toEqual({ activo: false })
+    const encendido = { ...ajustesPorOmision(), asistente: { activo: true } }
+    expect(normalizarAjustes({ asistente: { activo: 3 } }, encendido).asistente).toEqual({ activo: true })
+    expect(aplicarParche(encendido, { asistente: { activo: false } }).asistente).toEqual({ activo: false })
+  })
+
+  it('la carpeta del asistente: ruta absoluta válida o ausente, y la interfaz no la escribe', () => {
+    expect('carpetaAsistente' in ajustesPorOmision()).toBe(false)
+    expect(normalizarAjustes({ carpetaAsistente: 'D:\\circuitos' }).carpetaAsistente).toBe('D:\\circuitos')
+    expect(normalizarAjustes({ carpetaAsistente: 'relativa' }).carpetaAsistente).toBeUndefined()
+    expect(normalizarAjustes({ carpetaAsistente: 5 }).carpetaAsistente).toBeUndefined()
+    const base = { ...ajustesPorOmision(), carpetaAsistente: 'D:\\circuitos' }
+    expect(normalizarAjustes({}, base).carpetaAsistente).toBe('D:\\circuitos')
+    expect(aplicarParche(base, { carpetaAsistente: 'D:\\otra' }).carpetaAsistente).toBe('D:\\circuitos')
   })
 
   it('las categorías de plantillas plegadas: solo textos válidos, sin repetir, con tope; un parche las reemplaza', () => {
@@ -194,6 +233,8 @@ describe('ajustes', () => {
   })
 
   it('las secciones del Proyecto plegadas: textos válidos, sin repetir, con tope; un parche las reemplaza', () => {
+    expect(normalizarAjustes({ libreriaPlegada: ['digitales/Compuertas', 'digitales/Compuertas', 3, ''] }).libreriaPlegada).toEqual(['digitales/Compuertas'])
+    expect(normalizarAjustes({ libreriaPlegada: 'x' }).libreriaPlegada).toEqual([])
     expect(normalizarAjustes({ proyectoPlegado: ['piezas', 'piezas', 'redes', 3, '', 'x'.repeat(81)] }).proyectoPlegado).toEqual(['piezas', 'redes'])
     expect(normalizarAjustes({ proyectoPlegado: 'piezas' }).proyectoPlegado).toEqual([])
     const base = { ...ajustesPorOmision(), proyectoPlegado: ['piezas'] }

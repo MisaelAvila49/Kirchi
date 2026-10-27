@@ -11,6 +11,9 @@ export const vdivDe = (a: AjustesOsciloscopio, c: CanalOMatematico): number => (
 /** La posición de un canal (A − B usa la de A, como su traza y su columna). */
 const posDe = (a: AjustesOsciloscopio, c: CanalOMatematico): number => (c === MATEMATICO ? a.canales[0].pos : (a.canales.find((x) => x.canal === c)?.pos ?? 0))
 
+/** Los cursores solo valen en el modo de pantalla en que se pusieron: de tiempo y voltaje en Y/T, de puntos de la curva en X-Y. */
+export const cursoresDelModo = (c: CursoresPantalla | null | undefined, a: Pick<AjustesOsciloscopio, 'modoXY'> | null | undefined): CursoresPantalla | null => (c && !!c.xy === !!(a && a.modoXY && a.modoXY !== 'yt') ? c : null)
+
 /** Al encender los cursores: tiempos a dos y ocho divisiones y voltajes a ±2 divisiones del canal. */
 export function cursoresIniciales(a: AjustesOsciloscopio, t0: number, canal: CanalOMatematico): CursoresPantalla {
   const span = DIVISIONES_H * a.base

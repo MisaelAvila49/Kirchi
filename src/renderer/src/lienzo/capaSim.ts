@@ -1,20 +1,21 @@
 import type { Conexiones } from '../conexiones/conexiones'
 import type { Cable, Documento, Pieza } from '../doc/tipos'
 import { cajaEnMundo, pinesEnMundo, transformar } from '../piezas/transformar'
-import type { PiezaDef } from '../piezas/tipos'
+import type { AnimacionDef, PiezaDef } from '../piezas/tipos'
 import { paraTexto, type ExtraMedicion, type Lectura, type LecturaDigital } from '../sim/lectura'
 import { corrienteDelTramo, lecturaDeMedidor, tramoEn, type LecturaAc } from '../sim/medidor'
 import { hayMedidores, medidoresDe } from '../doc/sondas'
 import { dibujarPantallaDeMedidor } from './medidores'
 import { cajaTexto, valores } from './apartar'
 import { EscritorTrazos, EscritorTriangulos } from './buffers'
+import { resistenciaDeTermistor } from './ajusteEnPieza'
 import { chipsDeVoltaje, FACTOR_ANILLO, TAM_CHIP, type OpcionesChips } from './chips'
 import type { Bandera } from './sondas'
 import type { Histeresis } from '../ui/histeresis'
-import { formatearMedida } from '../valores/valores'
+import { formatearMedida, formatearValor } from '../valores/valores'
 import { circulo, dibujarCable, geometriaOrientada } from './escena'
 import type { Texto } from './etiquetas'
-import { ANCHO_CABLE, ANCHO_TRAZO, RADIO_UNION } from './medidas'
+import { anchoTexto, ANCHO_CABLE, ANCHO_TRAZO, RADIO_UNION } from './medidas'
 import { conAlfa, type Paleta, type RGBA, type Token } from './paleta'
 import { porcentajesDePot } from './porcentajePot'
 import { textosDeInstrumentos, type InstrumentosLienzo } from './instrumentosLienzo'
@@ -63,6 +64,24 @@ export interface ExtraCapaSim {
   histeresis?: Histeresis
   /** El valor eficaz y la frecuencia en vivo de cada medidor AC (la ventana que le lleva el motor). */
   alternas?: ReadonlyMap<Id, LecturaAc>
+}
+
+/** Resistencia de cada termistor y fotorresistencia que lleva `vivo` en la escena: va pegada tras la parte fija del valor, con
+ * la del motor (la temperatura con calentamiento propio, la resistencia de la fotorresistencia) o, sin lectura, la del documento. */
+function resistenciasEnVivo(doc: Documento, lib: Map<string, PiezaDef>, textos: readonly Texto[], media: Lectura): Texto[] {
+  const out: Texto[] = []
+  for (const t of textos) {
+    if (!t.vivo) continue
+    const p = doc.piezas[t.vivo.id], def = p && lib.get(p.tipo), x = media.piezas.get(t.vivo.id)?.extra
+    let texto = t.vivo.respaldo
+    const m = def?.modelo
+    if (p && def && m?.tipo === 'termistor' && x?.tipo === 'termistor') {
+      const r = resistenciaDeTermistor(m, p.props[m.prop] ?? def.props.find((d) => d.id === m.prop)?.defecto ?? '', x.temperatura)
+      if (r !== null) texto = formatearValor(r, 'Ω')
+    } else if (x?.tipo === 'ldr') texto = formatearValor(x.r, 'Ω')
+    out.push({ ...t, texto, x: t.x + anchoTexto(t.texto, t.tamaño), vivo: undefined })
+  }
+  return out
 }
 
 /** Lo que dice una sonda de corriente todavía sin el reparto por tramos (la primera lectura de la vista previa). */
@@ -123,12 +142,30 @@ const SIN_QUEMADAS: ReadonlySet<Id> = new Set()
  * («conmuta»). */
 function luzEnCaja(t: EscritorTrazos, tri: EscritorTriangulos, p: Pieza, def: PiezaDef, luz: RGBA, brillo: number, conmuta: boolean): void {
   const c = cajaEnMundo(p, def)
-  const cx = (c.minX + c.maxX) / 2, cy = (c.minY + c.maxY) / 2
-  const r = Math.max(c.maxX - c.minX, c.maxY - c.minY) / 2
+  luzEn(t, tri, (c.minX + c.maxX) / 2, (c.minY + c.maxY) / 2, Math.max(c.maxX - c.minX, c.maxY - c.minY) / 2, luz, brillo, conmuta)
+}
+
+/** La misma luz en un punto y un radio dados (las de una caja y las sueltas de una pieza compuesta). */
+function luzEn(t: EscritorTrazos, tri: EscritorTriangulos, cx: number, cy: number, r: number, luz: RGBA, brillo: number, conmuta: boolean): void {
   disco(tri, cx, cy, r, conAlfa(luz, ALFA_LUZ * brillo))
   resplandor(tri, cx, cy, r, r * FACTOR_RESPLANDOR, luz, ALFA_RESPLANDOR * brillo)
   const anillo = conAlfa(luz, 0.6 * brillo)
   circulo(conmuta ? new TrazosConPatron(t, GUION_X, HUECO_X, [anillo], ANCHO_TRAZO) : t, cx, cy, r * FACTOR_ANILLO, ANCHO_TRAZO, anillo, 24)
+}
+
+/** Radio (unidades de rejilla fina) de cada luz suelta de una pieza compuesta. */
+export const RADIO_LUZ_SUELTA = 1.6
+
+/** Las luces de una pieza compuesta con animación «luces»: cada una brilla con la corriente media de su diodo y la regla de
+ * destellos, como un LED, en el punto de su símbolo ya girado y reflejado. */
+function lucesSueltas(t: EscritorTrazos, tri: EscritorTriangulos, p: Pieza, a: Extract<AnimacionDef, { tipo: 'luces' }>, x: ExtraMedicion | undefined, paleta: Paleta, extra: ExtraCapaSim): void {
+  if (x?.tipo !== 'compuesto') return
+  a.luces.forEach((l, k) => {
+    const { brillo, conmuta } = conDestellos(extra, `${p.id}#luz${k}`, brilloDeLed(x.corrientes[l.elemento] ?? 0))
+    if (brillo < BRILLO_MINIMO) return
+    const [dx, dy] = transformar(l.x, l.y, p.rot, p.espejo)
+    luzEn(t, tri, p.x + dx, p.y + dy, RADIO_LUZ_SUELTA, paleta[Object.hasOwn(TOKEN_DE_LED, l.color) ? TOKEN_DE_LED[l.color] : 'ledRojo'], brillo, conmuta)
+  })
 }
 
 /** Piezas de animación «brillo» (LED y display de 7 segmentos), con el color de la propiedad de su animación (rojo sin
@@ -403,6 +440,10 @@ export function construirCapaSim(doc: Documento, lib: Map<string, PiezaDef>, con
       if (brillo >= BRILLO_MINIMO * BRILLO_MINIMO) luzEnCaja(t, tri, p, def, colorDeFoco(theta, paleta), brillo, conmuta)
       continue
     }
+    if (def?.animacion?.tipo === 'luces') {
+      lucesSueltas(t, tri, p, def.animacion, xm, paleta, extra)
+      continue
+    }
     const color = def ? colorDeLed(p, def) : null
     const inom = def?.modelo?.tipo === 'display' ? (def.modelo.inom ?? CORRIENTE_BRILLO_PLENO) : CORRIENTE_BRILLO_PLENO
     if (def && color !== null && xm?.tipo === 'display') {
@@ -430,7 +471,9 @@ export function construirCapaSim(doc: Documento, lib: Map<string, PiezaDef>, con
   const delVoltaje = chips ? chipsDeVoltaje(doc, lib, con, paraTexto(l), textos, chips) : []
   // El porcentaje de cada potenciómetro simulado va junto a su cursor, esquivando lo demás (chips incluidos).
   const delPot = porcentajesDePot(doc, lib, new Set(l.piezas.keys()), textos, delVoltaje)
-  const deJunto = textosJuntoAPiezas(doc, lib, junto, textos, [...delVoltaje, ...delPot])
+  // La resistencia en vivo de termistores y fotorresistencias, tras lo fijo de su valor (que la escena dejó con `vivo`).
+  const deVivo = resistenciasEnVivo(doc, lib, textos, media)
+  const deJunto = textosJuntoAPiezas(doc, lib, junto, textos, [...delVoltaje, ...delPot, ...deVivo])
   const deSondas = extra.banderas?.size ? textosDeSondas(doc, con, l, extra.banderas, extra.histeresis) : []
   // Los medidores rápidos: la pantalla de siete segmentos con su lectura, encima de la que dejó la escena.
   const deMedidores: Texto[] = []
@@ -441,6 +484,6 @@ export function construirCapaSim(doc: Documento, lib: Map<string, PiezaDef>, con
       dibujarPantallaDeMedidor({ t, tri, textos: deMedidores }, m, paleta, lectura)
     }
   }
-  const todos = delPot.length || marcas.length || deJunto.length || deSondas.length || deMedidores.length ? [...marcas, ...delVoltaje, ...delPot, ...deJunto, ...deSondas, ...deMedidores] : delVoltaje
+  const todos = delPot.length || marcas.length || deJunto.length || deVivo.length || deSondas.length || deMedidores.length ? [...marcas, ...delVoltaje, ...delPot, ...deVivo, ...deJunto, ...deSondas, ...deMedidores] : delVoltaje
   return { trazos: t.resultado(), nTrazos: t.cuenta, triangulos: tri.resultado(), nTriangulos: tri.cuenta, textos: todos }
 }

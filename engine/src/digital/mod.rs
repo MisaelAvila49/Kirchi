@@ -3,6 +3,8 @@
 //! comunica con ella por los puentes de `devices/puente.rs` y la sincroniza `mixto.rs`.
 
 pub mod cola;
+pub mod lut;
+pub mod msi;
 pub mod modelos;
 pub mod nivel;
 pub mod simulador;

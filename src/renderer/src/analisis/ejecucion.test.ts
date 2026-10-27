@@ -15,6 +15,7 @@ import { correrAnalisis, explicarFallo, guardadasDeSeleccion, seleccionDe, selec
 const lib = libreriaDePrueba().piezas
 const R = (ref: string, valor: string, a: string, b: string): Parte => ({ tipo: 'resistencia', ref, props: { valor }, pines: { '1': a, '2': b } })
 const C = (ref: string, valor: string, a: string, b: string): Parte => ({ tipo: 'capacitor', ref, props: { valor }, pines: { '1': a, '2': b } })
+const D = (ref: string, a: string, k: string): Parte => ({ tipo: 'diodo', ref, props: {}, pines: { A: a, K: k } })
 const DC = (ref: string, voltaje: string, mas: string): Parte => ({ tipo: 'fuente-dc', ref, props: { voltaje }, pines: { '+': mas, '-': '0' } })
 
 function contexto(partes: Parte[]): ContextoAnalisis {
@@ -113,11 +114,15 @@ si('con ngspice 47 real', () => {
   })
 
   it('un circuito que no converge vuelve como error de convergencia y no se cuelga', async () => {
-    // Dos fuentes de voltaje distintas en paralelo: la matriz es singular.
-    const ctx = contexto([DC('V1', '5', 'a'), DC('V2', '3', 'a'), R('R1', '1k', 'a', '0')])
+    // Cinco diodos en serie directo a 1000 V sin resistencia: ningún lazo de fuentes, pero el punto de operación diverge.
+    const ctx = contexto([DC('V1', '1000', 'a'), D('D1', 'a', 'b'), D('D2', 'b', 'c'), D('D3', 'c', 'd'), D('D4', 'd', 'e'), D('D5', 'e', '0')])
     const r = await correrAnalisis(OP, ctx, SIN_TRAZAS, api)
     expect(r.ok).toBe(false)
-    if (!r.ok) console.info(`sin convergencia: ${r.clase}: ${r.error}`)
+    if (!r.ok) expect(r.clase).toBe('convergencia')
+  })
+
+  it('dos fuentes de voltaje distintas en paralelo se detectan antes de llamar a ngspice', () => {
+    expect(() => contexto([DC('V1', '5', 'a'), DC('V2', '3', 'a'), R('R1', '1k', 'a', '0')])).toThrow(/V1 y V2 forman un lazo de fuentes de voltaje/)
   })
 })
 

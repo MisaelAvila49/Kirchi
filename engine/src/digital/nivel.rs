@@ -63,6 +63,16 @@ impl Nivel {
         }
     }
 
+    /// Lo que resulta de dos salidas en la misma red: Z cede ante cualquier nivel, dos iguales se mantienen y dos distintos (o
+    /// una en X) dejan la red indeterminada.
+    pub fn resolver(self, o: Nivel) -> Nivel {
+        match (self, o) {
+            (Nivel::Z, n) | (n, Nivel::Z) => n,
+            (a, b) if a == b => a,
+            _ => Nivel::X,
+        }
+    }
+
     /// O exclusiva: con una entrada X no se sabe.
     pub fn ox(self, o: Nivel) -> Nivel {
         match (self, o) {
@@ -132,6 +142,18 @@ mod tests {
         assert_eq!(retardo(Cero, X, 3, 7), 3);
         assert_eq!(retardo(X, Uno, 3, 7), 3);
         assert_eq!(retardo(X, Cero, 3, 7), 7);
+    }
+
+    #[test]
+    fn resolver_dos_salidas_en_una_red() {
+        let mut t = [[Cero; 4]; 4];
+        for (i, a) in TODOS.iter().enumerate() {
+            for (j, b) in TODOS.iter().enumerate() {
+                t[i][j] = a.resolver(*b);
+            }
+        }
+        // Renglón: la primera en 0, 1, X y Z; columna: la segunda.
+        assert_eq!(t, [[Cero, X, X, Cero], [X, Uno, X, Uno], [X, X, X, X], [Cero, Uno, X, Z]]);
     }
 
     #[test]

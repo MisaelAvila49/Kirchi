@@ -1,0 +1,29 @@
+{
+ "comunes": [
+  "G",
+  "A/B"
+ ],
+ "rebanada": "cuatro rebanadas con A, B e Y; G y A/B son comunes",
+ "columnas": [
+  "G",
+  "A/B",
+  "A",
+  "B"
+ ],
+ "salidas": [
+  "Y"
+ ],
+ "filas": [
+  "1 X X X > 0",
+  "0 0 0 X > 0",
+  "0 0 1 X > 1",
+  "0 1 X 0 > 0",
+  "0 1 X 1 > 1"
+ ],
+ "fuente": {
+  "documento": "TI SN74HC157 (SCLS113F)",
+  "pagina": "9, tabla 6-1 Function Table",
+  "comprobada_con": "TI SN74LS157 (SDLS058), p. 1, FUNCTION TABLE ('157, 'LS157, 'S157 no invierten): las 5 filas son iguales",
+  "convencion": "A/B bajo elige A, alto elige B; G activo en bajo, con G alto Y = 0"
+ }
+}

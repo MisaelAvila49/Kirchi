@@ -68,6 +68,8 @@ export interface EstadoCinta {
   /** El sistema pide reducir el movimiento: las animaciones empezaron en pausa por eso. */
   movimientoReducido: boolean
   sonido: boolean
+  /** Los números de patilla se dibujan en el lienzo. */
+  numerosPatilla: boolean
   /** Hay un capítulo del tutorial en curso: solo entonces la cinta muestra «Ir al tutorial». */
   tutorial?: boolean
   /** Hay un análisis de ngspice corriendo. */
@@ -278,6 +280,8 @@ export function marcado(id: IdComando, e: EstadoCinta): boolean | undefined {
       return e.animaciones
     case 'sonido':
       return e.sonido
+    case 'numeros-patilla':
+      return e.numerosPatilla
     default:
       return undefined
   }

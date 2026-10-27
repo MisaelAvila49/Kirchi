@@ -1,0 +1,81 @@
+{
+  "id": "ina128",
+  "nombre": { "es": "INA128 instrumentación", "en": "INA128 instrumentation amplifier" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["u", "ina128", "128", "instrumentacion", "instrumentación", "instrumentation", "amplificador de instrumentacion", "ina129"],
+  "pines": [
+    { "id": "IN-", "nombre": "entrada inversora (IN−)", "x": -6, "y": -2 },
+    { "id": "IN+", "nombre": "entrada no inversora (IN+)", "x": -6, "y": 2 },
+    { "id": "RG1", "nombre": "ganancia (RG, patilla 1)", "x": -2, "y": -6, "ayuda": "RG entre RG1 y RG2 · G = 1 + 50 kΩ/RG · sin RG la ganancia es 1" },
+    { "id": "RG2", "nombre": "ganancia (RG, patilla 8)", "x": -2, "y": 6, "ayuda": "RG entre RG1 y RG2 · G = 1 + 50 kΩ/RG · sin RG la ganancia es 1" },
+    { "id": "REF", "nombre": "referencia (REF)", "x": 6, "y": 2, "ayuda": "La salida se mide contra este pin · tierra para una salida referida a tierra" },
+    { "id": "OUT", "nombre": "salida (OUT)", "x": 6, "y": 0 },
+    { "id": "V+", "nombre": "alimentación V+", "x": 2, "y": -6 },
+    { "id": "V-", "nombre": "alimentación V−", "x": 2, "y": 6 }
+  ],
+  "props": [{ "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "INA128", "opciones": ["INA128"] }],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": { "INA128": { "a0": 1000000, "gbw1": 20000000, "gbw3": 2600000, "sr": 4000000, "rin": 1000000000000, "rout": 1, "ilim": 0.006, "dhi": 1, "dhi3": 1.4, "rq": 128600, "rg": 25000, "rd": 40000, "rdx": 40004 } },
+    "internas": ["o1", "o2", "nn", "np"],
+    "opcionales": ["RG1", "RG2"],
+    "medida": { "mas": "OUT", "menos": "REF", "i": 8 },
+    "elementos": [
+      { "t": "OA", "mas": "IN-", "menos": "RG1", "sal": "o1", "vmas": "V+", "vmenos": "V-", "params": { "a0": "a0", "gbw": "gbw1", "sr": "sr", "rin": "rin", "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dhi", "rq": "rq" } },
+      { "t": "OA", "mas": "IN+", "menos": "RG2", "sal": "o2", "vmas": "V+", "vmenos": "V-", "params": { "a0": "a0", "gbw": "gbw1", "sr": "sr", "rin": "rin", "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dhi", "rq": "rq" } },
+      { "t": "R", "a": "o1", "b": "RG1", "ohms": "rg" },
+      { "t": "R", "a": "o2", "b": "RG2", "ohms": "rg" },
+      { "t": "R", "a": "o1", "b": "nn", "ohms": "rd" },
+      { "t": "R", "a": "nn", "b": "OUT", "ohms": "rdx" },
+      { "t": "R", "a": "o2", "b": "np", "ohms": "rd" },
+      { "t": "R", "a": "np", "b": "REF", "ohms": "rd" },
+      { "t": "OA", "mas": "np", "menos": "nn", "sal": "OUT", "vmas": "V+", "vmenos": "V-", "params": { "a0": "a0", "gbw": "gbw3", "sr": "sr", "rin": "rin", "rout": "rout", "ilim": "ilim", "dhi": "dhi3", "dlo": "dhi3", "rq": "rq" } }
+    ]
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "INA128": {
+          "fuente": "Texas Instruments INA128/INA129, SBOS051G, Absolute Maximum Ratings: alimentación de ±18 V (36 V entre V+ y V−) y voltaje de entrada de ±40 V.",
+          "limites": [
+            { "nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 36, "consejo": "baja la alimentación." },
+            { "nombre": "entrada contra tierra", "de": ["IN+", "IN-"], "a": "tierra", "abs": true, "max": 40, "escala": 10, "consejo": "limita la señal con una resistencia en serie o baja su amplitud." }
+          ]
+        }
+      }
+    },
+    "quema": { "factor": 2, "durante": 0.5, "elemento": 8 }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -8 }, "valor": { "x": 0, "y": 8 } },
+  "rotulos": [{ "texto": "−", "x": -3.2, "y": -2, "tam": 2 }, { "texto": "+", "x": -3.2, "y": 2, "tam": 2 }],
+  "fuentes": {
+    "INA128": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments INA128/INA129, SBOS051G (oct 1995, rev. ene 2026), https://www.ti.com/lit/ds/symlink/ina128.pdf: ganancia G = 1 + 50 kΩ/RG con las resistencias de 25 kΩ del esquema, etapa de salida con las cuatro de 40 kΩ, ancho de banda de 1.3 MHz con G = 1 y de 200 kHz con G = 100 (de ahí los productos ganancia-ancho de banda de 20 MHz en la entrada y 2.6 MHz en la salida), velocidad de subida de 4 V/µs, salida a 1.4 V de cada alimentación con 10 kΩ, corriente de cortocircuito de 6 mA (el menor de +6 y −15 mA), corriente en reposo de 700 µA con ±15 V (rq reparte los 42.9 kΩ entre los tres amplificadores) y rechazo de modo común de 86 dB típico con G = 1 (una de las resistencias de salida vale 40.004 kΩ; con G = 10, 100 y 1000 sube a 106, 126 y 146 dB por la ganancia de la primera etapa, la hoja da 106, 125 y 130 dB). No modela el voltaje de desviación (50 µV + 100 µV/G), las corrientes de polarización, el ruido ni el rechazo de la alimentación."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Amplifier_Instrumentation:INA128" },
+    "valores": {
+      "INA128": {
+        "fabricante": "Texas Instruments",
+        "parte": "INA128P",
+        "hoja": "https://www.ti.com/lit/ds/symlink/ina128.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "IN-": "2", "IN+": "3", "RG1": "1", "RG2": "8", "REF": "5", "OUT": "6", "V+": "7", "V-": "4" },
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C1348601", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI INA128/INA129 (SBOS051G, ene 2026) figura 5-1 y tabla 5-1 (PDIP-8): RG 1 y 8, VIN- 2, VIN+ 3, V- 4, REF 5, VO 6, V+ 7; Amplifier_Instrumentation:INA128 de KiCad 9"
+        },
+        "nota": "En LCSC el INA128P aparece como no disponible"
+      }
+    }
+  }
+}

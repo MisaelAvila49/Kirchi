@@ -1,6 +1,7 @@
 import type { Conexiones } from '../conexiones/conexiones'
 import { tamañoSeleccion, type Seleccion } from '../editor/seleccion'
-import { REGIONES_BJT, REGIONES_MOS, type CausaBiestable, type ExtraMedicion, type Lectura, type LecturaDigital, type MedicionPieza } from '../sim/lectura'
+import { REGIONES, type CausaBiestable, type ExtraMedicion, type Lectura, type LecturaDigital, type MedicionPieza, type RegistroMsi } from '../sim/lectura'
+import type { RelojAdc } from '../netlist/convertidores'
 import { formatearMedida, formatearValor, SIN_DATO } from '../valores/valores'
 import { DOBLE, SIN_FLECHA, tipoDeTramo } from '../lienzo/flechas'
 import { RPM_MINIMA } from '../lienzo/movimiento'
@@ -15,8 +16,8 @@ export interface FilaMedicion {
   pasos?: readonly string[]
 }
 
-/** Los pasos de la barra de región: los de las regiones del motor, sin «activa inversa», que no es un paso de la barra. */
-export const PASOS_REGION: Readonly<{ bjt: readonly string[]; mosfet: readonly string[] }> = { bjt: REGIONES_BJT.slice(0, 3), mosfet: [...REGIONES_MOS] }
+/** Los pasos de la barra de región, de menos a más conducción (sin «activa inversa», que no es un paso de la barra). */
+export const PASOS_REGION: Readonly<{ bjt: readonly string[]; mosfet: readonly string[] }> = { bjt: REGIONES.bjt.slice(0, 3), mosfet: [REGIONES.mosfet[0], REGIONES.mosfet[2], REGIONES.mosfet[1]] }
 
 /** Cifra con 3 cifras significativas y prefijo SI («2.50 V»); sin lectura, «sin dato». */
 /** Por debajo de esta corriente (A) la pieza «no lleva corriente»: lo que pasa es una fuga. */
@@ -31,6 +32,9 @@ export const textoPotencia = (p: number): string => (p < 0 ? `${cifra(-p, 'W')} 
 /** Velocidad de un motor en revoluciones por minuto, entera y con separador de miles. */
 export const textoRpm = (rpm: number): string => (Number.isFinite(rpm) ? `${Math.round(rpm).toLocaleString('es-MX')} rpm` : SIN_DATO)
 
+/** Velocidad del eje de un motor a pasos: con una decimal bajo 10 rpm, donde el eje de salida de un reductor suele andar. */
+const textoRpmPasos = (rpm: number): string => (Math.abs(rpm) < 10 ? `${rpm.toFixed(1)} rpm` : textoRpm(rpm))
+
 /** La ganancia de corriente Ic / Ib con tres cifras; en corte, «sin dato». */
 export const textoBeta = (ic: number, ib: number): string => (Math.abs(ib) > 1e-12 && Number.isFinite(ic / ib) ? (ic / ib).toPrecision(3) : SIN_DATO)
 
@@ -42,6 +46,27 @@ export const textoCiclo = (c: number): string => `${(c * 100).toFixed(1)} %`
 
 /** La cuenta de un contador en decimal y en binario de cuatro bits («7, 0111»). */
 export const textoCuenta = (n: number | null | undefined): string => (n === null || n === undefined ? 'sin definir' : `${n}, ${n.toString(2).padStart(4, '0')}`)
+
+/** Un código de `bits` bits en decimal, hexadecimal y binario («9», «0x9», «0b1001»); sin definir, «sin definir» en los tres. */
+export function formasDeCodigo(n: number | null, bits: number): { decimal: string; hex: string; bin: string } {
+  if (n === null) return { decimal: 'sin definir', hex: 'sin definir', bin: 'sin definir' }
+  return { decimal: String(n), hex: `0x${n.toString(16).toUpperCase().padStart(Math.ceil(bits / 4), '0')}`, bin: `0b${n.toString(2).padStart(bits, '0')}` }
+}
+
+/** Un registro en una línea, en decimal y binario («7, 0111»); sin definir, «sin definir». */
+export const textoRegistro = (n: number | null, bits: number): string => (n === null ? 'sin definir' : `${n}, ${n.toString(2).padStart(bits, '0')}`)
+
+/** El reloj de un MSI («1 kHz (CLK)»; «sin pulsos» si no cambia). */
+export const textoRelojMsi = (r: NonNullable<RegistroMsi['reloj']>): string => (r.hz > 0 ? `${cifra(r.hz, 'Hz')}${r.pin ? ` (${r.pin})` : ''}` : 'sin pulsos')
+
+/** El reloj de un ADC0804: el RC con su frecuencia y sus valores, o el que le llega. */
+export const textoRelojAdc = (r: RelojAdc | null): string => (r === null ? SIN_DATO : r.tipo === 'rc' ? `${cifra(r.hz, 'Hz')} (R ${formatearValor(r.r, 'Ω')}, C ${formatearValor(r.c, 'F')})` : 'externo, por CLK IN')
+
+/** Dónde va un ADC0804: convirtiendo, con INTR en bajo (dato listo) o en espera (sin dato nuevo). */
+export const estadoDeAdc = (x: Extract<ExtraMedicion, { tipo: 'convertidor-ad' }>): 'convirtiendo' | 'listo' | 'en espera' => (x.convirtiendo ? 'convirtiendo' : x.intr === '0' ? 'listo' : 'en espera')
+
+/** El voltaje que representa el código de un ADC0804 (`código / 2^bits` del fondo de escala); null si falta alguno. */
+export const voltajeDeAdc = (x: Extract<ExtraMedicion, { tipo: 'convertidor-ad' }>): number | null => (x.codigo === null || x.vref === null ? null : (x.codigo / 2 ** x.bits) * x.vref)
 
 const CAUSA: Record<CausaBiestable, string> = {
   arranque: 'arranque (empieza en 0)',
@@ -75,6 +100,10 @@ function resumenDigital(x: LecturaDePieza): string {
       return `Q en ${x.q ?? 'X'}`
     case 'contador':
       return textoCuenta(x.cuenta)
+    case 'msi':
+      return x.registro ? `${x.registro.clase} ${textoRegistro(x.registro.valor, x.registro.bits)}` : 'sin lectura'
+    case 'lut':
+      return `${x.pines.filter((p) => p.salida && p.nivel === '1').length} salidas en 1`
     case 'decodificador':
       return x.digito === null || x.digito === undefined ? 'sin definir' : x.digito < 0 ? 'apagado' : `manda ${x.digito}`
   }
@@ -88,6 +117,7 @@ function filasDigitales(x: LecturaDePieza): FilaMedicion[] {
   const pines = x.pines.map((p) => ({ nombre: mayuscula(p.nombre ?? p.id), valor: textoPin(p) }))
   switch (x.modelo) {
     case 'compuerta':
+    case 'lut':
       return pines
     case 'estado-logico':
       return x.pines.length ? [{ nombre: 'Nivel', valor: textoPin(x.pines[0]) }] : []
@@ -96,6 +126,8 @@ function filasDigitales(x: LecturaDePieza): FilaMedicion[] {
       return [{ nombre: 'Q', valor: x.q ?? 'X' }, { nombre: 'Último cambio', valor: textoCausa(x) }, ...pines]
     case 'contador':
       return [{ nombre: 'Cuenta', valor: textoCuenta(x.cuenta) }, ...pines]
+    case 'msi':
+      return [...(x.registro ? [{ nombre: mayuscula(x.registro.clase), valor: textoRegistro(x.registro.valor, x.registro.bits) }, ...(x.registro.reloj ? [{ nombre: 'Reloj', valor: textoRelojMsi(x.registro.reloj) }] : [])] : []), ...pines]
     case 'decodificador':
       return [{ nombre: 'Dígito', valor: resumenDigital(x) }, ...pines]
   }
@@ -115,6 +147,7 @@ export function estadoEnPalabras(m: MedicionPieza): string | null {
   switch (x.tipo) {
     case 'bjt':
     case 'mosfet':
+    case 'jfet':
       return x.region
     case 'ampop':
       return x.saturado === 1 ? 'saturado contra V+' : x.saturado === -1 ? 'saturado contra V−' : 'sin saturar'
@@ -124,7 +157,7 @@ export function estadoEnPalabras(m: MedicionPieza): string | null {
     case 'foco':
       return x.fundido ? 'fundido' : 'entero'
     case 'motor':
-      return textoRpm(x.rpm)
+      return x.angulo !== undefined ? textoRpmPasos(x.rpm) : textoRpm(x.rpm)
     case 'rele':
       return x.operado ? 'común con NA' : 'común con NC'
     case 'zumbador':
@@ -134,22 +167,30 @@ export function estadoEnPalabras(m: MedicionPieza): string | null {
       return `${x.excedida ? 'más de' : 'dentro de'} sus ${formatearValor(x.inom, 'A')} nominales`
     case 'digital':
       return resumenDigital(x)
+    case 'convertidor-ad':
+      return `código ${x.codigo ?? 'sin definir'}, ${estadoDeAdc(x)}`
+    case 'convertidor-da':
+      return `código ${x.codigo}`
     case '555':
       return x.f > 0 ? `oscila a ${cifra(x.f, 'Hz')}` : `en reposo, salida en ${x.salida}`
     case 'display':
       return x.muestra
     case 'fuente-variable':
       return x.modo === 'CV' ? 'voltaje constante (CV)' : x.modo === 'CC' ? 'corriente limitada (CC)' : 'salida apagada'
-    case 'compuesto':
-      // Las corrientes de sus elementos son para los límites (`sim/avisos.ts`), no para la tabla de la pieza.
+    case 'termistor':
+    case 'ldr':
+      // Su lectura va junto al valor de la pieza en el lienzo, no en la tabla.
       return null
+    case 'compuesto':
+      // Las corrientes de sus elementos son para los límites (`sim/avisos.ts`), no para la tabla de la pieza; solo la región, si la declara.
+      return x.region ?? null
   }
 }
 
 /** Las filas de una pieza con lecturas propias, en el orden de lectura. */
 function filasDelModelo(m: MedicionPieza): FilaMedicion[] | null {
   const x = m.extra
-  if (!x || x.tipo === 'compuesto') return null
+  if (!x || x.tipo === 'compuesto' || x.tipo === 'termistor' || x.tipo === 'ldr') return null
   const estado = estadoEnPalabras(m)!
   switch (x.tipo) {
     case 'bjt':
@@ -161,6 +202,13 @@ function filasDelModelo(m: MedicionPieza): FilaMedicion[] | null {
         { nombre: 'β', valor: textoBeta(m.i, x.ib) }
       ]
     case 'mosfet':
+      return [
+        { nombre: 'Región', valor: estado, pasos: PASOS_REGION.mosfet },
+        { nombre: 'Vgs', valor: cifra(x.vgs, 'V') },
+        { nombre: 'Vds', valor: cifra(m.v, 'V') },
+        { nombre: 'Id', valor: cifra(m.i, 'A') }
+      ]
+    case 'jfet':
       return [
         { nombre: 'Región', valor: estado, pasos: PASOS_REGION.mosfet },
         { nombre: 'Vgs', valor: cifra(x.vgs, 'V') },
@@ -186,8 +234,10 @@ function filasDelModelo(m: MedicionPieza): FilaMedicion[] | null {
         { nombre: 'Velocidad', valor: estado },
         // El sentido, como la flecha quieta junto al símbolo.
         { nombre: 'Sentido', valor: Math.abs(x.rpm) < RPM_MINIMA ? 'quieto' : x.rpm > 0 ? 'horario' : 'antihorario' },
-        { nombre: 'Corriente', valor: cifraCorriente(m.i) },
-        { nombre: 'Voltaje', valor: cifra(m.v, 'V') }
+        // Un motor a pasos suma el ángulo del eje y los pasos completos que lleva; su corriente y su voltaje son los de la fase A.
+        ...(x.angulo !== undefined ? [{ nombre: 'Ángulo', valor: `${((x.angulo * 180) / Math.PI).toFixed(1)}°` }, { nombre: 'Pasos', valor: String(Math.round(x.pasos ?? 0)) }] : []),
+        { nombre: x.angulo !== undefined ? 'Corriente de la fase A' : 'Corriente', valor: cifraCorriente(m.i) },
+        { nombre: x.angulo !== undefined ? 'Voltaje de la fase A' : 'Voltaje', valor: cifra(m.v, 'V') }
       ]
     case 'rele':
       return [
@@ -212,6 +262,21 @@ function filasDelModelo(m: MedicionPieza): FilaMedicion[] | null {
       ]
     case 'digital':
       return filasDigitales(x)
+    case 'convertidor-ad': {
+      const v = voltajeDeAdc(x)
+      return [
+        { nombre: 'Código', valor: textoRegistro(x.codigo, x.bits) },
+        { nombre: 'Representa', valor: v === null ? SIN_DATO : `${cifra(v, 'V')} de ${cifra(x.vref!, 'V')}` },
+        { nombre: 'Estado', valor: estadoDeAdc(x) },
+        { nombre: 'INTR', valor: x.intr },
+        { nombre: 'Reloj', valor: textoRelojAdc(x.reloj) }
+      ]
+    }
+    case 'convertidor-da':
+      return [
+        { nombre: 'Código', valor: String(x.codigo) },
+        { nombre: 'Corriente IO', valor: cifra(x.io, 'A') }
+      ]
     case '555':
       return [
         { nombre: 'Salida', valor: x.salida },

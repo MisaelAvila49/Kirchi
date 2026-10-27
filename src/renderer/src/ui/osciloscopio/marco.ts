@@ -93,7 +93,9 @@ export function textosDeColumna(c: AjustesCanal, e?: { prefijo?: PrefijoEje | nu
 
 /** Cada marca de 0 V de un canal encendido: su altura y su punta (x1), con las que están a la misma altura una junto a la otra. */
 export function marcasDeCero(m: Marco, a: AjustesOsciloscopio): { canal: Canal; y: number; x1: number }[] {
-  const on = a.canales.filter((c) => c.on)
+  // En X-Y solo el canal vertical tiene su 0 V a la izquierda; el horizontal lo tiene en el borde de abajo.
+  const vertical = canalVerticalXY(a)
+  const on = a.canales.filter((c) => c.on && (vertical === null || c.canal === vertical))
   const ys = on.map((c) => yDeCero(m, c))
   const niveles = nivelesDeMarcas(ys, m.dpr)
   return on.map((c, k) => ({ canal: c.canal, y: ys[k], x1: m.x - m.dpr - niveles[k] * ANCHO_MARCA * m.dpr }))
@@ -202,6 +204,35 @@ export function zonaEn(m: Marco, x: number, y: number): Zona {
   } else if (y >= m.eje.y0 && y < m.eje.y1 && enAncho) return { tipo: 'tiempo' }
   if (enPantalla) return { tipo: 'pantalla' }
   return null
+}
+
+/** El canal de la vertical en la pantalla X-Y (B/A: B; A/B: A); null en el modo de tiempo. */
+export const canalVerticalXY = (a: Pick<AjustesOsciloscopio, 'modoXY'>): Canal | null => (a.modoXY === 'ba' ? 'B' : a.modoXY === 'ab' ? 'A' : null)
+/** El canal de la horizontal en la pantalla X-Y (B/A: A; A/B: B); null en el modo de tiempo. */
+export const canalHorizontalXY = (a: Pick<AjustesOsciloscopio, 'modoXY'>): Canal | null => (a.modoXY === 'ba' ? 'A' : a.modoXY === 'ab' ? 'B' : null)
+
+/** La marca de 0 V del canal horizontal en X-Y: su columna, la punta sobre el borde de la retícula (abajo, o arriba si el eje va abajo) y hacia dónde apunta. */
+export function marcaHorizontalXY(m: Marco, a: AjustesOsciloscopio): { canal: Canal; x: number; y: number; abajo: boolean } | null {
+  const canal = canalHorizontalXY(a)
+  const c = canal && a.canales.find((k) => k.canal === canal)
+  if (!canal || !c) return null
+  const x = Math.max(m.x, Math.min(m.x + m.w, m.x + m.w / 2 + c.pos * (m.w / DIVISIONES_H)))
+  const abajo = m.ejePos !== 'abajo'
+  return { canal, x, y: abajo ? m.y + m.h : m.y, abajo }
+}
+
+/** La marca horizontal bajo (x, y) a `tol` píxeles o menos; se toma dentro de la retícula, pegada a su borde. */
+export function marcaHorizontalEn(m: Marco, a: AjustesOsciloscopio, x: number, y: number, tol: number): Canal | null {
+  const q = marcaHorizontalXY(m, a)
+  if (!q) return null
+  const dentro = q.abajo ? y <= q.y + 5 * m.dpr && y >= q.y - (ALTO_MARCA + 8) * m.dpr : y >= q.y - 5 * m.dpr && y <= q.y + (ALTO_MARCA + 8) * m.dpr
+  return dentro && Math.abs(q.x - x) <= Math.max(tol, ANCHO_MARCA * m.dpr * 0.6) ? q.canal : null
+}
+
+/** La posición (divisiones desde el centro) para la marca horizontal en la columna `x`: pasos de 0.2 y dentro de ±4. */
+export function posicionDeX(m: Marco, x: number): number {
+  const div = (x - (m.x + m.w / 2)) / (m.w / DIVISIONES_H)
+  return Math.max(POS_RANGO[0], Math.min(POS_RANGO[1], Number((Math.round(div * 5) / 5).toFixed(1))))
 }
 
 /** La altura del 0 V de un canal, dentro de la retícula. */

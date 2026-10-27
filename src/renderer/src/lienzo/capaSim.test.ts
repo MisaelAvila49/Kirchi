@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
 import { calcularConexiones, clavePin } from '../conexiones/conexiones'
-import type { Documento } from '../doc/tipos'
+import { documentoVacio, type Documento } from '../doc/tipos'
 import { divisor, ledConBateria } from '../prueba/circuitos'
 import { libreriaDePrueba } from '../prueba/libreria'
 import type { Lectura, LecturaDigital } from '../sim/lectura'
@@ -231,5 +231,52 @@ describe('las sondas al simular', () => {
     const banderas = construirEscena(d, lib, con, PALETA_CLARA).banderas
     const l: Lectura = { t: 0, ratio: 1, redes: new Map(), piezas: new Map() }
     expect(construirCapaSim(d, lib, con, l, 5, PALETA_CLARA, undefined, null, [], null, { banderas }).textos.map((x) => x.texto)).toContain('…')
+  })
+})
+
+describe('luces sueltas de una pieza compuesta (la punta lógica)', () => {
+  const doc = (rot: 0 | 90 | 180 | 270 = 0, x = 0, y = 0): Documento => ({ ...documentoVacio(), piezas: { p1: { id: 'p1', tipo: 'punta-logica', ref: 'LP1', x, y, rot, espejo: false, props: {} } } })
+  /** Una lectura con las corrientes de los 12 elementos de la pieza: solo importan el diodo 9 (la luz roja) y el 11 (la verde). */
+  const capa = (d: Documento, roja: number, verde: number) => {
+    const corrientes = Array.from({ length: 12 }, () => 0)
+    corrientes[9] = roja
+    corrientes[11] = verde
+    const con = calcularConexiones(d, lib)
+    const l: Lectura = { t: 0, ratio: 1, redes: new Map(), piezas: new Map([['p1', { v: 0, i: 0, p: 0, extra: { tipo: 'compuesto', corrientes, voltajes: corrientes.map(() => 0) } }]]) }
+    return construirCapaSim(d, lib, con, l, 5, PALETA_CLARA)
+  }
+  /** El centro (primer vértice) y el color (rojo, verde, azul) del primer triángulo de cada disco de 24 triángulos. */
+  const discos = (c: ReturnType<typeof capa>) => {
+    const out: { x: number; y: number; color: string }[] = []
+    for (let t = 0; t < c.nTriangulos; t += 72) {
+      const o = t * 3 * FLOTANTES_VERTICE
+      out.push({ x: c.triangulos[o], y: c.triangulos[o + 1], color: [2, 3, 4].map((k) => c.triangulos[o + k].toFixed(3)).join(',') })
+    }
+    return out
+  }
+  const color = (c: readonly number[]) => [c[0], c[1], c[2]].map((v) => Math.fround(v).toFixed(3)).join(',')
+
+  it('sin corriente en los diodos no dibuja nada', () => {
+    expect(capa(doc(), 0, 0).nTriangulos).toBe(0)
+  })
+
+  it('cada luz brilla con la corriente de su diodo y el color de su LED, en el punto de su símbolo', () => {
+    const roja = discos(capa(doc(), 0.02, 0)), verde = discos(capa(doc(), 0, 0.02)), ambas = discos(capa(doc(), 0.02, 0.02))
+    expect(roja).toHaveLength(1)
+    expect(roja[0]).toMatchObject({ x: 2, y: -2, color: color(PALETA_CLARA.ledRojo) })
+    expect(verde).toHaveLength(1)
+    expect(verde[0]).toMatchObject({ x: 2, y: 2, color: color(PALETA_CLARA.ledVerde) })
+    expect(ambas).toHaveLength(2)
+  })
+
+  it('sigue la posición y el giro de la pieza', () => {
+    const [giro] = discos(capa(doc(90, 10, 20), 0.02, 0))
+    // (2, −2) girado 90° es (2, 2) y se suma a la posición de la pieza.
+    expect(giro).toMatchObject({ x: 12, y: 22 })
+  })
+
+  it('con menos corriente brilla menos: la opacidad del disco sale de la raíz de la fracción de 20 mA', () => {
+    const a = capa(doc(), 0.005, 0)
+    expect(a.triangulos[FLOTANTES_VERTICE - 1]).toBeCloseTo(0.45 * Math.sqrt(0.25), 5)
   })
 })

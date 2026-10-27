@@ -1,0 +1,70 @@
+{
+  "netlist": {
+    "nodes": 3,
+    "digital_nets": 2,
+    "elements": [
+      {
+        "type": "V",
+        "a": 1,
+        "b": 0,
+        "wave": {
+          "kind": "sine",
+          "offset": 2.25,
+          "amp": 2.5,
+          "freq": 1000
+        }
+      },
+      {
+        "type": "ADC",
+        "p": 1,
+        "n": 0,
+        "out": 0,
+        "in_low": 1.7333333333,
+        "in_high": 2.7666666667,
+        "histeresis": true
+      },
+      {
+        "type": "GATE",
+        "fn": "not",
+        "inputs": [
+          0
+        ],
+        "output": 1,
+        "rise_delay": 5e-9,
+        "fall_delay": 5e-9
+      },
+      {
+        "type": "DAC",
+        "input": 1,
+        "out": 2,
+        "v_lo": 0,
+        "v_hi": 5,
+        "r_lo": 55,
+        "r_hi": 55,
+        "t_rise": 6.666666666666667e-9,
+        "t_fall": 6.666666666666667e-9
+      },
+      {
+        "type": "R",
+        "a": 2,
+        "b": 0,
+        "ohms": 10000
+      }
+    ]
+  },
+  "fin": 0.002,
+  "hmax": 0.000001,
+  "tolerancia_t": 0.000002,
+  "columnas": {
+    "v(y)": {
+      "nodo": 2
+    },
+    "v(in)": {
+      "nodo": 1
+    }
+  },
+  "eventos": {
+    "dh": 0,
+    "dy": 1
+  }
+}

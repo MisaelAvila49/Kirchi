@@ -1,0 +1,92 @@
+{
+  "netlist": {
+    "nodes": 7,
+    "digital_nets": 0,
+    "elements": [
+      {
+        "type": "V",
+        "a": 1,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 5
+        }
+      },
+      {
+        "type": "V",
+        "a": 2,
+        "b": 0,
+        "wave": {
+          "kind": "sine",
+          "offset": 0,
+          "amp": 0.01,
+          "freq": 10000
+        }
+      },
+      {
+        "type": "V",
+        "a": 3,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 5
+        }
+      },
+      {
+        "type": "R",
+        "a": 3,
+        "b": 4,
+        "ohms": 5100
+      },
+      {
+        "type": "OA",
+        "p": 0,
+        "n": 2,
+        "out": 5,
+        "vp": 1,
+        "vn": 0,
+        "model": {
+          "a0": 200000,
+          "gbw": 115000000,
+          "sr": 20000000,
+          "rin": 100000000,
+          "rout": 100,
+          "ilim": 0.03,
+          "dhi": 0.05,
+          "dlo": 0.001,
+          "rq": 25000
+        }
+      },
+      {
+        "type": "R",
+        "a": 5,
+        "b": 6,
+        "ohms": 2200
+      },
+      {
+        "type": "Q",
+        "c": 4,
+        "b": 6,
+        "e": 0,
+        "pnp": false,
+        "model": {
+          "is": 1e-14,
+          "bf": 60,
+          "rc": 28,
+          "cje": 2e-12,
+          "cjc": 2e-12,
+          "tf": 5e-9,
+          "tr": 1e-7
+        }
+      }
+    ]
+  },
+  "fin": 0.00015,
+  "hmax": 5e-8,
+  "tolerancia_t": 5e-8,
+  "columnas": {
+    "v(5)": {
+      "nodo": 4
+    }
+  }
+}

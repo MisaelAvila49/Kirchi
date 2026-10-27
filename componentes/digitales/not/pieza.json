@@ -2,6 +2,7 @@
   "id": "not",
   "nombre": { "es": "Compuerta NOT", "en": "NOT gate" },
   "categoria": "digitales",
+  "grupo": "Compuertas",
   "prefijo": "U",
   "buscar": ["u", "not", "inversor", "negador", "compuerta", "7404"],
   "pines": [
@@ -13,5 +14,83 @@
     { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
   ],
   "modelo": { "tipo": "compuerta", "funcion": "not", "entradas": ["A"], "salida": "Y", "familia": "familia", "alimentacion": "alimentacion" },
-  "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } }
+  "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } },
+  "datos": {
+    "por": "familia",
+    "equivalencias": { "ltspice": "Digital\\inv", "falstad": "I", "sinVerificar": ["ltspice"] },
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC04N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc04.pdf",
+        "equivalencias": { "kicad": "74xx:74HC04" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "Y": "2" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "Y": "2" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "3", "Y": "4" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "5", "Y": "6" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "9", "Y": "8" } },
+              { "nombre": "Compuerta 5", "patillas": { "A": "11", "Y": "10" } },
+              { "nombre": "Compuerta 6", "patillas": { "A": "13", "Y": "12" } }
+            ],
+            "parte": "SN74HC04N",
+            "lcsc": { "numero": "C2886", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC04, pinout p. 3; KiCad 74xx:74HC04" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS04N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls04.pdf",
+        "equivalencias": { "kicad": "74xx:74LS04" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "Y": "2" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "Y": "2" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "3", "Y": "4" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "5", "Y": "6" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "9", "Y": "8" } },
+              { "nombre": "Compuerta 5", "patillas": { "A": "11", "Y": "10" } },
+              { "nombre": "Compuerta 6", "patillas": { "A": "13", "Y": "12" } }
+            ],
+            "parte": "SN74LS04N",
+            "lcsc": { "numero": "C183657", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74LS04 (texto); KiCad 74xx:74LS04" }
+      },
+      "CD4000B": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4069UBE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4069ub.pdf",
+        "equivalencias": { "kicad": "4xxx:4069" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "Y": "2" },
+            "alimentacion": { "VDD": "14", "VSS": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "Y": "2" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "3", "Y": "4" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "5", "Y": "6" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "9", "Y": "8" } },
+              { "nombre": "Compuerta 5", "patillas": { "A": "11", "Y": "10" } },
+              { "nombre": "Compuerta 6", "patillas": { "A": "13", "Y": "12" } }
+            ],
+            "parte": "CD4069UBE",
+            "lcsc": { "numero": "C5204", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4069UB (SCHS054E), Functional Diagram p. 1 (texto); KiCad 4xxx:4069" }
+      }
+    }
+  }
 }

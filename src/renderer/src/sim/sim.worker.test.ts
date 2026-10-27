@@ -4,7 +4,7 @@ import { bytesSabInstrumentos, crearVistas, leerInstrumentos } from './protocolo
 
 /** Worker de la vista previa con un motor de mentira: importa cuándo calcula y publica, no el circuito. El falso avanza al
  * instante hasta la meta pedida y cuenta las llamadas. */
-const motor = vi.hoisted(() => ({ avances: 0, cambios: [] as string[], t: 0, atascado: false, falla: false, ultimaMeta: 0, pila: [] as number[], perdidos: 0, descartes: 0 }))
+const motor = vi.hoisted(() => ({ avances: 0, cambios: [] as string[], t: 0, atascado: false, falla: false, valores: [] as [number, number, number][], rechazaValor: false, ultimaMeta: 0, pila: [] as number[], perdidos: 0, descartes: 0 }))
 
 vi.mock('./pkg/kirchi_engine.js', () => {
   const memory = new WebAssembly.Memory({ initial: 1 })
@@ -30,6 +30,10 @@ vi.mock('./pkg/kirchi_engine.js', () => {
     }
     set_element = (_i: number, e: string) => void motor.cambios.push(e)
     set_max_step = () => {}
+    poner_valor = (canal: number, t: number, v: number) => {
+      if (motor.rechazaValor) throw new Error('canal 0: el tiempo y el valor deben ser finitos')
+      motor.valores.push([canal, t, v])
+    }
     reset_element = () => {}
     voltages_ptr = () => 0
     currents_ptr = () => 64
@@ -53,6 +57,7 @@ vi.mock('./pkg/kirchi_engine.js', () => {
     set_resistance = () => {}
     // .
     take_cruces = () => new Float64Array([0])
+    take_conflictos = () => new Uint32Array(0)
     hmin = () => 1e-14
     activar_terminales = () => {}
     activar_potencias = () => {}
@@ -93,6 +98,8 @@ describe('worker de la vista previa', () => {
     motor.cambios = []
     motor.atascado = false
     motor.falla = false
+    motor.valores = []
+    motor.rechazaValor = false
     motor.ultimaMeta = 0
     motor.pila = []
     motor.perdidos = 0
@@ -124,6 +131,25 @@ describe('worker de la vista previa', () => {
     expect(motor.cambios).toHaveLength(1)
     expect(motor.avances).toBeGreaterThan(antes)
     expect(readSim(vista, 1).time).toBeGreaterThan(tAntes)
+  })
+
+  it('una perilla escribe su valor en el canal a la hora de la isla, sin pasar por set_element', async () => {
+    const sab = new SharedArrayBuffer(SAB_LENGTH * Float64Array.BYTES_PER_ELEMENT)
+    await enviar({ type: 'load', id: 1, netlist: '{}', h: 1e-5, sab })
+    vi.advanceTimersByTime(8)
+    const t = motor.t
+    enviar({ type: 'perilla', canal: 2, valor: 85, seq: 1 })
+    expect(motor.valores).toEqual([[2, t, 85]])
+    expect(motor.cambios).toHaveLength(0)
+  })
+
+  it('el rechazo de una perilla vuelve como rechazado con indice -1 - canal y no detiene el motor', async () => {
+    const sab = new SharedArrayBuffer(SAB_LENGTH * Float64Array.BYTES_PER_ELEMENT)
+    await enviar({ type: 'load', id: 1, netlist: '{}', h: 1e-5, sab })
+    motor.rechazaValor = true
+    enviar({ type: 'perilla', canal: 3, valor: Number.NaN, seq: 7 })
+    expect(recibidos).toContainEqual({ type: 'rechazado', id: 1, indice: -4, message: expect.stringContaining('finitos'), seq: 7 })
+    expect(recibidos.some((m) => m.type === 'error')).toBe(false)
   })
 
   it('con un multímetro, lo lee cuatro veces por segundo de reloj', async () => {

@@ -1,0 +1,406 @@
+{
+  "id": "optoacoplador-pc817",
+  "nombre": {
+    "es": "Optoacoplador PC817",
+    "en": "PC817 optocoupler"
+  },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": [
+    "pc817",
+    "817",
+    "optoacoplador",
+    "optoaislador",
+    "optocoupler",
+    "opto",
+    "fototransistor",
+    "aislador"
+  ],
+  "pines": [
+    {
+      "id": "A",
+      "nombre": "ánodo del LED (A)",
+      "x": -6,
+      "y": -2
+    },
+    {
+      "id": "K",
+      "nombre": "cátodo del LED (K)",
+      "x": -6,
+      "y": 2
+    },
+    {
+      "id": "C",
+      "nombre": "colector (C)",
+      "x": 6,
+      "y": -2
+    },
+    {
+      "id": "E",
+      "nombre": "emisor (E)",
+      "x": 6,
+      "y": 2
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "PC817A",
+      "opciones": [
+        "PC817A",
+        "PC817B",
+        "PC817C",
+        "PC817D"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "PC817A": {
+        "dis": 2.36e-12,
+        "dn": 2,
+        "drs": 0.9,
+        "k": 0.005622,
+        "tf": 8e-9
+      },
+      "PC817B": {
+        "dis": 2.36e-12,
+        "dn": 2,
+        "drs": 0.9,
+        "k": 0.009154,
+        "tf": 8e-9
+      },
+      "PC817C": {
+        "dis": 2.36e-12,
+        "dn": 2,
+        "drs": 0.9,
+        "k": 0.01408,
+        "tf": 8e-9
+      },
+      "PC817D": {
+        "dis": 2.36e-12,
+        "dn": 2,
+        "drs": 0.9,
+        "k": 0.02109,
+        "tf": 8e-9
+      }
+    },
+    "internas": [
+      "x",
+      "b"
+    ],
+    "medida": {
+      "mas": "C",
+      "menos": "E",
+      "i": 2
+    },
+    "elementos": [
+      {
+        "t": "D",
+        "a": "A",
+        "b": "x",
+        "params": {
+          "is": "dis",
+          "n": "dn",
+          "rs": "drs"
+        }
+      },
+      {
+        "t": "F",
+        "p": "C",
+        "n": "b",
+        "cp": "x",
+        "cn": "K",
+        "ganancia": "k"
+      },
+      {
+        "t": "Q",
+        "c": "C",
+        "b": "b",
+        "e": "E",
+        "params": {
+          "is": 1e-14,
+          "bf": 200,
+          "tf": "tf"
+        }
+      }
+    ]
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "PC817A": {
+          "fuente": "Sharp PC817X (D2-A03101EN) p. 4, Absolute Maximum Ratings a 25 °C: voltaje inverso del LED de 6 V, colector a emisor de 80 V (35 V en las piezas anteriores a julio de 2002 y en el LTV-817 de Lite-On) y emisor a colector de 6 V.",
+          "limites": [
+            {
+              "nombre": "voltaje inverso del LED",
+              "de": "K",
+              "a": "A",
+              "max": 6,
+              "consejo": "protege el LED con un diodo en antiparalelo o evita invertir la polaridad."
+            },
+            {
+              "nombre": "Vce",
+              "de": "C",
+              "a": "E",
+              "max": 80,
+              "consejo": "baja el voltaje del lado del transistor."
+            },
+            {
+              "nombre": "Vec inverso",
+              "de": "E",
+              "a": "C",
+              "max": 6,
+              "consejo": "evita polarizar el transistor al revés."
+            }
+          ]
+        },
+        "PC817B": {
+          "fuente": "Sharp PC817X (D2-A03101EN) p. 4, Absolute Maximum Ratings a 25 °C: voltaje inverso del LED de 6 V, colector a emisor de 80 V (35 V en las piezas anteriores a julio de 2002 y en el LTV-817 de Lite-On) y emisor a colector de 6 V.",
+          "limites": [
+            {
+              "nombre": "voltaje inverso del LED",
+              "de": "K",
+              "a": "A",
+              "max": 6,
+              "consejo": "protege el LED con un diodo en antiparalelo o evita invertir la polaridad."
+            },
+            {
+              "nombre": "Vce",
+              "de": "C",
+              "a": "E",
+              "max": 80,
+              "consejo": "baja el voltaje del lado del transistor."
+            },
+            {
+              "nombre": "Vec inverso",
+              "de": "E",
+              "a": "C",
+              "max": 6,
+              "consejo": "evita polarizar el transistor al revés."
+            }
+          ]
+        },
+        "PC817C": {
+          "fuente": "Sharp PC817X (D2-A03101EN) p. 4, Absolute Maximum Ratings a 25 °C: voltaje inverso del LED de 6 V, colector a emisor de 80 V (35 V en las piezas anteriores a julio de 2002 y en el LTV-817 de Lite-On) y emisor a colector de 6 V.",
+          "limites": [
+            {
+              "nombre": "voltaje inverso del LED",
+              "de": "K",
+              "a": "A",
+              "max": 6,
+              "consejo": "protege el LED con un diodo en antiparalelo o evita invertir la polaridad."
+            },
+            {
+              "nombre": "Vce",
+              "de": "C",
+              "a": "E",
+              "max": 80,
+              "consejo": "baja el voltaje del lado del transistor."
+            },
+            {
+              "nombre": "Vec inverso",
+              "de": "E",
+              "a": "C",
+              "max": 6,
+              "consejo": "evita polarizar el transistor al revés."
+            }
+          ]
+        },
+        "PC817D": {
+          "fuente": "Sharp PC817X (D2-A03101EN) p. 4, Absolute Maximum Ratings a 25 °C: voltaje inverso del LED de 6 V, colector a emisor de 80 V (35 V en las piezas anteriores a julio de 2002 y en el LTV-817 de Lite-On) y emisor a colector de 6 V.",
+          "limites": [
+            {
+              "nombre": "voltaje inverso del LED",
+              "de": "K",
+              "a": "A",
+              "max": 6,
+              "consejo": "protege el LED con un diodo en antiparalelo o evita invertir la polaridad."
+            },
+            {
+              "nombre": "Vce",
+              "de": "C",
+              "a": "E",
+              "max": 80,
+              "consejo": "baja el voltaje del lado del transistor."
+            },
+            {
+              "nombre": "Vec inverso",
+              "de": "E",
+              "a": "C",
+              "max": 6,
+              "consejo": "evita polarizar el transistor al revés."
+            }
+          ]
+        }
+      }
+    },
+    "quema": {
+      "factor": 2,
+      "durante": 0.5,
+      "elemento": 0
+    },
+    "compuesto": [
+      {
+        "nombre": "corriente del LED",
+        "elementos": [
+          0
+        ],
+        "medida": "corriente",
+        "sentido": "positiva",
+        "max": 0.05,
+        "consejo": "agrega o aumenta la resistencia en serie con el LED.",
+        "fuente": "Sharp PC817X (D2-A03101EN) p. 4, Absolute Maximum Ratings: corriente directa continua del LED de 50 mA."
+      },
+      {
+        "nombre": "corriente del colector",
+        "elementos": [
+          2
+        ],
+        "medida": "corriente",
+        "sentido": "positiva",
+        "max": 0.05,
+        "consejo": "aumenta la resistencia de carga del colector.",
+        "fuente": "Sharp PC817X (D2-A03101EN) p. 4, Absolute Maximum Ratings: corriente de colector de 50 mA."
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 8,
+      "y": -4
+    },
+    "valor": {
+      "x": 8,
+      "y": 4
+    }
+  },
+  "fuentes": {
+    "PC817A": "Sharp PC817X (D2-A03101EN, 30-Sep-2003) p. 4 y 5 y Lite-On LTV-817 (Rev. K) p. 9 y 10: CTR de 80 a 160 % con IF = 5 mA y VCE = 5 V (rango A), VF de 1.2 V típico a 20 mA, VCE(sat) de 0.1 V típico y 0.2 V máximo con IF = 20 mA e IC = 1 mA, tr de 4 µs y tf de 3 µs típicos con RL = 100 Ω. Kirchi lo arma con el LED, una fuente de corriente que lleva la fracción 0.005622 de la corriente del LED a la base y un transistor de ganancia 200, de modo que el CTR es el nominal del rango (113 %, media geométrica de sus límites) y constante. Los parámetros del LED (N = 2, RS = 0.9 Ω, IS = 2.36e-12 A) se derivaron del único punto de VF con N y RS supuestos, y el TF del transistor (8 ns) se ajustó para quedar entre los 4 µs de subida y los 3 µs de bajada de la hoja. No modela la variación del CTR con la corriente y la temperatura (solo gráficas), la corriente de oscuridad ni el voltaje de aislamiento.",
+    "PC817B": "Sharp PC817X (D2-A03101EN, 30-Sep-2003) p. 4 y 5 y Lite-On LTV-817 (Rev. K) p. 9 y 10: CTR de 130 a 260 % con IF = 5 mA y VCE = 5 V (rango B), VF de 1.2 V típico a 20 mA, VCE(sat) de 0.1 V típico y 0.2 V máximo con IF = 20 mA e IC = 1 mA, tr de 4 µs y tf de 3 µs típicos con RL = 100 Ω. Kirchi lo arma con el LED, una fuente de corriente que lleva la fracción 0.009154 de la corriente del LED a la base y un transistor de ganancia 200, de modo que el CTR es el nominal del rango (184 %, media geométrica de sus límites) y constante. Los parámetros del LED (N = 2, RS = 0.9 Ω, IS = 2.36e-12 A) se derivaron del único punto de VF con N y RS supuestos, y el TF del transistor (8 ns) se ajustó para quedar entre los 4 µs de subida y los 3 µs de bajada de la hoja. No modela la variación del CTR con la corriente y la temperatura (solo gráficas), la corriente de oscuridad ni el voltaje de aislamiento.",
+    "PC817C": "Sharp PC817X (D2-A03101EN, 30-Sep-2003) p. 4 y 5 y Lite-On LTV-817 (Rev. K) p. 9 y 10: CTR de 200 a 400 % con IF = 5 mA y VCE = 5 V (rango C), VF de 1.2 V típico a 20 mA, VCE(sat) de 0.1 V típico y 0.2 V máximo con IF = 20 mA e IC = 1 mA, tr de 4 µs y tf de 3 µs típicos con RL = 100 Ω. Kirchi lo arma con el LED, una fuente de corriente que lleva la fracción 0.01408 de la corriente del LED a la base y un transistor de ganancia 200, de modo que el CTR es el nominal del rango (283 %, media geométrica de sus límites) y constante. Los parámetros del LED (N = 2, RS = 0.9 Ω, IS = 2.36e-12 A) se derivaron del único punto de VF con N y RS supuestos, y el TF del transistor (8 ns) se ajustó para quedar entre los 4 µs de subida y los 3 µs de bajada de la hoja. No modela la variación del CTR con la corriente y la temperatura (solo gráficas), la corriente de oscuridad ni el voltaje de aislamiento.",
+    "PC817D": "Sharp PC817X (D2-A03101EN, 30-Sep-2003) p. 4 y 5 y Lite-On LTV-817 (Rev. K) p. 9 y 10: CTR de 300 a 600 % con IF = 5 mA y VCE = 5 V (rango D), VF de 1.2 V típico a 20 mA, VCE(sat) de 0.1 V típico y 0.2 V máximo con IF = 20 mA e IC = 1 mA, tr de 4 µs y tf de 3 µs típicos con RL = 100 Ω. Kirchi lo arma con el LED, una fuente de corriente que lleva la fracción 0.02109 de la corriente del LED a la base y un transistor de ganancia 200, de modo que el CTR es el nominal del rango (424 %, media geométrica de sus límites) y constante. Los parámetros del LED (N = 2, RS = 0.9 Ω, IS = 2.36e-12 A) se derivaron del único punto de VF con N y RS supuestos, y el TF del transistor (8 ns) se ajustó para quedar entre los 4 µs de subida y los 3 µs de bajada de la hoja. No modela la variación del CTR con la corriente y la temperatura (solo gráficas), la corriente de oscuridad ni el voltaje de aislamiento."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": {
+      "kicad": "Isolator:PC817",
+      "sinVerificar": [
+        "kicad"
+      ]
+    },
+    "valores": {
+      "PC817A": {
+        "fabricante": "Sharp",
+        "parte": "PC817X1NSZ9F",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-4",
+            "patillas": {
+              "A": "1",
+              "K": "2",
+              "E": "3",
+              "C": "4"
+            },
+            "huella": "Package_DIP:DIP-4_W7.62mm",
+            "lcsc": {
+              "numero": "C115207",
+              "comprobado": "2026-10-26"
+            }
+          }
+        ],
+        "pendiente": {
+          "hoja": "La URL de Sharp que se intentó (sharpsde.com/fileadmin/products/Opto/PC817X_Series_Datasheet.pdf) devolvió 404; la hoja leída es Sharp PC817X Series, D2-A03101EN del 30-Sep-2003, desde una copia de Farnell (farnell.com/datasheets/73758.pdf). El dominio de Sharp no está en datosCompletos.test.ts."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Sharp PC817X (D2-A03101EN) p. 2, Internal Connection Diagram: 1 Anode, 2 Cathode, 3 Emitter, 4 Collector; p. 5, rango A = IC 4.0 a 8.0 mA (X1). Everlight EL817 (Rev. 15, 20-Jul-2016) p. 1: 1 Anode, 2 Cathode, 3 Emitter, 4 Collector. LCSC C115207 = PC817X1NSZ9F, DIP-4"
+        },
+        "aproximada": "CTR constante en el nominal del rango, sin variación con la corriente ni la temperatura; la curva VF contra IF sale de un solo punto con N y RS supuestos."
+      },
+      "PC817B": {
+        "fabricante": "Sharp",
+        "parte": "PC817X2NSZW",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-4",
+            "patillas": {
+              "A": "1",
+              "K": "2",
+              "E": "3",
+              "C": "4"
+            },
+            "huella": "Package_DIP:DIP-4_W7.62mm",
+            "lcsc": {
+              "numero": "C5350",
+              "comprobado": "2026-10-26"
+            }
+          }
+        ],
+        "pendiente": {
+          "hoja": "Igual que PC817A."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Sharp PC817X p. 2 (patillas) y p. 5, rango B = IC 6.5 a 13.0 mA (X2); Everlight EL817 p. 1. LCSC C5350 = PC817X2NSZW, DIP-4"
+        },
+        "aproximada": "CTR constante en el nominal del rango, sin variación con la corriente ni la temperatura; la curva VF contra IF sale de un solo punto con N y RS supuestos."
+      },
+      "PC817C": {
+        "fabricante": "Sharp",
+        "parte": "PC817X3",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-4",
+            "patillas": {
+              "A": "1",
+              "K": "2",
+              "E": "3",
+              "C": "4"
+            },
+            "huella": "Package_DIP:DIP-4_W7.62mm"
+          }
+        ],
+        "pendiente": {
+          "hoja": "Igual que PC817A.",
+          "lcsc": "No se halló número LCSC del PC817X3 (rango C)."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Sharp PC817X p. 2 y p. 5, rango C = IC 10.0 a 20.0 mA (X3); Everlight EL817 p. 1 (patillas)"
+        },
+        "aproximada": "CTR constante en el nominal del rango, sin variación con la corriente ni la temperatura; la curva VF contra IF sale de un solo punto con N y RS supuestos."
+      },
+      "PC817D": {
+        "fabricante": "Sharp",
+        "parte": "PC817X4",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-4",
+            "patillas": {
+              "A": "1",
+              "K": "2",
+              "E": "3",
+              "C": "4"
+            },
+            "huella": "Package_DIP:DIP-4_W7.62mm"
+          }
+        ],
+        "pendiente": {
+          "hoja": "Igual que PC817A.",
+          "lcsc": "No se halló número LCSC del PC817X4 (rango D)."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Sharp PC817X p. 2 y p. 5, rango D = IC 15.0 a 30.0 mA (X4); Everlight EL817 p. 1 (patillas)"
+        },
+        "aproximada": "CTR constante en el nominal del rango, sin variación con la corriente ni la temperatura; la curva VF contra IF sale de un solo punto con N y RS supuestos."
+      }
+    }
+  }
+}

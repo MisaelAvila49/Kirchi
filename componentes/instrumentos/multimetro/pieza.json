@@ -16,5 +16,6 @@
   "etiquetas": { "ref": { "x": 4, "y": -2 }, "valor": { "x": 4, "y": 2 } },
   "rotulos": [
     { "prop": "modo", "valores": { "V DC": "V", "V AC": "V~", "A DC": "A", "A AC": "A~", "Ω": "Ω", "Continuidad": "Ω" }, "x": 0, "y": -0.8, "tam": 2, "fuente": "sans" }
-  ]
+  ],
+  "datos": { "valores": { "*": { "virtual": true, "nota": "Multímetro del simulador." } } }
 }

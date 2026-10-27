@@ -10,6 +10,9 @@ const AC = (ref: string, amplitud: string, frecuencia: string, mas: string, meno
 const PULSO = (ref: string, alto: string, frecuencia: string, mas: string): Parte => ({ tipo: 'fuente-pulso', ref, props: { alto, frecuencia, ciclo: '50 %' }, pines: { '+': mas, '-': '0' } })
 const Q = (tipo: 'npn' | 'pnp', modelo: string, c: string, b: string, e: string): Parte => ({ tipo, ref: 'Q1', props: { modelo }, pines: { C: c, B: b, E: e } })
 const M = (tipo: 'mosfet-n' | 'mosfet-p', modelo: string, d: string, g: string, s: string): Parte => ({ tipo, ref: 'Q1', props: { modelo }, pines: { D: d, G: g, S: s } })
+const JF = (tipo: 'jfet-n' | 'jfet-p', modelo: string, d: string, g: string, s: string): Parte => ({ tipo, ref: 'J1', props: { modelo }, pines: { D: d, G: g, S: s } })
+/** Fuente controlada: `+`, `-`, `C+` y `C-`. */
+const CTL = (tipo: string, ref: string, valor: string, p: string, n: string, cp: string, cn: string): Parte => ({ tipo, ref, props: { [tipo === 'fuente-vccs' ? 'gm' : tipo === 'fuente-ccvs' ? 'r' : 'ganancia']: valor }, pines: { '+': p, '-': n, 'C+': cp, 'C-': cn } })
 /** El 555 con VCC y RESET en «vcc» y GND en la tierra. */
 const TIMER = (modelo: string, trig: string, out: string, cv: string, thr: string, dis: string): Parte => ({ tipo: 'temporizador-555', ref: 'X1', props: { modelo }, pines: { '1': '0', '2': trig, '3': out, '4': 'vcc', '5': cv, '6': thr, '7': dis, '8': 'vcc' } })
 /** El comparador con V− en la tierra: entrada no inversora, inversora, salida y V+. */
@@ -19,6 +22,47 @@ const AO = (modelo: string, mas: string, menos: string, sal: string, vmas: strin
 /** Un regulador de tres pines (entrada, salida y el tercero: tierra o ajuste). */
 const REG = (tipo: string, modelo: string, entrada: string, salida: string, tercero: string): Parte => ({ tipo, ref: 'U1', props: { modelo }, pines: { IN: entrada, OUT: salida, GND: tercero } })
 
+/** La referencia TL431: cátodo, ánodo y referencia. */
+const TL431 = (k: string, a: string, ref: string): Parte => ({ tipo: 'tl431', ref: 'U1', props: { modelo: 'TL431' }, pines: { K: k, A: a, REF: ref } })
+
+/** La referencia LM4040 del voltaje dado: cátodo y ánodo. */
+const LM4040 = (voltaje: string, k: string, a: string): Parte => ({ tipo: 'lm4040', ref: 'U1', props: { modelo: voltaje }, pines: { K: k, A: a } })
+/** Una LM4040 alimentada con `vin` por `r1` desde un nodo «vcc»: punto de operación asentado. */
+const lm4040 = (voltaje: string, vin: string, r1: string): Caso => ({ partes: [DC('V1', vin, 'vcc'), R('R1', r1, 'vcc', 'k'), LM4040(voltaje, 'k', '0')], fin: 0.2, hmax: 1e-4, corrientes: { 'i(v1)': 'V1' } })
+
+/** El INA128 con V+ en «vp», V− en «vm», REF a tierra, salida «out» con 10 kΩ y RG entre «rg1» y «rg2» (sin RG, esos pines al aire). */
+const INA128 = (rg: string | null): Parte => ({ tipo: 'ina128', ref: 'U1', props: { modelo: 'INA128' }, pines: { 'IN-': 'inm', 'IN+': 'inp', RG1: rg ? 'rg1' : 'aire_rg1', RG2: rg ? 'rg2' : 'aire_rg2', REF: '0', OUT: 'out', 'V+': 'vp', 'V-': 'vm' } })
+const INA_FUENTES: Parte[] = [DC('V1', '15', 'vp'), DC('V2', '-15', 'vm'), R('RL', '10k', 'out', '0')]
+
+/** El LM386 con VS en «vs», GND y IN− en tierra, la salida «out» y las patillas 1 y 8 en «g1» y «g8» (al aire sin el capacitor). */
+const LM386 = (entrada: string, byp: string, ganancia200 = false): Parte => ({ tipo: 'lm386', ref: 'U1', props: { modelo: 'LM386' }, pines: { 'IN-': '0', 'IN+': entrada, GAIN1: ganancia200 ? 'g1' : 'aire_g1', GAIN8: ganancia200 ? 'g8' : 'aire_g8', BYP: byp, OUT: 'out', VS: 'vs', GND: '0' } })
+
+/** La punta lógica de la familia dada con la pinza + en «vcc» (5 V) y la − en tierra. Con `rampa`, la punta en «p» sigue una rampa de 0 a 5 V en 4 ms; sin ella es un punto de operación asentado. */
+const punta = (familia: string, red: string, rampa = false): Caso => ({
+  partes: [DC('V1', '5', 'vcc'), ...(rampa ? [{ tipo: 'fuente-pulso', ref: 'V2', props: { alto: '5', frecuencia: '100', ciclo: '50 %', ancho: '1m', subida: '4m', bajada: '4m' }, pines: { '+': 'p', '-': '0' } } as Parte] : []), { tipo: 'punta-logica', ref: 'LP1', props: { familia }, pines: { PUNTA: red, '+': 'vcc', '-': '0' } }],
+  fin: rampa ? 10e-3 : 0.1,
+  hmax: rampa ? 5e-7 : 1e-4,
+  ...(rampa ? { tolT: 5e-6 } : {}),
+  corrientes: { 'i(v1)': 'V1' }
+})
+
+/** Un termistor NTC con la temperatura de su perilla, entre las redes dadas. */
+const NTC = (modelo: string, temperatura: string, a: string, b: string): Parte => ({ tipo: 'ntc', ref: 'TH1', props: { modelo, temperatura }, pines: { '1': a, '2': b } })
+/** La PTC B59339A1202P020 con la temperatura de su perilla, entre las redes dadas. */
+const PTC = (temperatura: string, a: string, b: string): Parte => ({ tipo: 'ptc', ref: 'TH1', props: { temperatura }, pines: { '1': a, '2': b } })
+/** Una fotorresistencia con la luz de su perilla, entre las redes dadas. */
+const LDR = (modelo: string, luz: string, a: string, b: string): Parte => ({ tipo: 'ldr', ref: 'LDR1', props: { modelo, luz }, pines: { '1': a, '2': b } })
+/** Un sensor de temperatura integrado (LM35 o TMP36) con +VS en «vcc», VOUT en «out» y GND en la tierra. */
+const SENS = (tipo: string, temperatura: string): Parte => ({ tipo, ref: 'U1', props: { temperatura }, pines: { '+VS': 'vcc', VOUT: 'out', GND: '0' } })
+/** El 4N25 con el LED entre `a` y `k`, el colector en `c`, el emisor en `e` y la base al aire. */
+const OPTO4 = (a: string, k: string, c: string, e = '0'): Parte => ({ tipo: 'optoacoplador-4n25', ref: 'U1', props: { modelo: '4N25' }, pines: { A: a, K: k, C: c, E: e, B: 'aire_B' } })
+/** Un PC817 del rango dado (A a D) con el LED entre `a` y `k` y el transistor entre `c` y `e`. */
+const OPTO8 = (rango: string, a: string, k: string, c: string, e = '0'): Parte => ({ tipo: 'optoacoplador-pc817', ref: 'U1', props: { modelo: `PC817${rango}` }, pines: { A: a, K: k, C: c, E: e } })
+/** El IGBT del modelo dado con el colector en `c`, la compuerta en `g` y el emisor en la tierra. */
+const IGBT = (modelo: string, c: string, g: string): Parte => ({ tipo: 'igbt', ref: 'Q1', props: { modelo }, pines: { C: c, G: g, E: '0' } })
+/** El UJT 2N2646 con el emisor en `e`, la base 1 en `b1` y la base 2 en `b2`. */
+const UJT = (e: string, b1: string, b2: string): Parte => ({ tipo: 'ujt', ref: 'Q1', props: { modelo: '2N2646' }, pines: { E: e, B1: b1, B2: b2 } })
+const IE = (corriente: string): Parte => ({ tipo: 'fuente-corriente', ref: 'I1', props: { corriente }, pines: { entrada: '0', salida: 'e' } })
 const SCR = (anodo: string, catodo: string, compuerta: string): Parte => ({ tipo: 'scr', ref: 'Q1', props: { modelo: '2N5060' }, pines: { A: anodo, K: catodo, G: compuerta } })
 /** El ULN2003A con E en tierra; los canales y pines que no se nombran quedan en una red propia (al aire). */
 const ULN = (pines: Record<string, string>): Parte => ({ tipo: 'uln2003', ref: 'U1', props: { modelo: 'ULN2003A' }, pines: { E: '0', ...Object.fromEntries(['1B', '2B', '3B', '4B', '5B', '6B', '7B', '1C', '2C', '3C', '4C', '5C', '6C', '7C', 'COM'].map((p) => [p, `aire_${p}`])), ...pines } })
@@ -26,6 +70,22 @@ const ULN = (pines: Record<string, string>): Parte => ({ tipo: 'uln2003', ref: '
 const PULSO_G = (ref: string, alto: string, mas: string): Parte => ({ tipo: 'fuente-pulso', ref, props: { alto, frecuencia: '100', ciclo: '50 %', retardo: '1m' }, pines: { '+': mas, '-': '0' } })
 const TRIAC = (mt2: string, compuerta: string): Parte => ({ tipo: 'triac', ref: 'Q1', props: { modelo: 'BT136' }, pines: { MT2: mt2, MT1: '0', G: compuerta } })
 const DIAC = (modelo: string, a1: string, a2: string): Parte => ({ tipo: 'diac', ref: 'D1', props: { modelo }, pines: { A1: a1, A2: a2 } })
+
+/** El 17HS4401 con cada fase detrás de 6 Ω y una fuente por tramos (`a` y `b`, pares «tiempo voltaje»); `carga` es el par de la perilla en N·m. */
+const PASOS_BI = (a: string, b: string, carga: string): Parte[] => [
+  { tipo: 'fuente-pwl', ref: 'V1', props: { puntos: a }, pines: { '+': 'na', '-': '0' } },
+  R('R1', '6', 'na', 'ma'),
+  { tipo: 'fuente-pwl', ref: 'V2', props: { puntos: b }, pines: { '+': 'nb', '-': '0' } },
+  R('R2', '6', 'nb', 'mb'),
+  { tipo: 'motor-pasos-bipolar', ref: 'M1', props: { modelo: '17HS4401', carga }, pines: { 'A+': 'ma', 'A-': '0', 'B+': 'mb', 'B-': '0' } }
+]
+
+/** El 28BYJ-48 con la toma a 5 V y un extremo por mitad que baja a 0 V como lo haría un ULN2003: `e` son las cuatro fuentes por tramos (A, A', B, B'). */
+const PASOS_UNI = (e: [string, string, string, string], carga: string): Parte[] => [
+  DC('V5', '5', 'com'),
+  ...e.map((puntos, k): Parte => ({ tipo: 'fuente-pwl', ref: `V${k + 1}`, props: { puntos }, pines: { '+': `e${k + 1}`, '-': '0' } })),
+  { tipo: 'motor-pasos-unipolar', ref: 'M1', props: { modelo: '28BYJ-48', carga }, pines: { A: 'e1', A2: 'e2', B: 'e3', B2: 'e4', COM: 'com' } }
+]
 
 export interface Caso {
   partes: Parte[]
@@ -37,6 +97,8 @@ export interface Caso {
   /** Con lógica cada isla analógica avanza con su propio paso y `time()` es el de la más atrasada: se lee en los instantes
    * del CSV, donde todas llegaron. */
   enLosInstantesDelCsv?: true
+  /** Perillas en vivo que cambian durante la simulación: sus puntos (segundos, valor) se unen con rampas, como un pwl de ngspice. Las referencias de ngspice las llevan escritas a mano: el exportador solo escribe el valor inicial. */
+  perillas?: { ref: string; prop: string; puntos: [number, number][] }[]
   /** Las tolerancias por omisión del motor (las de la vista previa) en lugar de las de ngspice con reltol 1e-4: para las piezas con un lazo lento y un amplificador de ganancia alta, que con las ajustadas no convergen. */
   holgada?: true
 }
@@ -61,6 +123,141 @@ export const CASOS: Record<string, Caso> = {
   nmos_irfz44n: mos('mosfet-n', 'IRFZ44N', '100k', '38k', '10'),
   pmos_bs250: mos('mosfet-p', 'BS250', '33k', '68k', '220'),
   pmos_irf9540: mos('mosfet-p', 'IRF9540', '27k', '68k', '22'),
+  jfet_2n5457_autopolarizacion: { partes: [DC('V1', '15', '1'), R('RG', '1M', '2', '0'), R('RS', '1k', '3', '0'), R('RD', '2.2k', '1', '4'), JF('jfet-n', '2N5457', '4', '2', '3')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  jfet_j201_autopolarizacion: { partes: [DC('V1', '15', '1'), R('RG', '1M', '2', '0'), R('RS', '2.2k', '3', '0'), R('RD', '10k', '1', '4'), JF('jfet-n', 'J201', '4', '2', '3')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  jfet_2n3819_autopolarizacion: { partes: [DC('V1', '15', '1'), R('RG', '1M', '2', '0'), R('RS', '470', '3', '0'), R('RD', '1k', '1', '4'), JF('jfet-n', '2N3819', '4', '2', '3')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  jfet_2n5460_autopolarizacion: { partes: [DC('V1', '15', '1'), R('RG', '1M', '2', '0'), R('RS', '1k', '1', '3'), R('RD', '2.2k', '4', '0'), JF('jfet-p', '2N5460', '4', '2', '3')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  jfet_j175_autopolarizacion: { partes: [DC('V1', '15', '1'), R('RG', '1M', '2', '0'), R('RS', '100', '1', '3'), R('RD', '220', '4', '0'), JF('jfet-p', 'J175', '4', '2', '3')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  jfet_2n3819_triodo: { partes: [DC('V1', '0.5', '1'), DC('VG', '-1', '2'), JF('jfet-n', '2N3819', '1', '2', '0')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  jfet_2n3819_saturacion: { partes: [DC('V1', '10', '1'), DC('VG', '-1', '2'), JF('jfet-n', '2N3819', '1', '2', '0')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  jfet_j201_inverso: { partes: [DC('V1', '-1', '1'), DC('VG', '-0.2', '2'), JF('jfet-n', 'J201', '1', '2', '0')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  jfet_2n5457_fuente_comun: {
+    partes: [DC('V1', '15', '1'), AC('V2', '100m', '1k', '5'), C('C1', '1u', '5', '2'), R('RG', '1M', '2', '0'), R('RS', '1k', '3', '0'), C('C2', '2.2u', '3', '0'), R('RD', '2.2k', '1', '4'), C('C3', '1u', '4', '6'), R('RL', '10k', '6', '0'), JF('jfet-n', '2N5457', '4', '2', '3')],
+    fin: 0.02,
+    hmax: 2e-6,
+    tolT: 2e-6,
+    corrientes: { 'i(v1)': 'V1' }
+  },
+  jfet_2n3819_fuente_corriente: { partes: [DC('V1', '12', '1'), R('RL', '1k', '1', '2'), R('RS', '220', '3', '0'), JF('jfet-n', '2N3819', '2', '0', '3')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  jfet_j175_interruptor: {
+    partes: [DC('V1', '-12', '1'), { tipo: 'fuente-pulso', ref: 'V2', props: { alto: '6', frecuencia: '10k', ciclo: '50 %', retardo: '20u', subida: '1n', bajada: '1n', ancho: '49.998u' }, pines: { '+': '4', '-': '0' } }, R('RG', '1k', '4', '2'), R('RL', '100', '1', '3'), JF('jfet-p', 'J175', '3', '2', '0')],
+    fin: 300e-6,
+    hmax: 20e-9,
+    tolT: 20e-9,
+    corrientes: { 'i(v1)': 'V1' }
+  },
+  vcvs_amplificador: { partes: [DC('V1', '0.5', '1'), R('R1', '1k', '1', '0'), CTL('fuente-vcvs', 'E1', '4', '2', '0', '1', '0'), R('R2', '1k', '2', '3'), R('R3', '2k', '3', '0')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  vcvs_lazo: { partes: [DC('V1', '1', '1'), R('R1', '1k', '1', '2'), R('R2', '10k', '2', '3'), CTL('fuente-vcvs', 'E1', '100k', '3', '0', '0', '2')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  vccs_transconductancia: { partes: [DC('V1', '2', '1'), DC('V2', '5', '3'), R('RL', '1k', '3', '2'), CTL('fuente-vccs', 'G1', '3m', '2', '0', '1', '0')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v2)': 'V2' } },
+  ccvs_transresistencia: { partes: [DC('V1', '1', '1'), R('R1', '1k', '1', '2'), CTL('fuente-ccvs', 'H1', '2k', '3', '0', '2', '0'), R('RL', '10k', '3', '0')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  cccs_espejo: { partes: [DC('V1', '5', '1'), R('R1', '1k', '1', '2'), CTL('fuente-cccs', 'F1', '0.5', '4', '0', '2', '0'), DC('V2', '5', '3'), R('RL', '1k', '3', '4')], fin: 0.02, hmax: 1e-5, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  vcvs_filtro_rc: { partes: [AC('VIN', '1', '1k', '1'), CTL('fuente-vcvs', 'E1', '3', '2', '0', '1', '0'), R('R1', '1k', '2', '3'), C('C1', '100n', '3', '0')], fin: 5e-3, hmax: 2e-6, tolT: 2e-6, corrientes: { 'i(vin)': 'VIN' } },
+  pwl_rampa: { partes: [{ tipo: 'fuente-pwl', ref: 'V1', props: { puntos: '0 0, 2m 5, 4m 5' }, pines: { '+': '1', '-': '0' } }, R('R1', '1k', '1', '2'), C('C1', '100n', '2', '0')], fin: 4e-3, hmax: 2e-6, tolT: 2e-6, corrientes: { 'i(v1)': 'V1' } },
+  pwl_escalones: { partes: [{ tipo: 'fuente-pwl', ref: 'V1', props: { puntos: '0 0, 1m 0, 1.001m 2, 2m 2, 2.001m 4, 3m 4, 3.001m 1, 4m 1' }, pines: { '+': '1', '-': '0' } }, R('R1', '1k', '1', '2'), C('C1', '100n', '2', '0')], fin: 4e-3, hmax: 2e-6, tolT: 2e-6, corrientes: { 'i(v1)': 'V1' } },
+  pwl_repeticion: { partes: [{ tipo: 'fuente-pwl', ref: 'V1', props: { puntos: '0 0, 1m 5, 2m 0, 3m 0', repetir: 'Sí' }, pines: { '+': '1', '-': '0' } }, R('R1', '1k', '1', '2'), C('C1', '100n', '2', '0')], fin: 10e-3, hmax: 2e-6, tolT: 2e-6, corrientes: { 'i(v1)': 'V1' } },
+  ntc_10k_divisor_25: { partes: [DC('V1', '5', '1'), R('R1', '10k', '1', '2'), NTC('10 kΩ', '25', '2', '0')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ntc_10k_divisor_100c: { partes: [DC('V1', '5', '1'), R('R1', '10k', '1', '2'), NTC('10 kΩ', '100', '2', '0')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ntc_100k_divisor_60c: { partes: [DC('V1', '5', '1'), R('R1', '100k', '1', '2'), NTC('100 kΩ', '60', '2', '0')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ntc_10k_autocalentamiento: { partes: [DC('V1', '30', '1'), R('R1', '1k', '1', '2'), NTC('10 kΩ', '25', '2', '0')], fin: 60, hmax: 0.05, tolT: 0.1, corrientes: { 'i(v1)': 'V1' } },
+  ntc_arranque_limitador: { partes: [DC('V1', '3', '1'), R('R1', '1', '1', '2'), NTC('Arranque 5 Ω', '25', '2', '0')], fin: 200, hmax: 0.2, tolT: 0.5, corrientes: { 'i(v1)': 'V1' } },
+  ntc_10k_cambio_temperatura: {
+    partes: [DC('V1', '5', '1'), R('R1', '10k', '1', '2'), NTC('10 kΩ', '25', '2', '0')],
+    fin: 10e-3,
+    hmax: 5e-6,
+    tolT: 5e-6,
+    corrientes: { 'i(v1)': 'V1' },
+    perillas: [{ ref: 'TH1', prop: 'temperatura', puntos: [[2e-3, 25], [4e-3, 85], [6e-3, 85], [8e-3, -10], [10e-3, -10]] }]
+  },
+  ptc_divisor_25: { partes: [DC('V1', '5', '1'), R('R1', '1k', '1', '2'), PTC('25', '2', '0')], fin: 0.2, hmax: 1e-3, tolT: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ptc_divisor_80c: { partes: [DC('V1', '5', '1'), R('R1', '1k', '1', '2'), PTC('80', '2', '0')], fin: 0.2, hmax: 1e-3, tolT: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ptc_divisor_125c: { partes: [DC('V1', '5', '1'), R('R1', '1k', '1', '2'), PTC('125', '2', '0')], fin: 0.2, hmax: 1e-3, tolT: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ptc_conmutacion_230v: { partes: [DC('V1', '230', '1'), PTC('25', '1', '0')], fin: 30, hmax: 5e-3, tolT: 0.01, corrientes: { 'i(v1)': 'V1' } },
+  ptc_cambio_temperatura: {
+    partes: [DC('V1', '5', '1'), R('R1', '1k', '1', '2'), PTC('25', '2', '0')],
+    fin: 10e-3,
+    hmax: 5e-6,
+    tolT: 5e-6,
+    corrientes: { 'i(v1)': 'V1' },
+    perillas: [{ ref: 'TH1', prop: 'temperatura', puntos: [[2e-3, 25], [4e-3, 125], [6e-3, 125], [8e-3, -20], [10e-3, -20]] }]
+  },
+  ldr_gl5528_10lx: { partes: [DC('V1', '5', '1'), R('R1', '10k', '1', '2'), LDR('GL5528', '10', '2', '0')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ldr_gl5528_1000lx: { partes: [DC('V1', '5', '1'), R('R1', '10k', '1', '2'), LDR('GL5528', '1000', '2', '0')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ldr_gl5539_0p1lx: { partes: [DC('V1', '5', '1'), R('R1', '10k', '1', '2'), LDR('GL5539', '0.1', '2', '0')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ldr_gl5516_300lx: { partes: [DC('V1', '5', '1'), R('R1', '10k', '1', '2'), LDR('GL5516', '300', '2', '0')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ldr_gl5528_escalon_luz: {
+    partes: [DC('V1', '5', '1'), R('R1', '10k', '1', '2'), LDR('GL5528', '10', '2', '0')],
+    fin: 0.6,
+    hmax: 1e-4,
+    tolT: 1e-4,
+    corrientes: { 'i(v1)': 'V1' },
+    perillas: [{ ref: 'LDR1', prop: 'luz', puntos: [[0.05, 10], [0.0501, 1000], [0.3, 1000], [0.3001, 10], [0.6, 10]] }]
+  },
+  lm35_25c: { partes: [DC('V1', '5', 'vcc'), R('RL', '10k', 'out', '0'), SENS('lm35', '25')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  lm35_100c: { partes: [DC('V1', '5', 'vcc'), R('RL', '10k', 'out', '0'), SENS('lm35', '100')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  lm35_0c: { partes: [DC('V1', '5', 'vcc'), R('RL', '10k', 'out', '0'), SENS('lm35', '0')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  lm35_rampa: {
+    partes: [DC('V1', '5', 'vcc'), R('RL', '10k', 'out', '0'), SENS('lm35', '0')],
+    fin: 10e-3,
+    hmax: 5e-6,
+    tolT: 5e-6,
+    corrientes: { 'i(v1)': 'V1' },
+    perillas: [{ ref: 'U1', prop: 'temperatura', puntos: [[2e-3, 100], [8e-3, 100], [10e-3, 0]] }]
+  },
+  tmp36_25c: { partes: [DC('V1', '5', 'vcc'), R('RL', '10k', 'out', '0'), SENS('tmp36', '25')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  tmp36_m40c: { partes: [DC('V1', '5', 'vcc'), R('RL', '10k', 'out', '0'), SENS('tmp36', '-40')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  tmp36_125c: { partes: [DC('V1', '5', 'vcc'), R('RL', '10k', 'out', '0'), SENS('tmp36', '125')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  tmp36_rampa: {
+    partes: [DC('V1', '5', 'vcc'), R('RL', '10k', 'out', '0'), SENS('tmp36', '-40')],
+    fin: 10e-3,
+    hmax: 5e-6,
+    tolT: 5e-6,
+    corrientes: { 'i(v1)': 'V1' },
+    perillas: [{ ref: 'U1', prop: 'temperatura', puntos: [[2e-3, 125], [8e-3, 125], [10e-3, -40]] }]
+  },
+  opto_4n25_ctr: { partes: [DC('V1', '5', 'vin'), R('R1', '330', 'vin', 'a'), DC('V2', '10', 'vcc'), R('RL', '1k', 'vcc', 'c'), OPTO4('a', '0', 'c')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  opto_4n25_saturado: { partes: [DC('V1', '12', 'vin'), R('R1', '220', 'vin', 'a'), DC('V2', '10', 'vcc'), R('RL', '4.7k', 'vcc', 'c'), OPTO4('a', '0', 'c')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  opto_4n25_conmutacion: { partes: [PULSO('V1', '5', '25k', 'vin'), R('R1', '330', 'vin', 'a'), DC('V2', '10', 'vcc'), R('RL', '1k', 'vcc', 'c'), OPTO4('a', '0', 'c')], fin: 100e-6, hmax: 20e-9, tolT: 20e-9, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  opto_pc817a_ctr: { partes: [DC('V1', '5', 'vin'), R('R1', '1k', 'vin', 'a'), DC('V2', '5', 'vcc'), R('RL', '100', 'vcc', 'c'), OPTO8('A', 'a', '0', 'c')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  opto_pc817b_ctr: { partes: [DC('V1', '5', 'vin'), R('R1', '1k', 'vin', 'a'), DC('V2', '5', 'vcc'), R('RL', '100', 'vcc', 'c'), OPTO8('B', 'a', '0', 'c')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  opto_pc817c_ctr: { partes: [DC('V1', '5', 'vin'), R('R1', '1k', 'vin', 'a'), DC('V2', '5', 'vcc'), R('RL', '100', 'vcc', 'c'), OPTO8('C', 'a', '0', 'c')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  opto_pc817d_ctr: { partes: [DC('V1', '5', 'vin'), R('R1', '1k', 'vin', 'a'), DC('V2', '5', 'vcc'), R('RL', '100', 'vcc', 'c'), OPTO8('D', 'a', '0', 'c')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  opto_pc817a_conmutacion: { partes: [PULSO('V1', '5', '25k', 'vin'), R('R1', '1k', 'vin', 'a'), DC('V2', '5', 'vcc'), R('RL', '470', 'vcc', 'c'), OPTO8('A', 'a', '0', 'c')], fin: 100e-6, hmax: 20e-9, tolT: 20e-9, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  igbt_irg4bc30ud_conduccion: { partes: [DC('V1', '30', 'vin'), R('R1', '2.3', 'vin', 'c'), DC('V2', '15', 'g'), IGBT('IRG4BC30UD', 'c', 'g')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  igbt_irg4bc30ud_activa: { partes: [DC('V1', '100', 'vin'), R('R1', '5', 'vin', 'c'), DC('V2', '7.3', 'g'), IGBT('IRG4BC30UD', 'c', 'g')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  igbt_irg4bc30ud_diodo: { partes: [DC('V1', '-5', 'vin'), R('R1', '0.5', 'vin', 'c'), DC('V2', '0', 'g'), IGBT('IRG4BC30UD', 'c', 'g')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  igbt_irg4bc30ud_conmutacion: { partes: [DC('V1', '100', 'vin'), R('R1', '8.3', 'vin', 'c'), { tipo: 'fuente-pulso', ref: 'V2', props: { alto: '15', frecuencia: '20k', ciclo: '50 %', retardo: '2u' }, pines: { '+': 'gin', '-': '0' } }, R('RG', '10', 'gin', 'g'), IGBT('IRG4BC30UD', 'c', 'g')], fin: 100e-6, hmax: 10e-9, tolT: 10e-9, corrientes: { 'i(v1)': 'V1' } },
+  igbt_fga25n120antd_conduccion: { partes: [DC('V1', '60', 'vin'), R('R1', '2.3', 'vin', 'c'), DC('V2', '15', 'g'), IGBT('FGA25N120ANTD', 'c', 'g')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  igbt_fga25n120antd_activa: { partes: [DC('V1', '200', 'vin'), R('R1', '6', 'vin', 'c'), DC('V2', '8.4', 'g'), IGBT('FGA25N120ANTD', 'c', 'g')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  igbt_fga25n120antd_conmutacion: { partes: [DC('V1', '200', 'vin'), R('R1', '8', 'vin', 'c'), { tipo: 'fuente-pulso', ref: 'V2', props: { alto: '15', frecuencia: '20k', ciclo: '50 %', retardo: '2u' }, pines: { '+': 'gin', '-': '0' } }, R('RG', '10', 'gin', 'g'), IGBT('FGA25N120ANTD', 'c', 'g')], fin: 100e-6, hmax: 10e-9, tolT: 10e-9, corrientes: { 'i(v1)': 'V1' } },
+  ujt_2n2646_bajo: { partes: [DC('V1', '10', 'b2'), IE('1u'), UJT('e', '0', 'b2')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ujt_2n2646_conduccion: { partes: [DC('V1', '10', 'b2'), IE('50m'), UJT('e', '0', 'b2')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ujt_2n2646_valle: { partes: [DC('V1', '10', 'b2'), IE('6m'), UJT('e', '0', 'b2')], fin: 0.2, hmax: 1e-3, corrientes: { 'i(v1)': 'V1' } },
+  ujt_2n2646_relajacion: { partes: [DC('V1', '10', 'vcc'), R('R2', '100', 'vcc', 'b2'), R('R1', '47', 'b1', '0'), UJT('e', 'b1', 'b2'), R('R3', '100k', 'vcc', 'e'), C('C1', '10n', 'e', '0')], fin: 5e-3, hmax: 0.5e-6, tolT: 1e-6, corrientes: { 'i(vcc)': 'V1' } },
+  pasos_17hs4401_paso: { partes: PASOS_BI('0 12, 0.03 12, 0.03001 0, 0.08 0', '0 0, 0.03 0, 0.03001 12, 0.08 12', '0'), fin: 0.08, hmax: 2e-5, tolT: 5e-5, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  pasos_17hs4401_medios_pasos: { partes: PASOS_BI('0 12, 0.02 12, 0.02001 12, 0.025 12, 0.02501 0, 0.03 0, 0.03001 -12, 0.035 -12, 0.03501 -12, 0.04 -12, 0.04001 -12, 0.045 -12, 0.04501 0, 0.05 0, 0.05001 12, 0.055 12, 0.05501 12, 0.08 12', '0 0, 0.02 0, 0.02001 12, 0.025 12, 0.02501 12, 0.03 12, 0.03001 12, 0.035 12, 0.03501 0, 0.04 0, 0.04001 -12, 0.045 -12, 0.04501 -12, 0.05 -12, 0.05001 -12, 0.055 -12, 0.05501 0, 0.08 0', '0'), fin: 0.08, hmax: 2e-5, tolT: 5e-5, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  pasos_17hs4401_carga: { partes: PASOS_BI('0 12, 0.02 12, 0.02001 12, 0.0225 12, 0.02251 0, 0.025 0, 0.02501 -12, 0.0275 -12, 0.02751 -12, 0.03 -12, 0.03001 -12, 0.0325 -12, 0.03251 0, 0.035 0, 0.03501 12, 0.0375 12, 0.03751 12, 0.06 12', '0 0, 0.02 0, 0.02001 12, 0.0225 12, 0.02251 12, 0.025 12, 0.02501 12, 0.0275 12, 0.02751 0, 0.03 0, 0.03001 -12, 0.0325 -12, 0.03251 -12, 0.035 -12, 0.03501 -12, 0.0375 -12, 0.03751 0, 0.06 0', '0.1'), fin: 0.06, hmax: 2e-5, tolT: 5e-5, corrientes: { 'i(v1)': 'V1', 'i(v2)': 'V2' } },
+  pasos_28byj48_paso: { partes: PASOS_UNI(['0 5, 0.01 5, 0.01001 5, 0.04 5', '0 0, 0.01 0, 0.01001 5, 0.04 5', '0 5, 0.01 5, 0.01001 5, 0.04 5', '0 5, 0.01 5, 0.01001 0, 0.04 0'], '0'), fin: 0.04, hmax: 2e-5, tolT: 5e-5, corrientes: { 'i(v5)': 'V5', 'i(v1)': 'V1', 'i(v2)': 'V2', 'i(v3)': 'V3', 'i(v4)': 'V4' } },
+  pasos_28byj48_medios_pasos: { partes: PASOS_UNI(['0 5, 0.01 5, 0.01001 5, 0.012 5, 0.01201 5, 0.014 5, 0.01401 0, 0.016 0, 0.01601 0, 0.018 0, 0.01801 0, 0.02 0, 0.02001 5, 0.022 5, 0.02201 5, 0.024 5, 0.02401 5, 0.04 5', '0 0, 0.01 0, 0.01001 0, 0.012 0, 0.01201 5, 0.014 5, 0.01401 5, 0.016 5, 0.01601 5, 0.018 5, 0.01801 5, 0.02 5, 0.02001 5, 0.022 5, 0.02201 0, 0.024 0, 0.02401 0, 0.04 0', '0 5, 0.01 5, 0.01001 5, 0.012 5, 0.01201 5, 0.014 5, 0.01401 5, 0.016 5, 0.01601 5, 0.018 5, 0.01801 0, 0.02 0, 0.02001 0, 0.022 0, 0.02201 0, 0.024 0, 0.02401 5, 0.04 5', '0 5, 0.01 5, 0.01001 0, 0.012 0, 0.01201 0, 0.014 0, 0.01401 0, 0.016 0, 0.01601 5, 0.018 5, 0.01801 5, 0.02 5, 0.02001 5, 0.022 5, 0.02201 5, 0.024 5, 0.02401 5, 0.04 5'], '0'), fin: 0.04, hmax: 2e-5, tolT: 5e-5, corrientes: { 'i(v5)': 'V5', 'i(v1)': 'V1', 'i(v2)': 'V2', 'i(v3)': 'V3', 'i(v4)': 'V4' } },
+  pasos_28byj48_carga: { partes: PASOS_UNI(['0 5, 0.01 5, 0.01001 5, 0.0133333 5, 0.0133433 5, 0.0166666 5, 0.0166766 0, 0.0199999 0, 0.0200099 0, 0.0233332 0, 0.0233432 0, 0.0266665 0, 0.0266765 5, 0.0299998 5, 0.0300098 5, 0.0333331 5, 0.0333431 5, 0.05 5', '0 0, 0.01 0, 0.01001 0, 0.0133333 0, 0.0133433 5, 0.0166666 5, 0.0166766 5, 0.0199999 5, 0.0200099 5, 0.0233332 5, 0.0233432 5, 0.0266665 5, 0.0266765 5, 0.0299998 5, 0.0300098 0, 0.0333331 0, 0.0333431 0, 0.05 0', '0 5, 0.01 5, 0.01001 5, 0.0133333 5, 0.0133433 5, 0.0166666 5, 0.0166766 5, 0.0199999 5, 0.0200099 5, 0.0233332 5, 0.0233432 0, 0.0266665 0, 0.0266765 0, 0.0299998 0, 0.0300098 0, 0.0333331 0, 0.0333431 5, 0.05 5', '0 5, 0.01 5, 0.01001 0, 0.0133333 0, 0.0133433 0, 0.0166666 0, 0.0166766 0, 0.0199999 0, 0.0200099 5, 0.0233332 5, 0.0233432 5, 0.0266665 5, 0.0266765 5, 0.0299998 5, 0.0300098 5, 0.0333331 5, 0.0333431 5, 0.05 5'], '0.01'), fin: 0.05, hmax: 2e-5, tolT: 5e-5, corrientes: { 'i(v5)': 'V5', 'i(v1)': 'V1', 'i(v2)': 'V2', 'i(v3)': 'V3', 'i(v4)': 'V4' } },
+  // el L298 a 9 V con un motor DC de 6 V, cuatro 1N4007 de rueda libre y la habilitación A en alto: frena, gira, frena, gira al revés y frena.
+  l298_motor_dc: {
+    partes: [
+      DC('V1', '9', 'vs'), DC('V2', '5', 'vss'), DC('V3', '5', 'ena'),
+      { tipo: 'fuente-pwl', ref: 'V4', props: { puntos: '0 0, 2m 0, 2.001m 5, 6m 5, 6.001m 0, 13m 0, 13.001m 5, 15m 5, 15.001m 0, 18m 0' }, pines: { '+': 'in1', '-': '0' } },
+      { tipo: 'fuente-pwl', ref: 'V5', props: { puntos: '0 0, 9m 0, 9.001m 5, 15m 5, 15.001m 0, 18m 0' }, pines: { '+': 'in2', '-': '0' } },
+      { tipo: 'l298', ref: 'U1', props: { modelo: 'L298N' }, pines: { IN1: 'in1', IN2: 'in2', IN3: '0', IN4: '0', ENA: 'ena', ENB: '0', OUT1: 'o1', OUT2: 'o2', OUT3: 'o3', OUT4: 'o4', SENSA: '0', SENSB: '0', VS: 'vs', VSS: 'vss', GND: '0' } },
+      R('R3', '1k', 'o3', 'o4'),
+      { tipo: 'motor-dc', ref: 'M1', props: { voltaje: '6' }, pines: { '+': 'o1', '-': 'o2' } },
+      { tipo: 'diodo', ref: 'D1', props: { modelo: '1N4007' }, pines: { A: 'o1', K: 'vs' } },
+      { tipo: 'diodo', ref: 'D2', props: { modelo: '1N4007' }, pines: { A: 'o2', K: 'vs' } },
+      { tipo: 'diodo', ref: 'D3', props: { modelo: '1N4007' }, pines: { A: '0', K: 'o1' } },
+      { tipo: 'diodo', ref: 'D4', props: { modelo: '1N4007' }, pines: { A: '0', K: 'o2' } }
+    ],
+    fin: 18e-3,
+    hmax: 1e-6,
+    tolT: 1e-6,
+    corrientes: { 'i(vm)': 'M1' }
+  },
   zener_regulador: { partes: [DC('V1', '12', '1'), R('R1', '470', '1', '2'), { tipo: 'zener', ref: 'D1', props: { voltaje: '5.1' }, pines: { A: '0', K: '2' } }, R('R2', '1k', '2', '0')], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
   led_rojo: { partes: [DC('V1', '9', '1'), R('R1', '1k', '1', '2'), { tipo: 'led', ref: 'D1', props: { color: 'rojo' }, pines: { A: '2', K: '0' } }], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
   rectificador: { partes: [PULSO('V1', '5', '50', '1'), R('R1', '100', '1', '2'), { tipo: 'diodo', ref: 'D1', pines: { A: '2', K: '3' } }, C('C1', '100u', '3', '0'), R('R2', '1k', '3', '0')], fin: 0.1, hmax: 5e-6, tolT: 2e-6, corrientes: { 'i(v1)': 'V1' } },
@@ -114,6 +311,11 @@ export const CASOS: Record<string, Caso> = {
   bjt_tip125: { partes: [DC('V1', '12', '1'), R('RB', '27k', '2', '0'), R('RC', '10', '3', '0'), Q('pnp', 'TIP125', '3', '2', '1')], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
   bjt_bd139: { partes: [DC('V1', '12', '1'), R('RB', '5.6k', '1', '2'), R('RC', '47', '1', '3'), Q('npn', 'BD139', '3', '2', '0')], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
   bjt_bd140: { partes: [DC('V1', '12', '1'), R('RB', '5.6k', '2', '0'), R('RC', '47', '3', '0'), Q('pnp', 'BD140', '3', '2', '1')], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  bjt_bc337: { partes: [DC('V1', '12', '1'), R('RB', '22k', '1', '2'), R('RC', '47', '1', '3'), Q('npn', 'BC337', '3', '2', '0')], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  bjt_bc327: { partes: [DC('V1', '12', '1'), R('RB', '22k', '2', '0'), R('RC', '47', '3', '0'), Q('pnp', 'BC327', '3', '2', '1')], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  bjt_2n5551: { partes: [DC('V1', '12', '1'), R('RB', '160k', '1', '2'), R('RC', '470', '1', '3'), Q('npn', '2N5551', '3', '2', '0')], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  bjt_2n5401: { partes: [DC('V1', '12', '1'), R('RB', '160k', '2', '0'), R('RC', '470', '3', '0'), Q('pnp', '2N5401', '3', '2', '1')], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  bjt_2n3055: { partes: [DC('V1', '12', '1'), R('RB', '270', '1', '2'), R('RC', '5', '1', '3'), Q('npn', '2N3055', '3', '2', '0')], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
   nmos_irf540n: mos('mosfet-n', 'IRF540N', '100k', '38k', '4.7'),
   nmos_irlz44n: mos('mosfet-n', 'IRLZ44N', '100k', '17k', '4.7'),
   nmos_irf520: mos('mosfet-n', 'IRF520', '100k', '50k', '10'),
@@ -189,6 +391,18 @@ export const CASOS: Record<string, Caso> = {
   reg_7805_arranque: { partes: [DC('V1', '10', 'in'), R('RL', '10', 'out', '0'), C('C1', '10u', 'out', '0'), REG('regulador-positivo', '7805', 'in', 'out', '0')], fin: 12e-3, hmax: 5e-6, tolT: 5e-6, corrientes: { 'i(v1)': 'V1' } },
   reg_7812_arranque: { partes: [DC('V1', '19', 'in'), R('RL', '24', 'out', '0'), C('C1', '10u', 'out', '0'), REG('regulador-positivo', '7812', 'in', 'out', '0')], fin: 12e-3, hmax: 5e-6, tolT: 5e-6, corrientes: { 'i(v1)': 'V1' } },
   reg_7905_arranque: { partes: [DC('V1', '-10', 'in'), R('RL', '10', 'out', '0'), C('C1', '10u', 'out', '0'), REG('regulador-negativo', '7905', 'in', 'out', '0')], fin: 12e-3, hmax: 5e-6, tolT: 5e-6, corrientes: { 'i(v1)': 'V1' } },
+  ao_mcp6002_ac: { partes: [DC('V1', '2.5', '1'), DC('V2', '-2.5', '2'), AC('V3', '0.03', '100000', '3'), R('R1', '1k', '3', '4'), R('R2', '10k', '4', '5'), R('R3', '10k', '5', '0'), AO('MCP6002', '0', '4', '5', '1', '2')], fin: 3e-05, hmax: 1.25e-08, tolT: 1.25e-08 },
+  ao_mcp6002_pulso: { partes: [DC('V1', '2.5', '1'), DC('V2', '-2.5', '2'), PULSO('V3', '2', '50000', '3'), R('R1', '10k', '4', '0'), AO('MCP6002', '3', '4', '4', '1', '2')], fin: 4e-05, hmax: 4e-09, tolT: 4e-09 },
+  ao_op27_ac: { partes: [DC('V1', '15', '1'), DC('V2', '-15', '2'), AC('V3', '0.05', '800k', '3'), R('R1', '1k', '3', '4'), R('R2', '10k', '4', '5'), R('R3', '10k', '5', '0'), AO('OP27', '0', '4', '5', '1', '2')], fin: 3.75e-06, hmax: 1.5625e-09, tolT: 1.5625e-09 },
+  ao_op27_pulso: { partes: [DC('V1', '15', '1'), DC('V2', '-15', '2'), PULSO('V3', '5', '100000', '3'), R('R1', '10k', '4', '0'), AO('OP27', '3', '4', '4', '1', '2')], fin: 2e-05, hmax: 2e-09, tolT: 2e-09 },
+  comp_lm339_seno: { partes: [DC('V1', '5', '1'), AC('V3', '10m', '10k', '4'), DC('V8', '5', '8'), R('RL', '5.1k', '8', '5'), CMP('LM339', '4', '0', '5', '1')], fin: 150e-6, hmax: 5e-8, tolT: 5e-8 },
+  comp_lm339_pulso: { partes: [DC('V1', '5', '1'), DC('V4', '2.5', '4'), PULSO('V3', '5', '50k', '3'), DC('V8', '5', '8'), R('RL', '5.1k', '8', '5'), CMP('LM339', '4', '3', '5', '1')], fin: 40e-6, hmax: 1e-8, tolT: 2e-8 },
+  diodo_1n4001: { partes: [DC('V1', '5', '1'), R('R1', '4.1', '1', '2'), { tipo: 'diodo', ref: 'D1', props: { modelo: '1N4001' }, pines: { A: '2', K: '0' } }], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  diodo_1n4001_ruptura: { partes: [DC('V1', '60', '1'), R('R1', '1k', '1', '2'), { tipo: 'diodo', ref: 'D1', props: { modelo: '1N4001' }, pines: { A: '0', K: '2' } }], fin: 1e-3, hmax: 1e-5, corrientes: { 'i(v1)': 'V1' } },
+  reg_7809_arranque: { partes: [DC('V1', '15', 'in'), R('RL', '18', 'out', '0'), C('C1', '10u', 'out', '0'), REG('regulador-positivo', '7809', 'in', 'out', '0')], fin: 12e-3, hmax: 5e-6, tolT: 5e-6, corrientes: { 'i(v1)': 'V1' } },
+  reg_7815_arranque: { partes: [DC('V1', '23', 'in'), R('RL', '30', 'out', '0'), C('C1', '10u', 'out', '0'), REG('regulador-positivo', '7815', 'in', 'out', '0')], fin: 12e-3, hmax: 5e-6, tolT: 5e-6, corrientes: { 'i(v1)': 'V1' } },
+  reg_7912_arranque: { partes: [DC('V1', '-19', 'in'), R('RL', '24', 'out', '0'), C('C1', '10u', 'out', '0'), REG('regulador-negativo', '7912', 'in', 'out', '0')], fin: 12e-3, hmax: 5e-6, tolT: 5e-6, corrientes: { 'i(v1)': 'V1' } },
+  reg_7915_arranque: { partes: [DC('V1', '-23', 'in'), R('RL', '30', 'out', '0'), C('C1', '10u', 'out', '0'), REG('regulador-negativo', '7915', 'in', 'out', '0')], fin: 12e-3, hmax: 5e-6, tolT: 5e-6, corrientes: { 'i(v1)': 'V1' } },
   reg_lm317_arranque: {
     partes: [DC('V1', '12', 'in'), R('RA1', '240', 'out', 'adj'), R('RA2', '720', 'adj', '0'), R('RL', '100', 'out', '0'), C('C1', '10u', 'out', '0'), { tipo: 'regulador-ajustable', ref: 'U1', props: { modelo: 'LM317' }, pines: { IN: 'in', OUT: 'out', ADJ: 'adj' } }],
     fin: 12e-3, hmax: 5e-6, tolT: 5e-6, corrientes: { 'i(v1)': 'V1' }
@@ -243,5 +457,66 @@ export const CASOS: Record<string, Caso> = {
     hmax: 5e-8,
     tolT: 1e-6,
     corrientes: { 'i(v1)': 'V1' }
-  }
+  },
+  // La TL431 con K unido a REF con 10 mA y con 1 mA (los puntos de la hoja), y como regulador de 5 V con divisor de 10 k, en punto de
+  // operación y con una alimentación de pulsos.
+  tl431_vref: { partes: [DC('V1', '12', 'vcc'), R('R1', '950', 'vcc', 'k'), TL431('k', '0', 'k')], fin: 0.2, hmax: 1e-4, corrientes: { 'i(v1)': 'V1' } },
+  tl431_1ma: { partes: [DC('V1', '12', 'vcc'), R('R1', '9.5k', 'vcc', 'k'), TL431('k', '0', 'k')], fin: 0.2, hmax: 1e-4, corrientes: { 'i(v1)': 'V1' } },
+  tl431_regulador: { partes: [DC('V1', '12', 'vcc'), R('R1', '470', 'vcc', 'k'), R('R2', '10k', 'k', 'ref'), R('R3', '10k', 'ref', '0'), R('RL', '1k', 'k', '0'), TL431('k', '0', 'ref')], fin: 0.2, hmax: 1e-4, corrientes: { 'i(v1)': 'V1' } },
+  tl431_pulso: {
+    partes: [{ tipo: 'fuente-pulso', ref: 'V1', props: { alto: '12', frecuencia: '1k', ciclo: '50 %' }, pines: { '+': 'vcc', '-': '0' } }, R('R1', '470', 'vcc', 'k'), R('R2', '10k', 'k', 'ref'), R('R3', '10k', 'ref', '0'), R('RL', '1k', 'k', '0'), TL431('k', '0', 'ref')],
+    fin: 3e-3,
+    hmax: 2e-7,
+    tolT: 2e-6,
+    corrientes: { 'i(v1)': 'V1' }
+  },
+  // La LM4040 de cada voltaje con la corriente de prueba de la hoja (100 µA, 150 µA con 10 V), con 1 mA y con una alimentación de pulsos.
+  lm4040_2v048: lm4040('2.048 V', '12', '99k'),
+  lm4040_2v5: lm4040('2.5 V', '12', '95k'),
+  lm4040_2v5_1ma: lm4040('2.5 V', '12', '9.5k'),
+  lm4040_3v: lm4040('3 V', '12', '90k'),
+  lm4040_4v096: lm4040('4.096 V', '12', '79.04k'),
+  lm4040_5v: lm4040('5 V', '12', '70k'),
+  lm4040_10v: lm4040('10 V', '15', '33.33k'),
+  lm4040_pulso: {
+    partes: [{ tipo: 'fuente-pulso', ref: 'V1', props: { alto: '12', frecuencia: '1k', ciclo: '50 %' }, pines: { '+': 'vcc', '-': '0' } }, R('R1', '1k', 'vcc', 'k'), LM4040('2.5 V', 'k', '0')],
+    fin: 3e-3,
+    hmax: 2e-7,
+    tolT: 2e-6,
+    corrientes: { 'i(v1)': 'V1' }
+  },
+  // El INA128 con ganancia 1, 10 y 100, el rechazo de modo común, el ancho de banda y la velocidad de subida.
+  ina128_g1: { partes: [...INA_FUENTES, DC('V3', '1', 'inm'), DC('V4', '2', 'inp'), INA128(null)], fin: 0.2, hmax: 1e-4, corrientes: { 'i(v1)': 'V1' } },
+  ina128_g10: { partes: [...INA_FUENTES, DC('V3', '0.25', 'inm'), DC('V4', '0.75', 'inp'), R('RG', '5.556k', 'rg1', 'rg2'), INA128('rg')], fin: 0.2, hmax: 1e-4, corrientes: { 'i(v1)': 'V1' } },
+  ina128_g100: { partes: [...INA_FUENTES, DC('V3', '0.075', 'inm'), DC('V4', '0.125', 'inp'), R('RG', '505.1', 'rg1', 'rg2'), INA128('rg')], fin: 0.2, hmax: 1e-4, corrientes: { 'i(v1)': 'V1' } },
+  ina128_modo_comun: { partes: [...INA_FUENTES, DC('V3', '10', 'inm'), DC('V4', '10', 'inp'), INA128(null)], fin: 0.2, hmax: 1e-4, corrientes: { 'i(v1)': 'V1' } },
+  ina128_g100_senoidal: {
+    partes: [...INA_FUENTES, DC('V3', '0', 'inm'), AC('V4', '20m', '200k', 'inp'), R('RG', '505.1', 'rg1', 'rg2'), INA128('rg')],
+    fin: 20e-6,
+    hmax: 20e-9,
+    tolT: 20e-9,
+    corrientes: { 'i(v1)': 'V1' }
+  },
+  ina128_g10_pulso: {
+    partes: [...INA_FUENTES, DC('V3', '0', 'inm'), { tipo: 'fuente-pulso', ref: 'V4', props: { alto: '1', frecuencia: '20k', ciclo: '50 %', retardo: '1u' }, pines: { '+': 'inp', '-': '0' } }, R('RG', '5.556k', 'rg1', 'rg2'), INA128('rg')],
+    fin: 50e-6,
+    hmax: 10e-9,
+    tolT: 20e-9,
+    corrientes: { 'i(v1)': 'V1' }
+  },
+  // El LM386 en reposo (salida en la mitad de la alimentación y corriente en reposo), con ganancia 20 y con 10 µF entre las
+  // patillas 1 y 8 sobre una bocina de 8 Ω con 250 µF, y recortando.
+  lm386_reposo: { partes: [DC('V1', '6', 'vs'), R('RX', '1G', 'out', '0'), LM386('0', 'byp')], fin: 0.1, hmax: 1e-4, corrientes: { 'i(v1)': 'V1' } },
+  lm386_g20: { partes: [DC('V1', '6', 'vs'), AC('V3', '10m', '1k', 'inp'), C('CO', '250u', 'out', 'rl'), R('RL', '8', 'rl', '0'), LM386('inp', 'byp')], fin: 6e-3, hmax: 2e-6, tolT: 2e-6, corrientes: { 'i(v1)': 'V1' } },
+  lm386_g200: { partes: [DC('V1', '6', 'vs'), AC('V3', '1m', '1k', 'inp'), C('CG', '10u', 'g1', 'g8'), C('CO', '250u', 'out', 'rl'), R('RL', '8', 'rl', '0'), LM386('inp', 'byp', true)], fin: 0.1, hmax: 5e-6, tolT: 5e-6, corrientes: { 'i(v1)': 'V1' } },
+  lm386_recorte: { partes: [DC('V1', '6', 'vs'), AC('V3', '0.3', '1k', 'inp'), C('CO', '250u', 'out', 'rl'), R('RL', '8', 'rl', '0'), LM386('inp', 'byp')], fin: 6e-3, hmax: 2e-6, tolT: 2e-6, corrientes: { 'i(v1)': 'V1' } },
+  // La punta lógica de cada familia con la punta sobre la pinza +, en tierra y al aire (la corriente de la fuente suma las luces), y con una rampa que cruza los dos umbrales.
+  punta_cmos_alto: punta('CMOS', 'vcc'),
+  punta_cmos_bajo: punta('CMOS', '0'),
+  punta_cmos_aire: punta('CMOS', 'p'),
+  punta_ttl_alto: punta('TTL', 'vcc'),
+  punta_ttl_bajo: punta('TTL', '0'),
+  punta_ttl_aire: punta('TTL', 'p'),
+  punta_cmos_rampa: punta('CMOS', 'p', true),
+  punta_ttl_rampa: punta('TTL', 'p', true)
 }

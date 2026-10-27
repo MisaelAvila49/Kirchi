@@ -1,7 +1,7 @@
 import { tamTextoMax, type Anotaciones } from '../../../../compartido/grafica/anotaciones'
 import type { AspectoGrafica, AspectoTraza, LadoEjeY } from '../../../../compartido/grafica/aspecto'
 import { TONOS_FIGURA, coloresFiguraPorOmision, type FamiliaFigura, type OpcionesFigura, type Tema, type TonoFigura } from '../../../../compartido/ajustes'
-import { CANALES, MATEMATICO, type AjustesOsciloscopio, type Canal, type CanalOMatematico } from '../../instrumentos/ajustes'
+import { CANALES, DIVISIONES_H, DIVISIONES_V, MATEMATICO, type AjustesOsciloscopio, type Canal, type CanalOMatematico } from '../../instrumentos/ajustes'
 import type { PantallaSab } from '../../sim/protocoloInstrumentos'
 import { coloresDeTema } from '../colores'
 import { temaEfectivo } from '../grafica/paleta'
@@ -110,6 +110,22 @@ export function conCanalesApagados(a: AjustesOsciloscopio, apagados?: readonly s
   return { ...a, matematico: a.matematico && !apagados.includes('M'), canales: a.canales.map((c) => (apagados.includes(c.canal) ? { ...c, on: false } : c)) }
 }
 
+/**
+ * Los canales con su Desde y Hasta escritos: el centro de la pantalla y los voltios por división que dejan esos valores en los bordes
+ * (8 divisiones a lo alto; en X-Y, 10 a lo ancho para el canal horizontal, con el rango del eje horizontal o, sin él, el suyo).
+ */
+export function conRangosEscritos(a: AjustesOsciloscopio, asp?: Pick<AspectoDeCaptura, 'aspecto' | 'canales'>): AjustesOsciloscopio {
+  if (!asp) return a
+  const horizontal = a.modoXY === 'ba' ? 'A' : a.modoXY === 'ab' ? 'B' : null
+  const ajustados = a.canales.map((c) => {
+    const r = c.canal === horizontal ? (asp.aspecto.rangoX ?? asp.canales[c.canal]?.rango) : asp.canales[c.canal]?.rango
+    if (!r || !(r.max > r.min)) return c
+    const vdiv = (r.max - r.min) / (c.canal === horizontal ? DIVISIONES_H : DIVISIONES_V)
+    return { ...c, vdiv, pos: -(r.min + r.max) / 2 / vdiv }
+  })
+  return ajustados.some((c, i) => c !== a.canales[i]) ? { ...a, canales: ajustados } : a
+}
+
 /** El tono de un canal en la figura: el del diálogo si lo cambió; si no, el que tiene en la pantalla; si no, el de siempre. */
 function tonoFinal(op: Pick<OpcionesFigura, 'colores'>, c: CanalOMatematico, asp?: AspectoDeCaptura): TonoFigura {
   const deOmision = coloresFiguraPorOmision()[c] as TonoFigura
@@ -176,7 +192,7 @@ export function ejeConDato(total: Dominio, dato: Dominio | null): Dominio {
 export function figuraDeCaptura(ref: string, a0: AjustesOsciloscopio, p: PantallaSab, op: OpcionesFigura, actual: Tema, pilas: PilasFuentes = PILAS_POR_OMISION, asp0?: AspectoDeCaptura): FiguraCaptura {
   // El tamaño general de la letra llega a los ejes sin tamaño propio (y el reparto de la pantalla crece con él).
   const asp = asp0 ? { ...asp0, aspecto: conTamañoGeneral(asp0.aspecto, op.tamañoLetra) } : undefined
-  const a = conCanalesApagados(a0, asp?.apagados)
+  const a = conRangosEscritos(conCanalesApagados(a0, asp?.apagados), asp)
   const c = coloresDeFigura(op, actual, asp)
   const lados = Object.fromEntries(Object.entries(asp?.canales ?? {}).map(([k, t]) => [k, t.lado])) as Partial<Record<Canal, LadoEjeY>>
   const tipografia = tipografiaDeFigura(op, pilas)

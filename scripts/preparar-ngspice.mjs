@@ -348,9 +348,9 @@ function comprobarUniversal(archivo) {
   if (!archs.includes('arm64') || !archs.includes('x86_64')) throw new Error(`${archivo} no es universal (${archs.join(' ') || 'sin arquitecturas'}).`)
 }
 
-/** El `spinit` de `make install` carga `.cm` con rutas relativas y bloques `osdi`. Se deja solo con los `.cm` que viajan y, si se da `base`, con rutas absolutas. */
+/** El `spinit` de `make install` carga `.cm` con rutas relativas y bloques `osdi`. Se deja solo con los `.cm` que viajan y, si se da `base`, con rutas absolutas entre comillas simples (ngspice deja las dobles pegadas a la ruta). */
 export function reescribirSpinit(texto, cm, base = null) {
-  const citar = (r) => (/\s/.test(r) ? '"' + r + '"' : r)
+  const citar = (r) => "'" + r + "'"
   const fuera = []
   let osdi = false
   for (const l of texto.split(/\r?\n/)) {
@@ -387,13 +387,13 @@ function verificarEjecutable(ejecutable) {
   const tmp = mkdtempSync(join(tmpdir(), 'kirchi-xspice-'))
   try {
     writeFileSync(join(tmp, 'xspice.cir'), DECK_XSPICE)
-    // Como en la aplicación (escribirSpinit): un spinit con rutas absolutas y SPICE_SCRIPTS (SPICE_LIB_DIR lo ignora --enable-relpath), sin depender de --enable-relpath.
+    // Como en la aplicación (escribirSpinit): un spinit temporal con rutas relativas a bin, que ngspice resuelve desde su ejecutable, y SPICE_SCRIPTS (SPICE_LIB_DIR lo ignora --enable-relpath).
     const modelos = join(dirname(dirname(ejecutable)), 'lib', 'ngspice')
     const original = join(dirname(dirname(ejecutable)), 'share', 'ngspice', 'scripts', 'spinit')
     const cm = readdirSync(modelos).filter((f) => f.endsWith('.cm'))
     mkdirSync(join(tmp, 'spice', 'scripts'), { recursive: true })
     const spinit = join(tmp, 'spice', 'scripts', 'spinit')
-    writeFileSync(spinit, reescribirSpinit(existsSync(original) ? readFileSync(original, 'utf8') : 'if $?xspice_enabled\n\n end\n', cm, modelos))
+    writeFileSync(spinit, reescribirSpinit(existsSync(original) ? readFileSync(original, 'utf8') : 'if $?xspice_enabled\n\n end\n', cm))
     console.log(`spinit usado: ${spinit} (SPICE_SCRIPTS=${join(tmp, 'spice', 'scripts')}); original empaquetado: ${original} (${existsSync(original) ? 'existe' : 'FALTA'})`)
     console.log(readFileSync(spinit, 'utf8'))
     const r = spawnSync(ejecutable, ['-b', 'xspice.cir'], { cwd: tmp, encoding: 'utf8', windowsHide: true, timeout: 60_000, env: entornoLimpio({ SPICE_LIB_DIR: join(tmp, 'spice'), SPICE_SCRIPTS: join(tmp, 'spice', 'scripts') }) })

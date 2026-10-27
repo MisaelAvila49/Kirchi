@@ -1,0 +1,22 @@
+* FGA25N120ANTD que conmuta 25 A con 200 V y 8 ohm, compuerta de 15 V por 10 ohm a 20 kHz
+.include modelos.lib
+V1 vin 0 DC 200
+R1 vin c 8
+V2 gin 0 PULSE(0 15 2u 1p 1p 24.999999u 50u)
+RG gin g 10
+M1 b g 0 0 MIGBT2 W=1 L=1
+Q1 0 b ce QIGBT2
+RE c ce 0.007178
+D1 0 c DIGBT2
+CGE g 0 3.62n
+CGC g c 80p
+CCE c 0 50p
+.options reltol=1e-6 abstol=1e-14 vntol=1e-9
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 10n 100u 0 10n uic
+wrdata salida.txt v(c) v(g) i(v1)
+.endc
+.end

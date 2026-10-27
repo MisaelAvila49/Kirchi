@@ -1,0 +1,65 @@
+{
+ "fuente": [
+  {
+   "familia": "74HC",
+   "documento": "TI SN54HC161/SN74HC161, SCLS297D",
+   "revision": "sep 2003",
+   "paginas": "1 (patillas), 2 (descripción, de donde sale la tabla)",
+   "tabla": "La hoja no trae tabla de función; las filas se leen de la descripción de la p. 2"
+  },
+  {
+   "familia": "74LS",
+   "documento": "TI SN54/74LS160A a LS163A, SDLS060",
+   "revision": "mar 1988",
+   "paginas": "1 (descripción, de donde sale la tabla)",
+   "tabla": "La hoja no trae tabla de función; las filas se leen de la descripción de la p. 1"
+  }
+ ],
+ "simbolos": {
+  "r": "flanco de subida de CLK",
+  "n": "CLK sin flanco de subida",
+  "X": "no importa"
+ },
+ "columnas": [
+  "CLR",
+  "LOAD",
+  "ENP",
+  "ENT",
+  "CLK"
+ ],
+ "salidas": [
+  "funcion"
+ ],
+ "filas": [
+  "0 X X X X > borra (asíncrono): QA a QD = 0, sin importar CLK, LOAD ni ENP, ENT",
+  "1 0 X X r > carga A a D (síncrona, domina sobre ENP y ENT)",
+  "1 0 X X n > retiene",
+  "1 1 1 1 r > cuenta +1 en módulo 16",
+  "1 1 0 X r > retiene",
+  "1 1 X 0 r > retiene",
+  "1 1 X X n > retiene"
+ ],
+ "adicionales": [
+  {
+   "nombre": "RCO",
+   "columnas": [
+    "ENT",
+    "estado"
+   ],
+   "salidas": [
+    "RCO"
+   ],
+   "filas": [
+    "1 15 > 1",
+    "1 0-14 > 0",
+    "0 X > 0"
+   ],
+   "origen": "HC161 p. 2: 'ENT is fed forward to enable RCO. Enabling RCO produces a high-level pulse while the count is maximum (15 with QA high)'. LS161A p. 1: el carry sale con 'counting spikes may occur on the RCO output' (sin ecuación explícita)"
+  }
+ ],
+ "notas": [
+  "Cambios de ENP, ENT o LOAD no afectan al contenido hasta que llega el flanco (HC161 p. 2).",
+  "Transiciones de ENP o ENT permitidas con CLK en cualquier nivel (HC161 p. 2).",
+  "SDLS060 p. 1: en el '160 a '163 (no en el LS) se debe evitar la subida de LOAD con CLK en bajo y ENP y ENT en alto; la restricción no aplica a LS160A a LS163A."
+ ]
+}

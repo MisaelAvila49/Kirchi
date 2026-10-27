@@ -2,12 +2,15 @@ import { app, BrowserWindow, desktopCapturer, dialog, ipcMain, Menu, nativeTheme
 import { mkdirSync } from 'node:fs'
 import { join, normalize } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { aplicarParche, ARG_PRUEBAS, argumentoAjustes, CANAL_GUARDAR_AJUSTES, type Ajustes, type Tema } from '../compartido/ajustes'
+import { aplicarParche, ARG_PRUEBAS, argumentoAjustes, CANAL_ABRIR_ENLACE, CANAL_GUARDAR_AJUSTES, normalizarAjustes, type Ajustes, type Tema } from '../compartido/ajustes'
 import { CANALES } from '../compartido/archivos'
 import { CARPETA_PLANTILLAS } from '../compartido/plantillas'
 import { planDeVentana } from '../compartido/ventana'
 import { guardarAjustes, leerAjustes } from './ajustes'
+import { claveRutaReal } from './archivos'
 import { leerBanderas } from './banderas'
+import { abrirEnlace } from './enlaces'
+import { libreriaSinVentana } from './asistente/libreria'
 import { ControlCierre } from './cierre'
 import { planDeApertura, rutaDeAbrirArchivo, rutasDeLanzamiento } from './lanzamiento'
 import { abrirCarpeta, dialogosDe, imprimirPdf, registrarArchivos, type Ventana } from './ipcArchivos'
@@ -23,6 +26,8 @@ import type { ServicioOsc } from './servicioOsc'
 import type { ServicioGraficas, VentanaGraficas } from './servicioGraficas'
 import { carpetaHerramientas } from './recursos'
 import { localizarNgspice } from './servicioNgspice'
+import { textoConfiguracion } from './asistente/configCliente'
+import { VentanaAsistente } from './asistente/ventanaAsistente'
 import { ServicioArchivos } from './servicioArchivos'
 import { plantillaMenu } from './menu'
 import { esPropia as origenPropio } from './origen'
@@ -38,8 +43,17 @@ const ISOLATION: Record<string, string> = {
 const banderas = leerBanderas(process.argv, { empaquetado: app.isPackaged })
 /** La URL del servidor de desarrollo solo existe sin empaquetar: una variable de entorno no redirige la app instalada. */
 const URL_DESARROLLO = app.isPackaged ? undefined : process.env['ELECTRON_RENDERER_URL']
+/** El puente del asistente (`--mcp`) se mira antes que el candado: pedirlo con Kirchi abierto cerraría este proceso y le pasaría sus argumentos a la ventana. No crea ventanas, menú ni candado. */
+if (banderas.mcp) {
+  import('./asistente/modoMcp')
+    .then((m) => m.iniciarModoMcp({ datos: banderas.datos }))
+    .catch((e) => {
+      console.error(`mcp: ${e instanceof Error ? e.message : String(e)}`)
+      app.exit(1)
+    })
+}
 /** Una sola instancia por usuario: un segundo doble clic en un `.kir` llega a la primera como `second-instance`. Las pruebas abren varias a la vez y no la toman. */
-const primeraInstancia = banderas.pruebas || app.requestSingleInstanceLock()
+const primeraInstancia = banderas.mcp || banderas.pruebas || app.requestSingleInstanceLock()
 if (!primeraInstancia) app.quit()
 /** `open-file` de macOS que llega antes de `ready`: se abren al crear la primera ventana. */
 const porAbrir: string[] = []
@@ -137,6 +151,15 @@ function carpetaPlantillas(): string | undefined {
   // Con `--datos` (las pruebas) la carpeta cuelga de ahí: una prueba nunca escribe en los Documentos del usuario.
   const documentos = banderas.datos ? join(banderas.datos, 'Documentos') : carpetaDocumentos()
   return documentos ? join(documentos, ...CARPETA_PLANTILLAS) : undefined
+}
+
+/** El lado de la ventana del asistente: la tubería, el indicador y la Configuración. */
+let asistente: VentanaAsistente | null = null
+
+/** Documentos/Kirchi/Asistente: la carpeta de omisión (con `--datos` cuelga de esa carpeta). */
+function carpetaAsistentePorOmision(): string | undefined {
+  const documentos = banderas.datos ? join(banderas.datos, 'Documentos') : carpetaDocumentos()
+  return documentos ? join(documentos, 'Kirchi', 'Asistente') : undefined
 }
 
 /** El servicio de las ventanas de gráficas (se crea al arrancar). */
@@ -264,11 +287,20 @@ function createWindow(rutaKir?: string): void {
     avisarErrorDiario: (mensaje) => {
       console.error(`diario: ${mensaje}`)
       if (!win.isDestroyed()) win.webContents.send(CANALES.diarioError, mensaje)
+    },
+    avisarCambioEnDisco: (nombre) => {
+      if (!win.isDestroyed()) win.webContents.send(CANALES.cambioEnDisco, nombre)
     }
   })
   const id = win.webContents.id
   ventanas.set(id, { win, servicio, cierre: new ControlCierre(win, servicio.sesion) })
-  win.on('closed', () => ventanas.delete(id))
+  win.on('closed', () => {
+    servicio.cerrar()
+    ventanas.delete(id)
+    asistente?.ventanaCerrada(id)
+  })
+  // Al volver a la ventana se mira enseguida si su archivo cambió en el disco.
+  win.on('focus', () => servicio.revisarDisco())
   // Minimizar pausa la grabación en curso: el editor lo sabe por este aviso.
   win.on('minimize', () => win.webContents.send(CANAL_AL_MINIMIZAR_GRABACION, true))
   win.on('restore', () => win.webContents.send(CANAL_AL_MINIMIZAR_GRABACION, false))
@@ -332,7 +364,7 @@ app.on('web-contents-created', (_e, wc) => {
 })
 
 app.whenReady().then(() => {
-  if (!primeraInstancia) return
+  if (!primeraInstancia || banderas.mcp) return
   serveRenderer()
   ajustes = leerAjustes(app.getPath('userData'))
   // Todo permiso se niega salvo, 5 s después de que el usuario pida grabar, la ventana propia y el micrófono elegido (ipcGrabacion.ts).
@@ -387,16 +419,82 @@ app.whenReady().then(() => {
   ipcMain.handle(CANAL_GUARDAR_AJUSTES, (e, parche: unknown) => {
     if (!esPropia(e.senderFrame?.url)) throw new Error('origen no permitido')
     const antes = ajustes.tamañoInterfaz
+    const asistenteAntes = ajustes.asistente.activo
     ajustes = aplicarParche(ajustes, parche)
+    if (ajustes.asistente.activo !== asistenteAntes) void asistente?.reconciliar()
     ponerTemaNativo(ajustes.tema)
     persistirAjustes()
     if (ajustes.tamañoInterfaz !== antes) aplicarTamaño(ajustes.tamañoInterfaz, [...ventanas.values()].map((v) => v.win))
     return ajustes
   })
+  // Solo se abren los enlaces que trae la librería de piezas; con --pruebas se anotan en vez de abrir el navegador.
+  let libreriaDeEnlaces: ReturnType<typeof libreriaSinVentana> | undefined
+  ipcMain.handle(CANAL_ABRIR_ENLACE, (e, url: unknown) => {
+    if (!esPropia(e.senderFrame?.url)) throw new Error('origen no permitido')
+    libreriaDeEnlaces ??= libreriaSinVentana()
+    const anotar = async (u: string) => {
+      const g = globalThis as { __enlacesAbiertos?: string[] }
+      ;(g.__enlacesAbiertos ??= []).push(u)
+    }
+    return abrirEnlace(url, libreriaDeEnlaces, banderas.pruebas ? anotar : undefined)
+  })
   ipcMain.handle(CANALES.leerAjustes, (e) => {
     if (!esPropia(e.senderFrame?.url)) throw new Error('origen no permitido')
     return ajustes
   })
+  asistente = new VentanaAsistente({
+    ipc: ipcMain,
+    dirDatos: app.getPath('userData'),
+    esPropia,
+    ventanaDeDestino: () => ventanaDeDestino()?.win.webContents.id,
+    existeVentana: (id) => !!ventanas.get(id) && !ventanas.get(id)!.win.isDestroyed(),
+    esEditor: (id) => ventanas.has(id),
+    enviar: (id, canal, ...args) => {
+      const v = ventanas.get(id)
+      if (v && !v.win.isDestroyed()) v.win.webContents.send(canal, ...args)
+    },
+    difundir: (canal, ...args) => ventanas.forEach((v) => !v.win.isDestroyed() && v.win.webContents.send(canal, ...args)),
+    activo: () => ajustes.asistente.activo,
+    carpeta: () => ajustes.carpetaAsistente,
+    fijarActivo: (activo) => {
+      ajustes = { ...ajustes, asistente: { activo } }
+      persistirAjustes()
+    },
+    // La tercera carpeta que no sale de un diálogo es la de omisión; esta sí sale de uno y se valida como las demás.
+    fijarCarpeta: (ruta) => {
+      const { carpetaAsistente: _antes, ...resto } = ajustes
+      ajustes = ruta ? normalizarAjustes({ carpetaAsistente: ruta }, resto as Ajustes) : (resto as Ajustes)
+      persistirAjustes()
+    },
+    elegirCarpeta: async (id, inicial) => {
+      const win = ventanas.get(id)?.win
+      const opciones = { title: 'Carpeta del asistente', defaultPath: inicial ?? carpetaAsistentePorOmision(), properties: ['openDirectory', 'createDirectory'] as ('openDirectory' | 'createDirectory')[] }
+      const r = win ? await dialog.showOpenDialog(win, opciones) : await dialog.showOpenDialog(opciones)
+      return r.canceled || r.filePaths.length === 0 ? null : r.filePaths[0]
+    },
+    textoConfiguracion: () =>
+      textoConfiguracion({
+        plataforma: process.platform,
+        windowsStore: process.windowsStore === true,
+        empaquetado: app.isPackaged,
+        execPath: process.execPath,
+        appPath: app.getAppPath(),
+        appImage: process.env['APPIMAGE'],
+        localAppData: process.env['LOCALAPPDATA']
+      }),
+    avisarError: (t) => console.error(t),
+    carpetaAsistente: () => ajustes.carpetaAsistente ?? carpetaAsistentePorOmision(),
+    ventanaConArchivo: (ruta) => {
+      const buscada = claveRutaReal(ruta)
+      for (const [id, v] of ventanas) if (!v.win.isDestroyed() && v.servicio.rutaAbierta && claveRutaReal(v.servicio.rutaAbierta) === buscada) return id
+      return undefined
+    },
+    // Un circuito nuevo del asistente va a su propia ventana: nunca reemplaza el documento que el usuario tiene abierto.
+    abrirEnVentanaNueva: (ruta) => createWindow(ruta)
+  })
+  asistente.registrar()
+  void asistente.reconciliar()
+  app.on('before-quit', () => asistente?.cerrar())
   // Vista › Ventana de la barra superior: solo del marco principal de una ventana del editor.
   registrarVentana(ipcMain, (id) => ventanas.get(id)?.win, esPropia, cambiarTamaño)
   registrarArchivos((id) => ventanas.get(id), esPropia)
@@ -445,6 +543,8 @@ app.whenReady().then(() => {
   })
 })
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
-})
+// El puente no tiene ventanas propias: cerrar la oculta de una imagen no debe cerrarlo (sale solo al cerrarse su entrada).
+if (!banderas.mcp)
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit()
+  })

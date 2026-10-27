@@ -69,7 +69,7 @@ describe('buscar', () => {
     expect(ids('diodo zzz')).toEqual([])
   })
 
-  const alfabetico = () => [...lib.values()].sort((a, b) => a.nombre.es.localeCompare(b.nombre.es, 'es')).map((d) => d.id)
+  const alfabetico = () => [...lib.values()].filter((d) => !d.oculta).sort((a, b) => a.nombre.es.localeCompare(b.nombre.es, 'es')).map((d) => d.id)
 
   it('sin consulta salen todas en orden alfabético', () => {
     expect(ids('')).toEqual(alfabetico())
@@ -109,7 +109,7 @@ describe('búsqueda de modelos por prefijo', () => {
   })
   it('el prefijo gana a una coincidencia por nombre de pieza y no duplica la pieza', () => {
     const r = buscar('bc', lib)
-    expect(r.filter((x) => x.def.id === 'npn').map((x) => x.valor)).toEqual(['BC547'])
+    expect(r.filter((x) => x.def.id === 'npn').map((x) => x.valor)).toEqual(['BC337', 'BC547'])
   })
 })
 

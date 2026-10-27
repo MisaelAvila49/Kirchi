@@ -1,0 +1,191 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "cl_pF": 50,
+   "documento": "TI SN74HC148 (SCLS109H)",
+   "paginas": "5, tabla 6.5",
+   "caminos": [
+    {
+     "de": "0 a 7 (1 a 7)",
+     "a": "A0, A1, A2",
+     "tPLH": {
+      "tip": 23,
+      "max": 36
+     },
+     "tPHL": {
+      "tip": 23,
+      "max": 36
+     },
+     "max_SN74_40_85C": 45
+    },
+    {
+     "de": "0 a 7",
+     "a": "EO",
+     "tPLH": {
+      "tip": 20,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 20,
+      "max": 30
+     },
+     "max_SN74_40_85C": 38
+    },
+    {
+     "de": "0 a 7",
+     "a": "GS",
+     "tPLH": {
+      "tip": 25,
+      "max": 38
+     },
+     "tPHL": {
+      "tip": 25,
+      "max": 38
+     },
+     "max_SN74_40_85C": 48
+    },
+    {
+     "de": "EI",
+     "a": "A0, A1, A2",
+     "tPLH": {
+      "tip": 26,
+      "max": 39
+     },
+     "tPHL": {
+      "tip": 26,
+      "max": 39
+     },
+     "max_SN74_40_85C": 49
+    },
+    {
+     "de": "EI",
+     "a": "GS",
+     "tPLH": {
+      "tip": 19,
+      "max": 29
+     },
+     "tPHL": {
+      "tip": 19,
+      "max": 29
+     },
+     "max_SN74_40_85C": 36
+    },
+    {
+     "de": "EI",
+     "a": "EO",
+     "tPLH": {
+      "tip": 22,
+      "max": 33
+     },
+     "tPHL": {
+      "tip": 22,
+      "max": 33
+     },
+     "max_SN74_40_85C": 41
+    },
+    {
+     "de": "salida",
+     "a": "transición tt",
+     "tip": 8,
+     "max": 15,
+     "max_SN74_40_85C": 19
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS148 (SDLS053B)",
+   "paginas": "10, SN54LS148/SN74LS148 switching characteristics",
+   "caminos": [
+    {
+     "de": "1 a 7",
+     "a": "A0, A1, A2 (salida en fase)",
+     "tPLH": {
+      "tip": 14,
+      "max": 18
+     },
+     "tPHL": {
+      "tip": 15,
+      "max": 25
+     }
+    },
+    {
+     "de": "1 a 7",
+     "a": "A0, A1, A2 (salida en contrafase)",
+     "tPLH": {
+      "tip": 20,
+      "max": 36
+     },
+     "tPHL": {
+      "tip": 16,
+      "max": 29
+     }
+    },
+    {
+     "de": "0 a 7",
+     "a": "EO",
+     "tPLH": {
+      "tip": 7,
+      "max": 18
+     },
+     "tPHL": {
+      "tip": 25,
+      "max": 40
+     }
+    },
+    {
+     "de": "0 a 7",
+     "a": "GS",
+     "tPLH": {
+      "tip": 35,
+      "max": 55
+     },
+     "tPHL": {
+      "tip": 9,
+      "max": 21
+     }
+    },
+    {
+     "de": "EI",
+     "a": "A0, A1, A2",
+     "tPLH": {
+      "tip": 16,
+      "max": 25
+     },
+     "tPHL": {
+      "tip": 12,
+      "max": 25
+     }
+    },
+    {
+     "de": "EI",
+     "a": "GS",
+     "tPLH": {
+      "tip": 12,
+      "max": 17
+     },
+     "tPHL": {
+      "tip": 14,
+      "max": 36
+     }
+    },
+    {
+     "de": "EI",
+     "a": "EO",
+     "tPLH": {
+      "tip": 12,
+      "max": 21
+     },
+     "tPHL": {
+      "tip": 23,
+      "max": 35
+     }
+    }
+   ]
+  }
+ }
+}

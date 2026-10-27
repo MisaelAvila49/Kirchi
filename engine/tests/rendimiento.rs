@@ -239,3 +239,40 @@ fn las_potencias_de_984_resistencias_cuestan_poco() {
     println!("984 resistencias: {:.0} % sin potencias y {:.0} % con ellas ({:.1} % menos)", 100.0 * sin, 100.0 * con, 100.0 * (1.0 - con / sin));
     assert!(con >= 0.75 * sin, "{con} contra {sin}");
 }
+
+/// Los 256 canales declarados que ninguna pieza lee: la isla no guarda estado de canal, no reserva memoria por paso y, en
+/// `--release`, corre dentro del 2 % de la misma netlist sin canales.
+#[test]
+fn declarar_canales_que_la_isla_no_lee_no_cuesta() {
+    let con_canales = || {
+        let mut v = etapas_json(5);
+        v["canales"] = serde_json::Value::Array(vec![serde_json::json!({"inicial": 0.0}); 256]);
+        Netlist::from_json(&v.to_string()).unwrap()
+    };
+    let mut m = kirchi_engine::Mixto::new(con_canales(), 1e-5).unwrap();
+    m.advance_to(2e-3, u32::MAX).unwrap();
+    let a0 = asignaciones();
+    let pasos = m.advance_to(6e-3, u32::MAX).unwrap() as f64;
+    assert!(pasos > 300.0);
+    let por_paso = (asignaciones() - a0) as f64 / pasos;
+    assert!(por_paso < 0.5, "{por_paso} reservas por paso");
+    if cfg!(debug_assertions) {
+        return;
+    }
+    let _turno = TIEMPOS.lock().unwrap_or_else(|e| e.into_inner());
+    let sim_s = 0.05;
+    let capacidad = |net: Netlist| {
+        let mut m = kirchi_engine::Mixto::new(net, 1e-5).unwrap();
+        m.advance_to(0.01, u32::MAX).unwrap();
+        let t0 = Instant::now();
+        m.advance_to(0.01 + sim_s, u32::MAX).unwrap();
+        sim_s / t0.elapsed().as_secs_f64()
+    };
+    let (mut sin, mut con) = (0.0f64, 0.0f64);
+    for _ in 0..5 {
+        sin = sin.max(capacidad(etapas(5)));
+        con = con.max(capacidad(con_canales()));
+    }
+    println!("cinco etapas: {:.0} % sin canales y {:.0} % con 256 declarados ({:.1} % menos)", 100.0 * sin, 100.0 * con, 100.0 * (1.0 - con / sin));
+    assert!(con >= 0.98 * sin, "{con} contra {sin}");
+}

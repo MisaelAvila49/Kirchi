@@ -1,0 +1,37 @@
+{
+ "columnas": [
+  "G",
+  "C",
+  "B",
+  "A",
+  "D0",
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "salidas": [
+  "Y",
+  "W"
+ ],
+ "filas": [
+  "1 X X X X X X X X X X X > 0 1",
+  "0 0 0 0 X X X X X X X X > D0 !D0",
+  "0 0 0 1 X X X X X X X X > D1 !D1",
+  "0 0 1 0 X X X X X X X X > D2 !D2",
+  "0 0 1 1 X X X X X X X X > D3 !D3",
+  "0 1 0 0 X X X X X X X X > D4 !D4",
+  "0 1 0 1 X X X X X X X X > D5 !D5",
+  "0 1 1 0 X X X X X X X X > D6 !D6",
+  "0 1 1 1 X X X X X X X X > D7 !D7"
+ ],
+ "fuente": {
+  "documento": "TI SN74HC151 (SCLS110F)",
+  "pagina": "9, tabla 7-1 Function Table",
+  "comprobada_con": "TI SN74LS151 (SDLS054), p. 2, FUNCTION TABLE '151A, 'LS151, 'S151: iguales",
+  "convencion": "G activo en bajo; Y = Dn y W = su complemento. Con G alto Y = 0 y W = 1"
+ }
+}

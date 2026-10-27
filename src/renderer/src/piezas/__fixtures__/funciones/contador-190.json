@@ -1,0 +1,77 @@
+{
+ "fuente": [
+  {
+   "familia": "74HC",
+   "documento": "TI CD54HC190/CD74HC190 (con HC191), SCHS275E",
+   "revision": "oct 2003",
+   "paginas": "2",
+   "tabla": "FUNCTION TABLE (p. 2) y texto de p. 1 y 2"
+  },
+  {
+   "familia": "74LS",
+   "documento": "TI SN54/74LS190 y LS191, SDLS072",
+   "revision": "mar 1988",
+   "paginas": "1 (descripción)",
+   "tabla": "sin tabla; mismo comportamiento en el texto"
+  }
+ ],
+ "simbolos": {
+  "r": "flanco de subida de CLK",
+  "X": "no importa"
+ },
+ "columnas": [
+  "LOAD",
+  "CTEN",
+  "D/U",
+  "CLK"
+ ],
+ "salidas": [
+  "funcion"
+ ],
+ "filas": [
+  "1 0 0 r > cuenta hacia arriba (Count up)",
+  "1 0 1 r > cuenta hacia abajo (Count down)",
+  "0 X X X > carga asíncrona A a D (Asynchronous preset)",
+  "1 1 X X > no cambia (No change)"
+ ],
+ "adicionales": [
+  {
+   "nombre": "MAX/MIN",
+   "columnas": [
+    "D/U",
+    "estado"
+   ],
+   "salidas": [
+    "MAX/MIN"
+   ],
+   "filas": [
+    "0 9 > 1",
+    "1 0 > 1",
+    "0 0-8 > 0",
+    "1 1-9 > 0"
+   ],
+   "origen": "HC190 p. 2: 'MAX/MIN output, which is low during counting, goes high and remains high for one clock cycle' al desbordar o subdesbordar (9 al subir, 0 al bajar en la década, p. 8, figura de la secuencia). Estados 10 a 15 ilegales: no transcritos (Figura 3 de la hoja no leída)"
+  },
+  {
+   "nombre": "RCO",
+   "columnas": [
+    "MAX/MIN",
+    "CLK",
+    "CTEN"
+   ],
+   "salidas": [
+    "RCO"
+   ],
+   "filas": [
+    "1 0 0 > 0",
+    "1 1 0 > 1",
+    "0 X 0 > 1"
+   ],
+   "origen": "HC190 p. 2: 'RCO ... goes low, and remains low for the low-level portion of the clock pulse' (p. 8, figura: RCO bajo con MAX/MIN alto y reloj bajo con CTEN bajo). Las filas con CTEN alto no vienen en la hoja: pendiente"
+  }
+ ],
+ "notas": [
+  "HC190 p. 2: D/U y CTEN deben cambiar solo con CLK en alto. LS190 p. 1: una subida falsa de reloj puede ocurrir si D/U cambia con CLK en bajo; un RCO falso puede ocurrir si CLK y CTEN están en bajo y D/U en alto durante un pulso de LOAD.",
+  "Con CTEN alto el estado de RCO en las filas con MAX/MIN alto no consta en el texto de la hoja; la secuencia de la p. 8 solo lo muestra con CTEN bajo."
+ ]
+}

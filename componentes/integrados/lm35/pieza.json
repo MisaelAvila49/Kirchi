@@ -1,0 +1,93 @@
+{
+  "id": "lm35",
+  "nombre": { "es": "Sensor LM35", "en": "LM35 sensor" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["lm35", "sensor de temperatura", "temperature sensor", "lm35dz", "termometro"],
+  "pines": [
+    { "id": "+VS", "nombre": "alimentación (+VS)", "x": 0, "y": -6 },
+    { "id": "VOUT", "nombre": "salida (VOUT)", "x": 6, "y": 0 },
+    { "id": "GND", "nombre": "tierra (GND)", "x": 0, "y": 6 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "LM35DZ", "opciones": ["LM35DZ"] },
+    {
+      "id": "temperatura",
+      "nombre": "Temperatura",
+      "unidad": "°C",
+      "defecto": "25",
+      "enVivo": { "magnitud": "temperatura", "min": 0, "max": 100, "paso": 5, "pasoFino": 1 }
+    },
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Ajuste", "opciones": ["Nada", "Ajuste"], "omitir": true }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "LM35DZ": { "a0": 100000, "gbw": 1000000, "sr": 1000000, "rin": 1000000000000, "rout": 0.5, "ilim": 0.01, "dhi": 1.5, "dlo": 0.01, "rq": 89286 }
+    },
+    "internas": ["t"],
+    "medida": { "mas": "VOUT", "menos": "GND", "i": 1 },
+    "elementos": [
+      { "t": "EXT", "a": "t", "b": "GND", "modo": "v", "canal": "temperatura", "k": 0.01, "c": 0 },
+      {
+        "t": "OA",
+        "mas": "t",
+        "menos": "VOUT",
+        "sal": "VOUT",
+        "vmas": "+VS",
+        "vmenos": "GND",
+        "params": { "a0": "a0", "gbw": "gbw", "sr": "sr", "rin": "rin", "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" }
+      }
+    ]
+  },
+  "rotulos": [
+    { "texto": "°C", "x": 0, "y": 0, "tam": 1.8 },
+    { "texto": "+VS", "x": 0, "y": -3, "tam": 1.1 },
+    { "texto": "GND", "x": 0, "y": 3, "tam": 1.1 },
+    { "texto": "OUT", "x": 1.8, "y": 0, "tam": 1.1, "alinear": "der" }
+  ],
+  "fuentes": {
+    "LM35DZ": "Texas Instruments, LM35 (SNIS159H, dic 2017), https://www.ti.com/lit/ds/symlink/lm35.pdf: salida de 10 mV/°C sin desplazamiento (250 mV a 25 °C), rango del LM35D de 0 a 100 °C (por eso la perilla no baja de 0 °C), alimentación de 4 a 30 V, impedancia de salida de 0.5 Ω (p. 13) y corriente en reposo de 56 µA a 5 V (p. 10), que se pone como resistencia entre alimentaciones (89.3 kΩ a 5 V). Kirchi lo arma con una fuente de valor externo de 10 mV por °C y un seguidor alimentado por +VS y GND. No modela el error de ±0.6 °C ni el autocalentamiento de 180 °C/W. La corriente máxima de salida (10 mA), el margen de la salida contra +VS (1.5 V) y contra GND (10 mV) y el ancho de banda del seguidor son del modelo, no de la hoja."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Sensor_Temperature:LM35-LP" },
+    "valores": {
+      "LM35DZ": {
+        "fabricante": "Texas Instruments",
+        "parte": "LM35DZ/NOPB",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm35.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-92",
+            "patillas": { "+VS": "1", "VOUT": "2", "GND": "3" },
+            "huella": "Package_TO_SOT_THT:TO-92_Inline",
+            "lcsc": { "numero": "C181511", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM35 (SNIS159H, dic 2017) p. 3, LP (TO-92) vista inferior: +VS 1, VOUT 2, GND 3; Sensor_Temperature:LM35-LP de KiCad 9 (+VS 1, VOUT 2, GND 3, huella TO-92_Inline). LCSC C181511 es LM35DZ/LFT1 (patillas formadas)"
+        }
+      }
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "LM35DZ": {
+          "fuente": "Texas Instruments, LM35 (SNIS159H, dic 2017), p. 4: voltaje de alimentación máximo de 35 V.",
+          "limites": [
+            { "nombre": "alimentación", "de": "+VS", "a": "GND", "max": 35, "escala": 35, "consejo": "baja el voltaje de alimentación del sensor." }
+          ]
+        }
+      }
+    }
+  },
+  "etiquetas": {
+    "ref": { "x": 7, "y": -3 },
+    "valor": { "x": 7, "y": 3 }
+  }
+}

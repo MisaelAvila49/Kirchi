@@ -1,0 +1,13 @@
+* Escalones de 2 V, 4 V y 1 V con subidas de 1 us, sobre una resistencia y un capacitor
+V1 1 0 PWL(0 0 0.001 0 0.001001 2 0.002 2 0.002001 4 0.003 4 0.003001 1 0.004 1)
+R1 1 2 1k
+C1 2 0 100n
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 10u 4m 0 2u uic
+wrdata salida.txt v(1) v(2) i(v1)
+.endc
+.end

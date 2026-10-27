@@ -68,5 +68,65 @@
     { "texto": "6", "x": -5, "y": -1, "tam": 1, "alinear": "centro", "tinta": "valor" },
     { "texto": "7", "x": -5, "y": -5, "tam": 1, "alinear": "centro", "tinta": "valor" },
     { "texto": "8", "x": -1, "y": -7, "tam": 1, "alinear": "centro", "tinta": "valor" }
-  ]
+  ],
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "falstad": "165", "proteus": "NE555", "sinVerificar": ["proteus"] },
+    "valores": {
+      "NE555": {
+        "fabricante": "Texas Instruments",
+        "parte": "NE555P",
+        "hoja": "https://www.ti.com/lit/ds/symlink/ne555.pdf",
+        "equivalencias": { "kicad": "Timer:NE555P" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" },
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C46749", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI NA555/NE555 (SLFS022K, mar 2026) tabla 4-1 (PDIP-8): GND 1, TRIG 2, OUT 3, RESET 4, CONT 5, THRES 6, DISCH 7, VCC 8; Timer:NE555P de KiCad 9"
+        }
+      },
+      "LM555": {
+        "fabricante": "Texas Instruments",
+        "parte": "LM555CN/NOPB",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm555.pdf",
+        "equivalencias": { "kicad": "Timer:LM555xN" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" },
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C1520184", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM555, Pin Functions: GND 1, TRIG 2, OUT 3, RESET 4, CONT 5, THRES 6, DISCH 7; Timer:LM555xN de KiCad 9 (VCC 8)"
+        }
+      },
+      "TLC555": {
+        "fabricante": "Texas Instruments",
+        "parte": "TLC555CP",
+        "hoja": "https://www.ti.com/lit/ds/symlink/tlc555.pdf",
+        "equivalencias": { "kicad": "Timer:TLC555xP" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" },
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C910886", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI TLC555, tabla 4-1 (P): GND 1, TRIG 2, OUT 3, RESET 4, CONT 5, THRES 6, DISCH 7, VDD 8; Timer:TLC555xP de KiCad 9"
+        }
+      }
+    }
+  }
 }

@@ -33,6 +33,8 @@ pub struct Simulator {
     wbuf: Vec<f64>,
     /// Los cambios que se oyen de la última toma (se reutiliza: no reserva memoria por llamada).
     cbuf: Vec<crate::transient::Cruce>,
+    /// Las muestras de la última toma (`tomar_muestras`).
+    mubuf: Vec<crate::mixto::Muestra>,
 }
 
 #[wasm_bindgen]
@@ -65,6 +67,7 @@ impl Simulator {
             ta: Vec::new(),
             wbuf: Vec::new(),
             cbuf: Vec::new(),
+            mubuf: Vec::new(),
         })
     }
 
@@ -306,6 +309,40 @@ impl Simulator {
         self.inner.time()
     }
 
+    /// Pone el canal de valor `canal` en `valor` desde `t` (segundos). Un rechazo (número no finito, canal fuera de rango, cola
+    /// llena) vuelve como error y no deja rastro.
+    pub fn poner_valor(&mut self, canal: usize, t: f64, valor: f64) -> Result<(), JsError> {
+        Ok(self.inner.poner_valor(canal, t, valor)?)
+    }
+
+    /// El valor del canal en el tiempo del simulador; NaN si no existe.
+    pub fn valor_canal(&self, canal: usize) -> f64 {
+        self.inner.valor_canal(canal)
+    }
+
+    /// Cuántos cambios de canal llegaron con un tiempo anterior al de su isla (como número: sin BigInt).
+    pub fn tardios(&self) -> f64 {
+        self.inner.tardios() as f64
+    }
+
+    /// Programa la lectura del lector `lector` en `t` (segundos).
+    pub fn pedir_muestra(&mut self, lector: usize, t: f64) -> Result<(), JsError> {
+        Ok(self.inner.pedir_muestra(lector, t)?)
+    }
+
+    /// Las muestras cumplidas, en tríos (lector, instante pedido, valor).
+    pub fn tomar_muestras(&mut self) -> Vec<f64> {
+        self.mubuf.clear();
+        self.inner.tomar_muestras(&mut self.mubuf);
+        self.mubuf.iter().flat_map(|m| [m.lector as f64, m.t, m.v]).collect()
+    }
+
+    /// El tiempo de la isla del lector y su lectura vigente, sin programar nada: (t, valor); NaN en el valor si no existe.
+    pub fn leer_ahora(&self, lector: usize) -> Vec<f64> {
+        let (t, v) = self.inner.leer_ahora(lector);
+        vec![t, v]
+    }
+
     pub fn node_count(&self) -> usize {
         self.inner.node_count()
     }
@@ -326,6 +363,11 @@ impl Simulator {
     /// Los elementos de un lazo de compuertas que no se asentó al arrancar (oscila solo).
     pub fn lazo_de_arranque(&self) -> Vec<u32> {
         self.inner.lazo_de_arranque().into_iter().map(|k| k as u32).collect()
+    }
+
+    /// Las redes digitales que entraron en conflicto de bus desde la última llamada.
+    pub fn take_conflictos(&mut self) -> Vec<u32> {
+        self.inner.tomar_conflictos()
     }
 
     /// Corriente de cada elemento, en el orden de la netlist, de `a` hacia `b` a través del elemento.

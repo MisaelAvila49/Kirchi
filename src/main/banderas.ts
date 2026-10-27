@@ -8,12 +8,14 @@ export interface Banderas {
   devtools: boolean
   /** `--datos=<carpeta>`: carpeta de datos propia (ajustes), ya absoluta; las pruebas la usan para no tocar la del usuario. */
   datos: string | null
+  /** `--mcp`: el puente del asistente, un proceso sin ventanas que habla MCP por la entrada y salida estándar. */
+  mcp: boolean
 }
 
 /** Variable de entorno con que el desarrollador (no el explorador) habilita las banderas en un ejecutable empaquetado. */
 export const ENTORNO_BANDERAS = 'KIRCHI_BANDERAS'
 
-const SIN_BANDERAS: Banderas = { pruebas: false, devtools: false, datos: null }
+const SIN_BANDERAS: Banderas = { pruebas: false, devtools: false, datos: null, mcp: false }
 
 export interface OpcionesBanderas {
   /** `app.isPackaged`: el ejecutable instalado, el que abren las asociaciones de archivo. */
@@ -22,14 +24,15 @@ export interface OpcionesBanderas {
 }
 
 /**
- * Lee las banderas de la línea de órdenes. Empaquetado se ignoran todas, para que un acceso directo o un nombre de archivo no muevan la carpeta de datos ni abran las herramientas de desarrollo.
+ * Lee las banderas de la línea de órdenes. Empaquetado se ignoran todas menos `--mcp`, que es la forma normal de uso, para que un acceso directo o un nombre de archivo no muevan la carpeta de datos ni abran las herramientas de desarrollo.
  * Solo `--pruebas` se enciende con `KIRCHI_BANDERAS=1`, variable que una asociación de archivos no puede poner.
  */
 export function leerBanderas(argv: readonly string[], opciones: OpcionesBanderas = {}): Banderas {
   if (opciones.empaquetado) {
-    if ((opciones.env ?? process.env)[ENTORNO_BANDERAS] !== '1') return SIN_BANDERAS
-    return { ...SIN_BANDERAS, pruebas: argv.includes('--pruebas') }
+    const mcp = argv.includes('--mcp')
+    if ((opciones.env ?? process.env)[ENTORNO_BANDERAS] !== '1') return { ...SIN_BANDERAS, mcp }
+    return { ...SIN_BANDERAS, mcp, pruebas: argv.includes('--pruebas') }
   }
   const datos = argv.find((a) => a.startsWith('--datos='))?.slice('--datos='.length) ?? null
-  return { pruebas: argv.includes('--pruebas'), devtools: argv.includes('--devtools'), datos: datos ? resolve(datos) : null }
+  return { pruebas: argv.includes('--pruebas'), devtools: argv.includes('--devtools'), datos: datos ? resolve(datos) : null, mcp: argv.includes('--mcp') }
 }

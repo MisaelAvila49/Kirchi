@@ -3,13 +3,13 @@
   "nombre": { "es": "Diodo", "en": "Diode" },
   "categoria": "semiconductores",
   "prefijo": "D",
-  "buscar": ["d", "diodo", "diode", "1n4148", "1n4007", "1n5819", "schottky", "rectificador"],
+  "buscar": ["d", "diodo", "diode", "1n4148", "1n4007", "1n5819", "schottky", "rectificador", "1n4001"],
   "pines": [
     { "id": "A", "nombre": "ánodo", "x": -4, "y": 0 },
     { "id": "K", "nombre": "cátodo", "x": 4, "y": 0 }
   ],
   "props": [
-    { "id": "modelo", "nombre": "Modelo", "defecto": "Genérico", "opciones": ["Genérico", "1N4148", "1N4007", "1N5819"] }
+    { "id": "modelo", "nombre": "Modelo", "defecto": "Genérico", "opciones": ["Genérico", "1N4148", "1N4007", "1N5819", "1N4001"] }
   ],
   "modelo": {
     "tipo": "D", "a": "A", "b": "K", "is": 1e-14, "n": 1,
@@ -19,7 +19,8 @@
         "Genérico": { "is": 1e-14, "n": 1 },
         "1N4148": { "is": 2.2e-9, "n": 1.8, "rs": 0.6, "cjo": 4e-12, "vj": 0.6, "m": 0.4, "tt": 2e-9, "bv": 100, "ibv": 1e-4 },
         "1N4007": { "is": 7.5e-9, "n": 1.8, "rs": 0.03, "cjo": 38e-12, "vj": 0.75, "m": 0.5, "tt": 3e-6, "bv": 1000, "ibv": 5e-6 },
-        "1N5819": { "is": 2.7e-6, "n": 1.05, "rs": 0.1, "cjo": 330e-12, "vj": 0.5, "m": 0.5, "tt": 1e-10, "bv": 40, "ibv": 1e-3 }
+        "1N5819": { "is": 2.7e-6, "n": 1.05, "rs": 0.1, "cjo": 330e-12, "vj": 0.5, "m": 0.5, "tt": 1e-10, "bv": 40, "ibv": 1e-3 },
+        "1N4001": { "is": 7.5e-9, "n": 1.8, "rs": 0.03, "cjo": 3.8e-11, "vj": 0.75, "m": 0.5, "tt": 3e-6, "bv": 50, "ibv": 5e-6 }
       }
     }
   },
@@ -47,6 +48,13 @@
             {"nombre": "voltaje inverso", "de": "K", "a": "A", "max": 40, "consejo": "elige un diodo de más voltaje inverso o limita el voltaje que le llega."},
             {"nombre": "corriente directa media", "medida": "corriente", "max": 1.0, "consejo": "agrega una resistencia en serie o elige un diodo de más corriente."}
           ]
+        },
+        "1N4001": {
+          "fuente": "Vishay General Semiconductor 1N4001 a 1N4007, doc. 88503, Maximum Ratings: VRRM 50 V, corriente directa media rectificada de 1.0 A.",
+          "limites": [
+            {"nombre": "voltaje inverso", "de": "K", "a": "A", "max": 50, "consejo": "elige un diodo de más voltaje inverso o limita el voltaje que le llega."},
+            {"nombre": "corriente directa media", "medida": "corriente", "max": 1.0, "consejo": "agrega una resistencia en serie o elige un diodo de más corriente."}
+          ]
         }
       }
     },
@@ -56,6 +64,86 @@
     "Genérico": "El diodo de siempre de Kirchi (IS = 10 fA, N = 1), sin hoja de datos: es el modelo por omisión y el de los .kir anteriores.",
     "1N4148": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Vishay 1N4148, doc. 81857 rev. 1.6 (7 nov 2024), https://www.vishay.com/docs/81857/1n4148.pdf: V(BR) 100 V a 100 µA, CD 4 pF (VR = 0), IR 25 nA a 20 V (máx), VF 1 V máx a 10 mA. La hoja solo da el máximo de VF: la curva se fijó en 0.72 V a 10 mA. tt = 2 ns sale del trr de 4 ns y no se validó.",
     "1N4007": "Parámetros ajustados por Kirchi (no copiados) a Diodes Inc. 1N4001-1N4007, ds28002 (julio 2024), https://www.diodes.com/assets/Datasheets/ds28002.pdf: VFM 1.0 V máx a 1 A, IR 5 µA, Cj 15 pF a 4 V, VRRM 1000 V. La curva se fijó en 0.90 V a 1 A. La hoja no da el tiempo de recuperación: tt = 3 µs es un orden de magnitud típico de un rectificador de 1 A y no se validó.",
-    "1N5819": "Parámetros ajustados por Kirchi (no copiados) a Vishay 1N5817/1N5818/1N5819, doc. 88525, https://www.vishay.com/docs/88525/1n5817.pdf: VF máx 0.60 V a 1 A y 0.90 V a 3.1 A, IR máx 1 mA a 25 °C, CJ 110 pF a 4 V, VRRM 40 V. La hoja solo da máximos: la curva se fijó en 0.45 V a 1 A y 0.69 V a 3.1 A."
+    "1N5819": "Parámetros ajustados por Kirchi (no copiados) a Vishay 1N5817/1N5818/1N5819, doc. 88525, https://www.vishay.com/docs/88525/1n5817.pdf: VF máx 0.60 V a 1 A y 0.90 V a 3.1 A, IR máx 1 mA a 25 °C, CJ 110 pF a 4 V, VRRM 40 V. La hoja solo da máximos: la curva se fijó en 0.45 V a 1 A y 0.69 V a 3.1 A.",
+    "1N4001": "Parámetros ajustados por Kirchi (no copiados) a Vishay General Semiconductor 1N4001 a 1N4007, doc. 88503 (rev. 29-abr-2020), https://www.vishay.com/docs/88503/1n4001.pdf: VRRM 50 V, VF 1.1 V máx a 1 A, IR 5 µA a 25 °C con el voltaje de bloqueo nominal, CJ 15 pF a 4 V. Es el 1N4007 con la ruptura en 50 V: misma curva de conducción (0.90 V a 1 A), misma capacitancia y misma fuga. La hoja no da el tiempo de recuperación: tt = 3 µs es un orden de magnitud típico de un rectificador de 1 A y no se validó."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:D", "ltspice": "diode", "falstad": "d", "proteus": "DIODE", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "Genérico": { "virtual": true, "nota": "Diodo de siempre de Kirchi, sin pieza física" },
+      "1N4148": {
+        "fabricante": "Vishay",
+        "parte": "1N4148",
+        "hoja": "https://www.vishay.com/docs/81857/1n4148.pdf",
+        "equivalencias": { "kicad": "Diode:1N4148" },
+        "presentaciones": [
+          {
+            "encapsulado": "DO-35",
+            "patillas": { "A": "2", "K": "1" },
+            "huella": "Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal",
+            "lcsc": { "numero": "C258182", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Vishay 1N4148 (doc. 81857 rev. 1.6), DO-35 (DO-204AH); Las hojas de diodo no numeran patillas: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D"
+        },
+        "nota": "LCSC C258182 es el 1N4148 de onsemi en DO-35"
+      },
+      "1N4007": {
+        "fabricante": "Diodes Incorporated",
+        "parte": "1N4007",
+        "hoja": "https://www.diodes.com/assets/Datasheets/ds28002.pdf",
+        "equivalencias": { "kicad": "Diode:1N4007" },
+        "presentaciones": [
+          {
+            "encapsulado": "DO-41",
+            "patillas": { "A": "2", "K": "1" },
+            "huella": "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal",
+            "lcsc": { "numero": "C106903", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Diodes Inc. 1N4001-1N4007 (ds28002 jul 2024), DO-41; Las hojas de diodo no numeran patillas: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D"
+        },
+        "nota": "LCSC C106903 es el 1N4007 de ST (Semtech) en DO-41"
+      },
+      "1N5819": {
+        "fabricante": "Vishay",
+        "parte": "1N5819",
+        "hoja": "https://www.vishay.com/docs/88525/1n5817.pdf",
+        "equivalencias": { "kicad": "Diode:1N5819" },
+        "presentaciones": [
+          {
+            "encapsulado": "DO-41",
+            "patillas": { "A": "2", "K": "1" },
+            "huella": "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal",
+            "lcsc": { "numero": "C145202", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Vishay 1N5817/18/19 (doc. 88525), DO-41 (DO-204AL); Las hojas de diodo no numeran patillas: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D"
+        },
+        "nota": "LCSC C145202 es el 1N5819-E3/54 de Vishay"
+      },
+      "1N4001": {
+        "fabricante": "Diodes Incorporated",
+        "parte": "1N4001-T",
+        "hoja": "https://www.diodes.com/assets/Datasheets/ds28002.pdf",
+        "equivalencias": { "kicad": "Diode:1N4001" },
+        "presentaciones": [
+          { "encapsulado": "DO-41", "patillas": { "A": "2", "K": "1" }, "huella": "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" }
+        ],
+        "pendiente": { "lcsc": "No se buscó un número LCSC del 1N4001 de Diodes" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Diodes Inc. 1N4001-1N4007 (DS28002 rev. 11-3, jul 2024), DO-41, Ordering Information 1N4001-T, polaridad por banda de cátodo; el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que Diode:1N4001 de KiCad 9 (K1 A2)"
+        },
+        "nota": "Diodes advierte en la portada que el 1N4001-1N4007 no se recomienda para diseños nuevos"
+      }
+    }
   }
 }

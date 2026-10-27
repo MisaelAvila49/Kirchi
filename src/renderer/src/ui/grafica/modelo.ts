@@ -57,6 +57,8 @@ export interface VistaGrafica {
   /** Fracción [0, 1] visible del rango automático de cada panel; null es todo. */
   y: readonly ([number, number] | null)[]
   cursores: [number, number] | null
+  /** En una gráfica X-Y los cursores son puntos de la curva: `cursores` lleva sus x y esto sus y. */
+  cursoresY?: readonly [number, number] | null
   /** Trazas apagadas por el lector (por clave). */
   ocultas: ReadonlySet<string>
 }

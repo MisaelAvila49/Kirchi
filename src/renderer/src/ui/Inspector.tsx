@@ -1,10 +1,14 @@
 import { createEffect, createSignal, For, Index, Match, on, Show, Switch, type JSX } from 'solid-js'
+import { ajustesIniciales, guardarAjustes } from '../ajustes/ajustes'
+import { copiarAlPortapapeles } from './registro'
+import SeccionDatos, { type VistaDatosVisible } from './SeccionDatos'
 import type { EstiloFigura } from '../doc/figuras'
 import type { Id, Rotacion } from '../doc/tipos'
 import type { Orientacion, Transformacion } from '../editor/acciones'
 import type { PiezaDef } from '../piezas/tipos'
 import { MOTIVO_REFERENCIA_SIMULANDO, type CambioTexto } from '../editor/Editor'
 import CajaReferencia from './CajaReferencia'
+import SelectorUnidad from './SelectorUnidad'
 import CampoValor from './CampoValor'
 import { opcionesDeUnidad } from '../valores/unidades'
 import FichaCatalogo from './FichaCatalogo'
@@ -17,7 +21,9 @@ import FichaMedidor from './FichaMedidor'
 import { textosInspectorDeSonda } from './textosSonda'
 import FichaTexto from './FichaTexto'
 import SimboloPieza from './SimboloPieza'
-import ControlPosicion, { type PotVista } from './ControlPosicion'
+import { ControlPosicionPot, type PerillaVista, type PotVista } from './ControlPerilla'
+import MiniaturaPwl from './MiniaturaPwl'
+import SeccionPerillas from './SeccionPerillas'
 import SeccionFigura from './SeccionFigura'
 import IconoCinta from './cinta/IconoCinta'
 import type { NombreIcono } from './cinta/trazos'
@@ -38,6 +44,8 @@ interface Props {
   onCambiarProp(id: Id, prop: string, texto: string): string | null
   /** La referencia (R1, C1, XFG1) arriba a la derecha; devuelve el motivo si no se aplicó (repetida, vacía), o null. */
   onCambiarReferencia?(id: Id, texto: string): string | null
+  /** El selector «Unidad» de una pieza agrupada (U1A a U1B); devuelve el motivo si no se aplicó, o null. */
+  onCambiarUnidad?(id: Id, unidad: string): string | null
   /** La ficha del generador: reemplaza la lista de propiedades de un generador. */
   fichaGenerador?(id: Id): JSX.Element
   /** La ficha de la fuente variable: sale de la pestaña Multímetro y vive aquí, como el generador. */
@@ -89,11 +97,26 @@ interface Props {
   /** El potenciómetro seleccionado (con o sin vista previa) y el cambio de su posición; es lo único que se edita simulando. */
   pot?: PotVista | null
   onPot?(posicion: number, gesto?: string): void
+  /** Las perillas en vivo de la pieza seleccionada (solo mientras simula) y su cambio; también se editan simulando. */
+  perillas?: readonly PerillaVista[]
+  onPerilla?(perilla: PerillaVista, valor: number, gesto?: string): void
+  /** Los puntos de la fuente PWL seleccionada, para su gráfica miniatura. */
+  pwl?: string | null
   /** Un botón se sostiene mientras se mantiene pulsado: `true` al apretar y `false` al soltar, salir o perder el foco. */
   /** El botón seleccionado está presionado con «Mantener pulsado». */
   enclavado?: boolean
   onEnclavar?(): void
+  /** «Datos de la pieza»: plegada y su cambio; sin ellos se lee y se guarda en los ajustes. */
+  datosPlegados?: boolean
+  onDatosPlegados?(plegada: boolean): void
+  /** Copiar un texto y abrir un enlace de la librería en el navegador; sin ellos, el portapapeles y el puente del proceso principal. */
+  onCopiarDato?(texto: string): void | Promise<void>
+  onAbrirEnlace?(url: string): void | Promise<unknown>
 }
+
+/** Lo plegado de «Datos de la pieza» en esta sesión: se lee de los ajustes la primera vez y sobrevive a que el inspector se vuelva a montar. */
+const [plegadoDeDatos, ponerPlegadoDeDatos] = createSignal<boolean | null>(null)
+const datosPlegadosAhora = () => plegadoDeDatos() ?? ajustesIniciales().inspectorDatosPlegado
 
 const GIROS: Rotacion[] = [0, 90, 180, 270]
 const ICONO_FIGURA: Record<string, NombreIcono> = { linea: 'linea', rectangulo: 'rectangulo', elipse: 'elipse', flecha: 'flecha', varios: 'figura' }
@@ -314,7 +337,7 @@ export default function Inspector(props: Props) {
   const pieza = () => (props.vista.tipo === 'pieza' ? props.vista : null)
   const figura = () => (props.vista.tipo === 'figura' ? props.vista : null)
   /** Los campos de la pieza seleccionada, sin la posición de un potenciómetro (tiene su control). */
-  const campos = (): CampoProp[] => (props.vista.tipo === 'pieza' ? props.vista.props.filter((c) => !(props.pot && c.id === 'posicion')) : [])
+  const campos = (): CampoProp[] => (props.vista.tipo === 'pieza' ? props.vista.props.filter((c) => !(props.pot && c.id === 'posicion') && !props.perillas?.some((p) => p.propId === c.id)) : [])
   const partes = () => repartirCampos(campos(), (c) => !!c.personalizado)
   const titulo = () => {
     const v = props.vista
@@ -424,13 +447,16 @@ export default function Inspector(props: Props) {
             </span>
           </Show>
         </div>
+        <Show when={pieza()?.paquete && props.onCambiarUnidad}>
+          <SelectorUnidad pieza={pieza()!.id} paquete={pieza()!.paquete!} desactivado={props.simulando} onCambiar={(id, u) => props.onCambiarUnidad!(id, u)} />
+        </Show>
         <Show when={pieza() && props.onCambiarReferencia}>
           <CajaReferencia
             pieza={pieza()!.id}
-            valor={pieza()!.ref}
+            valor={pieza()!.paquete?.paquete ?? pieza()!.ref}
             onCambiar={(id, t) => props.onCambiarReferencia!(id, t)}
             desactivado={props.simulando}
-            motivoFija={props.simulando ? MOTIVO_REFERENCIA_SIMULANDO : undefined}
+            motivoFija={props.simulando ? MOTIVO_REFERENCIA_SIMULANDO : pieza()!.paquete ? 'Cambiar la referencia del encapsulado, en todas sus unidades' : undefined}
           />
         </Show>
         <button type="button" class="boton-icono" aria-label="Plegar el inspector" onClick={() => props.onPlegar()}>
@@ -476,7 +502,9 @@ export default function Inspector(props: Props) {
             </Show>
           </section>
         </Show>
-        <Show when={props.pot}>{(p) => <ControlPosicion lados pot={p()} onCambiar={(v, g) => props.onPot?.(v, g)} />}</Show>
+        <Show when={props.pot}>{(p) => <ControlPosicionPot lados pot={p()} onCambiar={(v, g) => props.onPot?.(v, g)} />}</Show>
+        {/* La perilla en vivo (temperatura, luz, carga) va arriba de «Más ajustes», con su campo escrito. */}
+        <SeccionPerillas perillas={props.perillas ?? []} onCambiar={(p, v, g) => props.onPerilla?.(p, v, g)} />
         {/* Simulando, de una pieza se editan los valores de fuentes y resistencias (cada campo decide); lo demás no. */}
         <fieldset class="inspector-campos" disabled={props.simulando && props.vista.tipo !== 'pieza' && props.vista.tipo !== 'cable'}>
         <Switch>
@@ -612,6 +640,9 @@ export default function Inspector(props: Props) {
                       <Index each={partes().vistos}>
                         {(c) => <Campo campo={c()} pieza={v().id} onCambiar={props.onCambiarProp} desactivado={props.simulando && !c().enCaliente} />}
                       </Index>
+                      <Show when={props.pwl != null}>
+                        <MiniaturaPwl texto={props.pwl!} />
+                      </Show>
                       <Show when={partes().mas.length > 0}>
                         <details class="mas-ajustes" open={masAbierto()} onToggle={(e) => setMasAbierto(e.currentTarget.open)}>
                           <summary>Más ajustes ({partes().mas.length})</summary>
@@ -664,9 +695,31 @@ export default function Inspector(props: Props) {
                   </div>
                 </div>
                 <h3 class="sec">Conexiones</h3>
-                <For each={v().conexiones}>{(c) => <Fila nombre={c.pin} valor={c.red} />}</For>
+                <For each={v().conexiones}>{(c) => <Fila nombre={c.numero ? `${c.pin} · ${c.numero}` : c.pin} valor={c.red} />}</For>
                 {acciones(false)}
                 </fieldset>
+                {/* Fuera del grupo que se bloquea: copiar y abrir la hoja no editan nada. */}
+                <Show when={v().datos.tipo !== 'ninguno' && v().datos}>
+                  {(d) => (
+                    <SeccionDatos
+                      vista={d() as VistaDatosVisible}
+                      plegada={props.datosPlegados ?? datosPlegadosAhora()}
+                      onPlegada={(p) => {
+                        if (props.onDatosPlegados) return props.onDatosPlegados(p)
+                        if (p === datosPlegadosAhora()) return
+                        ponerPlegadoDeDatos(p)
+                        void guardarAjustes({ inspectorDatosPlegado: p })
+                      }}
+                      onCopiar={async (t) => {
+                        if (props.onCopiarDato) return props.onCopiarDato(t)
+                        if (!(await copiarAlPortapapeles(t))) throw new Error('no se copió')
+                      }}
+                      onAbrir={(u) =>
+                        Promise.resolve(props.onAbrirEnlace ? props.onAbrirEnlace(u) : window.kirchi?.abrirEnlace?.(u)).catch(() => undefined)
+                      }
+                    />
+                  )}
+                </Show>
               </>
             )}
           </Match>

@@ -12,5 +12,25 @@
     { "id": "valor", "nombre": "Inductancia", "unidad": "H", "defecto": "10m", "serie": "elegida", "comunes": ["1u", "10u", "100u", "1m", "10m"] },
     { "id": "dcr", "nombre": "Resistencia del alambre (DCR)", "unidad": "Ω", "defecto": "0", "omitir": true, "comunes": ["0", "0.1", "1", "5", "10"] }
   ],
-  "modelo": { "tipo": "L", "a": "1", "b": "2", "prop": "valor", "rserie": "dcr" }
+  "modelo": { "tipo": "L", "a": "1", "b": "2", "prop": "valor", "rserie": "dcr" },
+  "datos": {
+    "equivalencias": { "kicad": "Device:L", "ltspice": "ind", "falstad": "l", "proteus": "INDUCTOR", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "*": {
+        "presentaciones": [
+          {
+            "encapsulado": "Axial",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P12.70mm_Horizontal_Fastron_SMCC",
+            "representativa": true
+          }
+        ],
+        "pendiente": { "parte": "depende del valor y del fabricante", "hoja": "depende del fabricante", "lcsc": "depende del valor" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 L_Axial_L9.5mm_D4.0mm_P12.70mm (inductor axial de choque); patillas 1 y 2 según la huella y Device:L. Representativa: la huella de KiCad es de un fabricante concreto pero sirve de tamaño típico"
+        }
+      }
+    }
+  }
 }

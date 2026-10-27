@@ -43,5 +43,119 @@
     { "texto": "dp", "x": -3.2, "y": 6, "tam": 1, "alinear": "izq" },
     { "texto": "COM", "x": 5, "y": -1, "tam": 1, "alinear": "centro" }
   ],
-  "animacion": { "tipo": "brillo", "color": "color" }
+  "animacion": { "tipo": "brillo", "color": "color" },
+  "datos": {
+    "por": ["tipo", "color"],
+    "equivalencias": { "falstad": "157" },
+    "valores": {
+      "cátodo común|rojo": {
+        "fabricante": "Kingbright",
+        "parte": "SC39-11SRWA",
+        "hoja": "https://www.kingbrightusa.com/images/catalog/SPEC/sc39-11srwa.pdf",
+        "equivalencias": { "kicad": "Display_Character:SC39-11SRWA" },
+        "presentaciones": [
+          {
+            "encapsulado": "Display-10",
+            "patillas": { "a": "10", "b": "9", "c": "7", "d": "5", "e": "4", "f": "2", "g": "1", "dp": "6", "COM": ["3", "8"] },
+            "huella": "Display_7Segment:Sx39-1xxxxx"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Kingbright SC39-11SRWA, dimensiones y diagrama de conexión (SC39-11SRWA: a 10, b 9, c 7, d 5, e 4, f 2, g 1, DP 6, comunes 3 y 8, leído en la figura); KiCad 9 símbolo Display_Character:SA39-11GWA (A 10, B 9, C 7, D 5, E 4, F 2, G 1, DP 6, CA 3 y 8) y huella Sx39-1xxxxx. Cátodo común, rojo"
+        }
+      },
+      "cátodo común|verde": {
+        "fabricante": "Kingbright",
+        "parte": "SC39-11GWA",
+        "hoja": "https://www.kingbrightusa.com/images/catalog/SPEC/sc39-11gwa.pdf",
+        "equivalencias": { "kicad": "Display_Character:SC39-11GWA" },
+        "presentaciones": [
+          {
+            "encapsulado": "Display-10",
+            "patillas": { "a": "10", "b": "9", "c": "7", "d": "5", "e": "4", "f": "2", "g": "1", "dp": "6", "COM": ["3", "8"] },
+            "huella": "Display_7Segment:Sx39-1xxxxx"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Kingbright SC39-11GWA, dimensiones y diagrama de conexión (misma carcasa y mismo diagrama que el SC39-11SRWA, hoja de la parte con el mismo encabezado); KiCad 9 símbolo Display_Character:SA39-11GWA (A 10, B 9, C 7, D 5, E 4, F 2, G 1, DP 6, CA 3 y 8) y huella Sx39-1xxxxx. Cátodo común, verde"
+        }
+      },
+      "cátodo común|amarillo": {
+        "fabricante": "Kingbright",
+        "parte": "SC39-11YWA",
+        "hoja": "https://www.kingbrightusa.com/images/catalog/SPEC/sc39-11ywa.pdf",
+        "equivalencias": { "kicad": "Display_Character:SC39-11YWA" },
+        "presentaciones": [
+          {
+            "encapsulado": "Display-10",
+            "patillas": { "a": "10", "b": "9", "c": "7", "d": "5", "e": "4", "f": "2", "g": "1", "dp": "6", "COM": ["3", "8"] },
+            "huella": "Display_7Segment:Sx39-1xxxxx"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Kingbright SC39-11YWA, dimensiones y diagrama de conexión (misma carcasa y mismo diagrama que el SC39-11SRWA, hoja de la parte con el mismo encabezado); KiCad 9 símbolo Display_Character:SA39-11GWA (A 10, B 9, C 7, D 5, E 4, F 2, G 1, DP 6, CA 3 y 8) y huella Sx39-1xxxxx. Cátodo común, amarillo"
+        }
+      },
+      "ánodo común|rojo": {
+        "fabricante": "Kingbright",
+        "parte": "SA39-11SRWA",
+        "hoja": "https://www.kingbrightusa.com/images/catalog/SPEC/sa39-11srwa.pdf",
+        "equivalencias": { "kicad": "Display_Character:SA39-11SRWA" },
+        "presentaciones": [
+          {
+            "encapsulado": "Display-10",
+            "patillas": { "a": "10", "b": "9", "c": "7", "d": "5", "e": "4", "f": "2", "g": "1", "dp": "6", "COM": ["3", "8"] },
+            "huella": "Display_7Segment:Sx39-1xxxxx"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Kingbright SA39-11SRWA, dimensiones y diagrama de conexión (misma carcasa y mismo diagrama que el SC39-11SRWA, hoja de la parte con el mismo encabezado); KiCad 9 símbolo Display_Character:SA39-11GWA (A 10, B 9, C 7, D 5, E 4, F 2, G 1, DP 6, CA 3 y 8) y huella Sx39-1xxxxx. Ánodo común, rojo"
+        }
+      },
+      "ánodo común|verde": {
+        "fabricante": "Kingbright",
+        "parte": "SA39-11GWA",
+        "hoja": "https://www.kingbrightusa.com/images/catalog/SPEC/sa39-11gwa.pdf",
+        "equivalencias": { "kicad": "Display_Character:SA39-11GWA" },
+        "presentaciones": [
+          {
+            "encapsulado": "Display-10",
+            "patillas": { "a": "10", "b": "9", "c": "7", "d": "5", "e": "4", "f": "2", "g": "1", "dp": "6", "COM": ["3", "8"] },
+            "huella": "Display_7Segment:Sx39-1xxxxx"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Kingbright SA39-11GWA, dimensiones y diagrama de conexión (misma carcasa y mismo diagrama que el SC39-11SRWA, hoja de la parte con el mismo encabezado); KiCad 9 símbolo Display_Character:SA39-11GWA (A 10, B 9, C 7, D 5, E 4, F 2, G 1, DP 6, CA 3 y 8) y huella Sx39-1xxxxx. Ánodo común, verde"
+        }
+      },
+      "ánodo común|amarillo": {
+        "fabricante": "Kingbright",
+        "parte": "SA39-11YWA",
+        "hoja": "https://www.kingbrightusa.com/images/catalog/SPEC/sa39-11ywa.pdf",
+        "equivalencias": { "kicad": "Display_Character:SA39-11YWA" },
+        "presentaciones": [
+          {
+            "encapsulado": "Display-10",
+            "patillas": { "a": "10", "b": "9", "c": "7", "d": "5", "e": "4", "f": "2", "g": "1", "dp": "6", "COM": ["3", "8"] },
+            "huella": "Display_7Segment:Sx39-1xxxxx"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Kingbright SA39-11YWA, dimensiones y diagrama de conexión (misma carcasa y mismo diagrama que el SC39-11SRWA, hoja de la parte con el mismo encabezado); KiCad 9 símbolo Display_Character:SA39-11GWA (A 10, B 9, C 7, D 5, E 4, F 2, G 1, DP 6, CA 3 y 8) y huella Sx39-1xxxxx. Ánodo común, amarillo"
+        }
+      }
+    }
+  }
 }

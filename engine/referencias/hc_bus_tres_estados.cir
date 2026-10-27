@@ -1,0 +1,24 @@
+* Bus de dos salidas de tres estados 74HC: datos de 1 y 2 MHz, habilitaciones activas en bajo que se traslapan y un tramo en conflicto
+.include digital.lib
+VA a 0 PULSE(0 5 0 1p 1p 499.999n 1u)
+VB b 0 PULSE(0 5 0 1p 1p 249.999n 500n)
+VE1 e1 0 PULSE(0 5 0 1p 1p 1.499999u 3u)
+VE2 e2 0 PULSE(0 5 1u 1p 1p 1.499999u 3u)
+AIN [a b e1 e2] [da db de1 de2] adc_hc5
+AI1 de1 oe1 inv_1ps
+AI2 de2 oe2 inv_1ps
+AT1 da oe1 bus ts_hc5
+AT2 db oe2 bus ts_hc5
+AS [bus] [o1] dac_hc5
+RO1 o1 y 55
+R1 y 0 1k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 6u 0 0.1n uic
+wrdata salida.txt v(y)
+eprint da db de1 de2 bus > eventos.txt
+.endc
+.end

@@ -1,0 +1,90 @@
+{
+  "id": "fuente-vcvs",
+  "nombre": {
+    "es": "Fuente de voltaje controlada por voltaje (VCVS)",
+    "en": "Controlled voltage source (voltage-controlled)"
+  },
+  "categoria": "fuentes",
+  "prefijo": "E",
+  "buscar": [
+    "e",
+    "fuente vcvs",
+    "fuente controlada",
+    "dependiente",
+    "ganancia de voltaje"
+  ],
+  "pines": [
+    {
+      "id": "+",
+      "nombre": "+",
+      "x": 0,
+      "y": -4
+    },
+    {
+      "id": "-",
+      "nombre": "−",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "id": "C+",
+      "nombre": "control +",
+      "x": -4,
+      "y": -2
+    },
+    {
+      "id": "C-",
+      "nombre": "control −",
+      "x": -4,
+      "y": 2
+    }
+  ],
+  "props": [
+    {
+      "id": "ganancia",
+      "nombre": "Ganancia (V/V)",
+      "defecto": "2",
+      "comunes": [
+        "0.5",
+        "1",
+        "2",
+        "10",
+        "100"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "controlada",
+    "forma": "E",
+    "p": "+",
+    "n": "-",
+    "cp": "C+",
+    "cn": "C-",
+    "prop": "ganancia"
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 3,
+      "y": -1
+    },
+    "valor": {
+      "x": 3,
+      "y": 1
+    }
+  },
+  "datos": {
+    "equivalencias": {
+      "kicad": "Simulation_SPICE:ESOURCE",
+      "ltspice": "e",
+      "sinVerificar": [
+        "ltspice"
+      ]
+    },
+    "valores": {
+      "*": {
+        "virtual": true,
+        "nota": "Fuente ideal del simulador: su voltaje es la ganancia por el voltaje entre C+ y C−."
+      }
+    }
+  }
+}

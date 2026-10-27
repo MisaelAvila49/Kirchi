@@ -1,0 +1,152 @@
+{
+  "id": "motor-pasos-unipolar",
+  "nombre": {
+    "es": "Motor a pasos unipolar",
+    "en": "Unipolar stepper motor"
+  },
+  "categoria": "electromecanicos",
+  "prefijo": "M",
+  "buscar": [
+    "motor a pasos",
+    "motor paso a paso",
+    "stepper",
+    "stepper motor",
+    "motor unipolar",
+    "28byj-48",
+    "28byj48",
+    "paso a paso",
+    "motor con uln2003"
+  ],
+  "pines": [
+    {
+      "id": "A",
+      "nombre": "A",
+      "x": -4,
+      "y": -2
+    },
+    {
+      "id": "A2",
+      "nombre": "A'",
+      "x": -4,
+      "y": 2
+    },
+    {
+      "id": "B",
+      "nombre": "B",
+      "x": 4,
+      "y": -2
+    },
+    {
+      "id": "B2",
+      "nombre": "B'",
+      "x": 4,
+      "y": 2
+    },
+    {
+      "id": "COM",
+      "nombre": "COM",
+      "x": 0,
+      "y": 4
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "28BYJ-48",
+      "opciones": [
+        "28BYJ-48"
+      ]
+    },
+    {
+      "id": "carga",
+      "nombre": "Carga",
+      "unidad": "N·m",
+      "defecto": "0",
+      "enVivo": {
+        "magnitud": "carga",
+        "min": 0,
+        "max": 0.05,
+        "paso": 0.001,
+        "pasoFino": 0.0001
+      }
+    }
+  ],
+  "modelo": {
+    "tipo": "pasos",
+    "unipolar": true,
+    "nodos": [
+      "A",
+      "A2",
+      "B",
+      "B2",
+      "COM",
+      "COM"
+    ],
+    "prop": "modelo",
+    "carga": "carga",
+    "modelos": {
+      "28BYJ-48": {
+        "r": 50,
+        "l": 0.0325,
+        "km": 0.003808,
+        "dientes": 8,
+        "td": 0,
+        "j": 2.4e-9,
+        "bm": 0.0000061,
+        "k_mutua": 0.99,
+        "reduccion": 63.68395
+      }
+    }
+  },
+  "animacion": {
+    "tipo": "giro",
+    "vueltasMax": 4
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -6
+    },
+    "valor": {
+      "x": 0,
+      "y": 6
+    }
+  },
+  "fuentes": {
+    "28BYJ-48": "Kiatronics, hoja del 28BYJ-48 de 5 V (STEPD-01): 50 Ω por devanado a 25 °C (se toma por mitad de devanado, con COM en el rojo), paso de 5.625° con reducción 1/64 y par de arrastre de 34.3 mN·m a 120 Hz, arranque sin carga sobre 600 Hz y parada sobre 1000 Hz. De 5.625° por medio paso salen 8 pares de polos. La reducción es la medida con la cuenta de dientes del reductor, (22 · 26 · 31 · 32) / (9 · 9 · 10 · 11) = 63.68395, no el 64 nominal. La hoja no publica la inductancia, la constante de par, la inercia ni la fricción, y estos cinco valores son estimaciones. Inductancia: 32.5 mH, la mitad del rango de 30 a 35 mH que dan dos páginas de distribuidores sin decir cómo lo midieron. Constante de par: 3.808 mN·m/A, la cota inferior que sale del par de 34.3 mN·m en el eje de salida, dividido entre la reducción y entre √2 · 0.1 A (dos mitades a 5 V sobre 50 Ω), con rendimiento 1 del reductor, que la hoja no da. Inercia: 2.4 · 10⁻⁹ kg·m², la que hace que la simulación arranque sin carga hasta 606 pasos por segundo en medios pasos, justo sobre los 600 de la hoja. Fricción viscosa: 6.1 µN·m·s/rad, el amortiguamiento crítico del conjunto con esa inercia y esa constante de par. Par de detente: 0, porque el de autoposición de la hoja (34.3 mN·m) no distingue rotor de salida y se contradice con el de fricción (600 a 1200 gf·cm). El acoplamiento de 0.99 entre las dos mitades de cada devanado es una decisión de modelado, no un dato. Con un motor de 12 V de 300 Ω los valores cambiarían."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": {
+      "kicad": "Motor:Stepper_Motor_unipolar_5pin",
+      "sinVerificar": []
+    },
+    "valores": {
+      "28BYJ-48": {
+        "fabricante": "Kiatronics (hoja distribuida por OSEPP, STEPD-01)",
+        "parte": "28BYJ-48 5 V",
+        "aproximada": "Inductancia, constante de par, inercia y fricción no están en la hoja: son estimaciones calculadas del par y la frecuencia de arranque que sí publica (método en las fuentes). La reducción medida y la resistencia varían entre lotes y tiendas.",
+        "presentaciones": [
+          {
+            "encapsulado": "Conector-motor-5",
+            "patillas": {},
+            "huella": "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical",
+            "representativa": true
+          }
+        ],
+        "pendiente": {
+          "patillas": "Las fuentes coinciden en los pares de bobina (azul con amarillo y rosa con naranja, rojo común) pero discrepan en el número de patilla del conector: Components101 (1 naranja, 2 rosa, 3 amarillo, 4 azul, 5 rojo) contra microcontrollerslab y el foro de Arduino (1 azul, 2 rosa, 3 amarillo, 4 naranja, 5 rojo). Solo el segundo orden deja en 1-3 y 2-4 las mitades de un mismo devanado. Se resuelve con el usuario o con una unidad medida.",
+          "huella": "La huella JST XH de 2.50 mm existe en KiCad 9.0.0, pero ninguna fuente dice que el enchufe del motor sea XH ni su paso (solo «JST blanco de 5 patillas»). Sería el conector de la tarjeta ULN2003, no del motor.",
+          "lcsc": "No se halló un número LCSC para el 28BYJ-48 de 5 V (la versión de 12 V, con 300 ohm, es otra pieza)",
+          "hoja": "No hay hoja de un fabricante grande. Se usó la de Kiatronics (Welten Holdings, Nueva Zelanda) porque es la que copian Mouser, OSEPP y varias tiendas y porque trae resistencia, ángulo y reducción de la versión de 5 V. Se propone agregar mouser.com a la lista de dominios de datosCompletos.test.ts con este porqué. Enlace: https://www.mouser.com/datasheet/2/758/stepd-01-data-sheet-1143075.pdf"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Kiatronics 28BYJ-48 5 V (copias de CERN y piekarz.pl idénticas): 4 fases, reducción 1/64, paso 5.625°/64, resistencia 50 ohm ±7 % a 25 °C; Components101 como segunda fuente del tipo de bobina y de la versión de 5 V"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+* Divisor de 5 V con 10 kOhm y la GL5528: la luz sube de 10 a 1000 lx a los 50 ms y baja a 10 lx a los 300 ms (20 ms de subida, 30 ms de bajada)
+*@generar ldr ld1 {"r10":14142,"gamma":0.6,"roscuro":1000000,"tau_sube":0.02,"tau_baja":0.03,"luxNodo":true}
+V1 1 0 DC 5
+R1 1 2 10k
+VL lux 0 PWL(0 10 50m 10 50.1m 1000 300m 1000 300.1m 10 600m 10)
+X1 2 0 lux ld1 lux0=10
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 0.1m 600m 0 0.1m
+wrdata salida.txt v(2) i(v1)
+.endc
+.end

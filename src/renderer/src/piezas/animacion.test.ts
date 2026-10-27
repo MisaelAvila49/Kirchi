@@ -34,14 +34,14 @@ describe('animación de las piezas', () => {
     const lib = libreriaDePrueba()
     expect(lib.errores).toEqual([])
     const tipos = Object.fromEntries([...lib.piezas.values()].filter((d) => d.animacion).map((d) => [d.id, d.animacion!.tipo]))
-    expect(tipos).toEqual({ 'motor-dc': 'giro', rele: 'contacto', potenciometro: 'cursor', reostato: 'cursor', led: 'brillo', 'display-7seg': 'brillo', foco: 'filamento', zumbador: 'sonido' })
+    expect(tipos).toEqual({ 'motor-dc': 'giro', 'motor-pasos-bipolar': 'giro', 'motor-pasos-unipolar': 'giro', rele: 'contacto', potenciometro: 'cursor', reostato: 'cursor', led: 'brillo', 'display-7seg': 'brillo', foco: 'filamento', zumbador: 'sonido', 'punta-logica': 'luces' })
     expect(Object.keys(lib.piezas.get('rele')!.geometria.capas!).sort()).toEqual(['estado-operado', 'estado-reposo'])
   })
 
   it('un tipo desconocido, una clave con errata o un parámetro fuera de rango se rechazan con el renglón de la animación', () => {
     const malo = errores(motor({ tipo: 'brincar' }))
     expect(malo).toHaveLength(1)
-    expect(malo[0]).toMatch(/^x\/pieza\.json: animacion\.tipo \(renglón \d+\) debe ser uno de brillo, filamento, giro, contacto, cursor, sonido$/)
+    expect(malo[0]).toMatch(/^x\/pieza\.json: animacion\.tipo \(renglón \d+\) debe ser uno de brillo, filamento, giro, contacto, cursor, sonido, luces$/)
     const renglon = Number(/renglón (\d+)/.exec(malo[0])![1])
     expect(txt(motor({ tipo: 'brincar' })).split('\n')[renglon - 1]).toContain('"animacion"')
     expect(errores(motor({ tipo: 'giro', vueltasMaxx: 2 })).join()).toContain('clave desconocida en una animación «giro», ¿quisiste decir «vueltasMax»?')

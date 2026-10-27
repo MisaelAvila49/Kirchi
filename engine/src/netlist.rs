@@ -46,6 +46,13 @@ pub enum Wave {
         #[serde(default)]
         continua: bool,
     },
+    /// Valor por tramos: `puntos` son pares `[t, valor]` con tiempos crecientes desde 0 (hasta 1,000 puntos). Con `repetir`
+    /// el periodo es el último tiempo.
+    Pwl {
+        puntos: Vec<[f64; 2]>,
+        #[serde(default)]
+        repetir: bool,
+    },
     /// `duty`: fracción del periodo en `high` (0 a 1, sin incluirlos); sin él, 0.5.
     Square {
         low: f64,
@@ -115,6 +122,30 @@ const RELAY_I_RANGO: (f64, f64) = (1e-9, 1e3);
 /// Cotas de la fuente de laboratorio: límite de corriente (A) y rodilla (V).
 const PSU_I_RANGO: (f64, f64) = (1e-6, 1e3);
 const PSU_VK_RANGO: (f64, f64) = (1e-6, 1.0);
+/// Esquinas de una fuente por tramos.
+const PWL_MAX_PUNTOS: usize = 1000;
+/// Canales de valor de una netlist y cota de lo que llevan.
+pub const MAX_CANALES: usize = 256;
+const CANAL_MAX: f64 = 1e9;
+/// Cotas de las fuentes controladas: ganancia de voltaje o corriente (V/V, A/A), transconductancia (S) y transresistencia (Ω).
+const GANANCIA_MAX: f64 = 1e9;
+const GM_MAX: f64 = 1e6;
+const TRANSRESISTENCIA_MAX: f64 = 1e12;
+/// Cotas del JFET de nivel 1: transconductancia beta (A/V²) y parámetro B de Parker y Skellern.
+const JFET_BETA_RANGO: (f64, f64) = (1e-9, 1e4);
+const JFET_B_RANGO: (f64, f64) = (1e-3, 1e3);
+/// Cotas del termistor: constante beta (K), disipación (W/K), temperatura de quema (°C) y puntos de la tabla R/T.
+const TERM_BETA_RANGO: (f64, f64) = (1.0, 1e5);
+const TERM_DELTA_RANGO: (f64, f64) = (1e-6, 1e3);
+const TERM_TMAX_RANGO: (f64, f64) = (1.0, 2000.0);
+const TERM_MAX_PUNTOS: usize = 256;
+/// Cotas de la fotorresistencia: pendiente log-log entre resistencia e iluminancia.
+const LDR_GAMMA_RANGO: (f64, f64) = (0.05, 5.0);
+/// Cotas del motor a pasos: dientes del rotor, retén (N·m), reducción y coeficiente de acoplamiento entre mitades.
+const PASOS_DIENTES_RANGO: (u32, u32) = (1, 1000);
+const PASOS_TD_MAX: f64 = 1e3;
+const PASOS_REDUCCION_RANGO: (f64, f64) = (1.0, 1e6);
+const PASOS_K_MUTUA_MAX: f64 = 0.9999;
 /// Paso de tiempo máximo que acepta el motor (s).
 pub const PASO_RANGO: (f64, f64) = (1e-15, 1e3);
 /// Retardo de un elemento digital (s): de 1 ps (la resolución de la cola de eventos) a 1 ms.
@@ -168,6 +199,24 @@ fn valor_tramo(tramo: u8, pos: f64, low: f64, high: f64, rise: f64, width: f64, 
     }
 }
 
+/// Último tiempo de una onda por tramos (su periodo al repetir); infinito si solo tiene el punto de t = 0.
+fn periodo_pwl(puntos: &[[f64; 2]]) -> f64 {
+    match puntos.last() {
+        Some(p) if p[0] > 0.0 => p[0],
+        _ => f64::INFINITY,
+    }
+}
+
+/// Interpola linealmente entre las esquinas; antes de la primera y después de la última se queda en su valor.
+fn valor_pwl(puntos: &[[f64; 2]], t: f64) -> f64 {
+    let Some(i) = puntos.iter().position(|p| p[0] >= t) else { return puntos.last().map_or(0.0, |p| p[1]) };
+    if i == 0 {
+        return puntos[0][1];
+    }
+    let (a, b) = (puntos[i - 1], puntos[i]);
+    a[1] + (b[1] - a[1]) * (t - a[0]) / (b[0] - a[0])
+}
+
 impl Wave {
     fn in_range(&self) -> bool {
         let fase = |p: f64| (0.0..1.0).contains(&p);
@@ -179,6 +228,12 @@ impl Wave {
             Wave::Square { low, high, freq, .. } => low.abs() <= FUENTE_MAX && high.abs() <= FUENTE_MAX && en(freq, FRECUENCIA_RANGO),
             Wave::Stair { low, high, freq, steps, phase, .. } => {
                 low.abs() <= FUENTE_MAX && high.abs() <= FUENTE_MAX && en(freq, FRECUENCIA_RANGO) && (2..=ESCALERA_MAX_PASOS).contains(&steps) && fase(phase)
+            }
+            Wave::Pwl { ref puntos, .. } => {
+                (1..=PWL_MAX_PUNTOS).contains(&puntos.len())
+                    && puntos[0][0] == 0.0
+                    && puntos.windows(2).all(|w| w[1][0] > w[0][0])
+                    && puntos.iter().all(|p| p[1].abs() <= FUENTE_MAX)
             }
             Wave::Pulse { low, high, freq, rise, fall, width, phase, .. } => {
                 low.abs() <= FUENTE_MAX
@@ -204,6 +259,7 @@ impl Wave {
                 let pos = (phase + t * freq).rem_euclid(1.0) / freq;
                 valor_tramo(tramo_pulso(pos, rise, width, fall), pos, low, high, rise, width, fall)
             }
+            Wave::Pwl { ref puntos, repetir } => valor_pwl(puntos, if repetir { t.rem_euclid(periodo_pwl(puntos)) } else { t }),
             Wave::Stair { low, high, freq, steps, phase, .. } => {
                 let u = (phase + t * freq).rem_euclid(1.0);
                 let k = ((u * steps as f64).floor() as u32).min(steps - 1);
@@ -219,6 +275,12 @@ impl Wave {
             Wave::Pulse { low, high, freq, rise, fall, width, phase, .. } => {
                 let medio = (phase + (t - 0.5 * h) * freq).rem_euclid(1.0) / freq;
                 valor_tramo(tramo_pulso(medio, rise, width, fall), medio + 0.5 * h, low, high, rise, width, fall)
+            }
+            // El tramo se decide por el punto medio del paso: uno que termina justo al cerrar el periodo sigue en el último tramo.
+            Wave::Pwl { ref puntos, repetir } => {
+                let per = periodo_pwl(puntos);
+                let ciclo = if repetir && per.is_finite() { ((t - 0.5 * h) / per).floor() * per } else { 0.0 };
+                valor_pwl(puntos, t - ciclo)
             }
             _ => self.at(t),
         }
@@ -256,6 +318,19 @@ impl Wave {
                     .find(|&x| x > t + margen)
                     .unwrap_or(f64::INFINITY)
             }
+            Wave::Pwl { ref puntos, repetir } => {
+                let per = periodo_pwl(puntos);
+                if !per.is_finite() {
+                    return f64::INFINITY;
+                }
+                let margen = 1e-9 * per;
+                let inicio = if repetir { (t / per).floor() * per } else { 0.0 };
+                let ciclos = if repetir { 2 } else { 1 };
+                (0..ciclos)
+                    .flat_map(|c| puntos.iter().map(move |p| inicio + c as f64 * per + p[0]))
+                    .find(|&x| x > t + margen)
+                    .unwrap_or(f64::INFINITY)
+            }
             _ => f64::INFINITY,
         }
     }
@@ -263,7 +338,7 @@ impl Wave {
     /// El punto del ciclo (0 a 1) en `t` de una onda periódica; None en la continua.
     pub fn ciclo(&self, t: f64) -> Option<f64> {
         match *self {
-            Wave::Dc { .. } => None,
+            Wave::Dc { .. } | Wave::Pwl { .. } => None,
             Wave::Sine { freq, phase, .. } | Wave::Pulse { freq, phase, .. } | Wave::Stair { freq, phase, .. } => Some((phase + freq * t).rem_euclid(1.0)),
             Wave::Square { freq, .. } => Some((freq * t).rem_euclid(1.0)),
         }
@@ -271,7 +346,7 @@ impl Wave {
 
     pub fn frecuencia(&self) -> Option<f64> {
         match *self {
-            Wave::Dc { .. } => None,
+            Wave::Dc { .. } | Wave::Pwl { .. } => None,
             Wave::Sine { freq, .. } | Wave::Square { freq, .. } | Wave::Pulse { freq, .. } | Wave::Stair { freq, .. } => Some(freq),
         }
     }
@@ -297,6 +372,7 @@ impl Wave {
                 [low, high, freq, rise, fall, width, phase].iter().all(|v| v.is_finite())
             }
             Wave::Stair { low, high, freq, phase, .. } => [low, high, freq, phase].iter().all(|v| v.is_finite()),
+            Wave::Pwl { ref puntos, .. } => puntos.iter().all(|p| p[0].is_finite() && p[1].is_finite()),
         }
     }
 }
@@ -516,6 +592,314 @@ impl OpampModel {
     }
 }
 
+/// Parámetros del JFET de nivel 1 con los nombres y los valores por omisión de ngspice.
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(default, deny_unknown_fields)]
+pub struct JfetModel {
+    pub vto: f64,
+    pub beta: f64,
+    pub lambda: f64,
+    pub is: f64,
+    pub n: f64,
+    pub cgs: f64,
+    pub cgd: f64,
+    pub pb: f64,
+    pub fc: f64,
+    pub rd: f64,
+    pub rs: f64,
+    pub b: f64,
+}
+
+impl Default for JfetModel {
+    fn default() -> Self {
+        Self { vto: -2.0, beta: 1e-4, lambda: 0.0, is: 1e-14, n: 1.0, cgs: 0.0, cgd: 0.0, pb: 1.0, fc: 0.5, rd: 0.0, rs: 0.0, b: 1.0 }
+    }
+}
+
+impl JfetModel {
+    fn valid(&self) -> bool {
+        let todos = [self.vto, self.beta, self.lambda, self.is, self.n, self.cgs, self.cgd, self.pb, self.fc, self.rd, self.rs, self.b];
+        todos.iter().all(|v| v.is_finite())
+            && self.vto.abs() <= VTO_MAX
+            && en(self.beta, JFET_BETA_RANGO)
+            && (0.0..=LAMBDA_MAX).contains(&self.lambda)
+            && self.is > 0.0
+            && self.is <= IS_MAX
+            && en(self.n, N_RANGO)
+            && [self.cgs, self.cgd].iter().all(|c| (0.0..=CAP_MODELO_MAX).contains(c))
+            && en(self.pb, PB_RANGO)
+            && (0.0..1.0).contains(&self.fc)
+            && [self.rd, self.rs].iter().all(|r| (0.0..=R_SERIE_MAX).contains(r))
+            && en(self.b, JFET_B_RANGO)
+    }
+}
+
+/// Termistor de coeficiente negativo (NTC) o positivo (PTC).
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum TipoTermistor {
+    Ntc,
+    Ptc,
+}
+
+/// Cómo entrega su valor un elemento de fuente externa: como voltaje o como corriente.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum ModoExt {
+    V,
+    I,
+}
+
+fn k_mutua_omision() -> f64 {
+    0.99
+}
+
+fn reduccion_omision() -> f64 {
+    1.0
+}
+
+/// Una señal de control de un `MSI`: la entrada `entrada` (índice en las `entradas` del elemento), activa en bajo si `bajo`.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct Senal {
+    pub entrada: usize,
+    #[serde(default)]
+    pub bajo: bool,
+}
+
+/// Cómo se combinan las señales de un reloj efectivo.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq, Default)]
+pub enum Combina {
+    #[default]
+    Y,
+    O,
+}
+
+/// El flanco del reloj efectivo que dispara.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum FlancoReloj {
+    #[default]
+    Subida,
+    Bajada,
+}
+
+/// Reloj efectivo: la Y o la O de sus señales (con su polaridad) y el flanco de ese resultado que dispara.
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct Reloj {
+    pub senales: Vec<Senal>,
+    #[serde(default)]
+    pub combina: Combina,
+    #[serde(default)]
+    pub flanco: FlancoReloj,
+}
+
+/// Una acción de control (borrar): su señal y si espera al reloj.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct Accion {
+    pub senal: Senal,
+    #[serde(default)]
+    pub sincrona: bool,
+}
+
+/// Carga paralela: su señal, si espera al reloj y las entradas (índices en `entradas`) con el dato, bit 0 primero.
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct Carga {
+    pub senal: Senal,
+    #[serde(default)]
+    pub sincrona: bool,
+    pub datos: Vec<usize>,
+}
+
+/// Reloj de un convertidor de aproximaciones: uno interno con su periodo (s) o el de una señal externa.
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(tag = "tipo", rename_all = "lowercase")]
+pub enum RelojConv {
+    Interno { periodo: f64 },
+    Externo(Reloj),
+}
+
+/// El núcleo de estado de un `MSI`.
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(tag = "tipo", rename_all = "lowercase")]
+pub enum Nucleo {
+    Contador {
+        bits: u8,
+        modulo: u32,
+        reloj: Reloj,
+        #[serde(default)]
+        abajo: Option<Reloj>,
+        #[serde(default)]
+        sentido: Option<Senal>,
+        #[serde(default)]
+        habilita: Vec<Senal>,
+        #[serde(default)]
+        borra: Option<Accion>,
+        #[serde(default)]
+        carga: Option<Carga>,
+    },
+    Desplazamiento {
+        bits: u8,
+        reloj: Reloj,
+        #[serde(default)]
+        serie: Vec<Senal>,
+        #[serde(default)]
+        borra: Option<Accion>,
+        #[serde(default)]
+        carga: Option<Carga>,
+        #[serde(default)]
+        almacen: Option<Reloj>,
+    },
+    Aproximaciones { bits: u8, cs: Senal, wr: Senal, rd: Senal, comparador: usize, reloj: RelojConv, ciclos_inicio: u32, ciclos_bit: u32 },
+}
+
+impl Nucleo {
+    /// Bits del registro principal.
+    pub fn bits(&self) -> u8 {
+        match self {
+            Nucleo::Contador { bits, .. } | Nucleo::Desplazamiento { bits, .. } | Nucleo::Aproximaciones { bits, .. } => *bits,
+        }
+    }
+
+    /// Bits del registro auxiliar: el almacén del desplazamiento y el código de prueba del convertidor.
+    fn bits_aux(&self) -> u8 {
+        match self {
+            Nucleo::Contador { .. } => 0,
+            Nucleo::Desplazamiento { bits, almacen, .. } => {
+                if almacen.is_some() {
+                    *bits
+                } else {
+                    0
+                }
+            }
+            Nucleo::Aproximaciones { bits, .. } => *bits,
+        }
+    }
+
+    /// Banderas que expone: el fin de conversión.
+    fn banderas(&self) -> u8 {
+        u8::from(matches!(self, Nucleo::Aproximaciones { .. }))
+    }
+
+    /// Los índices de entrada que el núcleo nombra, para comprobar su rango.
+    fn entradas_usadas(&self) -> Vec<usize> {
+        let reloj = |r: &Reloj| r.senales.iter().map(|s| s.entrada).collect::<Vec<_>>();
+        let carga = |c: &Option<Carga>| c.iter().flat_map(|c| std::iter::once(c.senal.entrada).chain(c.datos.iter().copied())).collect::<Vec<_>>();
+        match self {
+            Nucleo::Contador { reloj: r, abajo, sentido, habilita, borra, carga: c, .. } => reloj(r)
+                .into_iter()
+                .chain(abajo.iter().flat_map(reloj))
+                .chain(sentido.iter().map(|s| s.entrada))
+                .chain(habilita.iter().map(|s| s.entrada))
+                .chain(borra.iter().map(|a| a.senal.entrada))
+                .chain(carga(c))
+                .collect(),
+            Nucleo::Desplazamiento { reloj: r, serie, borra, carga: c, almacen, .. } => reloj(r)
+                .into_iter()
+                .chain(serie.iter().map(|s| s.entrada))
+                .chain(borra.iter().map(|a| a.senal.entrada))
+                .chain(carga(c))
+                .chain(almacen.iter().flat_map(reloj))
+                .collect(),
+            Nucleo::Aproximaciones { cs, wr, rd, comparador, reloj: r, .. } => [cs.entrada, wr.entrada, rd.entrada, *comparador]
+                .into_iter()
+                .chain(match r {
+                    RelojConv::Externo(r) => reloj(r),
+                    RelojConv::Interno { .. } => Vec::new(),
+                })
+                .collect(),
+        }
+    }
+
+    /// Lo que el núcleo exige de sí mismo: bits, módulo, relojes con señales, cargas con un dato por bit, periodo.
+    fn invalido(&self) -> Option<&'static str> {
+        if !(1..=16).contains(&self.bits()) {
+            return Some("bits debe estar entre 1 y 16");
+        }
+        let reloj_vacio = |r: &Reloj| r.senales.is_empty();
+        let carga_mala = |c: &Option<Carga>| c.as_ref().is_some_and(|c| c.datos.len() != self.bits() as usize);
+        match self {
+            Nucleo::Contador { bits, modulo, reloj, abajo, carga, .. } => {
+                if !(2..=(1u32 << *bits)).contains(modulo) {
+                    Some("modulo debe estar entre 2 y 2^bits")
+                } else if reloj_vacio(reloj) || abajo.as_ref().is_some_and(reloj_vacio) {
+                    Some("un reloj sin señales")
+                } else if carga_mala(carga) {
+                    Some("la carga necesita un dato por bit")
+                } else {
+                    None
+                }
+            }
+            Nucleo::Desplazamiento { reloj, carga, almacen, .. } => {
+                if reloj_vacio(reloj) || almacen.as_ref().is_some_and(reloj_vacio) {
+                    Some("un reloj sin señales")
+                } else if carga_mala(carga) {
+                    Some("la carga necesita un dato por bit")
+                } else {
+                    None
+                }
+            }
+            Nucleo::Aproximaciones { reloj, ciclos_bit, .. } => match reloj {
+                RelojConv::Interno { periodo } if !(periodo.is_finite() && *periodo >= 1e-12 && *periodo <= 1e3) => Some("periodo fuera de rango"),
+                RelojConv::Externo(r) if reloj_vacio(r) => Some("un reloj sin señales"),
+                _ if *ciclos_bit == 0 => Some("ciclos_bit debe ser positivo"),
+                _ => None,
+            },
+        }
+    }
+}
+
+/// De dónde toma un valor la etapa de salida de un `MSI`: una entrada, un bit del registro principal (`Bit`), del auxiliar
+/// (`Aux`) o una bandera del núcleo.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum Fuente {
+    Entrada(usize),
+    Bit(u8),
+    Aux(u8),
+    Bandera(u8),
+}
+
+/// Una salida de un `MSI`: un bit del núcleo (negado o no) o una columna de su tabla de salida.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(tag = "tipo", rename_all = "lowercase")]
+pub enum SalidaMsi {
+    Directa {
+        fuente: Fuente,
+        #[serde(default)]
+        negada: bool,
+    },
+    Tabla { columna: usize },
+}
+
+/// Una rebanada de un `LUT`: sus entradas y sus salidas (redes digitales).
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct Rebanada {
+    pub entradas: Vec<usize>,
+    pub salidas: Vec<usize>,
+}
+
+/// Cómo entrega su corriente o voltaje el convertidor multiplicador.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum ModoDacm {
+    Voltaje,
+    Corriente,
+}
+
+/// Tope de bits de índice de una tabla y de salidas por fila (dos bits por salida en un `u64`).
+pub const TABLA_BITS_MAX: usize = 14;
+pub const TABLA_SALIDAS_MAX: usize = 32;
+
+/// El error de un elemento que el motor aún no sabe simular (lo comparten las fábricas de modelos y de dispositivos).
+pub fn aun_no_se_simula(idx: usize) -> EngineError {
+    EngineError::Invalid(format!("elemento {idx}: aún no se simula"))
+}
+
 /// Nodo 0 = tierra. `a` y `b` son los extremos; para fuentes, diodos y corriente
 /// el sentido positivo va de `a` hacia `b` a través del elemento.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
@@ -562,6 +946,125 @@ pub enum Element {
         #[serde(default)]
         model: OpampModel,
     },
+    /// JFET: drenador, compuerta y fuente; `pjf` es el de canal P.
+    J {
+        d: usize,
+        g: usize,
+        s: usize,
+        #[serde(default)]
+        pjf: bool,
+        #[serde(default)]
+        model: JfetModel,
+    },
+    /// Fuente de voltaje controlada por voltaje: V(p,n) = `ganancia` V(cp,cn).
+    E { p: usize, n: usize, cp: usize, cn: usize, ganancia: f64 },
+    /// Fuente de corriente controlada por voltaje: `gm` (S) por V(cp,cn), de `p` a `n` por dentro.
+    G { p: usize, n: usize, cp: usize, cn: usize, gm: f64 },
+    /// Fuente de voltaje controlada por corriente: V(p,n) = `r` (Ω) por la corriente que entra por `cp` y sale por `cn`.
+    H { p: usize, n: usize, cp: usize, cn: usize, r: f64 },
+    /// Fuente de corriente controlada por corriente: `ganancia` por la corriente que entra por `cp` y sale por `cn`.
+    F { p: usize, n: usize, cp: usize, cn: usize, ganancia: f64 },
+    /// Termistor entre `a` y `b`: `r25` a 25 °C con `beta` (K) o con la tabla `rt` de pares `[°C, Ω]`, disipación `delta` (W/K),
+    /// constante térmica `tau` (s), temperatura ambiente del `canal` y quema a `tmax` (°C).
+    #[serde(rename = "TERM")]
+    Term {
+        a: usize,
+        b: usize,
+        tipo: TipoTermistor,
+        r25: f64,
+        beta: f64,
+        #[serde(default)]
+        rt: Option<Vec<[f64; 2]>>,
+        delta: f64,
+        tau: f64,
+        canal: usize,
+        tmax: f64,
+    },
+    /// Fotorresistencia: `r10` (Ω) a 10 lx con pendiente `gamma`, tope `roscuro` y constantes `tau_sube` y `tau_baja` (s); la luz sale del `canal`.
+    #[serde(rename = "LDR")]
+    Ldr { a: usize, b: usize, r10: f64, gamma: f64, roscuro: f64, tau_sube: f64, tau_baja: f64, canal: usize },
+    /// Motor a pasos de dos fases: 4 `nodos` (bipolar) o 6 (unipolar, con toma central). `td` es el retén (N·m), `reduccion`
+    /// solo escala lo que se muestra y la carga reflejada; `canal_carga` lee el par de carga.
+    #[serde(rename = "PASOS")]
+    Pasos {
+        nodos: Vec<usize>,
+        #[serde(default)]
+        unipolar: bool,
+        r: f64,
+        l: f64,
+        #[serde(default = "k_mutua_omision")]
+        k_mutua: f64,
+        km: f64,
+        dientes: u32,
+        td: f64,
+        j: f64,
+        bm: f64,
+        #[serde(default)]
+        canal_carga: Option<usize>,
+        #[serde(default = "reduccion_omision")]
+        reduccion: f64,
+    },
+    /// Fuente de valor externo: `k` por el valor del `canal` más `c`, como voltaje o corriente, con resistencia `r` en serie opcional.
+    #[serde(rename = "EXT")]
+    Ext {
+        a: usize,
+        b: usize,
+        modo: ModoExt,
+        canal: usize,
+        k: f64,
+        c: f64,
+        #[serde(default)]
+        r: Option<f64>,
+    },
+    /// Combinacional por tabla de verdad con rebanadas: `comunes` más las entradas de cada rebanada eligen la fila de
+    /// `Netlist.tablas[tabla]`, que da dos bits por salida de la rebanada (0, 1, Z, X). `retardos` y `abierta` son por
+    /// salida de rebanada; con `abierta` el 1 se vuelve Z (colector abierto).
+    #[serde(rename = "LUT")]
+    Lut {
+        comunes: Vec<usize>,
+        rebanadas: Vec<Rebanada>,
+        tabla: usize,
+        retardos: Vec<[f64; 2]>,
+        #[serde(default)]
+        abierta: Vec<bool>,
+        #[serde(default)]
+        z_como: ZComo,
+    },
+    /// Núcleo de estado con etapa de salida: `entradas` y `salidas` son redes digitales (un pin bidireccional va en las
+    /// dos), `de` dice cómo sale cada salida y `fuentes` son las entradas de la tabla de salida `tabla`.
+    #[serde(rename = "MSI")]
+    Msi {
+        entradas: Vec<usize>,
+        salidas: Vec<usize>,
+        nucleo: Nucleo,
+        de: Vec<SalidaMsi>,
+        #[serde(default)]
+        fuentes: Vec<Fuente>,
+        #[serde(default)]
+        tabla: Option<usize>,
+        retardos: Vec<[f64; 2]>,
+        #[serde(default)]
+        abierta: Vec<bool>,
+        #[serde(default)]
+        z_como: ZComo,
+    },
+    /// Convertidor multiplicador: los `bits` (la red más significativa primero) escalan la referencia `ref_p` - `ref_n` y
+    /// la salida va de `out` a `ret`, en `modo` voltaje o corriente, con `t_asentamiento` entre un código y el siguiente.
+    #[serde(rename = "DACM")]
+    Dacm {
+        modo: ModoDacm,
+        out: usize,
+        ret: usize,
+        ref_p: usize,
+        ref_n: usize,
+        bits: Vec<usize>,
+        t_asentamiento: f64,
+        #[serde(default)]
+        r_out: Option<f64>,
+    },
+    /// Interruptor que sigue a su `canal`: `r_on` con el valor mayor que 0.5 y `r_off` con el resto.
+    #[serde(rename = "INTC")]
+    Intc { a: usize, b: usize, canal: usize, r_on: f64, r_off: f64 },
     /// Foco: resistencia fría `rfrio`, caliente `rfrio (1 + k)` a la potencia nominal `pnom` (W), inercia `tau` (s).
     #[serde(rename = "LAMP")]
     Lamp { a: usize, b: usize, rfrio: f64, k: f64, pnom: f64, tau: f64 },
@@ -611,7 +1114,8 @@ pub enum Element {
     #[serde(rename = "BUZZER")]
     Buzzer { a: usize, b: usize, ohms: f64, umbral: f64 },
     /// Compuerta: lee las redes digitales `inputs` y maneja `output` con los retardos de su familia (s). Las
-    /// redes digitales se numeran aparte de los nodos, de 0 a `digital_nets` - 1.
+    /// redes digitales se numeran aparte de los nodos, de 0 a `digital_nets` - 1. Con `enable` (activo en bajo si
+    /// `enable_bajo`) la salida queda en Z mientras no está habilitada y puede compartir su red con otras salidas de tres estados.
     #[serde(rename = "GATE")]
     Gate {
         #[serde(rename = "fn")]
@@ -622,6 +1126,10 @@ pub enum Element {
         fall_delay: f64,
         #[serde(default)]
         z_como: ZComo,
+        #[serde(default)]
+        enable: Option<usize>,
+        #[serde(default)]
+        enable_bajo: bool,
     },
     /// Estado lógico: maneja la red digital `out` con `value` (0 o 1); se conmuta en caliente.
     #[serde(rename = "LOGIC")]
@@ -701,7 +1209,8 @@ pub enum Element {
         z_como: ZComo,
     },
     /// Puente de entrada: lee V(p) - V(n) contra `in_low` e `in_high` y maneja la red digital `out`. Con `r_in`, la entrada
-    /// toma corriente (74LS): `r_in` a un voltaje interno `v_in`.
+    /// toma corriente (74LS): `r_in` a un voltaje interno `v_in`. Con `histeresis` (disparador Schmitt) no hay zona X:
+    /// sube a 1 al llegar a `in_high` y baja a 0 al llegar a `in_low`, y entre los dos conserva su nivel.
     #[serde(rename = "ADC")]
     Adc {
         p: usize,
@@ -713,6 +1222,8 @@ pub enum Element {
         r_in: Option<f64>,
         #[serde(default)]
         v_in: f64,
+        #[serde(default)]
+        histeresis: bool,
     },
     /// Puente de salida: la red digital `input` maneja el nodo `out` con un Thévenin de `v_lo` y `r_lo` (bajo) a `v_hi` y
     /// `r_hi` (alto), en rampa de `t_rise` o `t_fall`; con `lo` y `hi`, los niveles son respecto de esos nodos.
@@ -730,6 +1241,9 @@ pub enum Element {
         r_hi: f64,
         t_rise: f64,
         t_fall: f64,
+        /// La salida queda en alta impedancia cuando su red digital está en Z (salida de tres estados).
+        #[serde(default)]
+        z: bool,
     },
 }
 
@@ -747,7 +1261,17 @@ impl Element {
             | Element::Motor { a, b, .. }
             | Element::Fuse { a, b, .. }
             | Element::Psu { a, b, .. }
-            | Element::Buzzer { a, b, .. } => vec![a, b],
+            | Element::Buzzer { a, b, .. }
+            | Element::Term { a, b, .. }
+            | Element::Ldr { a, b, .. }
+            | Element::Ext { a, b, .. }
+            | Element::Intc { a, b, .. } => vec![a, b],
+            Element::Dacm { out, ret, ref_p, ref_n, .. } => vec![out, ret, ref_p, ref_n],
+            Element::J { d, g, s, .. } => vec![d, g, s],
+            Element::E { p, n, cp, cn, .. } | Element::G { p, n, cp, cn, .. } | Element::H { p, n, cp, cn, .. } | Element::F { p, n, cp, cn, .. } => {
+                vec![p, n, cp, cn]
+            }
+            Element::Pasos { ref nodos, .. } => nodos.clone(),
             Element::Relay { a1, a2, com, na, nc, .. } => vec![a1, a2, com, na, nc],
             Element::Xfmr { a1, b1, a2, b2, .. } => vec![a1, b1, a2, b2],
             Element::Q { c, b, e, .. } => vec![c, b, e],
@@ -759,10 +1283,21 @@ impl Element {
             | Element::Jkff { .. }
             | Element::Counter { .. }
             | Element::Decoder { .. }
-            | Element::Latch555 { .. } => vec![],
+            | Element::Latch555 { .. }
+            | Element::Lut { .. }
+            | Element::Msi { .. } => vec![],
             Element::Adc { p, n, .. } => vec![p, n],
             Element::Out555 { out, dis, vcc, gnd, .. } => vec![out, dis, vcc, gnd],
             Element::Dac { out, lo, hi, .. } => [Some(out), lo, hi].into_iter().flatten().collect(),
+        }
+    }
+
+    /// Los canales de valor que lee.
+    pub fn canales_usados(&self) -> Vec<usize> {
+        match self {
+            Element::Term { canal, .. } | Element::Ldr { canal, .. } | Element::Ext { canal, .. } | Element::Intc { canal, .. } => vec![*canal],
+            Element::Pasos { canal_carga, .. } => canal_carga.iter().copied().collect(),
+            _ => vec![],
         }
     }
 
@@ -782,13 +1317,33 @@ impl Element {
                 | Element::Counter { .. }
                 | Element::Decoder { .. }
                 | Element::Latch555 { .. }
+                | Element::Lut { .. }
+                | Element::Msi { .. }
         )
+    }
+
+    /// Si alguna salida puede quedar en Z (una compuerta con habilitación, una salida abierta o una tabla con Z): solo
+    /// estas comparten red con una salida fija. `tablas` son las de la netlist.
+    pub fn tres_estados(&self, tablas: &[Vec<u64>]) -> bool {
+        let con_z = |t: usize, n_sal: usize| {
+            tablas.get(t).is_some_and(|f| {
+                let campos = n_sal.min(TABLA_SALIDAS_MAX);
+                f.iter().any(|&fila| (0..campos).any(|j| (fila >> (2 * j)) & 3 == 2))
+            })
+        };
+        match self {
+            Element::Gate { enable, .. } => enable.is_some(),
+            Element::Lut { rebanadas, tabla, abierta, .. } => abierta.iter().any(|&a| a) || con_z(*tabla, rebanadas.first().map_or(0, |r| r.salidas.len())),
+            Element::Msi { tabla: Some(t), abierta, .. } => abierta.iter().any(|&a| a) || con_z(*t, TABLA_SALIDAS_MAX),
+            Element::Msi { abierta, .. } => abierta.iter().any(|&a| a),
+            _ => false,
+        }
     }
 
     /// Las redes digitales que lee.
     pub fn entradas_digitales(&self) -> Vec<usize> {
         match self {
-            Element::Gate { inputs, .. } => inputs.clone(),
+            Element::Gate { inputs, enable, .. } => inputs.iter().copied().chain(*enable).collect(),
             Element::Dac { input, .. } => vec![*input],
             Element::Dff { d, clk, pre, clr, .. } => vec![*d, *clk, *pre, *clr],
             Element::Jkff { j, k, clk, pre, clr, .. } => vec![*j, *k, *clk, *pre, *clr],
@@ -796,6 +1351,9 @@ impl Element {
             Element::Decoder { inputs, .. } => inputs.to_vec(),
             Element::Latch555 { trig, thr, res, q, .. } => vec![*trig, *thr, *res, *q],
             Element::Out555 { q, .. } => vec![*q],
+            Element::Lut { comunes, rebanadas, .. } => comunes.iter().copied().chain(rebanadas.iter().flat_map(|r| r.entradas.iter().copied())).collect(),
+            Element::Msi { entradas, .. } => entradas.clone(),
+            Element::Dacm { bits, .. } => bits.clone(),
             _ => vec![],
         }
     }
@@ -810,6 +1368,8 @@ impl Element {
             Element::Counter { q, co, .. } => q.iter().copied().chain([*co]).collect(),
             Element::Decoder { outputs, .. } => outputs.to_vec(),
             Element::Latch555 { q, .. } => vec![*q],
+            Element::Lut { rebanadas, .. } => rebanadas.iter().flat_map(|r| r.salidas.iter().copied()).collect(),
+            Element::Msi { salidas, .. } => salidas.clone(),
             _ => vec![],
         }
     }
@@ -826,6 +1386,8 @@ impl Element {
             }
             Element::Dac { t_rise, t_fall, .. } | Element::Out555 { t_rise, t_fall, .. } => vec![("t_rise", *t_rise), ("t_fall", *t_fall)],
             Element::Latch555 { delay, .. } => vec![("delay", *delay)],
+            Element::Lut { retardos, .. } | Element::Msi { retardos, .. } => retardos.iter().flat_map(|r| [("retardos", r[0]), ("retardos", r[1])]).collect(),
+            Element::Dacm { t_asentamiento, .. } => vec![("t_asentamiento", *t_asentamiento)],
             _ => vec![],
         }
     }
@@ -876,9 +1438,33 @@ impl Element {
             | Element::Motor { a, b, .. }
             | Element::Fuse { a, b, .. }
             | Element::Psu { a, b, .. }
-            | Element::Buzzer { a, b, .. } => {
+            | Element::Buzzer { a, b, .. }
+            | Element::Term { a, b, .. }
+            | Element::Ldr { a, b, .. }
+            | Element::Ext { a, b, .. }
+            | Element::Intc { a, b, .. } => {
                 *a = f(*a);
                 *b = f(*b);
+            }
+            Element::Dacm { out, ret, ref_p, ref_n, .. } => {
+                for k in [out, ret, ref_p, ref_n] {
+                    *k = f(*k);
+                }
+            }
+            Element::J { d, g, s, .. } => {
+                for k in [d, g, s] {
+                    *k = f(*k);
+                }
+            }
+            Element::E { p, n, cp, cn, .. } | Element::G { p, n, cp, cn, .. } | Element::H { p, n, cp, cn, .. } | Element::F { p, n, cp, cn, .. } => {
+                for k in [p, n, cp, cn] {
+                    *k = f(*k);
+                }
+            }
+            Element::Pasos { nodos, .. } => {
+                for k in nodos.iter_mut() {
+                    *k = f(*k);
+                }
             }
             Element::Relay { a1, a2, com, na, nc, .. } => {
                 for k in [a1, a2, com, na, nc] {
@@ -926,7 +1512,9 @@ impl Element {
             | Element::Jkff { .. }
             | Element::Counter { .. }
             | Element::Decoder { .. }
-            | Element::Latch555 { .. } => {}
+            | Element::Latch555 { .. }
+            | Element::Lut { .. }
+            | Element::Msi { .. } => {}
         }
         e
     }
@@ -951,7 +1539,18 @@ impl Element {
             Element::Buzzer { ohms, umbral, .. } => vec![*ohms, *umbral],
             Element::Relay { r, l, ion, .. } => vec![*r, *l, *ion],
             Element::Xfmr { l1, l2, .. } => vec![*l1, *l2],
-            Element::V { .. }
+            Element::Term { r25, beta, delta, tau, tmax, .. } => vec![*r25, *beta, *delta, *tau, *tmax],
+            Element::Ldr { r10, gamma, roscuro, tau_sube, tau_baja, .. } => vec![*r10, *gamma, *roscuro, *tau_sube, *tau_baja],
+            Element::Pasos { r, l, km, j, bm, reduccion, .. } => vec![*r, *l, *km, *j, *bm, *reduccion],
+            Element::Intc { r_on, r_off, .. } => vec![*r_on, *r_off],
+            Element::Dacm { t_asentamiento, .. } => vec![*t_asentamiento],
+            Element::J { .. }
+            | Element::E { .. }
+            | Element::G { .. }
+            | Element::H { .. }
+            | Element::F { .. }
+            | Element::Ext { .. }
+            | Element::V { .. }
             | Element::I { .. }
             | Element::Q { .. }
             | Element::M { .. }
@@ -963,6 +1562,8 @@ impl Element {
             | Element::Counter { .. }
             | Element::Decoder { .. }
             | Element::Latch555 { .. }
+            | Element::Lut { .. }
+            | Element::Msi { .. }
             | Element::Adc { .. }
             | Element::Dac { .. }
             | Element::Out555 { .. } => vec![],
@@ -975,6 +1576,18 @@ impl Element {
             Element::D { model, .. } => model.valid(),
             Element::Q { model, .. } => model.valid(),
             Element::M { model, .. } => model.valid(),
+            Element::J { model, .. } => model.valid(),
+            Element::Term { rt: Some(rt), .. } => {
+                (2..=TERM_MAX_PUNTOS).contains(&rt.len())
+                    && rt.windows(2).all(|w| w[1][0] > w[0][0])
+                    && rt.iter().all(|p| p[0].is_finite() && p[1].is_finite() && en(p[1], R_RANGO))
+            }
+            Element::Pasos { nodos, unipolar, k_mutua, td, dientes, .. } => {
+                nodos.len() == if *unipolar { 6 } else { 4 }
+                    && (0.0..=PASOS_K_MUTUA_MAX).contains(k_mutua)
+                    && (0.0..=PASOS_TD_MAX).contains(td)
+                    && (PASOS_DIENTES_RANGO.0..=PASOS_DIENTES_RANGO.1).contains(dientes)
+            }
             Element::OA { model, .. } => model.valid(),
             Element::Lamp { k, .. } => k.is_finite() && *k >= 0.0,
             Element::Relay { ion, ioff, .. } => ioff.is_finite() && *ioff >= 0.0 && ioff < ion,
@@ -1002,8 +1615,99 @@ impl Element {
             Element::Relay { r, l, ion, ioff, .. } => en(*r, R_RANGO) && en(*l, L_RANGO) && en(*ion, RELAY_I_RANGO) && *ioff <= RELAY_I_RANGO.1,
             Element::Psu { v, ilim, vk, .. } => v.abs() <= FUENTE_MAX && en(*ilim, PSU_I_RANGO) && en(*vk, PSU_VK_RANGO),
             Element::Buzzer { ohms, umbral, .. } => en(*ohms, R_RANGO) && en(*umbral, (1e-6, UMBRAL_MAX)),
+            Element::E { ganancia, .. } | Element::F { ganancia, .. } => ganancia.abs() <= GANANCIA_MAX,
+            Element::G { gm, .. } => gm.abs() <= GM_MAX,
+            Element::H { r, .. } => r.abs() <= TRANSRESISTENCIA_MAX,
+            Element::Term { r25, beta, delta, tau, tmax, .. } => {
+                en(*r25, R_RANGO) && en(*beta, TERM_BETA_RANGO) && en(*delta, TERM_DELTA_RANGO) && en(*tau, TAU_RANGO) && en(*tmax, TERM_TMAX_RANGO)
+            }
+            Element::Ldr { r10, gamma, roscuro, tau_sube, tau_baja, .. } => {
+                en(*r10, R_RANGO) && en(*gamma, LDR_GAMMA_RANGO) && en(*roscuro, R_RANGO) && en(*tau_sube, TAU_RANGO) && en(*tau_baja, TAU_RANGO)
+            }
+            Element::Pasos { r, l, km, j, bm, reduccion, .. } => {
+                en(*r, R_RANGO)
+                    && en(*l, L_RANGO)
+                    && en(*km, MOTOR_KE_RANGO)
+                    && en(*j, MOTOR_INERCIA_RANGO)
+                    && en(*bm, MOTOR_INERCIA_RANGO)
+                    && en(*reduccion, PASOS_REDUCCION_RANGO)
+            }
+            Element::Ext { k, c, r, .. } => k.abs() <= CANAL_MAX && c.abs() <= FUENTE_MAX && r.is_none_or(|r| en(r, R_RANGO)),
+            Element::Intc { r_on, r_off, .. } => en(*r_on, R_RANGO) && en(*r_off, R_RANGO),
+            Element::Dacm { r_out, .. } => r_out.is_none_or(|r| en(r, R_RANGO)),
             // Los modelos se revisan en `model_ok`.
             _ => true,
+        }
+    }
+
+    /// La estructura de un `LUT`, un `MSI` o un `DACM` contra las `tablas` de la netlist: tamaños, rangos de índices y
+    /// largos de las listas por salida. None si está bien o si el elemento es de otra clase.
+    fn estructura_invalida(&self, tablas: &[Vec<u64>]) -> Option<String> {
+        let fila_de = |t: usize, bits: usize| -> Option<String> {
+            match tablas.get(t) {
+                None => Some(format!("la tabla {t} no existe")),
+                Some(f) if f.len() != 1usize << bits => Some(format!("la tabla {t} tiene {} filas y se esperaban {}", f.len(), 1usize << bits)),
+                _ => None,
+            }
+        };
+        let por_salida = |n: usize, retardos: usize, abierta: usize| -> Option<String> {
+            if retardos != n {
+                Some(format!("retardos debe tener un par por salida ({n})"))
+            } else if abierta != 0 && abierta != n {
+                Some(format!("abierta debe tener un valor por salida ({n})"))
+            } else {
+                None
+            }
+        };
+        match self {
+            Element::Lut { comunes, rebanadas, tabla, retardos, abierta, .. } => {
+                let Some(primera) = rebanadas.first() else { return Some("necesita al menos una rebanada".into()) };
+                let (ne, ns) = (primera.entradas.len(), primera.salidas.len());
+                if rebanadas.iter().any(|r| r.entradas.len() != ne || r.salidas.len() != ns) {
+                    return Some("las rebanadas deben ser del mismo tamaño".into());
+                }
+                let bits = comunes.len() + ne;
+                if bits > TABLA_BITS_MAX {
+                    return Some(format!("la tabla admite hasta {TABLA_BITS_MAX} entradas"));
+                }
+                if ns == 0 || ns > TABLA_SALIDAS_MAX {
+                    return Some(format!("cada rebanada necesita de 1 a {TABLA_SALIDAS_MAX} salidas"));
+                }
+                por_salida(ns, retardos.len(), abierta.len()).or_else(|| fila_de(*tabla, bits))
+            }
+            Element::Msi { entradas, salidas, nucleo, de, fuentes, tabla, retardos, abierta, .. } => {
+                if let Some(m) = nucleo.invalido() {
+                    return Some(m.into());
+                }
+                if nucleo.entradas_usadas().iter().any(|&i| i >= entradas.len()) {
+                    return Some("una señal del núcleo nombra una entrada que no existe".into());
+                }
+                if fuentes.len() > TABLA_BITS_MAX {
+                    return Some(format!("la tabla de salida admite hasta {TABLA_BITS_MAX} fuentes"));
+                }
+                let fuente_mala = |f: &Fuente| match *f {
+                    Fuente::Entrada(i) => i >= entradas.len(),
+                    Fuente::Bit(b) => b >= nucleo.bits(),
+                    Fuente::Aux(b) => b >= nucleo.bits_aux(),
+                    Fuente::Bandera(b) => b >= nucleo.banderas(),
+                };
+                if fuentes.iter().any(fuente_mala) {
+                    return Some("una fuente está fuera de rango".into());
+                }
+                if de.len() != salidas.len() {
+                    return Some(format!("de debe tener una entrada por salida ({})", salidas.len()));
+                }
+                for s in de {
+                    match s {
+                        SalidaMsi::Directa { fuente, .. } if fuente_mala(fuente) => return Some("una salida directa nombra una fuente fuera de rango".into()),
+                        SalidaMsi::Tabla { columna } if tabla.is_none() || *columna >= TABLA_SALIDAS_MAX => return Some("una salida de tabla sin tabla o con columna fuera de rango".into()),
+                        _ => {}
+                    }
+                }
+                por_salida(salidas.len(), retardos.len(), abierta.len()).or_else(|| tabla.and_then(|t| fila_de(t, fuentes.len())))
+            }
+            Element::Dacm { bits, .. } if !(1..=16).contains(&bits.len()) => Some("bits debe tener de 1 a 16 redes".into()),
+            _ => None,
         }
     }
 
@@ -1013,6 +1717,10 @@ impl Element {
             Element::V { wave, .. } => wave.finite(),
             Element::I { amps, .. } => amps.is_finite(),
             Element::Psu { v, .. } => v.is_finite(),
+            Element::E { ganancia, .. } | Element::F { ganancia, .. } => ganancia.is_finite(),
+            Element::G { gm, .. } => gm.is_finite(),
+            Element::H { r, .. } => r.is_finite(),
+            Element::Ext { k, c, .. } => k.is_finite() && c.is_finite(),
             _ => true,
         }
     }
@@ -1028,6 +1736,57 @@ pub struct Netlist {
     /// Sondas de los instrumentos. Sin el campo, ninguna: la vista previa cuesta lo mismo que antes.
     #[serde(default)]
     pub sondas: Vec<SondaDef>,
+    /// Canales de valor que mueve el exterior (la perilla, un emulador). Sin el campo, ninguno.
+    #[serde(default)]
+    pub canales: Vec<CanalDef>,
+    /// Lecturas que el exterior pide en instantes exactos. Sin el campo, ninguna.
+    #[serde(default)]
+    pub lectores: Vec<LectorDef>,
+    /// Tablas de verdad compartidas por los `LUT` y los `MSI`: una fila por combinación de entradas, con dos bits por salida
+    /// (0, 1, Z = 2, X = 3). Sin el campo, ninguna.
+    #[serde(default, deserialize_with = "leer_tablas")]
+    pub tablas: Vec<Vec<u64>>,
+}
+
+/// Las filas de una tabla llegan como números o, si no caben en los 53 bits de un número de JavaScript, como texto decimal.
+fn leer_tablas<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<Vec<u64>>, D::Error> {
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum Fila {
+        N(u64),
+        S(String),
+    }
+    let tablas = Vec::<Vec<Fila>>::deserialize(d)?;
+    tablas
+        .into_iter()
+        .map(|t| t.into_iter().map(|f| match f { Fila::N(n) => Ok(n), Fila::S(s) => s.parse::<u64>().map_err(|_| serde::de::Error::custom(format!("fila de tabla inválida: {s}"))) }).collect())
+        .collect()
+}
+
+/// Cómo pasa un canal de un valor al siguiente: salta (retención de orden cero) o va en línea recta.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum FormaCanal {
+    #[default]
+    Escalon,
+    Rampa,
+}
+
+/// Un canal de valor: su valor `inicial` y la `forma` de sus cambios.
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct CanalDef {
+    pub inicial: f64,
+    #[serde(default)]
+    pub forma: FormaCanal,
+}
+
+/// Qué lee un lector: el voltaje de `p` respecto de `n`, o la corriente del elemento `elemento` (de `a` hacia `b`).
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(tag = "kind", rename_all = "lowercase", deny_unknown_fields)]
+pub enum LectorDef {
+    V { p: usize, n: usize },
+    I { elemento: usize },
 }
 
 /// Una sonda de un instrumento: qué mide, cuántas muestras crudas guarda (potencia de dos) y el ancho de la
@@ -1137,6 +1896,7 @@ impl Netlist {
                 "se necesitan al menos 2 nodos (tierra y uno más)".into(),
             ));
         }
+        // Quién maneja cada red digital: a lo más una salida fija, más las de tres estados que haya.
         let mut conductor: Vec<Option<usize>> = vec![None; self.digital_nets];
         for (i, e) in self.elements.iter().enumerate() {
             let entradas = e.entradas_digitales();
@@ -1144,11 +1904,17 @@ impl Netlist {
             if entradas.iter().chain(&salidas).any(|&r| r >= self.digital_nets) {
                 return Err(EngineError::Invalid(format!("elemento {i}: red digital fuera de rango")));
             }
+            if let Some(m) = e.estructura_invalida(&self.tablas) {
+                return Err(EngineError::Invalid(format!("elemento {i}: {m}")));
+            }
+            let tres = e.tres_estados(&self.tablas);
             for r in salidas {
-                if let Some(j) = conductor[r] {
-                    return Err(EngineError::Invalid(format!("elemento {i}: la red digital {r} ya la maneja el elemento {j}")));
+                if !tres {
+                    if let Some(j) = conductor[r] {
+                        return Err(EngineError::Invalid(format!("elemento {i}: la red digital {r} ya la maneja el elemento {j}")));
+                    }
+                    conductor[r] = Some(i);
                 }
-                conductor[r] = Some(i);
             }
             for (nombre, v) in e.retardos() {
                 if !en(v, RETARDO_RANGO) {
@@ -1170,6 +1936,9 @@ impl Netlist {
                     return Err(EngineError::Invalid(format!("elemento {i}: modulo debe ser 10 o 16")));
                 }
                 _ => {}
+            }
+            if e.canales_usados().iter().any(|&c| c >= self.canales.len()) {
+                return Err(EngineError::Invalid(format!("elemento {i}: canal fuera de rango")));
             }
             let nodos = e.nodes();
             if nodos.iter().any(|&k| k >= self.nodes) {
@@ -1200,6 +1969,28 @@ impl Netlist {
             }
             if !e.model_ok() {
                 return Err(EngineError::Invalid(format!("elemento {i}: un parámetro del modelo está fuera de rango")));
+            }
+        }
+        if self.canales.len() > MAX_CANALES {
+            return Err(EngineError::Invalid(format!("el circuito excede el límite de {MAX_CANALES} canales")));
+        }
+        for (k, c) in self.canales.iter().enumerate() {
+            if !(c.inicial.is_finite() && c.inicial.abs() <= CANAL_MAX) {
+                return Err(EngineError::Invalid(format!("canal {k}: inicial fuera de rango (hasta 1e9)")));
+            }
+        }
+        for (k, l) in self.lectores.iter().enumerate() {
+            match *l {
+                LectorDef::V { p, n } if p >= self.nodes || n >= self.nodes => {
+                    return Err(EngineError::Invalid(format!("lector {k}: nodo fuera de rango")));
+                }
+                LectorDef::V { p, n } if p == n => {
+                    return Err(EngineError::Invalid(format!("lector {k}: sus dos nodos son el mismo")));
+                }
+                LectorDef::I { elemento } if self.elements.get(elemento).is_none_or(Element::es_digital) => {
+                    return Err(EngineError::Invalid(format!("lector {k}: el elemento no existe o es digital")));
+                }
+                _ => {}
             }
         }
         let mut memoria = 0usize;
@@ -1489,7 +2280,7 @@ mod tests {
         assert_eq!(n.digital_nets, 3);
         assert_eq!(
             n.elements[2],
-            Element::Gate { func: Funcion::Nand, inputs: vec![0, 1], output: 2, rise_delay: 5e-9, fall_delay: 7e-9, z_como: ZComo::X }
+            Element::Gate { func: Funcion::Nand, inputs: vec![0, 1], output: 2, rise_delay: 5e-9, fall_delay: 7e-9, z_como: ZComo::X, enable: None, enable_bajo: false }
         );
         assert!(n.elements.iter().all(Element::es_digital));
         assert_eq!(n.elements[2].entradas_digitales(), vec![0, 1]);
@@ -1520,7 +2311,7 @@ mod tests {
             EngineError::Invalid("elemento 0: la compuerta not no admite 2 entradas".into())
         );
         assert_eq!(caso(1, r#"{"type":"LOGIC","out":0,"value":2}"#).unwrap_err(), EngineError::Invalid("elemento 0: value debe ser 0 o 1".into()));
-        assert!(caso(3, r#"{"type":"GATE","fn":"xnor","inputs":[0,1],"output":2,"rise_delay":5e-9,"fall_delay":5e-9}"#).is_err());
+        assert!(caso(3, r#"{"type":"GATE","fn":"xxor","inputs":[0,1],"output":2,"rise_delay":5e-9,"fall_delay":5e-9}"#).is_err());
         // Dos salidas en la misma red.
         let e = Netlist::from_json(r#"{"nodes":1,"digital_nets":1,"elements":[{"type":"LOGIC","out":0,"value":1},{"type":"LOGIC","out":0,"value":0}]}"#).unwrap_err();
         assert_eq!(e, EngineError::Invalid("elemento 1: la red digital 0 ya la maneja el elemento 0".into()));
@@ -1559,7 +2350,7 @@ mod tests {
             caso(r#"{"type":"DAC","input":1,"out":0,"v_lo":0,"v_hi":5,"r_lo":55,"r_hi":55,"t_rise":7e-9,"t_fall":7e-9}"#),
             EngineError::Invalid("elemento 0: la salida de un puente no puede ser la tierra".into())
         );
-        let r = Element::Dac { input: 1, out: 2, lo: Some(0), hi: Some(1), v_lo: 0.0, v_hi: 0.0, r_lo: 1.0, r_hi: 1.0, t_rise: 1e-9, t_fall: 1e-9 };
+        let r = Element::Dac { input: 1, out: 2, lo: Some(0), hi: Some(1), v_lo: 0.0, v_hi: 0.0, r_lo: 1.0, r_hi: 1.0, t_rise: 1e-9, t_fall: 1e-9, z: false };
         assert_eq!(r.con_nodos(|k| k + 10).nodes(), vec![12, 10, 11]);
     }
 
@@ -1609,7 +2400,7 @@ mod tests {
         assert_eq!(r.con_nodos(|k| if k == 0 { 0 } else { k - 2 }), Element::R { a: 1, b: 0, ohms: 10.0 });
         let q = Netlist::from_json(r#"{"nodes":8,"elements":[{"type":"Q","c":7,"b":6,"e":5}]}"#).unwrap().elements.remove(0);
         assert_eq!(q.con_nodos(|k| k + 1).nodes(), vec![8, 7, 6]);
-        let g = Element::Gate { func: Funcion::Not, inputs: vec![0], output: 1, rise_delay: 1e-9, fall_delay: 1e-9, z_como: ZComo::X };
+        let g = Element::Gate { func: Funcion::Not, inputs: vec![0], output: 1, rise_delay: 1e-9, fall_delay: 1e-9, z_como: ZComo::X, enable: None, enable_bajo: false };
         assert_eq!(g.con_nodos(|k| k + 1), g);
     }
 
@@ -1694,5 +2485,394 @@ mod tests {
         assert_eq!(sq.at(0.011), 0.0);
         let s = Wave::Sine { offset: 1.0, amp: 2.0, freq: 1.0, phase: 0.0, continua: false };
         assert!((s.at(0.25) - 3.0).abs() < 1e-12);
+    }
+
+    fn lee(elementos: &str, extra: &str) -> Result<Netlist, EngineError> {
+        Netlist::from_json(&format!(r#"{{"nodes":6,{extra}"elements":[{elementos}]}}"#))
+    }
+
+    const UN_CANAL: &str = r#""canales":[{"inicial":25}],"#;
+
+    #[test]
+    fn lee_cada_variante_nueva() {
+        let n = lee(r#"{"type":"J","d":1,"g":2,"s":0,"pjf":true,"model":{"vto":-1.5,"beta":2e-3}}"#, "").unwrap();
+        assert!(matches!(&n.elements[0], Element::J { d: 1, g: 2, s: 0, pjf: true, model } if model.vto == -1.5 && model.beta == 2e-3 && model.b == 1.0));
+        let n = lee(r#"{"type":"J","d":1,"g":2,"s":0}"#, "").unwrap();
+        assert_eq!(n.elements[0], Element::J { d: 1, g: 2, s: 0, pjf: false, model: JfetModel::default() });
+        let n = lee(r#"{"type":"E","p":1,"n":0,"cp":2,"cn":0,"ganancia":1e6}"#, "").unwrap();
+        assert_eq!(n.elements[0], Element::E { p: 1, n: 0, cp: 2, cn: 0, ganancia: 1e6 });
+        let n = lee(r#"{"type":"G","p":1,"n":0,"cp":2,"cn":0,"gm":0.01}"#, "").unwrap();
+        assert_eq!(n.elements[0], Element::G { p: 1, n: 0, cp: 2, cn: 0, gm: 0.01 });
+        let n = lee(r#"{"type":"H","p":1,"n":0,"cp":2,"cn":3,"r":1000}"#, "").unwrap();
+        assert_eq!(n.elements[0].nodes(), vec![1, 0, 2, 3]);
+        let n = lee(r#"{"type":"F","p":1,"n":0,"cp":2,"cn":3,"ganancia":-2}"#, "").unwrap();
+        assert_eq!(n.elements[0], Element::F { p: 1, n: 0, cp: 2, cn: 3, ganancia: -2.0 });
+        let n = lee(r#"{"type":"TERM","a":1,"b":0,"tipo":"ntc","r25":10000,"beta":3950,"delta":0.002,"tau":10,"canal":0,"tmax":150}"#, UN_CANAL).unwrap();
+        assert!(matches!(&n.elements[0], Element::Term { tipo: TipoTermistor::Ntc, rt: None, canal: 0, .. }));
+        let n = lee(r#"{"type":"TERM","a":1,"b":0,"tipo":"ptc","r25":100,"beta":3000,"rt":[[0,300],[25,100],[80,900]],"delta":0.002,"tau":10,"canal":0,"tmax":150}"#, UN_CANAL).unwrap();
+        assert!(matches!(&n.elements[0], Element::Term { tipo: TipoTermistor::Ptc, rt: Some(rt), .. } if rt.len() == 3));
+        let n = lee(r#"{"type":"LDR","a":1,"b":0,"r10":10000,"gamma":0.7,"roscuro":1e6,"tau_sube":0.02,"tau_baja":0.03,"canal":0}"#, UN_CANAL).unwrap();
+        assert!(matches!(&n.elements[0], Element::Ldr { canal: 0, gamma, .. } if *gamma == 0.7));
+        let pasos = r#"{"type":"PASOS","nodos":[1,2,3,4],"r":10,"l":0.01,"km":0.1,"dientes":50,"td":0.001,"j":1e-5,"bm":1e-4}"#;
+        let n = lee(pasos, "").unwrap();
+        assert!(matches!(&n.elements[0], Element::Pasos { unipolar: false, k_mutua, reduccion, canal_carga: None, .. } if *k_mutua == 0.99 && *reduccion == 1.0));
+        assert_eq!(n.elements[0].nodes(), vec![1, 2, 3, 4]);
+        let n = lee(r#"{"type":"EXT","a":1,"b":0,"modo":"v","canal":0,"k":0.01,"c":0.5,"r":100}"#, UN_CANAL).unwrap();
+        assert_eq!(n.elements[0], Element::Ext { a: 1, b: 0, modo: ModoExt::V, canal: 0, k: 0.01, c: 0.5, r: Some(100.0) });
+        let n = lee(r#"{"type":"V","a":1,"b":0,"wave":{"kind":"pwl","puntos":[[0,0],[1e-3,5],[2e-3,0]],"repetir":true}}"#, "").unwrap();
+        assert!(matches!(&n.elements[0], Element::V { wave: Wave::Pwl { puntos, repetir: true }, .. } if puntos.len() == 3 && puntos[1] == [1e-3, 5.0]));
+    }
+
+    #[test]
+    fn con_nodos_mueve_todos_los_terminales_nuevos() {
+        let n = lee(r#"{"type":"PASOS","nodos":[1,2,3,4,5,0],"unipolar":true,"r":10,"l":0.01,"km":0.1,"dientes":50,"td":0.001,"j":1e-5,"bm":1e-4}"#, "").unwrap();
+        assert_eq!(n.elements[0].con_nodos(|k| k + 10).nodes(), vec![11, 12, 13, 14, 15, 10]);
+        let n = lee(r#"{"type":"E","p":1,"n":0,"cp":2,"cn":3,"ganancia":2}"#, "").unwrap();
+        assert_eq!(n.elements[0].con_nodos(|k| k + 1).nodes(), vec![2, 1, 3, 4]);
+        let n = lee(r#"{"type":"J","d":1,"g":2,"s":3}"#, "").unwrap();
+        assert_eq!(n.elements[0].con_nodos(|k| k + 1).nodes(), vec![2, 3, 4]);
+    }
+
+    #[test]
+    fn rechaza_cada_rango_de_los_elementos_nuevos() {
+        let term = |extra: &str| format!(r#"{{"type":"TERM","a":1,"b":0,"tipo":"ntc","r25":10000,"beta":3950,"delta":0.002,"tau":10,"canal":0,"tmax":150{extra}}}"#);
+        let ldr = |campo: &str, v: &str| {
+            let mut j = serde_json::json!({"type":"LDR","a":1,"b":0,"r10":10000,"gamma":0.7,"roscuro":1e6,"tau_sube":0.02,"tau_baja":0.03,"canal":0});
+            j[campo] = serde_json::from_str(v).unwrap();
+            j.to_string()
+        };
+        let pasos = |campo: &str, v: &str| {
+            let mut j = serde_json::json!({"type":"PASOS","nodos":[1,2,3,4],"r":10,"l":0.01,"km":0.1,"dientes":50,"td":0.001,"j":1e-5,"bm":1e-4});
+            j[campo] = serde_json::from_str(v).unwrap();
+            j.to_string()
+        };
+        let malos: Vec<String> = vec![
+            r#"{"type":"J","d":1,"g":2,"s":0,"model":{"beta":0}}"#.into(),
+            r#"{"type":"J","d":1,"g":2,"s":0,"model":{"vto":-500}}"#.into(),
+            r#"{"type":"J","d":1,"g":2,"s":0,"model":{"lambda":-1}}"#.into(),
+            r#"{"type":"J","d":1,"g":2,"s":0,"model":{"fc":1}}"#.into(),
+            r#"{"type":"J","d":1,"g":2,"s":0,"model":{"rd":-1}}"#.into(),
+            r#"{"type":"J","d":1,"g":2,"s":0,"model":{"b":0}}"#.into(),
+            r#"{"type":"J","d":1,"g":2,"s":0,"model":{"desconocido":1}}"#.into(),
+            r#"{"type":"E","p":1,"n":0,"cp":2,"cn":0,"ganancia":1e999}"#.into(),
+            r#"{"type":"E","p":1,"n":0,"cp":2,"cn":0,"ganancia":1e12}"#.into(),
+            r#"{"type":"F","p":1,"n":0,"cp":2,"cn":3,"ganancia":-1e12}"#.into(),
+            r#"{"type":"G","p":1,"n":0,"cp":2,"cn":0,"gm":1e7}"#.into(),
+            r#"{"type":"H","p":1,"n":0,"cp":2,"cn":3,"r":1e13}"#.into(),
+            r#"{"type":"E","p":1,"n":0,"cp":2,"cn":9,"ganancia":1}"#.into(),
+            term(r#","delta":0"#),
+            term(r#","r25":0"#),
+            term(r#","beta":1e9"#),
+            term(r#","tau":0"#),
+            term(r#","tmax":0.5"#),
+            term(r#","canal":3"#),
+            term(r#","rt":[[25,100]]"#),
+            term(r#","rt":[[25,100],[25,200]]"#),
+            term(r#","rt":[[0,100],[25,0]]"#),
+            ldr("r10", "0"),
+            ldr("gamma", "9"),
+            ldr("roscuro", "1e15"),
+            ldr("tau_sube", "0"),
+            ldr("tau_baja", "-1"),
+            ldr("canal", "1"),
+            pasos("nodos", "[1,2,3]"),
+            pasos("unipolar", "true"),
+            pasos("k_mutua", "1"),
+            pasos("dientes", "0"),
+            pasos("dientes", "5000"),
+            pasos("reduccion", "0.5"),
+            pasos("td", "-1"),
+            pasos("canal_carga", "4"),
+            pasos("nodos", "[1,2,3,9]"),
+            r#"{"type":"EXT","a":1,"b":0,"modo":"i","canal":0,"k":1e12,"c":0}"#.into(),
+            r#"{"type":"EXT","a":1,"b":0,"modo":"v","canal":0,"k":1,"c":0,"r":0}"#.into(),
+            r#"{"type":"EXT","a":1,"b":1,"modo":"v","canal":0,"k":1,"c":0}"#.into(),
+            r#"{"type":"EXT","a":1,"b":0,"modo":"v","canal":1,"k":1,"c":0}"#.into(),
+            r#"{"type":"V","a":1,"b":0,"wave":{"kind":"pwl","puntos":[]}}"#.into(),
+            r#"{"type":"V","a":1,"b":0,"wave":{"kind":"pwl","puntos":[[0.1,0],[1,1]]}}"#.into(),
+            r#"{"type":"V","a":1,"b":0,"wave":{"kind":"pwl","puntos":[[0,0],[1,1],[1,2]]}}"#.into(),
+            r#"{"type":"V","a":1,"b":0,"wave":{"kind":"pwl","puntos":[[0,0],[1,1e9]]}}"#.into(),
+        ];
+        for malo in malos {
+            assert!(lee(&malo, UN_CANAL).is_err(), "{malo}");
+        }
+        let muchos: Vec<String> = (0..1001).map(|k| format!("[{},0]", k)).collect();
+        let largo = format!(r#"{{"type":"V","a":1,"b":0,"wave":{{"kind":"pwl","puntos":[{}]}}}}"#, muchos.join(","));
+        assert!(lee(&largo, "").is_err());
+        let justo = format!(r#"{{"type":"V","a":1,"b":0,"wave":{{"kind":"pwl","puntos":[{}]}}}}"#, muchos[..1000].join(","));
+        assert!(lee(&justo, "").is_ok());
+    }
+
+    #[test]
+    fn valida_los_canales_y_los_lectores() {
+        let r = r#"{"type":"R","a":1,"b":0,"ohms":1}"#;
+        assert!(lee(r, r#""canales":[{"inicial":1,"forma":"rampa"},{"inicial":-3}],"#).is_ok());
+        for malo in [
+            r#""canales":[{"inicial":1e999}],"#.to_string(),
+            r#""canales":[{"inicial":1e12}],"#.to_string(),
+            r#""canales":[{"inicial":1,"forma":"curva"}],"#.to_string(),
+            format!(r#""canales":[{}],"#, vec![r#"{"inicial":0}"#; MAX_CANALES + 1].join(",")),
+            r#""lectores":[{"kind":"v","p":1,"n":9}],"#.to_string(),
+            r#""lectores":[{"kind":"v","p":2,"n":2}],"#.to_string(),
+            r#""lectores":[{"kind":"i","elemento":4}],"#.to_string(),
+        ] {
+            assert!(lee(r, &malo).is_err(), "{malo}");
+        }
+        let n = lee(r, r#""canales":[{"inicial":1,"forma":"rampa"}],"lectores":[{"kind":"v","p":1,"n":0},{"kind":"i","elemento":0}],"#).unwrap();
+        assert_eq!(n.canales, vec![CanalDef { inicial: 1.0, forma: FormaCanal::Rampa }]);
+        assert_eq!(n.lectores, vec![LectorDef::V { p: 1, n: 0 }, LectorDef::I { elemento: 0 }]);
+    }
+
+    #[test]
+    fn una_netlist_sin_canales_ni_lectores_los_deja_vacios() {
+        let n = Netlist::from_json(include_str!("../fixtures/rectificador.json")).unwrap();
+        assert!(n.canales.is_empty() && n.lectores.is_empty());
+    }
+
+    /// Un ejemplo de cada elemento analógico (los digitales no son dispositivos).
+    const UN_DE_CADA: &str = r#"[
+        {"type":"R","a":1,"b":0,"ohms":1000},{"type":"C","a":1,"b":0,"farads":1e-6},{"type":"L","a":1,"b":0,"henries":1e-3},
+        {"type":"V","a":1,"b":0,"wave":{"kind":"dc","v":5}},{"type":"I","a":0,"b":1,"amps":1e-3},{"type":"D","a":1,"b":0},
+        {"type":"Q","c":1,"b":2,"e":0},{"type":"M","d":1,"g":2,"s":0},{"type":"OA","p":1,"n":2,"out":3,"vp":4,"vn":0},
+        {"type":"J","d":1,"g":2,"s":0},{"type":"E","p":1,"n":0,"cp":2,"cn":0,"ganancia":2},{"type":"G","p":1,"n":0,"cp":2,"cn":0,"gm":1e-3},
+        {"type":"H","p":1,"n":0,"cp":2,"cn":3,"r":100},{"type":"F","p":1,"n":0,"cp":2,"cn":3,"ganancia":2},
+        {"type":"TERM","a":1,"b":0,"tipo":"ntc","r25":10000,"beta":3950,"delta":0.002,"tau":10,"canal":0,"tmax":150},
+        {"type":"LDR","a":1,"b":0,"r10":10000,"gamma":0.7,"roscuro":1e6,"tau_sube":0.02,"tau_baja":0.03,"canal":0},
+        {"type":"PASOS","nodos":[1,2,3,4],"r":10,"l":0.01,"km":0.1,"dientes":50,"td":0.001,"j":1e-5,"bm":1e-4},
+        {"type":"PASOS","nodos":[1,2,3,4,5,0],"unipolar":true,"r":10,"l":0.01,"km":0.1,"dientes":8,"td":0.001,"j":1e-5,"bm":1e-4},
+        {"type":"EXT","a":1,"b":0,"modo":"v","canal":0,"k":1,"c":0},{"type":"LAMP","a":1,"b":0,"rfrio":2.88,"k":9,"pnom":5,"tau":0.05},
+        {"type":"MOTOR","a":1,"b":0,"r":3,"l":1.5e-3,"ke":6.05e-3,"j":2.4e-7,"bm":6.4e-7},
+        {"type":"FUSE","a":1,"b":0,"ohms":0.1,"inom":1,"ifusion":2,"tau":0.125},{"type":"PSU","a":1,"b":0,"v":12,"ilim":1,"vk":0.005},
+        {"type":"BUZZER","a":1,"b":0,"ohms":100,"umbral":3},
+        {"type":"RELAY","a1":1,"a2":0,"com":2,"na":3,"nc":4,"r":69.444,"l":0.20833,"ion":0.054,"ioff":0.0072},
+        {"type":"XFMR","a1":1,"b1":0,"a2":2,"b2":0,"l1":1,"l2":1,"k":0.99},
+        {"type":"ADC","p":1,"n":0,"out":0,"in_low":1.5,"in_high":3.5},
+        {"type":"DAC","input":1,"out":2,"v_lo":0,"v_hi":5,"r_lo":55,"r_hi":55,"t_rise":7e-9,"t_fall":7e-9},
+        {"type":"OUT555","q":0,"out":2,"dis":3,"vcc":1,"gnd":0,"v_lo":0.025,"r_lo":7.5,"v_hi":-1.4,"r_hi":3,"g_on":0.0667,"g_off":1e-9,"t_rise":1e-7,"t_fall":1e-7}
+    ]"#;
+
+    /// Una netlist con un LUT de una NAND (dos entradas, una salida) y su tabla: 00, 01, 10 dan 1 y 11 da 0.
+    const LUT_NAND: &str = r#"{"nodes":1,"digital_nets":3,"tablas":[[1,1,1,0]],"elements":[
+        {"type":"LUT","comunes":[],"rebanadas":[{"entradas":[0,1],"salidas":[2]}],"tabla":0,"retardos":[[1e-8,1e-8]]}]}"#;
+
+    #[test]
+    fn lee_un_lut_y_una_netlist_de_hoy_no_trae_tablas() {
+        let n = Netlist::from_json(LUT_NAND).unwrap();
+        let Element::Lut { comunes, rebanadas, tabla, retardos, abierta, z_como } = &n.elements[0] else { panic!("{:?}", n.elements[0]) };
+        assert_eq!((comunes.len(), rebanadas.len(), *tabla, retardos.clone(), abierta.len(), *z_como), (0, 1, 0, vec![[1e-8, 1e-8]], 0, ZComo::X));
+        assert_eq!(n.tablas, vec![vec![1, 1, 1, 0]]);
+        assert!(n.elements[0].es_digital() && n.elements[0].nodes().is_empty());
+        assert_eq!((n.elements[0].entradas_digitales(), n.elements[0].salidas_digitales()), (vec![0, 1], vec![2]));
+        let hoy = Netlist::from_json(include_str!("../fixtures/rectificador.json")).unwrap();
+        assert!(hoy.tablas.is_empty());
+    }
+
+    #[test]
+    fn lee_un_msi_de_contador_con_su_tabla_de_salida() {
+        let json = r#"{"nodes":1,"digital_nets":9,"tablas":[[0,1]],"elements":[{"type":"MSI","entradas":[0,1],"salidas":[2,3,4],
+            "nucleo":{"tipo":"contador","bits":2,"modulo":4,"reloj":{"senales":[{"entrada":0}]},"borra":{"senal":{"entrada":1,"bajo":true}}},
+            "de":[{"tipo":"directa","fuente":{"bit":0},"negada":false},{"tipo":"directa","fuente":{"bit":1}},{"tipo":"tabla","columna":0}],
+            "fuentes":[{"bit":1}],"tabla":0,"retardos":[[1e-8,1e-8],[1e-8,1e-8],[2e-8,2e-8]]}]}"#;
+        let n = Netlist::from_json(json).unwrap();
+        let Element::Msi { nucleo, de, fuentes, .. } = &n.elements[0] else { panic!() };
+        assert_eq!((nucleo.bits(), de.len(), fuentes.clone()), (2, 3, vec![Fuente::Bit(1)]));
+        assert_eq!(de[0], SalidaMsi::Directa { fuente: Fuente::Bit(0), negada: false });
+        assert!(matches!(nucleo, Nucleo::Contador { modulo: 4, reloj: Reloj { combina: Combina::Y, flanco: FlancoReloj::Subida, .. }, .. }));
+    }
+
+    #[test]
+    fn lee_un_msi_de_aproximaciones_y_uno_de_desplazamiento() {
+        let aprox = r#"{"nodes":1,"digital_nets":6,"elements":[{"type":"MSI","entradas":[0,1,2,3],"salidas":[4],
+            "nucleo":{"tipo":"aproximaciones","bits":8,"cs":{"entrada":0,"bajo":true},"wr":{"entrada":1,"bajo":true},"rd":{"entrada":2,"bajo":true},
+                "comparador":3,"reloj":{"tipo":"interno","periodo":1.65e-6},"ciclos_inicio":1,"ciclos_bit":8},
+            "de":[{"tipo":"directa","fuente":{"bandera":0},"negada":true}],"retardos":[[1e-7,1e-7]]}]}"#;
+        assert!(Netlist::from_json(aprox).is_ok());
+        let desp = r#"{"nodes":1,"digital_nets":5,"elements":[{"type":"MSI","entradas":[0,1],"salidas":[2],
+            "nucleo":{"tipo":"desplazamiento","bits":8,"reloj":{"senales":[{"entrada":0}]},"serie":[{"entrada":1}],"almacen":{"senales":[{"entrada":0}]}},
+            "de":[{"tipo":"directa","fuente":{"aux":7}}],"retardos":[[1e-8,1e-8]]}]}"#;
+        assert!(Netlist::from_json(desp).is_ok());
+    }
+
+    #[test]
+    fn las_filas_de_una_tabla_llegan_como_numero_o_como_texto_si_no_caben_en_53_bits() {
+        let json = r#"{"nodes":1,"digital_nets":3,"tablas":[[1,1,1,"18446744073709551615"]],"elements":[
+            {"type":"LUT","comunes":[],"rebanadas":[{"entradas":[0,1],"salidas":[2]}],"tabla":0,"retardos":[[1e-8,1e-8]]}]}"#;
+        assert_eq!(Netlist::from_json(json).unwrap().tablas, vec![vec![1, 1, 1, u64::MAX]]);
+        assert!(Netlist::from_json(&json.replace("18446744073709551615", "mucho")).is_err());
+    }
+
+    #[test]
+    fn un_msi_de_aproximaciones_con_reloj_externo_lee_el_reloj_junto_a_su_tipo() {
+        let json = r#"{"nodes":1,"digital_nets":6,"elements":[{"type":"MSI","entradas":[0,1,2,3,4],"salidas":[5],
+            "nucleo":{"tipo":"aproximaciones","bits":8,"cs":{"entrada":0},"wr":{"entrada":1},"rd":{"entrada":2},"comparador":3,
+                "reloj":{"tipo":"externo","senales":[{"entrada":4}],"flanco":"bajada"},"ciclos_inicio":1,"ciclos_bit":8},
+            "de":[{"tipo":"directa","fuente":{"bandera":0}}],"retardos":[[1e-7,1e-7]]}]}"#;
+        let n = Netlist::from_json(json).unwrap();
+        let Element::Msi { nucleo: Nucleo::Aproximaciones { reloj: RelojConv::Externo(r), .. }, .. } = &n.elements[0] else { panic!() };
+        assert_eq!((r.senales.len(), r.flanco), (1, FlancoReloj::Bajada));
+    }
+
+    #[test]
+    fn lee_un_dacm_y_un_interruptor_de_canal() {
+        let json = r#"{"nodes":5,"digital_nets":3,"canales":[{"inicial":0}],"elements":[
+            {"type":"DACM","modo":"corriente","out":1,"ret":0,"ref_p":2,"ref_n":0,"bits":[0,1,2],"t_asentamiento":1.5e-7},
+            {"type":"INTC","a":3,"b":4,"canal":0,"r_on":0.1,"r_off":1e9}]}"#;
+        let n = Netlist::from_json(json).unwrap();
+        assert_eq!((n.elements[0].nodes(), n.elements[0].entradas_digitales()), (vec![1, 0, 2, 0], vec![0, 1, 2]));
+        assert_eq!((n.elements[1].nodes(), n.elements[1].canales_usados()), (vec![3, 4], vec![0]));
+        assert!(!n.elements[0].es_digital() && !n.elements[1].es_digital());
+        // Los nodos de una isla se renumeran; las redes digitales no.
+        let Element::Dacm { out, ref_p, bits, .. } = n.elements[0].con_nodos(|k| k + 10) else { panic!() };
+        assert_eq!((out, ref_p, bits), (11, 12, vec![0, 1, 2]));
+    }
+
+    #[test]
+    fn rechaza_un_lut_mal_formado_con_su_texto() {
+        let lut = |extra: &str, tablas: &str, ent: &str, sal: &str, ret: &str| {
+            format!(r#"{{"nodes":1,"digital_nets":20,"tablas":{tablas},"elements":[{{"type":"LUT","comunes":[],"rebanadas":[{{"entradas":{ent},"salidas":{sal}}}{extra}],"tabla":0,"retardos":{ret}}}]}}"#)
+        };
+        assert!(Netlist::from_json(&lut("", "[[1,1,1,0]]", "[0,1]", "[2]", "[[1e-8,1e-8]]")).is_ok());
+        let casos = [
+            (lut("", "[]", "[0,1]", "[2]", "[[1e-8,1e-8]]"), "la tabla 0 no existe"),
+            (lut("", "[[1,1,1]]", "[0,1]", "[2]", "[[1e-8,1e-8]]"), "la tabla 0 tiene 3 filas y se esperaban 4"),
+            (lut(r#",{"entradas":[3],"salidas":[4]}"#, "[[1,1,1,0]]", "[0,1]", "[2]", "[[1e-8,1e-8]]"), "las rebanadas deben ser del mismo tamaño"),
+            (lut("", "[[1,1,1,0]]", "[0,1]", "[2]", "[]"), "retardos debe tener un par por salida (1)"),
+            (lut("", "[[1,1,1,0]]", "[0,1]", "[2]", "[[0,1e-8]]"), "retardos fuera de rango"),
+            (lut("", "[[1,1,1,0]]", "[0,1]", "[25]", "[[1e-8,1e-8]]"), "red digital fuera de rango"),
+            (lut("", "[[1,1,1,0]]", "[0,1,3,4,5,6,7,8,9,10,11,12,13,14,15]", "[2]", "[[1e-8,1e-8]]"), "la tabla admite hasta 14 entradas"),
+        ];
+        for (json, texto) in casos {
+            let e = Netlist::from_json(&json).unwrap_err().to_string();
+            assert!(e.contains(texto), "{texto}: {e}");
+        }
+        // Más de 32 salidas por rebanada, con tantas redes como haga falta.
+        let salidas: Vec<String> = (0..33).map(|k| (k + 2).to_string()).collect();
+        let json = format!(r#"{{"nodes":1,"digital_nets":40,"tablas":[[1,1,1,0]],"elements":[{{"type":"LUT","comunes":[],"rebanadas":[{{"entradas":[0,1],"salidas":[{}]}}],"tabla":0,"retardos":[]}}]}}"#, salidas.join(","));
+        assert!(Netlist::from_json(&json).unwrap_err().to_string().contains("de 1 a 32 salidas"));
+    }
+
+    #[test]
+    fn rechaza_un_msi_con_fuentes_senales_o_modulo_fuera_de_rango() {
+        let msi = |nucleo: &str, de: &str, fuentes: &str, tabla: &str| {
+            format!(r#"{{"nodes":1,"digital_nets":6,"tablas":[[0,1,1,0]],"elements":[{{"type":"MSI","entradas":[0,1],"salidas":[2],"nucleo":{nucleo},"de":{de},"fuentes":{fuentes},"tabla":{tabla},"retardos":[[1e-8,1e-8]]}}]}}"#)
+        };
+        let cont = |bits: u32, modulo: u32, entrada: u32| format!(r#"{{"tipo":"contador","bits":{bits},"modulo":{modulo},"reloj":{{"senales":[{{"entrada":{entrada}}}]}}}}"#);
+        let directa = r#"[{"tipo":"directa","fuente":{"bit":0}}]"#;
+        let de_tabla = r#"[{"tipo":"tabla","columna":0}]"#;
+        assert!(Netlist::from_json(&msi(&cont(2, 4, 0), directa, "[]", "null")).is_ok());
+        let casos = [
+            (msi(&cont(2, 5, 0), directa, "[]", "null"), "modulo debe estar entre 2 y 2^bits"),
+            (msi(&cont(2, 1, 0), directa, "[]", "null"), "modulo debe estar entre 2 y 2^bits"),
+            (msi(&cont(17, 4, 0), directa, "[]", "null"), "bits debe estar entre 1 y 16"),
+            (msi(&cont(2, 4, 7), directa, "[]", "null"), "una señal del núcleo nombra una entrada que no existe"),
+            (msi(&cont(2, 4, 0), r#"[{"tipo":"directa","fuente":{"bit":2}}]"#, "[]", "null"), "una salida directa nombra una fuente fuera de rango"),
+            (msi(&cont(2, 4, 0), r#"[{"tipo":"directa","fuente":{"aux":0}}]"#, "[]", "null"), "una salida directa nombra una fuente fuera de rango"),
+            (msi(&cont(2, 4, 0), de_tabla, "[]", "null"), "sin tabla"),
+            (msi(&cont(2, 4, 0), de_tabla, r#"[{"bit":0},{"entrada":9}]"#, "0"), "una fuente está fuera de rango"),
+            (msi(&cont(2, 4, 0), de_tabla, r#"[{"bit":0}]"#, "0"), "la tabla 0 tiene 4 filas y se esperaban 2"),
+            (msi(&cont(2, 4, 0), "[]", "[]", "null"), "de debe tener una entrada por salida (1)"),
+        ];
+        for (json, texto) in casos {
+            let e = Netlist::from_json(&json).unwrap_err().to_string();
+            assert!(e.contains(texto), "{texto}: {e}");
+        }
+        assert!(Netlist::from_json(&msi(&cont(2, 4, 0), de_tabla, r#"[{"bit":0},{"bit":1}]"#, "0")).is_ok());
+    }
+
+    #[test]
+    fn rechaza_un_dacm_o_un_intc_fuera_de_rango() {
+        let dac = |bits: &str, t: &str| format!(r#"{{"nodes":4,"digital_nets":20,"elements":[{{"type":"DACM","modo":"voltaje","out":1,"ret":0,"ref_p":2,"ref_n":0,"bits":{bits},"t_asentamiento":{t}}}]}}"#);
+        assert!(Netlist::from_json(&dac("[0,1]", "1e-7")).is_ok());
+        assert!(Netlist::from_json(&dac("[]", "1e-7")).unwrap_err().to_string().contains("de 1 a 16 redes"));
+        assert!(Netlist::from_json(&dac("[0,1]", "0")).unwrap_err().to_string().contains("t_asentamiento fuera de rango"));
+        assert!(Netlist::from_json(&dac("[0,99]", "1e-7")).unwrap_err().to_string().contains("red digital fuera de rango"));
+        let intc = |canal: u32, r_on: &str| format!(r#"{{"nodes":3,"canales":[{{"inicial":0}}],"elements":[{{"type":"INTC","a":1,"b":2,"canal":{canal},"r_on":{r_on},"r_off":1e9}}]}}"#);
+        assert!(Netlist::from_json(&intc(0, "0.1")).is_ok());
+        assert!(Netlist::from_json(&intc(1, "0.1")).unwrap_err().to_string().contains("canal fuera de rango"));
+        assert!(Netlist::from_json(&intc(0, "0")).unwrap_err().to_string().contains("positivo"));
+    }
+
+    #[test]
+    fn una_salida_fija_comparte_red_con_las_de_tres_estados_pero_no_con_otra_fija() {
+        let puerta = |extra: &str| format!(r#"{{"type":"GATE","fn":"buf","inputs":[0],"output":2,"rise_delay":1e-9,"fall_delay":1e-9{extra}}}"#);
+        let red = |a: &str, b: &str| format!(r#"{{"nodes":1,"digital_nets":3,"elements":[{{"type":"LOGIC","out":0,"value":1}},{{"type":"LOGIC","out":1,"value":0}},{a},{b}]}}"#);
+        let (fija, tres) = (puerta(""), puerta(r#","enable":1"#));
+        // Una fija y una de tres estados, o varias de tres estados.
+        assert!(Netlist::from_json(&red(&fija, &tres)).is_ok());
+        assert!(Netlist::from_json(&red(&tres, &tres)).is_ok());
+        // Dos fijas, con una de tres estados en medio o sin ella.
+        assert!(Netlist::from_json(&red(&fija, &fija)).unwrap_err().to_string().contains("ya la maneja el elemento"));
+        let con_tres = format!(r#"{{"nodes":1,"digital_nets":3,"elements":[{{"type":"LOGIC","out":0,"value":1}},{{"type":"LOGIC","out":1,"value":0}},{fija},{tres},{fija}]}}"#);
+        assert!(Netlist::from_json(&con_tres).unwrap_err().to_string().contains("ya la maneja el elemento"));
+    }
+
+    #[test]
+    fn un_lut_con_z_en_su_tabla_o_con_salida_abierta_cuenta_como_de_tres_estados() {
+        let n = Netlist::from_json(
+            r#"{"nodes":1,"digital_nets":4,"tablas":[[1,2],[1,0]],"elements":[
+            {"type":"LUT","comunes":[],"rebanadas":[{"entradas":[0],"salidas":[1]}],"tabla":0,"retardos":[[1e-8,1e-8]]},
+            {"type":"LUT","comunes":[],"rebanadas":[{"entradas":[0],"salidas":[2]}],"tabla":1,"retardos":[[1e-8,1e-8]],"abierta":[true]},
+            {"type":"LUT","comunes":[],"rebanadas":[{"entradas":[0],"salidas":[3]}],"tabla":1,"retardos":[[1e-8,1e-8]]}]}"#,
+        )
+        .unwrap();
+        let tres: Vec<bool> = n.elements.iter().map(|e| e.tres_estados(&n.tablas)).collect();
+        assert_eq!(tres, vec![true, true, false]);
+    }
+
+    #[test]
+    fn la_fabrica_construye_cada_variante_analogica() {
+        let json = format!(r#"{{"nodes":6,"digital_nets":2,"canales":[{{"inicial":25}}],"elements":{UN_DE_CADA}}}"#);
+        let net = Netlist::from_json(&json).unwrap();
+        // Una variante nueva rompe este `match` y obliga a agregarle su ejemplo a `UN_DE_CADA`.
+        let mut vistas = std::collections::BTreeSet::new();
+        for (k, e) in net.elements.iter().enumerate() {
+            let nombre = match e {
+                Element::R { .. } => "R",
+                Element::C { .. } => "C",
+                Element::L { .. } => "L",
+                Element::V { .. } => "V",
+                Element::I { .. } => "I",
+                Element::D { .. } => "D",
+                Element::Q { .. } => "Q",
+                Element::M { .. } => "M",
+                Element::OA { .. } => "OA",
+                Element::J { .. } => "J",
+                Element::E { .. } => "E",
+                Element::G { .. } => "G",
+                Element::H { .. } => "H",
+                Element::F { .. } => "F",
+                Element::Term { .. } => "TERM",
+                Element::Ldr { .. } => "LDR",
+                Element::Pasos { .. } => "PASOS",
+                Element::Ext { .. } => "EXT",
+                Element::Lamp { .. } => "LAMP",
+                Element::Motor { .. } => "MOTOR",
+                Element::Fuse { .. } => "FUSE",
+                Element::Psu { .. } => "PSU",
+                Element::Buzzer { .. } => "BUZZER",
+                Element::Relay { .. } => "RELAY",
+                Element::Xfmr { .. } => "XFMR",
+                Element::Adc { .. } => "ADC",
+                Element::Dac { .. } => "DAC",
+                Element::Out555 { .. } => "OUT555",
+                Element::Gate { .. }
+                | Element::Logic { .. }
+                | Element::Dff { .. }
+                | Element::Jkff { .. }
+                | Element::Counter { .. }
+                | Element::Decoder { .. }
+                | Element::Latch555 { .. }
+                | Element::Lut { .. }
+                | Element::Msi { .. } => {
+                    unreachable!("el ejemplo no incluye elementos digitales")
+                }
+                // Su dispositivo llega con su bloque; entonces pasan a `UN_DE_CADA`.
+                Element::Dacm { .. } | Element::Intc { .. } => unreachable!("el ejemplo no los incluye todavía"),
+            };
+            vistas.insert(nombre);
+            assert!(crate::devices::build(e, k).is_ok(), "{nombre}");
+        }
+        assert_eq!(vistas.len(), 28, "{vistas:?}");
+        assert!(!include_str!("devices/mod.rs").contains(&["aún no", "se simula"].join(" ")));
     }
 }

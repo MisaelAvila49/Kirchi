@@ -5,6 +5,17 @@ use super::modelos::ModeloDigital;
 use super::{a_s, Nivel, Ps, MAX_CICLOS_DELTA, MAX_PASADAS_ARRANQUE};
 use crate::error::EngineError;
 
+/// Marca de un evento de la cola que despierta a un modelo en vez de cambiar una salida: el resto de sus bits es el modelo.
+const DESPERTAR: u32 = 1 << 31;
+
+/// Despertar pendiente de un modelo: el instante (None si no hay) y la versión que vale (se sube con cada cambio, así el
+/// evento viejo de la cola se descarta).
+#[derive(Clone, Copy, Default)]
+struct Despierta {
+    t: Option<Ps>,
+    version: u32,
+}
+
 #[derive(Clone)]
 struct Salida {
     red: u32,
@@ -39,6 +50,8 @@ pub struct EstadoDigital {
     eventos: u64,
     lazo: Vec<usize>,
     registro: Option<Vec<(Ps, u32, Nivel)>>,
+    en_conflicto: Vec<bool>,
+    despiertan: Vec<Despierta>,
 }
 
 impl EstadoDigital {
@@ -53,6 +66,8 @@ impl EstadoDigital {
             + self.marcado.len()
             + self.lazo.len() * size_of::<usize>()
             + self.registro.as_ref().map_or(0, |r| r.len() * size_of::<(Ps, u32, Nivel)>())
+            + self.en_conflicto.len()
+            + self.despiertan.len() * size_of::<Despierta>()
     }
 }
 
@@ -67,6 +82,11 @@ pub struct Digital {
     puentes: Vec<usize>,
     /// Por red, los modelos que la leen.
     lectores: Vec<Vec<u32>>,
+    /// Por red, las salidas que la manejan. Una red con varias (solo de tres estados) toma el nivel que resuelven entre todas.
+    conductores: Vec<Vec<u32>>,
+    /// Redes con dos salidas a niveles opuestos (0 y 1 a la vez) y las que entraron en conflicto desde la última consulta.
+    en_conflicto: Vec<bool>,
+    conflictos: Vec<u32>,
     /// Los modelos en orden topológico (lo que maneja una red antes que lo que la lee), con cada lazo junto: así el
     /// arranque asienta una cadena en una pasada aunque se haya declarado al revés.
     orden: Vec<usize>,
@@ -82,6 +102,9 @@ pub struct Digital {
     pub eventos: u64,
     lazo: Vec<usize>,
     registro: Option<Vec<(Ps, u32, Nivel)>>,
+    /// Despertar pendiente de cada modelo y cuántos hay (para no recorrerlos cuando ninguno pide).
+    despiertan: Vec<Despierta>,
+    n_despiertan: usize,
 }
 
 impl Digital {
@@ -90,7 +113,9 @@ impl Digital {
         let mut salidas = Vec::new();
         let mut primera = Vec::with_capacity(modelos.len());
         let mut lectores = vec![Vec::new(); redes];
-        let mut conductor: Vec<Option<usize>> = vec![None; redes];
+        let mut conductores: Vec<Vec<u32>> = vec![Vec::new(); redes];
+        // Salidas que pueden compartir red: las de modelos con habilitación.
+        let mut de_bus: Vec<bool> = Vec::new();
         let fuera = |r: u32| (r as usize) >= redes;
         for (k, m) in modelos.iter().enumerate() {
             primera.push(salidas.len());
@@ -107,6 +132,7 @@ impl Digital {
                     return Err(EngineError::Invalid(format!("modelo digital {k}: red {r} fuera de rango")));
                 }
                 salidas.push(Salida { red: r, valor: Nivel::Z, pendiente: None, version: 0 });
+                de_bus.push(m.tres_estados());
             }
         }
         let mut idx_puentes = Vec::with_capacity(puentes.len());
@@ -116,13 +142,16 @@ impl Digital {
             }
             idx_puentes.push(salidas.len());
             salidas.push(Salida { red: r, valor: Nivel::Z, pendiente: None, version: 0 });
+            de_bus.push(false);
         }
         for (s, sal) in salidas.iter().enumerate() {
-            let c = &mut conductor[sal.red as usize];
-            if c.is_some() {
-                return Err(EngineError::Invalid(format!("red digital {}: la manejan dos salidas", sal.red)));
+            conductores[sal.red as usize].push(s as u32);
+        }
+        // A lo más una salida que no sea de tres estados por red, más las de tres estados que haya.
+        for (r, c) in conductores.iter().enumerate() {
+            if c.iter().filter(|&&s| !de_bus[s as usize]).count() > 1 {
+                return Err(EngineError::Invalid(format!("red digital {r}: la manejan dos salidas")));
             }
-            *c = Some(s);
         }
         let n = modelos.len();
         let adj: Vec<Vec<usize>> = modelos
@@ -143,6 +172,9 @@ impl Digital {
             primera,
             puentes: idx_puentes,
             lectores,
+            en_conflicto: vec![false; redes],
+            conflictos: Vec::new(),
+            conductores,
             orden,
             cola: Cola::default(),
             ahora: 0,
@@ -155,6 +187,8 @@ impl Digital {
             eventos: 0,
             lazo: Vec::new(),
             registro: None,
+            despiertan: vec![Despierta::default(); n],
+            n_despiertan: 0,
         })
     }
 
@@ -171,6 +205,8 @@ impl Digital {
             eventos: self.eventos,
             lazo: self.lazo.clone(),
             registro: self.registro.clone(),
+            en_conflicto: self.en_conflicto.clone(),
+            despiertan: self.despiertan.clone(),
         }
     }
 
@@ -186,9 +222,47 @@ impl Digital {
         self.eventos = e.eventos;
         self.lazo.clone_from(&e.lazo);
         self.registro.clone_from(&e.registro);
+        self.en_conflicto.clone_from(&e.en_conflicto);
+        self.despiertan.clone_from(&e.despiertan);
+        self.n_despiertan = self.despiertan.iter().filter(|d| d.t.is_some()).count();
+        self.conflictos.clear();
         self.pendientes.clear();
         self.cambiadas.clear();
         self.nuevas.clear();
+    }
+
+    /// El nivel de la red a partir de lo que manejan sus salidas: Z cede, iguales se mantienen y distintos dan X.
+    fn resolver(&self, red: usize) -> Nivel {
+        let c = &self.conductores[red];
+        if c.len() == 1 {
+            return self.salidas[c[0] as usize].valor;
+        }
+        c.iter().fold(Nivel::Z, |a, &s| a.resolver(self.salidas[s as usize].valor))
+    }
+
+    /// Anota si la red tiene un 0 y un 1 manejados a la vez; la primera vez que ocurre la deja para quien pregunte.
+    fn vigilar_bus(&mut self, red: usize) {
+        if self.conductores[red].len() < 2 {
+            return;
+        }
+        let (mut cero, mut uno) = (false, false);
+        for &s in &self.conductores[red] {
+            match self.salidas[s as usize].valor {
+                Nivel::Cero => cero = true,
+                Nivel::Uno => uno = true,
+                _ => {}
+            }
+        }
+        let hay = cero && uno;
+        if hay && !self.en_conflicto[red] {
+            self.conflictos.push(red as u32);
+        }
+        self.en_conflicto[red] = hay;
+    }
+
+    /// Las redes que entraron en conflicto (dos salidas, una en 0 y otra en 1) desde la última llamada.
+    pub fn tomar_conflictos(&mut self) -> Vec<u32> {
+        std::mem::take(&mut self.conflictos)
     }
 
     pub fn redes(&self) -> usize {
@@ -207,8 +281,14 @@ impl Digital {
     /// `siguiente` y `cabeza` dan el próximo evento que de verdad va a ocurrir.
     fn purgar(&mut self) {
         while let Some((s, v)) = self.cola.version_de_cabeza() {
-            let sal = &self.salidas[s as usize];
-            if v == sal.version && sal.pendiente.is_some() {
+            let vale = if s & DESPERTAR != 0 {
+                let d = &self.despiertan[(s & !DESPERTAR) as usize];
+                v == d.version && d.t.is_some()
+            } else {
+                let sal = &self.salidas[s as usize];
+                v == sal.version && sal.pendiente.is_some()
+            };
+            if vale {
                 break;
             }
             self.cola.descartar_cabeza();
@@ -218,6 +298,15 @@ impl Digital {
     /// Instante del próximo evento programado.
     pub fn siguiente(&self) -> Option<Ps> {
         self.cola.siguiente()
+    }
+
+    /// El instante más próximo en que un modelo pidió despertar. Una isla analógica no debe pasar de él: la evaluación
+    /// puede programar una salida que llegue a sus puentes.
+    pub fn proximo_despertar(&self) -> Option<Ps> {
+        if self.n_despiertan == 0 {
+            return None;
+        }
+        self.despiertan.iter().filter_map(|d| d.t).min()
     }
 
     /// Instante y salida del evento en la cabeza de la cola (puede ser uno cancelado: sirve como cota inferior).
@@ -296,6 +385,17 @@ impl Digital {
     /// de los modelos parten de 0 y se recorren sin retardo hasta que ninguna cambie. Si un lazo no se asienta, se arranca
     /// desde la última pasada y sus modelos se evalúan con su retardo: oscila desde ahí.
     pub fn arrancar(&mut self, puentes: &[Nivel]) {
+        self.arrancar_niveles(puentes);
+        for red in 0..self.conductores.len() {
+            self.vigilar_bus(red);
+        }
+        for k in 0..self.modelos.len() {
+            self.pedir_despertar(k);
+        }
+        self.purgar();
+    }
+
+    fn arrancar_niveles(&mut self, puentes: &[Nivel]) {
         for (k, &n) in puentes.iter().enumerate() {
             let s = self.puentes[k];
             self.salidas[s].valor = n;
@@ -305,7 +405,8 @@ impl Digital {
             for j in 0..self.modelos[k].salidas().len() {
                 let s = self.primera[k] + j;
                 self.salidas[s].valor = Nivel::Cero;
-                self.niveles[self.salidas[s].red as usize] = Nivel::Cero;
+                let r = self.salidas[s].red as usize;
+                self.niveles[r] = self.resolver(r);
             }
         }
         let mut nuevas = Vec::new();
@@ -324,7 +425,8 @@ impl Digital {
                     let s = self.primera[k] + j;
                     if self.salidas[s].valor != n {
                         self.salidas[s].valor = n;
-                        self.niveles[self.salidas[s].red as usize] = n;
+                        let r = self.salidas[s].red as usize;
+                        self.niveles[r] = self.resolver(r);
                         cambio = true;
                     }
                 }
@@ -359,7 +461,7 @@ impl Digital {
             let act: Vec<Nivel> = (0..self.modelos[k].salidas().len()).map(|j| self.salidas[self.primera[k] + j].valor).collect();
             out.clear();
             let ent = std::mem::take(&mut self.ent);
-            self.modelos[k].evaluar(&ent, &act, &mut out);
+            self.modelos[k].evaluar(self.ahora, &ent, &act, &mut out);
             self.ent = ent;
             for &(j, n, _) in &out {
                 let s = &self.salidas[self.primera[k] + j];
@@ -415,6 +517,18 @@ impl Digital {
     }
 
     fn aplicar(&mut self, e: Evento) {
+        if e.salida & DESPERTAR != 0 {
+            let k = (e.salida & !DESPERTAR) as usize;
+            let d = &mut self.despiertan[k];
+            if e.version == d.version && d.t.take().is_some() {
+                self.n_despiertan -= 1;
+                if !self.marcado[k] {
+                    self.marcado[k] = true;
+                    self.pendientes.push(k as u32);
+                }
+            }
+            return;
+        }
         let sal = &mut self.salidas[e.salida as usize];
         if e.version != sal.version {
             return;
@@ -427,10 +541,16 @@ impl Digital {
         let red = sal.red;
         self.eventos += 1;
         let antes = self.niveles[red as usize];
-        self.niveles[red as usize] = e.nivel;
+        let nuevo = self.resolver(red as usize);
+        self.vigilar_bus(red as usize);
+        // En una red compartida el cambio de una salida puede no cambiar lo que resulta.
+        if nuevo == antes {
+            return;
+        }
+        self.niveles[red as usize] = nuevo;
         let m = &mut self.medidas[red as usize];
         m.cambios += 1;
-        if antes != Nivel::Uno && e.nivel == Nivel::Uno {
+        if antes != Nivel::Uno && nuevo == Nivel::Uno {
             if let Some(s0) = m.subida {
                 m.periodo = e.t - s0;
                 m.alto = match m.bajada {
@@ -439,11 +559,11 @@ impl Digital {
                 };
             }
             m.subida = Some(e.t);
-        } else if antes == Nivel::Uno && e.nivel != Nivel::Uno {
+        } else if antes == Nivel::Uno && nuevo != Nivel::Uno {
             m.bajada = Some(e.t);
         }
         if let Some(r) = self.registro.as_mut() {
-            r.push((e.t, red, e.nivel));
+            r.push((e.t, red, nuevo));
         }
         self.cambiadas.push(red);
         for &k in &self.lectores[red as usize] {
@@ -471,13 +591,29 @@ impl Digital {
         self.nuevas.clear();
         let (ent, act) = (std::mem::take(&mut self.ent), std::mem::take(&mut self.act));
         let mut nuevas = std::mem::take(&mut self.nuevas);
-        self.modelos[k].evaluar(&ent, &act, &mut nuevas);
+        self.modelos[k].evaluar(self.ahora, &ent, &act, &mut nuevas);
         for &(j, n, ret) in &nuevas {
             self.programar(self.primera[k] + j, n, ret);
         }
         self.ent = ent;
         self.act = act;
         self.nuevas = nuevas;
+        self.pedir_despertar(k);
+    }
+
+    /// Anota lo que el modelo `k` pide de despertar: uno nuevo reemplaza al pendiente y None lo cancela.
+    fn pedir_despertar(&mut self, k: usize) {
+        let pide = self.modelos[k].despertar().map(|t| t.max(self.ahora));
+        let d = self.despiertan[k];
+        if pide == d.t {
+            return;
+        }
+        let version = d.version.wrapping_add(1);
+        self.n_despiertan = self.n_despiertan + usize::from(pide.is_some()) - usize::from(d.t.is_some());
+        self.despiertan[k] = Despierta { t: pide, version };
+        if let Some(t) = pide {
+            self.cola.programar(Evento { t, salida: DESPERTAR | k as u32, version, nivel: Nivel::Cero });
+        }
     }
 
     /// Retardo inercial: un cambio que aún no ocurre se reemplaza si se pide otro nivel y se cancela si la salida vuelve al
@@ -522,7 +658,7 @@ mod tests {
     use super::*;
 
     fn compuerta(f: Funcion, ent: &[u32], sal: u32, ret: Ps) -> Box<dyn ModeloDigital> {
-        Box::new(Compuerta { f, ent: ent.to_vec(), sal: [sal], subida: ret, bajada: ret, z: X })
+        Box::new(Compuerta { f, ent: ent.to_vec(), sal: [sal], subida: ret, bajada: ret, z: X, hab: None })
     }
 
     /// Procesa los eventos hasta `hasta` (ps) y devuelve los cambios (instante, red, nivel).
@@ -660,6 +796,102 @@ mod tests {
         let mut d = Digital::new(2, vec![compuerta(Funcion::Not, &[0], 1, 1000)], &[]).unwrap();
         d.arrancar(&[]);
         assert_eq!((d.nivel(0), d.nivel(1)), (Nivel::Z, X));
+    }
+
+    /// Un modelo de prueba que pide despertar `cada` ps después de cada evaluación y alterna su salida en cada una.
+    #[derive(Clone)]
+    struct Despertador {
+        ent: [u32; 1],
+        sal: [u32; 1],
+        cada: Ps,
+        proximo: Option<Ps>,
+        alto: bool,
+    }
+
+    impl ModeloDigital for Despertador {
+        fn entradas(&self) -> &[u32] {
+            &self.ent
+        }
+        fn salidas(&self) -> &[u32] {
+            &self.sal
+        }
+        fn z_como(&self) -> Nivel {
+            X
+        }
+        fn iniciar(&mut self, _e: &[Nivel], s: &mut [Nivel]) {
+            s[0] = Cero;
+            self.proximo = Some(self.cada);
+        }
+        fn evaluar(&mut self, ahora: Ps, _e: &[Nivel], _a: &[Nivel], out: &mut Vec<(usize, Nivel, Ps)>) {
+            self.alto = !self.alto;
+            self.proximo = Some(ahora + self.cada);
+            out.push((0, if self.alto { Uno } else { Cero }, 0));
+        }
+        fn despertar(&self) -> Option<Ps> {
+            self.proximo
+        }
+    }
+
+    fn despertador(cada: Ps) -> Box<dyn ModeloDigital> {
+        Box::new(Despertador { ent: [0], sal: [1], cada, proximo: None, alto: false })
+    }
+
+    #[test]
+    fn un_modelo_que_pide_despertar_se_evalua_en_ese_instante_sin_cambio_de_entradas() {
+        let mut d = Digital::new(2, vec![despertador(5000)], &[]).unwrap();
+        d.arrancar(&[]);
+        assert_eq!(d.siguiente(), Some(5000));
+        assert_eq!(d.proximo_despertar(), Some(5000));
+        assert_eq!(correr(&mut d, 16_000), vec![(5000, 1, Uno), (10_000, 1, Cero), (15_000, 1, Uno)]);
+    }
+
+    #[test]
+    fn un_despertar_nuevo_reemplaza_al_pendiente() {
+        // Puente → red 0 que lee el modelo; el despertar inicial es en 5 ns y un cambio de la entrada en 2 ns lo pasa a 7 ns.
+        let mut d = Digital::new(2, vec![despertador(5000)], &[0]).unwrap();
+        d.arrancar(&[Cero]);
+        d.poner_puente(0, 2000, Uno);
+        assert_eq!(correr(&mut d, 8000), vec![(2000, 0, Uno), (2000, 1, Uno), (7000, 1, Cero)]);
+        assert_eq!(d.proximo_despertar(), Some(12_000));
+    }
+
+    #[test]
+    fn retroceder_y_avanzar_conservan_el_despertar() {
+        let mut d = Digital::new(2, vec![despertador(5000)], &[]).unwrap();
+        d.arrancar(&[]);
+        let g = d.guardar();
+        let antes = correr(&mut d, 12_000);
+        d.restaurar(&g);
+        assert_eq!(d.siguiente(), Some(5000));
+        assert_eq!(d.proximo_despertar(), Some(5000));
+        assert_eq!(correr(&mut d, 12_000), antes);
+    }
+
+    #[test]
+    fn una_red_con_un_estado_logico_y_una_compuerta_de_tres_estados_se_acepta() {
+        use super::super::modelos::Habilitacion;
+        // Redes: 0 dato y 1 habilitación (puentes), 2 el bus. El estado lógico maneja 0 y la compuerta, habilitada, maneja 1.
+        let bus = || -> Digital {
+            let compuerta = Compuerta { f: Funcion::Buf, ent: vec![0, 1], sal: [2], subida: 1000, bajada: 1000, z: X, hab: Some(Habilitacion { activo_bajo: false }) };
+            Digital::new(3, vec![Box::new(EstadoLogico { sal: [2], valor: Cero }), Box::new(compuerta)], &[0, 1]).unwrap()
+        };
+        let mut d = bus();
+        d.arrancar(&[Uno, Uno]);
+        assert_eq!(d.nivel(2), X);
+        assert_eq!(d.tomar_conflictos(), vec![2]);
+        // Con la compuerta deshabilitada el estado lógico manda.
+        let mut d = bus();
+        d.arrancar(&[Uno, Cero]);
+        assert_eq!(d.nivel(2), Cero);
+        assert!(d.tomar_conflictos().is_empty());
+    }
+
+    #[test]
+    fn dos_salidas_fijas_siguen_rechazadas_aunque_haya_una_de_tres_estados() {
+        use super::super::modelos::Habilitacion;
+        let tres = Compuerta { f: Funcion::Buf, ent: vec![0, 1], sal: [2], subida: 1000, bajada: 1000, z: X, hab: Some(Habilitacion { activo_bajo: false }) };
+        let e = Digital::new(3, vec![Box::new(EstadoLogico { sal: [2], valor: Cero }), Box::new(EstadoLogico { sal: [2], valor: Uno }), Box::new(tres)], &[0, 1]).err().unwrap();
+        assert_eq!(e, EngineError::Invalid("red digital 2: la manejan dos salidas".into()));
     }
 
     #[test]

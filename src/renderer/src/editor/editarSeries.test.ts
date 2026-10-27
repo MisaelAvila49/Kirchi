@@ -44,7 +44,7 @@ describe('doble clic: serie, catálogo y tabla', () => {
     const { ed, pedidos } = abrir([P('q', 'npn', 'Q1', { modelo: '2N3904' })])
     const p = pedido(ed, pedidos, 'q')
     const i = p.campos.findIndex((c) => c.id === 'prop:modelo')
-    expect(p.campos[i].tabla?.filas.map((f) => f.modelo)).toEqual(['2N2222', '2N3904', 'BC547', 'TIP31', 'TIP120', 'BD139'])
+    expect(p.campos[i].tabla?.filas.map((f) => f.modelo)).toEqual(['2N2222', '2N3904', 'BC547', 'TIP31', 'TIP120', 'BD139', 'BC337', '2N5551', '2N3055'])
     const vals = p.campos.map((c) => c.inicial)
     vals[i] = 'BC547'
     expect(p.aceptar(vals)).toBeNull()

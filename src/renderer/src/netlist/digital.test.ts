@@ -47,6 +47,82 @@ describe('la netlist digital', () => {
     expect(n.elements.find((e) => e.type === 'D')).toMatchObject({ is: 1.5e-17, n: 2 })
   })
 
+  it('una NAND de tres entradas y una XNOR de cuatro llegan al motor con todas sus entradas', () => {
+    const d = armar([
+      estado('E1', '1', 'a'), estado('E2', '1', 'b'), estado('E3', '0', 'c'),
+      { tipo: 'nand-3', ref: 'U1', props: {}, pines: { A: 'a', B: 'b', C: 'c', Y: 'y' } },
+      { tipo: 'xnor-4', ref: 'U2', props: {}, pines: { A: 'a', B: 'b', C: 'c', D: 'a', Y: 'z' } },
+      R('R1', '1k', 'y', '0'), R('R2', '1k', 'z', '0')
+    ])
+    const r = compilar(d)
+    expect(r.errores).toEqual([])
+    const compuertas = r.netlist!.elements.filter((e) => e.type === 'GATE') as Extract<ElementoMotor, { type: 'GATE' }>[]
+    expect(compuertas.map((g) => [g.fn, g.inputs.length])).toEqual([['nand', 3], ['xnor', 4]])
+  })
+
+  it('un inversor Schmitt sobre una red analógica lleva un puente con histéresis y los umbrales de disparo de su familia', () => {
+    const d = armar([
+      { tipo: 'fuente-ac', ref: 'V1', props: {}, pines: { '+': 'a', '-': '0' } },
+      { tipo: 'not-schmitt', ref: 'U1', props: {}, pines: { A: 'a', Y: 'y' } },
+      R('R1', '1k', 'y', '0')
+    ])
+    const r = compilar(d)
+    expect(r.errores).toEqual([])
+    const adc = r.netlist!.elements.find((e) => e.type === 'ADC') as Extract<ElementoMotor, { type: 'ADC' }>
+    expect(adc.histeresis).toBe(true)
+    expect([adc.in_low, adc.in_high].map((v) => Math.round(v * 100) / 100)).toEqual([1.73, 2.77])
+  })
+
+  it('una entrada común no lleva histéresis', () => {
+    const d = armar([{ tipo: 'fuente-dc', ref: 'V1', props: { voltaje: '5' }, pines: { '+': 'a', '-': '0' } }, { tipo: 'not', ref: 'U1', props: {}, pines: { A: 'a', Y: 'y' } }, R('R1', '1k', 'y', '0')])
+    const adc = compilar(d).netlist!.elements.find((e) => e.type === 'ADC') as Extract<ElementoMotor, { type: 'ADC' }>
+    expect(adc.histeresis).toBeUndefined()
+  })
+
+  it('dos búferes de tres estados en una red solo digital comparten una red del motor, sin puente de salida', () => {
+    const bufer = (ref: string, a: string, oe: string): Parte => ({ tipo: 'buffer-3-estados', ref, props: {}, pines: { A: a, OE: oe, Y: 'bus' } })
+    const d = armar([estado('E1', '1', 'a'), estado('E2', '0', 'b'), estado('E3', '0', 'oe1'), estado('E4', '1', 'oe2'), bufer('U1', 'a', 'oe1'), bufer('U2', 'b', 'oe2'), nand('U3', 'bus', 'bus', 'y'), R('R1', '1k', 'y', '0')])
+    const r = compilar(d)
+    expect(r.errores).toEqual([])
+    const n = r.netlist!
+    const compuertas = n.elements.filter((e) => e.type === 'GATE' && e.fn === 'buf') as Extract<ElementoMotor, { type: 'GATE' }>[]
+    expect(compuertas).toHaveLength(2)
+    expect(compuertas[0].output).toBe(compuertas[1].output)
+    expect(compuertas.map((g) => [g.enable_bajo, g.enable !== undefined])).toEqual([[true, true], [true, true]])
+    // El único puente de salida es el de la NAND.
+    expect(n.elements.filter((e) => e.type === 'DAC')).toHaveLength(1)
+  })
+
+  it('dos búferes de tres estados sobre una red analógica llevan cada uno su puente de salida en alta impedancia', () => {
+    const bufer = (ref: string, a: string, oe: string): Parte => ({ tipo: 'buffer-3-estados', ref, props: {}, pines: { A: a, OE: oe, Y: 'bus' } })
+    const d = armar([estado('E1', '1', 'a'), estado('E2', '0', 'b'), estado('E3', '0', 'oe1'), estado('E4', '1', 'oe2'), bufer('U1', 'a', 'oe1'), bufer('U2', 'b', 'oe2'), R('R1', '1k', 'bus', '0')])
+    const r = compilar(d)
+    expect(r.errores).toEqual([])
+    const dacs = r.netlist!.elements.filter((e) => e.type === 'DAC') as Extract<ElementoMotor, { type: 'DAC' }>[]
+    expect(dacs.map((x) => x.z)).toEqual([true, true])
+    expect(dacs[0].out).toBe(dacs[1].out)
+  })
+
+  it('un búfer de tres estados y una compuerta común en la misma red se aceptan: una salida fija más las de tres estados', () => {
+    const d = armar([estado('E1', '1', 'a'), estado('E2', '0', 'oe'), { tipo: 'buffer-3-estados', ref: 'U1', props: {}, pines: { A: 'a', OE: 'oe', Y: 'y' } }, nand('U2', 'a', 'a', 'y'), R('R1', '1k', 'y', '0')])
+    expect(compilar(d).errores).toEqual([])
+    expect(avisosDelCircuito(d, calcularConexiones(d, lib), lib).map((a) => a.texto).filter((t) => t.includes('manejan la misma red'))).toEqual([])
+  })
+
+  it('dos compuertas comunes y un búfer de tres estados en la misma red siguen sin simular y el aviso nombra solo las comunes', () => {
+    const d = armar([
+      estado('E1', '1', 'a'), estado('E2', '0', 'oe'),
+      { tipo: 'buffer-3-estados', ref: 'U1', props: {}, pines: { A: 'a', OE: 'oe', Y: 'y' } },
+      nand('U2', 'a', 'a', 'y'), nand('U3', 'a', 'a', 'y'), R('R1', '1k', 'y', '0')
+    ])
+    expect(compilar(d).errores).toContain('U2 y U3 manejan la misma red: une sus salidas con una compuerta, no con un cable.')
+  })
+
+  it('una salida común no lleva la marca de alta impedancia', () => {
+    const d = armar([estado('E1', '1', 'a'), nand('U1', 'a', 'a', 'y'), R('R1', '1k', 'y', '0')])
+    expect((compilar(d).netlist!.elements.find((e) => e.type === 'DAC') as Extract<ElementoMotor, { type: 'DAC' }>).z).toBeUndefined()
+  })
+
   it('una entrada en la tierra lee 0 sin puente y una sobre una fuente lleva un puente con los umbrales de su familia', () => {
     const d = armar([
       { tipo: 'fuente-dc', ref: 'V1', props: { voltaje: '5' }, pines: { '+': 'vcc', '-': '0' } },

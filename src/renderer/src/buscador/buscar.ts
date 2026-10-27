@@ -89,6 +89,7 @@ export function buscar(consulta: string, lib: Map<string, PiezaDef>, recientes: 
   }
   const out: Resultado[] = []
   for (const def of lib.values()) {
+    if (def.oculta) continue
     if (def.modelo?.tipo === 'alimentacion') {
       const r = terminalBuscado(def, consulta, palabras, valor)
       if (r) out.push(r)

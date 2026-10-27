@@ -30,7 +30,7 @@ describe('los máximos absolutos de la librería', () => {
   const conMaximos = [...lib.values()].filter((d) => d.limites?.absolutos)
 
   it('las piezas con modelos comerciales los traen, cada juego con su hoja de datos', () => {
-    expect(conMaximos.map((d) => d.id).sort()).toEqual(['amp-op', 'comparador', 'diodo', 'mosfet-n', 'mosfet-p', 'npn', 'pnp', 'regulador-ajustable', 'regulador-negativo', 'regulador-positivo', 'temporizador-555', 'triac', 'zener'])
+    expect(conMaximos.map((d) => d.id).sort()).toEqual(['amp-op', 'comparador', 'diodo', 'igbt', 'ina128', 'jfet-n', 'jfet-p', 'l298', 'ldr', 'lm35', 'lm386', 'mosfet-n', 'mosfet-p', 'npn', 'ntc', 'optoacoplador-4n25', 'optoacoplador-pc817', 'pnp', 'ptc', 'regulador-ajustable', 'regulador-negativo', 'regulador-positivo', 'temporizador-555', 'tl431', 'tmp36', 'triac', 'ujt', 'zener'])
     for (const d of conMaximos) {
       const a = d.limites!.absolutos!
       const opciones = a.prop ? d.props.find((p) => p.id === a.prop)!.opciones! : ['*']
@@ -40,18 +40,18 @@ describe('los máximos absolutos de la librería', () => {
         expect(v.fuente.length, `${d.id}.${o}`).toBeGreaterThan(30)
         expect(v.fuente, `${d.id}.${o}`).not.toMatch(/—/)
       }
-      // Todas las opciones de las piezas de transistores y amplificadores llevan máximos; el diodo «Genérico» no tiene hoja.
-      if (d.id !== 'diodo') expect(Object.keys(a.valores).sort(), d.id).toEqual([...opciones].sort())
+      // Todas las opciones de las piezas de transistores y amplificadores llevan máximos; el diodo «Genérico» y el amplificador «Ideal» no tienen hoja.
+      if (d.id !== 'diodo') expect(Object.keys(a.valores).sort(), d.id).toEqual(opciones.filter((o) => o !== 'Ideal').sort())
     }
-    expect(Object.keys(lib.get('diodo')!.limites!.absolutos!.valores)).toEqual(['1N4148', '1N4007', '1N5819'])
+    expect(Object.keys(lib.get('diodo')!.limites!.absolutos!.valores)).toEqual(['1N4148', '1N4007', '1N5819', '1N4001'])
   })
 
-  it('amplificadores: la alimentación de la hoja (TL081 y LM741 ±18 V, LM358 32 V, OP07 y NE5532 ±22 V, TLV9002 6 V)', () => {
+  it('amplificadores: la alimentación de la hoja (TL081 y LM741 ±18 V, LM358 32 V, OP07 y NE5532 ±22 V, TLV9002 6 V, MCP6002 7 V, OP27 ±22 V)', () => {
     const alim = (modelo: string) => {
       const p = { id: 'p', tipo: 'amp-op', ref: 'U1', x: 0, y: 0, rot: 0 as const, espejo: false, props: { modelo } }
       return juegoDe(p, lib.get('amp-op')!)!.limites.find((x) => x.nombre.startsWith('alimentación'))!.max
     }
-    expect(['LM741', 'TL081', 'LM358', 'LM324', 'OP07', 'NE5532', 'TLV9002'].map(alim)).toEqual([36, 36, 32, 32, 44, 44, 6])
+    expect(['LM741', 'TL081', 'LM358', 'LM324', 'OP07', 'NE5532', 'TLV9002', 'MCP6002', 'OP27'].map(alim)).toEqual([36, 36, 32, 32, 44, 44, 6, 7, 44])
   })
 
   it('las entradas, el diodo, el Zener, el 555 y los reguladores traen lo que pide la nota', () => {
@@ -70,6 +70,15 @@ describe('los máximos absolutos de la librería', () => {
     tiene('npn', '2N2222', 'Vce', 40)
     tiene('mosfet-n', 'IRF540N', 'Vds', 100)
     tiene('mosfet-n', 'IRLZ44N', 'Vgs', 16)
+  })
+
+  it('el Vbe inverso mide la base al revés: del emisor a la base en un NPN y de la base al emisor en un PNP', () => {
+    for (const [id, de, a] of [['npn', 'E', 'B'], ['pnp', 'B', 'E']]) {
+      for (const [modelo, j] of Object.entries(lib.get(id)!.limites!.absolutos!.valores)) {
+        const x = j.limites.find((l) => l.nombre === 'Vbe inverso')!
+        expect([x.de, x.a], `${id} ${modelo}`).toEqual([de, a])
+      }
+    }
   })
 })
 

@@ -14,6 +14,9 @@
 
 /* ---------- Referencia arriba a la derecha, en un recuadro que se nota editable ---------- */
 .caja-referencia-envoltura { position: relative; flex: none; margin-left: auto; }
+.selector-unidad { position: relative; flex: none; display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-size: 12px; color: var(--texto-secundario); }
+.selector-unidad select.campo { width: auto; min-width: 4.5rem; height: 26px; font-size: 12px; }
+.selector-unidad + .caja-referencia-envoltura { margin-left: 6px; }
 .caja-referencia { display: inline-flex; align-items: center; gap: 4px; padding: 0 6px 0 8px; border: 1px solid var(--borde-campo); border-radius: 6px; background: var(--lienzo); }
 .caja-referencia:focus-within { outline: 2px solid var(--seleccion); outline-offset: 0; }
 .caja-referencia.invalida { border-color: var(--invalido); }
@@ -208,3 +211,28 @@
 .ficha-texto-ayuda kbd { padding: 0 5px; border: 1px solid var(--borde-campo); border-radius: 4px; font: 500 11px var(--fuente-cifras); }
 .en-linea-botones { display: flex; gap: 6px; margin: 8px 0 0; }
 .en-linea-botones .boton { flex: 1 1 0; height: 28px; font-size: 12px; }
+
+/* «Datos de la pieza» del inspector: la tabla de patillas y las filas de huella, LCSC y hoja, a 280 px. */
+.seccion-datos > .datos-dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; margin: 4px 0; font-size: 12px; }
+.seccion-datos .datos-dl dt { color: var(--texto-secundario); }
+.seccion-datos .datos-dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.seccion-datos .datos-tabla { width: 100%; margin: 6px 0; border-collapse: collapse; font-size: 12px; }
+.seccion-datos .datos-tabla th { padding: 2px 4px; border-bottom: 1px solid var(--bordes); color: var(--texto-secundario); font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-align: left; text-transform: uppercase; }
+.seccion-datos .datos-tabla td { padding: 2px 4px; }
+.seccion-datos .datos-tabla tr + tr td { border-top: 1px solid var(--bordes); }
+.seccion-datos .datos-tabla .atenuada td { color: var(--texto-secundario); }
+.seccion-datos .datos-linea { margin: 4px 0; font-size: 11.5px; }
+.seccion-datos .datos-linea:empty { display: none; }
+.seccion-datos .datos-fila { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0; }
+.seccion-datos .datos-rotulo { flex: 1 1 auto; color: var(--texto-secundario); font-size: 11px; }
+.seccion-datos .datos-id { flex: 1 1 100%; font-size: 10.5px; overflow-wrap: anywhere; }
+.seccion-datos .datos-marca { padding: 1px 5px; border-radius: 4px; background: var(--ambar-suave); color: var(--ambar-texto); font-size: 10.5px; }
+.seccion-datos .datos-hoja { width: 100%; margin-top: 8px; }
+
+/* Perillas en vivo (inspector y Mediciones) y gráfica miniatura de la fuente PWL. */
+.perillas { margin: 8px 0; }
+.perillas-pista { margin: 0 0 6px; padding: 5px 8px; border-radius: 4px; background: var(--chip); color: var(--trazo); font-size: 12px; }
+.perillas-compacta { margin: 0 0 10px; }
+.pwl-mini { margin: 8px 0; color: var(--trazo); }
+.pwl-mini svg { display: block; width: 100%; height: auto; border-radius: 4px; background: var(--chip); }
+.pwl-mini figcaption { margin-top: 3px; font-size: 11.5px; }

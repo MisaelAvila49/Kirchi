@@ -1,0 +1,159 @@
+{
+  "id": "ntc",
+  "nombre": { "es": "Termistor NTC", "en": "NTC thermistor" },
+  "categoria": "pasivos",
+  "prefijo": "TH",
+  "buscar": ["ntc", "termistor", "thermistor", "th", "temperatura", "resistencia ntc", "ntcle100", "limitador de arranque"],
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -4, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 4, "y": 0 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "defecto": "10 kΩ", "opciones": ["10 kΩ", "100 kΩ", "Arranque 5 Ω"] },
+    {
+      "id": "temperatura",
+      "nombre": "Temperatura",
+      "unidad": "°C",
+      "defecto": "25",
+      "enVivo": { "magnitud": "temperatura", "min": -40, "max": 125, "paso": 5, "pasoFino": 1 }
+    },
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Ambos", "opciones": ["Nada", "Ajuste", "Resistencia", "Ambos"], "omitir": true }
+  ],
+  "modelo": {
+    "tipo": "termistor",
+    "a": "1",
+    "b": "2",
+    "prop": "modelo",
+    "modelos": {
+      "10 kΩ": { "r25": 10000, "beta": 3977, "delta": 0.007, "tau": 15, "tmax": 150 },
+      "100 kΩ": { "r25": 100000, "beta": 4190, "delta": 0.007, "tau": 15, "tmax": 150 },
+      "Arranque 5 Ω": { "r25": 5, "beta": 2668, "delta": 0.016, "tau": 38, "tmax": 200 }
+    },
+    "tablas": {
+      "10 kΩ": [
+        [-40, 332094], [-35, 239900], [-30, 175200], [-25, 129287], [-20, 96358], [-15, 72500], [-10, 55046], [-5, 42157], [0, 32554], [5, 25339],
+        [10, 19872], [15, 15698], [20, 12488], [25, 10000], [30, 8059], [35, 6535], [40, 5330], [45, 4372], [50, 3605], [55, 2989], [60, 2490],
+        [65, 2084], [70, 1753], [75, 1481], [80, 1256], [85, 1070], [90, 915.4], [95, 786], [100, 677.3], [105, 585.7], [110, 508.3], [115, 442.6],
+        [120, 386.6], [125, 338.7], [130, 297.7], [135, 262.4], [140, 231.9], [145, 205.5], [150, 182.6]
+      ],
+      "100 kΩ": [
+        [-40, 3666000], [-35, 2638000], [-30, 1917000], [-25, 1406000], [-20, 1041000], [-15, 777800], [-10, 586100], [-5, 445300], [0, 340900],
+        [5, 263100], [10, 204400], [15, 160000], [20, 126100], [25, 100000], [30, 79810], [35, 64080], [40, 51750], [45, 42020], [50, 34310],
+        [55, 28160], [60, 23220], [65, 19250], [70, 16020], [75, 13400], [80, 11260], [85, 9496], [90, 8042], [95, 6837], [100, 5835], [105, 4998],
+        [110, 4296], [115, 3705], [120, 3206], [125, 2783], [130, 2423], [135, 2116], [140, 1854], [145, 1628], [150, 1434]
+      ]
+    },
+    "temperatura": "temperatura"
+  },
+  "rotulos": [
+    { "texto": "−t°", "x": -2.6, "y": -2.8, "tam": 1.6 }
+  ],
+  "fuentes": {
+    "10 kΩ": "Vishay, NTCLE100E3 (doc. 29049, rev. 07-May-2025), https://www.vishay.com/docs/29049/ntcle100.pdf: R25 de 10 kΩ y B25/85 de 3977 K (p. 1) y la tabla R/T de la p. 10 (39 puntos de -40 a 150 °C cada 5 K), interpolada en ln R. B queda de respaldo: con una sola B el error contra la tabla llega a 4 % entre 0 y 100 °C. Factor de disipación de 7 mW/K y constante térmica de 15 s de la p. 1 (ambos solo informativos; en la hoja se perdió el signo de la condición de R25 que separa 7 de 8.5 mW/K y se tomó 7 por el disco mayor de los valores bajos, con reserva). Se quema en 150 °C, el máximo por periodos cortos (125 °C en continuo).",
+    "100 kΩ": "Vishay, NTCLE100E3 (doc. 29049, rev. 07-May-2025), https://www.vishay.com/docs/29049/ntcle100.pdf: R25 de 100 kΩ y B25/85 de 4190 K (p. 1) y la tabla R/T de la p. 12 (39 puntos de -40 a 150 °C cada 5 K, en kΩ en la hoja), interpolada en ln R. Disipación de 7 mW/K y constante térmica de 15 s como el de 10 kΩ, con la misma reserva. Se quema en 150 °C.",
+    "Arranque 5 Ω": "Thinking Electronic, serie SCK, SCK08053 (rev. 2012.08, copia de Rapid): R25 de 5 Ω, Imax de 3 A, 0.261 Ω a Imax, Pmax de 2.3 W, disipación de unos 16 mW/°C, constante térmica de unos 38 s y rango de -40 a 170 °C. La hoja no publica B ni tabla R/T: B de 2668 K es un ajuste de Kirchi a un punto (a Imax la potencia de 2.35 W lleva el cuerpo a unos 172 °C con 16 mW/°C y de ahí sale B con 5 Ω y 0.261 Ω; con 15 y 17 mW/°C salen 2556 y 2780 K), así que la curva es aproximada. Se quema en 200 °C, un valor del modelo sin respaldo en la hoja: así la pieza no se quema con su corriente máxima, que la deja a unos 172 °C."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:Thermistor_NTC" },
+    "valores": {
+      "10 kΩ": {
+        "fabricante": "Vishay",
+        "parte": "NTCLE100E3103JB0",
+        "hoja": "https://www.vishay.com/docs/29049/ntcle100.pdf",
+        "presentaciones": [
+          { "encapsulado": "Disco", "patillas": { "1": "1", "2": "2" } }
+        ],
+        "pendiente": {
+          "huella": "KiCad 9.0 no trae huella de termistor radial de 2.54 mm de paso. La hoja (p. 2) da P = 2.54 mm, alambre d = 0.6 ± 0.06 mm y B máx. 5.0 mm para el renglón «3.3 a 220»; la unidad k de ese renglón se perdió en la extracción del PDF, así que el 10 kΩ caiga en B máx. 5.0 mm no es determinable con certeza.",
+          "lcsc": "No se halló número LCSC del NTCLE100E3103. La letra de tolerancia del código de pedido (J = 5 %, H = 3 %, G = 2 %) la fija el comprador; aquí se muestra J."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Vishay NTCLE100E3 (documento 29049, revisión 07-May-2025): p. 1, R25 10 000 Ω y B25/85 = 3977 K ± 0.75 %; p. 1, componente de dos alambres de cobre estañado sin polaridad; p. 10, tabla R/T. Segunda fuente de patillas: Device:Thermistor_NTC de KiCad 9 (pines 1 y 2, pasivos y simétricos)"
+        },
+        "nota": "El «B 3950» de los kits baratos (B25/50, sin fabricante) no tiene hoja localizable; se usa este 10 kΩ de Vishay (B25/85 = 3977 K, otra definición de B, misma familia de valores)."
+      },
+      "100 kΩ": {
+        "fabricante": "Vishay",
+        "parte": "NTCLE100E3104JB0",
+        "hoja": "https://www.vishay.com/docs/29049/ntcle100.pdf",
+        "presentaciones": [
+          { "encapsulado": "Disco", "patillas": { "1": "1", "2": "2" } }
+        ],
+        "pendiente": {
+          "huella": "Igual que el 10 kΩ: sin huella equivalente en KiCad 9.0; cotas de la hoja p. 2 (P 2.54 mm, d 0.6 mm).",
+          "lcsc": "No se halló número LCSC del NTCLE100E3104."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Vishay NTCLE100E3 (29049, 07-May-2025): p. 1, R25 100 000 Ω y B25/85 = 4190 K ± 1.5 %; p. 12, tabla R/T. Patillas: Device:Thermistor_NTC de KiCad 9"
+        }
+      },
+      "Arranque 5 Ω": {
+        "fabricante": "Thinking Electronic",
+        "parte": "SCK08053",
+        "presentaciones": [
+          { "encapsulado": "Disco", "patillas": { "1": "1", "2": "2" } }
+        ],
+        "pendiente": {
+          "hoja": "El fabricante no dio una URL propia que bajara; se leyeron dos revisiones (2012.08 en la copia de Rapid, static.rapidonline.com/pdf/26-7612.pdf, y 2008.03 en la copia de Tayda, taydaelectronics.com/datasheets/files/A-4279.PDF). El dominio thinking.com.tw no está en la lista de datosCompletos.test.ts.",
+          "huella": "Sin huella en KiCad 9.0. Cotas de la serie SCK08 (hoja, PDF p. 2 de la revisión 2012.08): D máx. 9.5 mm, P 5 ± 0.8 mm, d 0.8 ± 0.02 mm.",
+          "lcsc": "No se halló número LCSC del SCK08053. El código de pedido completo añade tolerancia (L ±15 %, M ±20 %, N ±25 %), forma del alambre (S recto) y sufijo, que no se fijaron.",
+          "alternativa": "TDK B57236S0509M000 (5 Ω, 4.5 A, B 2800 K según Arrow y Farnell, disipación 10 mW/K y τ 70 s según una copia archivada de 2012): su hoja no se pudo bajar (403), solo hay listados de distribuidores; no se usa."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Thinking SCK (rev. 2012.08) tabla «Electrical Characteristics»: SCK08053, R25 5 Ω, Imax 3 A, RImax 0.261 Ω, Pmax 2.3 W, disipación ≈16 mW/°C, constante térmica ≈38 s, -40 a +170 °C; la revisión 2008.03 da los mismos números de R25, Imax y RImax. Patillas: dos alambres, sin polaridad (Device:Thermistor_NTC de KiCad 9)"
+        }
+      }
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "10 kΩ": {
+          "fuente": "Vishay, NTCLE100E3 (29049), p. 1: potencia máxima de 500 mW a 55 °C, con deración lineal hasta 125 °C.",
+          "limites": [
+            {
+              "nombre": "potencia",
+              "medida": "potencia",
+              "max": 0.5,
+              "sinQuema": true,
+              "consejo": "baja el voltaje sobre el termistor o agrega una resistencia en serie."
+            }
+          ]
+        },
+        "100 kΩ": {
+          "fuente": "Vishay, NTCLE100E3 (29049), p. 1: potencia máxima de 500 mW a 55 °C, con deración lineal hasta 125 °C.",
+          "limites": [
+            {
+              "nombre": "potencia",
+              "medida": "potencia",
+              "max": 0.5,
+              "sinQuema": true,
+              "consejo": "baja el voltaje sobre el termistor o agrega una resistencia en serie."
+            }
+          ]
+        },
+        "Arranque 5 Ω": {
+          "fuente": "Thinking Electronic, SCK08053 (rev. 2012.08): corriente máxima en régimen de 3 A a 25 °C.",
+          "limites": [
+            {
+              "nombre": "corriente",
+              "medida": "corriente",
+              "max": 3,
+              "sinQuema": true,
+              "consejo": "agrega una resistencia en serie que limite la corriente en régimen a 3 A."
+            }
+          ]
+        }
+      }
+    }
+  },
+  "etiquetas": {
+    "ref": { "x": 5, "y": -3 },
+    "valor": { "x": 5, "y": 3 }
+  }
+}

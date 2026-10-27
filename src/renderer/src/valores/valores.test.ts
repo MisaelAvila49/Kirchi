@@ -174,3 +174,19 @@ describe('leerEnUnidad: lo que el lector escribe en un campo de rango', () => {
     for (const [v, u] of [[1e6, 'Hz'], [2.5e-3, 's'], [-0.0005, 'V'], [-3.01, 'dB'], [-45, '°']] as const) expect(leerEnUnidad(formatearSI(v, u), u)).toBeCloseTo(v, 9)
   })
 })
+
+describe('unidades de las perillas en vivo', () => {
+  it('°C, lx y N·m se leen, con o sin espacio y con prefijo', () => {
+    expect(leerValor('85 °C')).toEqual({ valor: 85, unidad: '°C' })
+    expect(leerValor('-40°C')).toEqual({ valor: -40, unidad: '°C' })
+    expect(leerValor('300 lx')).toEqual({ valor: 300, unidad: 'lx' })
+    expect(leerValor('2k lx')).toEqual({ valor: 2000, unidad: 'lx' })
+    expect(leerValor('50 mN·m')!.unidad).toBe('N·m')
+    expect(leerValor('5 grados')).toBeNull()
+  })
+
+  it('se escriben con su unidad', () => {
+    expect(formatearValor(85, '°C')).toBe('85 °C')
+    expect(formatearValor(20000, 'lx')).toBe('20 klx')
+  })
+})

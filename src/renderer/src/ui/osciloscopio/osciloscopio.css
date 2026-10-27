@@ -96,6 +96,7 @@ div.osc-mando-titulo > h3 { margin: 0; font: inherit; letter-spacing: inherit; c
 .osc-segmentos button[aria-pressed='true'] { background: var(--seleccion); color: var(--sobre-seleccion); }
 .osc-fila { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .osc-cursores { margin: 2px 0 0; color: var(--c-texto, var(--trazo)); white-space: pre; }
+.osc-cursores-linea { display: block; }
 .osc-tabla { border-collapse: collapse; font-size: 11px; }
 .osc-tabla th, .osc-tabla td { padding: 1px 6px; text-align: right; border-bottom: 1px solid var(--bordes); }
 

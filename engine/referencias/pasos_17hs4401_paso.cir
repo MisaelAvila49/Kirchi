@@ -1,0 +1,16 @@
+* Motor 17HS4401 con dos fuentes de 12 V y 6 Ohm en serie por fase: un paso completo: la fase A se apaga y la B se enciende a los 30 ms
+*@generar pasos mp {"r":1.5,"l":0.0028,"km":0.1664,"dientes":50,"td":0.022,"j":0.0000054,"bm":0.0023}
+V1 na 0 PWL(0 12 0.03 12 0.03001 0 0.08 0)
+R1 na ma 6
+V2 nb 0 PWL(0 0 0.03 0 0.03001 12 0.08 12)
+R2 nb mb 6
+X1 ma 0 mb 0 mp tc=0
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20u 0.08 0 20u uic
+wrdata salida.txt v(ma) v(mb) i(v1) i(v2) v(x1.w) v(x1.th)
+.endc
+.end

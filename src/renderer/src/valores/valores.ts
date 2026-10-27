@@ -1,7 +1,7 @@
 /** Exponentes de los prefijos SI aceptados; «R» marca el punto decimal en resistencias («4R7»). */
 const EXPONENTES: Record<string, number> = { f: -15, p: -12, n: -9, u: -6, 'µ': -6, 'μ': -6, m: -3, R: 0, k: 3, K: 3, M: 6, G: 9, T: 12 }
-const UNIDADES: Record<string, string> = { 'Ω': 'Ω', ohm: 'Ω', ohms: 'Ω', F: 'F', H: 'H', V: 'V', A: 'A', W: 'W', Hz: 'Hz', s: 's' }
-const RE = /^([+-]?)(\d+(?:\.\d+)?|\.\d+)\s*([fpnuµμmRkKMGT]?)(\d*)\s*([A-Za-zΩ]*)$/
+const UNIDADES: Record<string, string> = { 'Ω': 'Ω', ohm: 'Ω', ohms: 'Ω', F: 'F', H: 'H', V: 'V', A: 'A', W: 'W', Hz: 'Hz', s: 's', '°C': '°C', lx: 'lx', 'N·m': 'N·m' }
+const RE = /^([+-]?)(\d+(?:\.\d+)?|\.\d+)\s*([fpnuµμmRkKMGT]?)(\d*)\s*([A-Za-zΩ°·]*)$/
 
 export interface Valor {
   valor: number

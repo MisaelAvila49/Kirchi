@@ -1,0 +1,214 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "documento": "TI CD74HC190 (SCHS275E)",
+   "paginas": "14",
+   "caminos": [
+    {
+     "de": "LOAD",
+     "a": "Q",
+     "tPLH": {
+      "tip": 16,
+      "max": 39
+     },
+     "tPHL": {
+      "tip": 16,
+      "max": 39
+     }
+    },
+    {
+     "de": "A, B, C, D",
+     "a": "Q",
+     "tPLH": {
+      "tip": 14,
+      "max": 35
+     },
+     "tPHL": {
+      "tip": 14,
+      "max": 35
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "Q",
+     "tPLH": {
+      "tip": 14,
+      "max": 34
+     },
+     "tPHL": {
+      "tip": 14,
+      "max": 34
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "RCO",
+     "tPLH": {
+      "tip": 10,
+      "max": 25
+     },
+     "tPHL": {
+      "tip": 10,
+      "max": 25
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "MAX/MIN",
+     "tPLH": {
+      "tip": 18,
+      "max": 42
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 42
+     }
+    },
+    {
+     "de": "D/U",
+     "a": "RCO",
+     "tPLH": {
+      "tip": 12,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 12,
+      "max": 30
+     }
+    },
+    {
+     "de": "D/U",
+     "a": "MAX/MIN",
+     "tPLH": {
+      "tip": 13,
+      "max": 33
+     },
+     "tPHL": {
+      "tip": 13,
+      "max": 33
+     }
+    },
+    {
+     "de": "CTEN",
+     "a": "RCO",
+     "tPLH": {
+      "tip": 10,
+      "max": 25
+     },
+     "tPHL": {
+      "tip": 10,
+      "max": 25
+     }
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS190 (SDLS072)",
+   "paginas": "10",
+   "caminos": [
+    {
+     "de": "LOAD",
+     "a": "Q",
+     "tPLH": {
+      "tip": 22,
+      "max": 33
+     },
+     "tPHL": {
+      "tip": 33,
+      "max": 50
+     }
+    },
+    {
+     "de": "A, B, C, D",
+     "a": "Q",
+     "tPLH": {
+      "tip": 20,
+      "max": 32
+     },
+     "tPHL": {
+      "tip": 27,
+      "max": 40
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "RCO",
+     "tPLH": {
+      "tip": 13,
+      "max": 20
+     },
+     "tPHL": {
+      "tip": 16,
+      "max": 24
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "Q",
+     "tPLH": {
+      "tip": 16,
+      "max": 24
+     },
+     "tPHL": {
+      "tip": 24,
+      "max": 36
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "MAX/MIN",
+     "tPLH": {
+      "tip": 28,
+      "max": 42
+     },
+     "tPHL": {
+      "tip": 37,
+      "max": 52
+     }
+    },
+    {
+     "de": "D/U",
+     "a": "RCO",
+     "tPLH": {
+      "tip": 30,
+      "max": 45
+     },
+     "tPHL": {
+      "tip": 30,
+      "max": 45
+     }
+    },
+    {
+     "de": "D/U",
+     "a": "MAX/MIN",
+     "tPLH": {
+      "tip": 21,
+      "max": 33
+     },
+     "tPHL": {
+      "tip": 22,
+      "max": 33
+     }
+    },
+    {
+     "de": "CTEN",
+     "a": "RCO",
+     "tPLH": {
+      "tip": 21,
+      "max": 33
+     },
+     "tPHL": {
+      "tip": 22,
+      "max": 33
+     }
+    }
+   ]
+  }
+ }
+}

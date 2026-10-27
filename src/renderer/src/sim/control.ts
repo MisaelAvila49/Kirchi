@@ -9,6 +9,7 @@ import { armarReparto, type Reparto } from '../conexiones/corrientes'
 import { limitesDelCircuito, VigiaDeAvisos, VigiaDeReinicio, type LimitePieza } from './avisos'
 import { VigiaDeQuemado } from './quemado'
 import { MAX_ELEMENTS, MAX_NODES, MAX_REDES_DIGITALES, type CambioEnCaliente, type EventoFundido, type SimReading } from './protocol'
+import { textoEnVivo } from '../valores/enVivo'
 import { basesDeTiempo, escalaDeVoltaje, leerResultados, PASO_VISTA, pasoDeSimulacion, pasoDeVistaPrevia, type Lectura, type MedicionPieza } from './lectura'
 import { Histeresis } from '../ui/histeresis'
 import { VigiaDeSobrecorriente } from './sobrecorriente'
@@ -74,7 +75,12 @@ export interface DependenciasSim {
   quemar?(): boolean
   /** El reloj en ms (el segundo de permanencia de los avisos); las pruebas lo cambian. */
   reloj?(): number
+  /** El motor rechazó el último valor de una perilla: el editor vuelve a `texto` (`Editor.revertirEnCaliente`). */
+  revertirPerilla?(id: Id, propId: string, texto: string): void
 }
+
+/** Cambios de perilla por segundo que se mandan al motor; si llegan más, el último gana. */
+export const PERILLA_POR_SEGUNDO = 60
 
 /** Retroceder: los últimos avances que guarda el motor (el mismo número que `ESTADOS_MAX` del motor). */
 export const RETROCESOS_MAX = 200
@@ -194,6 +200,8 @@ export function mensajeDelMotor(m: string, pieza?: (elemento: number) => { ref: 
   }
   if (m.startsWith('matriz singular')) {
     const donde = dueno ? ` cerca de ${dueno.ref}` : ''
+    // Una fuente controlada en lazo es la causa habitual: se sugiere lo que la deshace.
+    if (dueno?.tipo === 'controlada') return `La vista previa se detuvo: el circuito no tiene solución${donde}; cambia su ganancia o agrega una resistencia en el lazo.`
     return `La vista previa se detuvo: el circuito no tiene solución${donde}; revisa que cada red llegue a tierra y que no haya fuentes de voltaje en paralelo.`
   }
   const t = /^no convergió en t = (\S+) s(?: \(elemento (\d+)\))?$/.exec(m)
@@ -228,6 +236,9 @@ export class ControlSimulacion {
   /** La cifra que se ve de cada red y de cada pieza; se vacía al detener. */
   private histeresis = new Histeresis(3)
   private enCaliente = new Map<number, { seq: number; elemento: ElementoMotor }[]>()
+  /** Por canal de perilla: la pieza, lo mandado con su secuencia (el primero es el texto del documento al cargar) y el limitador de 60 por segundo. */
+  private perillas = new Map<number, { id: Id; propId: string; texto: { seq: number; texto: string }[]; ultimo: number; pendiente: number | null; timer: ReturnType<typeof setTimeout> | null }>()
+  private perillaSeq = new Map<number, number>()
   /** El paso máximo que tenía el motor antes de cada mensaje con un paso nuevo, por su número de secuencia. */
   private pasoAntes = new Map<number, number>()
   private ultimaSecuenciaDePaso = 0
@@ -280,6 +291,9 @@ export class ControlSimulacion {
   private limites = new Map<Id, LimitePieza>()
   private _avance: AvanceSim | null = null
   private quitarCruces: (() => void) | null = null
+  private quitarConflictos: (() => void) | null = null
+  /** Las redes digitales cuyo conflicto de bus ya se dijo en esta vista previa (una vez cada una). */
+  private conflictosDichos = new Set<number>()
   private quitarPerdidos: (() => void) | null = null
   /** Retroceder: cuántos avances guarda el motor (a lo más 200) y si ya se dijo que olvidó los más viejos por la memoria. */
   private _retrocesos = 0
@@ -449,6 +463,7 @@ export class ControlSimulacion {
         this.quitarRechazo = this.motor.alRechazo((i, m, seq) => this.rechazado(i, m, seq))
         this.quitarRango = this.motor.alRango((k, rango) => this.cambioDeRango(k, rango))
         this.quitarCruces = this.motor.alCruces((c) => this.d.cruces?.(c, (k) => this.resultado?.piezaDeElemento[k]))
+        this.quitarConflictos = this.motor.alConflictos?.((redes) => this.conflictosDeBus(redes)) ?? null
         this.quitarPerdidos = this.motor.alEstadosPerdidos((perdidos, guardados) => this.estadosPerdidos(perdidos, guardados))
       }
       this.hMotor = pasoDeVistaPrevia(r.netlist!, basesDeTiempo(r))
@@ -474,6 +489,7 @@ export class ControlSimulacion {
     }
     if (mia !== this.carga) return false
     this.resultado = r
+    this.reiniciarPerillas(r)
     this.limites = limitesDelCircuito(this.d.circuito().doc, this.d.circuito().lib, r, this.d.circuito().con)
     // Una recarga desde t = 0 trae un motor con todo sano; lo que estaba quemado se vuelve a quemar (con su
     // elemento de la netlist nueva), o se olvida si la pieza ya no se quema.
@@ -501,6 +517,19 @@ export class ControlSimulacion {
     if (salida?.type !== 'GATE') return null
     const refs = [...new Set(elementos.map((k) => this.piezaDe(r, k)?.ref).filter((x): x is string => x !== undefined))]
     return refs.length ? { refs, red: salida.output } : null
+  }
+
+  /** Dos salidas de tres estados manejan una red a niveles distintos: el Registro lo dice una vez por red. */
+  private conflictosDeBus(redes: number[]): void {
+    const r = this.resultado
+    if (!r) return
+    for (const digital of redes) {
+      if (this.conflictosDichos.has(digital)) continue
+      this.conflictosDichos.add(digital)
+      const doc = [...r.redDigital].find(([, d]) => d === digital)?.[0]
+      const nombre = doc === undefined ? undefined : this.d.circuito().con.redes.find((x) => x.id === doc)?.nombre
+      this.d.registrar(`Conflicto en el bus: dos salidas manejan la red ${nombre ?? digital} a niveles distintos.`, 'aviso')
+    }
   }
 
   /** La primera lectura en que el lazo ya tiene frecuencia la dice en el Registro, una sola vez por vista previa. */
@@ -531,6 +560,11 @@ export class ControlSimulacion {
    * último aceptado y el Registro lo dice con el nombre de la pieza. Con varios en camino solo vuelve atrás si era el
    * último de ese elemento. El documento conserva el valor (el campo ya lo validó: esto es la red de seguridad). */
   private rechazado(indice: number, mensaje: string, seq: number): void {
+    const canal = this.perillaSeq.get(seq)
+    if (indice < 0 && canal !== undefined) {
+      this.perillaRechazada(canal, mensaje, seq)
+      return
+    }
     const pieza = indice >= 0 ? this.piezaDeElemento(indice) : undefined
     const que = mensaje.replace(/^elemento \d+: /, '')
     this.d.registrar(
@@ -554,6 +588,73 @@ export class ControlSimulacion {
     }
   }
 
+  /** Mueve la perilla `propId` de la pieza `id` a `valor`: va al canal del motor (a lo más 60 veces por segundo, el último gana) en
+   * lugar de rearmar la netlist. false si esa propiedad no tiene canal en la vista previa que corre. */
+  moverPerilla(id: Id, propId: string, valor: number): boolean {
+    const canal = this.resultado?.canalDe.get(`${id}:${propId}`)
+    if (canal === undefined || !this.motor || this._fase === 'arrancando') return false
+    const e = this.perillas.get(canal)
+    if (!e) return false
+    const ahora = this.d.reloj?.() ?? performance.now()
+    const espera = e.ultimo + 1000 / PERILLA_POR_SEGUNDO - ahora
+    e.pendiente = valor
+    if (espera <= 0) this.enviarPerilla(canal)
+    else if (!e.timer) e.timer = setTimeout(() => this.enviarPerilla(canal), Math.ceil(espera))
+    return true
+  }
+
+  private textoDelDocumento(id: Id, propId: string): string {
+    const { doc, lib } = this.d.circuito()
+    const p = doc.piezas[id]
+    return p?.props[propId] ?? lib.get(p?.tipo ?? '')?.props.find((d) => d.id === propId)?.defecto ?? ''
+  }
+
+  /** Una entrada por canal con el texto que el documento tiene al cargar: a él vuelve la perilla si el motor rechaza todo. */
+  private reiniciarPerillas(r: ResultadoNetlist | null): void {
+    for (const e of this.perillas.values()) if (e.timer) clearTimeout(e.timer)
+    this.perillas.clear()
+    this.perillaSeq.clear()
+    for (const [clave, canal] of r?.canalDe ?? []) {
+      const i = clave.indexOf(':')
+      const id = clave.slice(0, i), propId = clave.slice(i + 1)
+      this.perillas.set(canal, { id, propId, texto: [{ seq: 0, texto: this.textoDelDocumento(id, propId) }], ultimo: Number.NEGATIVE_INFINITY, pendiente: null, timer: null })
+    }
+  }
+
+  private enviarPerilla(canal: number): void {
+    const e = this.perillas.get(canal)
+    if (!e) return
+    e.timer = null
+    if (e.pendiente === null || !this.motor) return
+    const valor = e.pendiente
+    e.pendiente = null
+    e.ultimo = this.d.reloj?.() ?? performance.now()
+    const seq = this.motor.perilla(canal, valor)
+    this.perillaSeq.set(seq, canal)
+    const { lib, doc } = this.d.circuito()
+    const prop = lib.get(doc.piezas[e.id]?.tipo ?? '')?.props.find((d) => d.id === e.propId)
+    e.texto.push({ seq, texto: prop ? textoEnVivo(prop, valor) : String(valor) })
+    // Acotado: lo viejo ya fue aceptado (el motor rechaza de inmediato) y solo importa el último aceptado.
+    if (e.texto.length > 64) e.texto.splice(1, e.texto.length - 64)
+    if (this._fase === 'pausada') this.motor.paso()
+  }
+
+  /** El motor no aceptó un valor de perilla: el Registro lo dice con la pieza y el editor vuelve al último aceptado. */
+  private perillaRechazada(canal: number, mensaje: string, seq: number): void {
+    this.perillaSeq.delete(seq)
+    const e = this.perillas.get(canal)
+    if (!e) return
+    const k = e.texto.findIndex((x) => x.seq === seq)
+    if (k < 0) return
+    const eraElUltimo = k === e.texto.length - 1
+    e.texto.splice(k, 1)
+    const vigente = e.texto[e.texto.length - 1].texto
+    const ref = this.d.circuito().doc.piezas[e.id]?.ref
+    const que = /finitos/.test(mensaje) ? 'tiene un valor que no es un número' : /llena/.test(mensaje) ? 'recibió cambios más rápido de lo que el motor los aplica' : `no es válida: ${mensaje.replace(/^canal \d+: /, '')}`
+    this.d.registrar(`${ref ?? 'La pieza'} ${que}: volvió a ${vigente}.`, 'error')
+    if (eraElUltimo) this.d.revertirPerilla?.(e.id, e.propId, vigente)
+  }
+
   /** Un fusible o un foco se fundió: el Registro lo explica (el fusible, con la corriente y lo que duró la sobrecarga). */
   private fundido(e: EventoFundido): void {
     const ref = this.piezaDeElemento(e.indice)?.ref
@@ -568,16 +669,16 @@ export class ControlSimulacion {
     if (ref) this.d.registrar(`${ref} se fundió: pasaron ${formatearMedida(e.amps, 'A')} durante ${formatearMedida(e.segundos, 's')}.`, 'aviso')
   }
 
-  /** Repone el fusible `id` (clic corriendo la vista previa): queda entero y frío, sin tocar el documento. false si no es
-   * un fusible del circuito que corre. */
+  /** Repone el fusible o foco `id` fundido (clic corriendo la vista previa): queda entero y frío, sin tocar el documento.
+   * false si no es uno del circuito que corre. */
   reponer(id: Id): boolean {
     const r = this.resultado
-    const k = r?.netlist?.elements.findIndex((e, i) => e.type === 'FUSE' && r.piezaDeElemento[i] === id) ?? -1
+    const k = r?.netlist?.elements.findIndex((e, i) => (e.type === 'FUSE' || e.type === 'LAMP') && r.piezaDeElemento[i] === id) ?? -1
     if (!this.motor || k < 0 || this._fase === 'arrancando') return false
-    // Solo se repone un fusible fundido: uno entero no tiene nada que reponer.
+    // Solo se repone lo fundido: una pieza entera no tiene nada que reponer.
     const extra = this.leer()?.piezas.get(id)?.extra
     // El fusible de un multímetro se repone igual (su lectura dice si está fundido).
-    const fundido = extra?.tipo === 'fusible' ? extra.fundido : this.leerInstrumentos()?.multimetros.get(id)?.fundido === true
+    const fundido = extra?.tipo === 'fusible' || extra?.tipo === 'foco' ? extra.fundido : this.leerInstrumentos()?.multimetros.get(id)?.fundido === true
     if (!fundido) return false
     this.motor.reponer(k)
     // Reponer cambia el circuito: el motor olvida los estados guardados (ya no son de este circuito).
@@ -753,6 +854,9 @@ export class ControlSimulacion {
     this.quitarRango = null
     this.quitarCruces?.()
     this.quitarCruces = null
+    this.quitarConflictos?.()
+    this.quitarConflictos = null
+    this.conflictosDichos.clear()
     this.quitarPerdidos?.()
     this.quitarPerdidos = null
     this.fijarRetrocesos(0)
@@ -773,6 +877,7 @@ export class ControlSimulacion {
     this.guardarYSoltar(motorViejo, captura, osciloscopios)
     this.motor = null
     this.resultado = null
+    this.reiniciarPerillas(null)
     this.accionados.clear()
     this.vigia.reiniciar()
     this.histeresis.reiniciar()

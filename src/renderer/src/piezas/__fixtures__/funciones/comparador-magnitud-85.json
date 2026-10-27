@@ -1,0 +1,39 @@
+{
+ "tipo": "condiciones",
+ "nota": "Las columnas A3:B3 a A0:B0 llevan la relacion de cada par (>, < o =), no bits; el comparador las expande con el generador compara. Las tres ultimas filas (combinaciones con IA>B e IA<B iguales) son las de cascada de la hoja, incluida la ilegal 1 1 0 y la 0 0 0.",
+ "columnas": [
+  "A3:B3",
+  "A2:B2",
+  "A1:B1",
+  "A0:B0",
+  "IA>B",
+  "IA<B",
+  "IA=B"
+ ],
+ "salidas": [
+  "OA>B",
+  "OA<B",
+  "OA=B"
+ ],
+ "filas": [
+  "> X X X X X X > 1 0 0",
+  "< X X X X X X > 0 1 0",
+  "= > X X X X X > 1 0 0",
+  "= < X X X X X > 0 1 0",
+  "= = > X X X X > 1 0 0",
+  "= = < X X X X > 0 1 0",
+  "= = = > X X X > 1 0 0",
+  "= = = < X X X > 0 1 0",
+  "= = = = 1 0 0 > 1 0 0",
+  "= = = = 0 1 0 > 0 1 0",
+  "= = = = X X 1 > 0 0 1",
+  "= = = = 1 1 0 > 0 0 0",
+  "= = = = 0 0 0 > 1 1 0"
+ ],
+ "fuente": {
+  "documento": "TI CD74HC85 (SCHS136F)",
+  "pagina": "10, tabla 7-1 Truth Table (SINGLE DEVICE OR SERIES CASCADING y PARALLEL CASCADING)",
+  "comprobada_con": "TI SN74LS85 (SDLS123), p. 1, FUNCTION TABLE: mismas salidas en las mismas condiciones. Las filas de cascada de la hoja HC en serie (H L L, L H L, L L H) y en paralelo (X X H, H H L, L L L) cubren lo mismo que las cinco de la hoja LS (H L L, L H L, X X H, H H L, L L L)",
+  "convencion": "H = 1, L = 0"
+ }
+}

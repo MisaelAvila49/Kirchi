@@ -155,7 +155,8 @@ async function correr(caso: string): Promise<Record<string, number>> {
 }
 
 describe.skipIf(!hay)('el exportador a SPICE contra las referencias guardadas', () => {
-  it.each(Object.keys(CASOS))('%s', async (caso) => {
+  // Las perillas que cambian en el tiempo no pasan por el exportador (escribe el valor inicial): se comparan solo contra el motor.
+  it.each(Object.keys(CASOS).filter((k) => !CASOS[k].perillas))('%s', async (caso) => {
     const peor = await correr(caso)
     console.log(`${caso}: ${Object.entries(peor).map(([c, e]) => `${c} ${e.toFixed(3)}`).join(', ')}`)
     for (const [col, e] of Object.entries(peor)) expect(e, `${caso} ${col}`).toBeLessThanOrEqual(1)

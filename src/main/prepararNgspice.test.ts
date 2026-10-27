@@ -326,8 +326,8 @@ describe('reescribirSpinit', () => {
     expect(t).not.toContain('osdi')
     expect(t).toContain('alias exit quit')
   })
-  it('con base escribe rutas absolutas con barras normales y cita las que llevan espacios', () => {
-    expect(q.reescribirSpinit(original, ['analog.cm'], 'C:\\Mi carpeta\\lib')).toContain(' codemodel "C:/Mi carpeta/lib/analog.cm"')
-    expect(q.reescribirSpinit(original, ['analog.cm'], '/x/lib')).toContain(' codemodel /x/lib/analog.cm')
+  it('con base escribe rutas absolutas con barras normales entre comillas simples', () => {
+    expect(q.reescribirSpinit(original, ['analog.cm'], 'C:\\Mi carpeta\\lib')).toContain(" codemodel 'C:/Mi carpeta/lib/analog.cm'")
+    expect(q.reescribirSpinit(original, ['analog.cm'], '/x/lib')).toContain(" codemodel '/x/lib/analog.cm'")
   })
 })

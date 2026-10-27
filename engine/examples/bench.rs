@@ -14,7 +14,7 @@ fn ladder(nodes: usize) -> Netlist {
         elements.push(Element::R { a: k, b: k + 1, ohms: 100.0 });
         elements.push(Element::C { a: k + 1, b: 0, farads: 1e-7 });
     }
-    Netlist { nodes, digital_nets: 0, elements, sondas: Vec::new() }
+    Netlist { nodes, digital_nets: 0, elements, sondas: Vec::new(), canales: Vec::new(), lectores: Vec::new(), tablas: Vec::new() }
 }
 
 fn run(name: &str, net: Netlist, h: f64, sim_seconds: f64, kind: SolverKind) {

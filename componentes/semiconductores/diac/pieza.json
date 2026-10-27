@@ -289,5 +289,41 @@
   "fuentes": {
     "DB3": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a STMicroelectronics DB3, DB4 y SMDB3, https://www.st.com/resource/en/datasheet/db3.pdf (las cifras de la tabla de características se leyeron en un listado de la hoja, no en el PDF completo, así que su revisión no está confirmada): VBO de 32 V típico (28 a 36 V), ΔV de 5 V mín, IBO de 50 µA máx y simetría de 3 V máx. El modelo rompe cerca de 32 V y cae a 25.4 V (ΔV de unos 6 V). Dos ramas antiparalelas, cada una el tiristor de dos transistores del SCR 2N5060 disparado por un Zener de 6.5 V desde otro Zener en serie, con 2 MΩ de compuerta a terminal, 1 nF en sus nodos internos para que el disparo converja y 1 GΩ entre las dos bases de cada tiristor, que da un camino de continua a los nodos que de otro modo solo cuelgan de capacitores y fugas de femtoamperes (sin él, la rama bloqueada no converge con reltol 1e-4). Es simétrico, da menos de 10 µA de fuga a 20 V y se queda encendido con unos 8 mA. No modela el tiempo de conmutación ni el voltaje de pulso VO de la hoja.",
     "DB4": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a STMicroelectronics DB3, DB4 y SMDB3, https://www.st.com/resource/en/datasheet/db3.pdf (las cifras de la tabla de características se leyeron en un listado de la hoja, no en el PDF completo, así que su revisión no está confirmada): VBO de 40 V típico (35 a 45 V), ΔV de 5 V mín, IBO de 50 µA máx y simetría de 3 V máx. El modelo rompe cerca de 40 V y cae a 33.4 V (ΔV de unos 7 V). Dos ramas antiparalelas, cada una el tiristor de dos transistores del SCR 2N5060 disparado por un Zener de 6.5 V desde otro Zener en serie, con 2 MΩ de compuerta a terminal, 1 nF en sus nodos internos para que el disparo converja y 1 GΩ entre las dos bases de cada tiristor, que da un camino de continua a los nodos que de otro modo solo cuelgan de capacitores y fugas de femtoamperes (sin él, la rama bloqueada no converge con reltol 1e-4). Es simétrico, da menos de 10 µA de fuga a 20 V y se queda encendido con unos 8 mA. No modela el tiempo de conmutación ni el voltaje de pulso VO de la hoja."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:DIAC", "falstad": "203", "proteus": "DIAC", "sinVerificar": ["proteus"] },
+    "valores": {
+      "DB3": {
+        "fabricante": "STMicroelectronics",
+        "parte": "DB3",
+        "hoja": "https://www.st.com/resource/en/datasheet/db3.pdf",
+        "equivalencias": { "kicad": "Diode:DB3" },
+        "presentaciones": [
+          {
+            "encapsulado": "DO-35",
+            "patillas": { "A1": "1", "A2": "2" },
+            "huella": "Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal",
+            "lcsc": { "numero": "C60568", "sinVerificar": true }
+          }
+        ],
+        "pendiente": { "patillas": "Segunda fuente (la hoja de ST) no consultada; el diac no tiene polaridad" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Diode:DB3 y Device:DIAC de KiCad 9 (pines 1 y 2); ST DB3/DB4/SMDB3 rev. 3 (dic 2018) citada por buscadores, no leída"
+        },
+        "nota": "Dispositivo simétrico: A1 y A2 son intercambiables; el número es el pad de la huella. No se pudo bajar la hoja de ST (el servidor no respondió), el dato viene del símbolo Diode:DB3 de KiCad 9 y de la huella"
+      },
+      "DB4": {
+        "fabricante": "STMicroelectronics",
+        "parte": "DB4",
+        "hoja": "https://www.st.com/resource/en/datasheet/db3.pdf",
+        "presentaciones": [
+          { "encapsulado": "DO-35", "patillas": { "A1": "1", "A2": "2" }, "huella": "Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal" }
+        ],
+        "pendiente": { "patillas": "Igual que DB3, sin hoja leída", "lcsc": "No se halló un DB4 de DO-35 en LCSC" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "Misma hoja que DB3; Device:DIAC de KiCad 9" }
+      }
+    }
   }
 }

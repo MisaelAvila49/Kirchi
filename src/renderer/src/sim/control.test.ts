@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { calcularConexiones, clavePin } from '../conexiones/conexiones'
 import type { Documento } from '../doc/tipos'
 import { conEtiquetas, divisor, ledConBateria } from '../prueba/circuitos'
@@ -93,6 +93,12 @@ class MotorDePrueba implements MotorSimulacion {
   rechazar(i: number, m: string, seq = this.seq) {
     this.oyenteRechazo?.(i, m, seq)
   }
+  /** Lo que llegó por `perilla` (el WASM de prueba no tiene canales): canal, valor y secuencia. */
+  perillas: { canal: number; valor: number; seq: number }[] = []
+  perilla(canal: number, valor: number) {
+    this.perillas.push({ canal, valor, seq: ++this.seq })
+    return this.seq
+  }
   reponer(indice: number) {
     this.sim!.reset_element(indice)
   }
@@ -123,6 +129,8 @@ class MotorDePrueba implements MotorSimulacion {
       s.reiniciar_promedios()
     }
     if (this.velocidad > 0) s.advance_to(s.time() + 1e-3, 1_000_000)
+    const bus = s.take_conflictos()
+    if (bus.length > 0) this.oyenteConflictos?.(Array.from(bus))
     // Cada lectura son 250 ms de reloj para el multímetro.
     if (this.inst) for (const c of this.inst.publicar((this.reloj += 250), true)) this.oyenteRango?.(c.multimetro, c.rango)
     const n = s.element_count()
@@ -236,6 +244,11 @@ class MotorDePrueba implements MotorSimulacion {
     this.sim!.quemar(indice, si)
     this.quemados.push([indice, si])
     return ++this.seq
+  }
+  private oyenteConflictos: ((redes: number[]) => void) | null = null
+  alConflictos(f: (redes: number[]) => void) {
+    this.oyenteConflictos = f
+    return () => (this.oyenteConflictos = null)
   }
   private oyenteCruces: ((c: CrucesSim) => void) | null = null
   alCruces(f: (c: CrucesSim) => void) {
@@ -444,7 +457,7 @@ describe('ControlSimulacion', () => {
     ])
   })
 
-  it('un foco que se funde por sobrevoltaje lo explica el Registro', async () => {
+  it('un foco que se funde por sobrevoltaje lo explica el Registro y un clic lo repone', async () => {
     // 24 V sobre un foco de 12 V y 5 W: el filamento se asienta en el doble de su potencia nominal y se funde (límite del motor:
     // `THETA_FUNDE` = 2; comportamiento provisional).
     const d = conEtiquetas(lib, [
@@ -455,6 +468,10 @@ describe('ControlSimulacion', () => {
     await c.iniciar()
     for (let k = 0; k < 600; k++) c.leer()
     expect(registro).toContainEqual(['aviso', 'LP1 se fundió: el filamento pasó de su temperatura máxima.'])
+    expect(c.reponer('p_1')).toBe(true)
+    expect(registro).toContainEqual(['info', 'LP1 repuesto.'])
+    expect(c.reponer('p_1')).toBe(false)
+    expect(c.leer()!.piezas.get('p_1')).toMatchObject({ extra: { tipo: 'foco', fundido: false } })
   })
 
   it('el motor dice de qué pieza es un valor que rechaza, y solo nombra como sin punto de trabajo a las no lineales', () => {
@@ -791,6 +808,16 @@ describe('vista previa con piezas digitales', () => {
     expect(lazos).toHaveLength(1)
     expect(lazos[0][0]).toBe('aviso')
     expect(lazos[0][1]).toMatch(/^U1, U2 y U3 forman un lazo que oscila a \d+(\.\d+)? MHz\.$/)
+  })
+
+  it('dos búferes de tres estados que manejan un 0 y un 1 a la vez lo dicen en el Registro una sola vez con el nombre de la red', async () => {
+    const bufer = (ref: string, a: string) => ({ tipo: 'buffer-3-estados', ref, pines: { A: a, OE: 'habilita', Y: 'bus' } })
+    const e = (ref: string, estado: string, red: string) => ({ tipo: 'estado-logico', ref, props: { estado }, pines: { S: red } })
+    const { c, registro } = armar(conEtiquetas(lib, [e('E1', '1', 'a'), e('E2', '0', 'b'), e('E3', '0', 'habilita'), bufer('U1', 'a'), bufer('U2', 'b'), { tipo: 'not', ref: 'U3', pines: { A: 'bus', Y: 'y' } }, { tipo: 'resistencia', ref: 'R1', props: { valor: '1k' }, pines: { '1': 'y', '2': '0' } }]))
+    expect(await c.iniciar()).toBe(true)
+    for (let k = 0; k < 3; k++) c.leer()
+    const avisos = registro.filter(([, t]) => /Conflicto en el bus/.test(t))
+    expect(avisos).toEqual([['aviso', 'Conflicto en el bus: dos salidas manejan la red bus a niveles distintos.']])
   })
 
   it('una red que conmuta se ve igual leída una vez o en cada cuadro', async () => {
@@ -1717,5 +1744,75 @@ describe('lectura del medidor rápido', () => {
     const r = lecturaDeMedidor(d.sondas!.ma, con, l, ventana)
     expect(r.estado === 'ok' && r.valor).toBeCloseTo(Math.SQRT1_2, 9)
     expect(lecturaDeMedidor(d.sondas!.ma, con, l)).toEqual({ estado: 'sin-dato', motivo: 'sin-ventana' })
+  })
+})
+
+
+describe('perilla en vivo hacia el motor', () => {
+  afterEach(() => vi.useRealTimers())
+  const sensor: PiezaDef = {
+    ...lib.get('resistencia')!,
+    id: 'sensor-de-prueba',
+    props: [...lib.get('resistencia')!.props, { id: 'temperatura', nombre: 'Temperatura', unidad: '°C', defecto: '25 °C', enVivo: { magnitud: 'temperatura', min: -40, max: 150, paso: 1, pasoFino: 0.1 } }]
+  }
+  const libSensor = new Map(lib).set(sensor.id, sensor)
+  const montar = () => {
+    const d = conEtiquetas(libSensor, [
+      { tipo: 'fuente-dc', ref: 'V1', props: { voltaje: '5' }, pines: { '+': 'a', '-': '0' } },
+      { tipo: 'sensor-de-prueba', ref: 'RT1', props: { valor: '1k' }, pines: { '1': 'a', '2': '0' } }
+    ])
+    const revertidas: [string, string, string][] = []
+    const x = armar(d, libSensor, { revertirPerilla: (id, prop, texto) => revertidas.push([id, prop, texto]) })
+    const id = Object.keys(d.piezas).find((k) => d.piezas[k].ref === 'RT1')!
+    return { ...x, id, revertidas }
+  }
+
+  it('el valor llega al canal de la perilla sin pasar por los cambios en caliente', async () => {
+    const { c, motores, id } = montar()
+    await c.iniciar()
+    expect(c.moverPerilla(id, 'temperatura', 85)).toBe(true)
+    expect(motores[0].perillas).toEqual([{ canal: 0, valor: 85, seq: 1 }])
+    expect(motores[0].cambios).toHaveLength(0)
+    expect(c.moverPerilla(id, 'valor', 5)).toBe(false)
+  })
+
+  it('200 cambios en un segundo mandan a lo más 60 y el último valor llega', async () => {
+    vi.useFakeTimers()
+    const { c, motores, id } = montar()
+    await c.iniciar()
+    for (let k = 1; k <= 200; k++) {
+      c.moverPerilla(id, 'temperatura', k)
+      vi.advanceTimersByTime(5)
+    }
+    vi.advanceTimersByTime(20)
+    const m = motores[0].perillas
+    expect(m.length).toBeLessThanOrEqual(60)
+    expect(m.length).toBeGreaterThan(30)
+    expect(m.at(-1)!.valor).toBe(200)
+  })
+
+  it('el rechazo registra la pieza, vuelve al último aceptado y no detiene la vista previa', async () => {
+    const { c, motores, id, registro, revertidas } = montar()
+    await c.iniciar()
+    c.moverPerilla(id, 'temperatura', 85)
+    motores[0].rechazar(-1, 'canal 0: el tiempo y el valor deben ser finitos', 1)
+    expect(registro.at(-1)).toEqual(['error', 'RT1 tiene un valor que no es un número: volvió a 25 °C.'])
+    expect(revertidas).toEqual([[id, 'temperatura', '25 °C']])
+    expect(c.fase).toBe('corriendo')
+  })
+
+  it('un rechazo del paso (indice -1 con otra secuencia) no se toma por una perilla', async () => {
+    const { c, motores, id, revertidas } = montar()
+    await c.iniciar()
+    c.moverPerilla(id, 'temperatura', 85)
+    motores[0].rechazar(-1, 'el paso máximo no es válido', 99)
+    expect(revertidas).toEqual([])
+  })
+
+  it('la matriz singular de una fuente controlada nombra la pieza y propone cambiar la ganancia', () => {
+    const pieza = (k: number) => (k === 4 ? { ref: 'E1', tipo: 'controlada' } : undefined)
+    expect(mensajeDelMotor('matriz singular: revisa nodos sin camino a tierra o fuentes de voltaje en paralelo (elemento 4)', pieza)).toBe(
+      'La vista previa se detuvo: el circuito no tiene solución cerca de E1; cambia su ganancia o agrega una resistencia en el lazo.'
+    )
   })
 })

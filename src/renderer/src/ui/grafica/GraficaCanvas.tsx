@@ -6,6 +6,7 @@ import { Rueda } from '../osciloscopio/rueda'
 import { zonaColocada } from './colocacion'
 import { dibujarGrafica, geometriaGrafica, type Geometria } from './dibujo'
 import { lecturaEn, type LecturaEn } from './lectura'
+import { cursorXYBajo, moverCursorXY, pasoDeFlechaXY, ponerCursorXY } from './xy'
 import { cursorBajo, desplazarTeclado, panelEn, ponerCursorEn, zoomCajaEn, zoomRueda, zoomTeclado } from './gestos'
 import type { ModeloGrafica, VistaGrafica } from './modelo'
 import { coloresGrafica, temaEfectivo } from './paleta'
@@ -134,12 +135,14 @@ export default function GraficaCanvas(props: Props) {
     if (z?.tipo === 'ejeX' && pan.col.eje.posicion !== 'ninguno') return { tipo: 'ejeX', p, pos: props.aspecto.ejeX }
     return null
   }
+  /** El cursor bajo el puntero: en X-Y, por distancia al punto de la curva; si no, por el eje horizontal. */
+  const cursorAqui = (g: Geometria, x: number, y: number) => (props.modelo.xy ? cursorXYBajo(props.modelo, props.vista, g, x, y, TOMAR_PX * g.dpr) : cursorBajo(g, props.vista, x, y, TOMAR_PX))
   const abajo = (e: PointerEvent) => {
     if (e.button !== 0 || props.modelo.tipo !== 'lineas') return
     const q = enPixeles(e)
     const g = geo()
     setLeyendo(null)
-    const i0 = cursorBajo(g, props.vista, q.x, q.y, TOMAR_PX)
+    const i0 = cursorAqui(g, q.x, q.y)
     const eje = i0 === null ? ejeBajo(g, q.x, q.y) : null
     if (eje) {
       tomado = eje
@@ -148,7 +151,7 @@ export default function GraficaCanvas(props: Props) {
       e.preventDefault()
       return
     }
-    const i = cursorBajo(g, props.vista, q.x, q.y, TOMAR_PX)
+    const i = cursorAqui(g, q.x, q.y)
     if (i !== null) {
       tomado = { tipo: 'cursor', i }
       setArrastrado(i)
@@ -167,10 +170,10 @@ export default function GraficaCanvas(props: Props) {
     const q = enPixeles(e)
     if (!tomado) {
       const g = geo()
-      setSobre(props.modelo.tipo === 'lineas' ? cursorBajo(g, props.vista, q.x, q.y, TOMAR_PX) : null)
+      setSobre(props.modelo.tipo === 'lineas' ? cursorAqui(g, q.x, q.y) : null)
       const eje = ejeBajo(g, q.x, q.y)
       setSobreEje(eje !== null)
-      setLeyendo(props.aspecto.lectura && eje === null ? lecturaEn(props.modelo, props.vista, g, q.x) : null)
+      setLeyendo(props.aspecto.lectura && eje === null ? lecturaEn(props.modelo, props.vista, g, q.x, q.y) : null)
       return
     }
     if (tomado.tipo === 'ejeY' || tomado.tipo === 'ejeX') {
@@ -192,7 +195,7 @@ export default function GraficaCanvas(props: Props) {
       return
     }
     if (tomado.tipo === 'cursor') {
-      props.onVista(ponerCursorEn(geo(), props.vista, tomado.i, q.x))
+      props.onVista(props.modelo.xy ? ponerCursorXY(props.modelo, props.vista, geo(), tomado.i, q.x, q.y) : ponerCursorEn(geo(), props.vista, tomado.i, q.x))
       return
     }
     setCaja({ p: tomado.p, x0: tomado.x0, y0: tomado.y0, x1: q.x, y1: q.y })
@@ -248,6 +251,11 @@ export default function GraficaCanvas(props: Props) {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
     e.preventDefault()
     const g = geo()
+    if (props.modelo.xy) {
+      const n = pasoDeFlechaXY(props.modelo, v) * (e.shiftKey ? 10 : 1)
+      props.onVista(moverCursorXY(props.modelo, v, g, activo(), e.key === 'ArrowRight' ? n : -n))
+      return
+    }
     const col = g.paneles[0].col
     const paso = (e.shiftKey ? 10 : 1) * PASO_TECLA * col.w * (e.key === 'ArrowRight' ? 1 : -1)
     const actual = v.cursores[activo()]

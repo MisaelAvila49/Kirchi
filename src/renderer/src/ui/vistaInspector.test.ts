@@ -174,7 +174,8 @@ describe('inspector', () => {
       tipo: 'pieza', id: 'p_r1', ref: 'R1', nombre: 'Resistencia', categoria: 'Pasivos', defId: 'resistencia', tono: 'azul', pines: 2,
       props: [{ id: 'valor', nombre: 'Valor', texto: '1k', unidad: 'Ω', lectura: '1 kΩ', enCaliente: true, serie: 'elegida' }, { id: 'potencia', nombre: 'Potencia nominal', texto: '0.25 W', unidad: undefined, opciones: ['0.125 W', '0.25 W', '0.5 W', '1 W', '2 W', '5 W'], lectura: null, enCaliente: false }],
       rot: 0, espejo: false,
-      conexiones: [{ pin: 'Pin 1', red: 'red 1' }, { pin: 'Pin 2', red: 'red 2' }]
+      conexiones: [{ pin: 'Pin 1', numero: '1', red: 'red 1' }, { pin: 'Pin 2', numero: '2', red: 'red 2' }],
+      datos: expect.objectContaining({ tipo: 'fisica', encapsulado: 'Axial' })
     })
   })
 
@@ -185,6 +186,19 @@ describe('inspector', () => {
     if (v.tipo !== 'pieza') throw new Error(v.tipo)
     expect(v.props.find((c) => c.id === 'alimentacion')).toMatchObject({ texto: '3.3 V', ayuda: 'Alimentación implícita de 3.3 V: no tiene pines de VCC ni GND y no toma corriente del circuito.' })
     expect(v.props.find((c) => c.id === 'familia')!.ayuda).toBeUndefined()
+  })
+
+  it('una lista de una sola opción no se ofrece, salvo el modelo que la pieza muestra', () => {
+    const d = documentoVacio()
+    const pieza = (id: string, tipo: string): Pieza => ({ id, tipo, ref: id.toUpperCase(), x: 0, y: 0, rot: 0, espejo: false, props: {} })
+    const ids = (tipo: string) => {
+      d.piezas.u = pieza('u', tipo)
+      const v = vista(d, sel(['piezas', 'u']))
+      if (v.tipo !== 'pieza') throw new Error(v.tipo)
+      return v.props.map((c) => c.id)
+    }
+    expect(ids('fuente-pwl')).toEqual(['puntos', 'repetir'])
+    expect(ids('tl431')).toContain('modelo')
   })
 
   it('la lista de alimentaciones ofrece solo las de la familia de la pieza', () => {
@@ -408,5 +422,46 @@ describe('la ficha compacta reparte los campos', () => {
     expect(repartirCampos([1, 2])).toEqual({ vistos: [1, 2], mas: [] })
     expect(repartirCampos([1, 2, 3, 4])).toEqual({ vistos: [1, 2, 3, 4], mas: [] })
     expect(repartirCampos([1, 2, 3, 4, 5, 6])).toEqual({ vistos: [1, 2, 3], mas: [4, 5, 6] })
+  })
+})
+
+describe('inspector: unidades de un encapsulado', () => {
+  const nand = (id: string, ref: string, paquete?: string, unidad?: string): Pieza => ({
+    id, tipo: 'nand', ref, x: 0, y: 0, rot: 0, espejo: false, props: paquete ? { paquete, unidad: unidad! } : {}
+  })
+  const docDe = (...ps: Pieza[]): Documento => {
+    const d = documentoVacio()
+    for (const p of ps) d.piezas[p.id] = p
+    return d
+  }
+  const vistaPieza = (d: Documento, id: string) => {
+    const v = vista(d, sel(['piezas', id]))
+    if (v.tipo !== 'pieza') throw new Error(v.tipo)
+    return v
+  }
+
+  it('una unidad agrupada trae su paquete y las unidades del chip con las ocupadas marcadas', () => {
+    const d = docDe(nand('a', 'U1A', 'U1', 'A'), nand('b', 'U1B', 'U1', 'B'), nand('d', 'U1D', 'U1', 'D'))
+    const v = vistaPieza(d, 'b')
+    expect(v.paquete?.paquete).toBe('U1')
+    expect(v.paquete?.unidad).toBe('B')
+    expect(v.paquete?.unidades).toEqual([
+      { nombre: 'A', actual: false, enUso: 'U1A', texto: 'en uso por U1A' },
+      { nombre: 'B', actual: true, enUso: null, texto: null },
+      { nombre: 'C', actual: false, enUso: null, texto: null },
+      { nombre: 'D', actual: false, enUso: 'U1D', texto: 'en uso por U1D' }
+    ])
+  })
+
+  it('una pieza sin paquete o que no es multiunidad no trae selector', () => {
+    expect(vistaPieza(docDe(nand('a', 'U1')), 'a').paquete).toBeUndefined()
+    const d = divisor()
+    const v = vista(d, sel(['piezas', Object.keys(d.piezas)[0]]))
+    expect(v.tipo === 'pieza' && v.paquete).toBeFalsy()
+  })
+
+  it('el selector de otra pieza no cuenta a la propia como ocupante', () => {
+    const v = vistaPieza(docDe(nand('a', 'U1A', 'U1', 'A')), 'a')
+    expect(v.paquete?.unidades.filter((u) => u.enUso !== null)).toEqual([])
   })
 })

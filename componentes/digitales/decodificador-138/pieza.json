@@ -1,0 +1,155 @@
+{
+  "id": "decodificador-138",
+  "nombre": { "es": "Decodificador de 3 a 8 (74138)", "en": "3-to-8 decoder (74138)" },
+  "categoria": "digitales",
+  "grupo": "Decodificadores y multiplexores",
+  "prefijo": "U",
+  "buscar": ["u", "decodificador", "decoder", "3 a 8", "74138", "74hc138", "74ls138", "demultiplexor", "g1", "g2a"],
+  "pines": [
+    { "id": "G1", "nombre": "G1 (habilitación, activa en alto)", "x": -6, "y": 2 },
+    { "id": "G2A", "nombre": "G2A (habilitación, activa en bajo)", "x": -6, "y": 4 },
+    { "id": "G2B", "nombre": "G2B (habilitación, activa en bajo)", "x": -6, "y": 6 },
+    { "id": "C", "nombre": "C", "x": -6, "y": -2 },
+    { "id": "B", "nombre": "B", "x": -6, "y": -4 },
+    { "id": "A", "nombre": "A", "x": -6, "y": -6 },
+    { "id": "Y0", "nombre": "Y0", "x": 6, "y": -6 },
+    { "id": "Y1", "nombre": "Y1", "x": 6, "y": -4 },
+    { "id": "Y2", "nombre": "Y2", "x": 6, "y": -2 },
+    { "id": "Y3", "nombre": "Y3", "x": 6, "y": 0 },
+    { "id": "Y4", "nombre": "Y4", "x": 6, "y": 2 },
+    { "id": "Y5", "nombre": "Y5", "x": 6, "y": 4 },
+    { "id": "Y6", "nombre": "Y6", "x": 6, "y": 6 },
+    { "id": "Y7", "nombre": "Y7", "x": 6, "y": 8 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": ["G1", "G2A", "G2B", "C", "B", "A"],
+    "tabla": {
+      "columnas": ["G1", "G2A", "G2B", "C", "B", "A"],
+      "salidas": ["Y0", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7"],
+      "filas": [
+        "0 X X X X X > 1 1 1 1 1 1 1 1",
+        "1 1 X X X X > 1 1 1 1 1 1 1 1",
+        "1 0 1 X X X > 1 1 1 1 1 1 1 1",
+        "1 0 0 0 0 0 > 0 1 1 1 1 1 1 1",
+        "1 0 0 0 0 1 > 1 0 1 1 1 1 1 1",
+        "1 0 0 0 1 0 > 1 1 0 1 1 1 1 1",
+        "1 0 0 0 1 1 > 1 1 1 0 1 1 1 1",
+        "1 0 0 1 0 0 > 1 1 1 1 0 1 1 1",
+        "1 0 0 1 0 1 > 1 1 1 1 1 0 1 1",
+        "1 0 0 1 1 0 > 1 1 1 1 1 1 0 1",
+        "1 0 0 1 1 1 > 1 1 1 1 1 1 1 0"
+      ]
+    },
+    "retardos": { "74HC": { "vcc": 4.5, "*": [1.8e-8, 1.8e-8] }, "74LS": { "vcc": 5, "*": [2.1e-8, 2e-8] } }
+  },
+  "caja": {
+    "titulo": "X/Y",
+    "forma": "funcional",
+    "izquierda": ["A", "B", "C", null, "G1", "!G2A", "!G2B"],
+    "derecha": ["!Y0", "!Y1", "!Y2", "!Y3", "!Y4", "!Y5", "!Y6", "!Y7"]
+  },
+  "fuentes": {
+    "74HC": "TI SN74HC138 (SCLS107G): tabla de función p. 10 y retardo típico de 18 ns de A, B, C o de las habilitaciones a Y (p. 6, 4.5 V, CL 50 pF).",
+    "74LS": "TI SN74LS138 (SDLS014): tabla de función p. 2 y retardo típico del select a Y con tres niveles de lógica, 21 ns de subida y 20 de bajada (p. 4, 5 V, CL 15 pF). Los caminos de la habilitación y de dos niveles (11 a 20 ns) usan este mismo valor."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC138N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc138.pdf",
+        "equivalencias": { "kicad": "74xx:74HC138" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "A": "1",
+              "B": "2",
+              "C": "3",
+              "G2A": "4",
+              "G2B": "5",
+              "G1": "6",
+              "Y7": "7",
+              "Y6": "9",
+              "Y5": "10",
+              "Y4": "11",
+              "Y3": "12",
+              "Y2": "13",
+              "Y1": "14",
+              "Y0": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74HC138N",
+            "lcsc": { "numero": "C2913", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SN74HC138 (SCLS107G, oct 2021), p. 3, figura de patillas y tabla Pin Functions; Diodes 74HC138 (DS35488 Rev. 3-2), tabla Pin Descriptions, mismas 16 patillas; KiCad 74xx:74HC138 (9.0.0)"
+        }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS138N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls138.pdf",
+        "equivalencias": { "kicad": "74xx:74LS138" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "A": "1",
+              "B": "2",
+              "C": "3",
+              "G2A": "4",
+              "G2B": "5",
+              "G1": "6",
+              "Y7": "7",
+              "Y6": "9",
+              "Y5": "10",
+              "Y4": "11",
+              "Y3": "12",
+              "Y2": "13",
+              "Y1": "14",
+              "Y0": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS138N",
+            "lcsc": { "numero": "C352964", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74LS138 (SDLS014, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS138 (9.0.0)" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -12 }, "valor": { "x": 0, "y": 12 } },
+  "rotulos": [
+    { "texto": "A", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "C", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "G1", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "G2A", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "G2B", "x": -3.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "Y0", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "Y1", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "Y2", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "Y3", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "Y4", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "Y5", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "Y6", "x": 3.2, "y": 6, "tam": 1, "alinear": "der" },
+    { "texto": "Y7", "x": 3.2, "y": 8, "tam": 1, "alinear": "der" },
+    { "texto": "X/Y", "x": 0, "y": -9, "tam": 1, "alinear": "centro" }
+  ]
+}

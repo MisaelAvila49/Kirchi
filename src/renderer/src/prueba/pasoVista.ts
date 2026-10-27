@@ -1,34 +1,54 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { calcularConexiones } from '../conexiones/conexiones'
-import { leerKir } from '../archivo/kir'
-import { compilarNetlist, type NetlistMotor } from '../netlist/netlist'
+import { Window } from 'happy-dom'
+import type { NetlistMotor } from '../netlist/netlist'
+import type { PiezaDef } from '../piezas/tipos'
+import { cargarMotor, Simulator } from '../sinVentana/motor'
+import { SesionSinVentana, type DepsSesion } from '../sinVentana/sesion'
 import { conEtiquetas, relojConDisplay, type Parte } from './circuitos'
 import { libreriaDePrueba } from './libreria'
-import init, { Simulator } from '../sim/pkg/kirchi_engine.js'
 
 /** Lo común de las pruebas del paso de la vista previa: circuitos de comparación y una corrida con muestras. */
-const lib = libreriaDePrueba().piezas
+let libCache: Map<string, PiezaDef> | null = null
+const lib = (): Map<string, PiezaDef> => (libCache ??= libreriaSinDom())
 
-export async function iniciarMotor(): Promise<void> {
-  await init({ module_or_path: readFileSync(join(import.meta.dirname, '../sim/pkg/kirchi_engine_bg.wasm')) })
+/** La librería de piezas en un entorno sin DOM: leer los símbolos SVG pide `DOMParser`, que se presta de happy-dom solo
+ * mientras se carga. */
+export function libreriaSinDom(): Map<string, PiezaDef> {
+  const g = globalThis as { DOMParser?: unknown }
+  if (g.DOMParser) return libreriaDePrueba().piezas
+  g.DOMParser = new Window().DOMParser
+  try {
+    return libreriaDePrueba().piezas
+  } finally {
+    delete g.DOMParser
+  }
 }
 
+export const bytesDelWasm = (): Uint8Array => new Uint8Array(readFileSync(join(import.meta.dirname, '../sim/pkg/kirchi_engine_bg.wasm')))
+
+export async function iniciarMotor(): Promise<void> {
+  await cargarMotor(bytesDelWasm())
+}
+
+/** Una sesión con el motor cargado, la librería de pruebas y, si se da, el ejecutor de análisis. */
+export function sesionDePrueba(analisis?: DepsSesion['analisis']): Promise<SesionSinVentana> {
+  return SesionSinVentana.iniciar({ lib: lib(), wasm: bytesDelWasm(), version: 'prueba', analisis })
+}
+
+/** Compila con la sesión (sin motor): la netlist de un circuito armado con etiquetas. */
 export function netlistDe(partes: Parte[]): NetlistMotor {
-  const d = conEtiquetas(lib, partes)
-  const r = compilarNetlist(d, lib, calcularConexiones(d, lib))
-  if (!r.netlist) throw new Error(r.errores.join(' '))
-  return r.netlist
+  const s = new SesionSinVentana({ lib: lib(), version: 'prueba' })
+  s.abrirDocumento(conEtiquetas(lib(), partes))
+  return s.netlistCompleta().netlist
 }
 
 /** El archivo de PruebasManualesKirchi (dentro del repositorio). */
 export function netlistDeArchivo(nombre: string): NetlistMotor {
   const bytes = readFileSync(join(import.meta.dirname, '../../../../PruebasManualesKirchi', nombre))
-  const l = leerKir(new Uint8Array(bytes))
-  if (!l.ok) throw new Error(l.error)
-  const r = compilarNetlist(l.doc, lib, calcularConexiones(l.doc, lib))
-  if (!r.netlist) throw new Error(r.errores.join(' '))
-  return r.netlist
+  const s = new SesionSinVentana({ lib: lib(), version: 'prueba' })
+  s.abrir(new Uint8Array(bytes))
+  return s.netlistCompleta().netlist
 }
 
 const R = (ref: string, valor: string, a: string, b: string): Parte => ({ tipo: 'resistencia', ref, props: { valor }, pines: { '1': a, '2': b } })

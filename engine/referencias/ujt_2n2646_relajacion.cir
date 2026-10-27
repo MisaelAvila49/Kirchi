@@ -1,0 +1,24 @@
+* Oscilador de relajacion con el UJT 2N2646: 10 V, 100 kohm y 10 nF en el emisor, 100 ohm en B2 y 47 ohm en B1
+.include modelos.lib
+VCC vcc 0 DC 10
+R2 vcc b2 100
+R1 b1 0 47
+RB2 b2 x 2256.3
+RB1 x b1 4283.7
+Q1 gi x e1 QUJTP
+Q2 x gi b1 QUJTN
+RGK gi b1 1Meg
+RSE e e1 2
+CL1 gi b1 100p
+CL2 x e1 100p
+R vcc e 100k
+C e 0 10n
+.options reltol=1e-6 abstol=1e-14 vntol=1e-9
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 0.5u 5m 0 0.5u uic
+wrdata salida.txt v(e) v(b1) i(vcc)
+.endc
+.end

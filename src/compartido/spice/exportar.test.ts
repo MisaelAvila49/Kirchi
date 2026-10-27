@@ -149,6 +149,30 @@ describe('lógica', () => {
     expect(() => cuerpo([{ type: 'GATE', fn: 'xor', inputs: [0], output: 1, rise_delay: 5e-9, fall_delay: 5e-9, z_como: 'x' }], { digital_nets: 2 })).toThrow(/XOR/)
   })
 
+  it('una compuerta con habilitación se exporta con un d_tristate y, activa en bajo, un inversor de 1 ps', () => {
+    const t = cuerpo([{ type: 'GATE', fn: 'buf', inputs: [0], output: 2, enable: 1, enable_bajo: true, rise_delay: 5e-9, fall_delay: 5e-9, z_como: 'x' }], { digital_nets: 3 })
+    expect(t).toContain('d_tristate(delay=5e-9)')
+    expect(t).toMatch(/a0e d1 da0 /)
+    expect(t).toMatch(/a0t d0 da0 d2 /)
+    const n = cuerpo([{ type: 'GATE', fn: 'nand', inputs: [0, 1], output: 3, enable: 2, enable_bajo: false, rise_delay: 5e-9, fall_delay: 7e-9, z_como: 'x' }], { digital_nets: 4 })
+    expect(n).toContain('d_nand(rise_delay=1e-12 fall_delay=1e-12')
+    expect(n).toContain('d_tristate(delay=6e-9)')
+    expect(n).not.toContain('d_inverter')
+  })
+
+  it('un puente de entrada con histéresis se exporta con un interruptor SW de SPICE', () => {
+    const t = cuerpo([{ type: 'ADC', p: 1, n: 0, out: 0, in_low: 1.6, in_high: 2.7, histeresis: true }], { digital_nets: 1 })
+    expect(t).toContain('sw(vt=2.15 vh=0.55 ron=1 roff=1e9)')
+  })
+
+  it('una XNOR de tres entradas se exporta como una cadena de XOR cuya última etapa lleva los retardos de la compuerta', () => {
+    const t = cuerpo([{ type: 'GATE', fn: 'xnor', inputs: [0, 1, 2], output: 3, rise_delay: 5e-9, fall_delay: 6e-9, z_como: 'x' }], { digital_nets: 4 })
+    expect(t).toContain('d_xor(rise_delay=1e-12 fall_delay=1e-12)')
+    expect(t).toContain('d_xnor(rise_delay=5e-9 fall_delay=6e-9 inertial_delay=true)')
+    expect(t).toContain('a0x0 [d0 d1] da0 xr')
+    expect(t).toContain('a0 [da0 d2] d3 gt')
+  })
+
   it('la tabla del decodificador y los estados del contador salen de las del motor', () => {
     // La del archivo de referencia (activo en alto, a primero): el 6 sin la barra de arriba y el 9 sin la de abajo.
     expect(tablaDecodificador(true).slice(0, 16)).toBe('1011010111000000')

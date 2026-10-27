@@ -1,0 +1,23 @@
+* Punta logica TTL con la punta sobre la pinza +
+.include modelos.lib
+V1 vcc 0 DC 5
+R2 vcc 0 1000000
+R3 vcc thh 60000
+R4 thh 0 40000
+R5 vcc thl 84000
+R6 thl 0 16000
+XU1 vcc thh oh vcc 0 AMPOP a0=100000 gbw=1000000 sr=1000000 rin=1000000000000 rout=100 ilim=0.02 dhi=0.1 dlo=0.1 rq=50000
+XU2 thl vcc ol vcc 0 AMPOP a0=100000 gbw=1000000 sr=1000000 rin=1000000000000 rout=100 ilim=0.02 dhi=0.1 dlo=0.1 rq=50000
+R7 oh ah 470
+D1 ah 0 DLEDROJO
+R8 ol al 470
+D2 al 0 DLEDVERDE
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(vcc) i(v1)
+.endc
+.end

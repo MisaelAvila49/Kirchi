@@ -51,9 +51,16 @@ win:
       arch: x64
     - target: zip
       arch: x64
-  artifactName: Kirchi-${version}-portatil-${arch}.${ext}
+  # Aplica al zip; el instalador y el appx tienen el suyo.
+  artifactName: Kirchi-${version}-Windows-portable.${ext}
+dmg:
+  artifactName: Kirchi-${version}-macOS.${ext}
+appImage:
+  artifactName: Kirchi-${version}-Linux.${ext}
+deb:
+  artifactName: Kirchi-${version}-Linux.${ext}
 nsis:
-  artifactName: Kirchi-${version}-instalador-${arch}.${ext}
+  artifactName: Kirchi-${version}-Windows-instalador.${ext}
   oneClick: false
   perMachine: false
   allowElevation: false
@@ -90,6 +97,8 @@ appx:
   # Windows 10 1809 (Electron 44 ya no corre en versiones anteriores).
   minVersion: 10.0.17763.0
   maxVersionTested: 10.0.26100.0
+  # Alias de ejecución `kirchi.exe` (en %LOCALAPPDATA%\Microsoft\WindowsApps) para que un cliente MCP lance `kirchi --mcp`: la carpeta WindowsApps no se puede lanzar por ruta.
+  customExtensionsPath: build/appx/alias.xml
   # Los .kir se asocian por la entrada `fileAssociations` de arriba (windows.fileTypeAssociation en el manifiesto).
 mac:
   icon: build/icon.icns
@@ -97,7 +106,6 @@ mac:
   target:
     - target: dmg
       arch: universal
-  artifactName: Kirchi-${version}-macos-${arch}.${ext}
   # Grabar la pantalla de Kirchi: macOS pregunta por el micrófono y la grabación de pantalla con estos textos.
   extendInfo:
     NSMicrophoneUsageDescription: Kirchi usa el micrófono solo cuando grabas la pantalla con voz.
@@ -129,6 +137,5 @@ linux:
   target:
     - AppImage
     - deb
-  artifactName: Kirchi-${version}-linux-${arch}.${ext}
   mimeTypes:
     - application/x-kirchi

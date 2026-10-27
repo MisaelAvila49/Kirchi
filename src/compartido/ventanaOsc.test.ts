@@ -112,6 +112,9 @@ describe('ventana aparte del osciloscopio: las órdenes que vuelven al editor', 
     expect(validarComandoOsc({ tipo: 'columnas', id: 'p1', n: 640 })).toEqual({ tipo: 'columnas', id: 'p1', n: 640 })
     expect(validarComandoOsc({ tipo: 'cursores', cursores: { canal: 'A', t: [0, 1], v: null } })).toEqual({ tipo: 'cursores', cursores: { canal: 'A', t: [0, 1], v: null } })
     expect(validarComandoOsc({ tipo: 'cursores', cursores: null })).toEqual({ tipo: 'cursores', cursores: null })
+    const xy = { canal: 'B', t: null, v: null, xy: [{ x: 1, y: -2 }, { x: 3, y: 4 }] }
+    expect(validarComandoOsc({ tipo: 'cursores', cursores: xy })).toEqual({ tipo: 'cursores', cursores: xy })
+    expect(validarComandoOsc({ tipo: 'cursores', cursores: { ...xy, xy: [{ x: 1, y: 'a' }, { x: 3, y: 4 }] } })).toBeNull()
     expect(validarComandoOsc({ tipo: 'escala', eje: { tipo: 'tiempo' }, dir: -1 })).toEqual({ tipo: 'escala', eje: { tipo: 'tiempo' }, dir: -1 })
     expect(validarComandoOsc({ tipo: 'escala', eje: { tipo: 'canal', canal: 'B' }, dir: 1 })).toEqual({ tipo: 'escala', eje: { tipo: 'canal', canal: 'B' }, dir: 1 })
     expect(validarComandoOsc({ tipo: 'posicion', canal: 'A', pos: 1.5, gesto: 'a_pos' })).toEqual({ tipo: 'posicion', canal: 'A', pos: 1.5, gesto: 'a_pos' })

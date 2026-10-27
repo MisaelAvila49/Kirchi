@@ -1,0 +1,228 @@
+{
+  "id": "ujt",
+  "nombre": {
+    "es": "Transistor UJT",
+    "en": "UJT transistor"
+  },
+  "categoria": "semiconductores",
+  "prefijo": "Q",
+  "buscar": [
+    "ujt",
+    "unijuntura",
+    "uniunion",
+    "unijunction",
+    "2n2646",
+    "oscilador de relajacion"
+  ],
+  "pines": [
+    {
+      "id": "E",
+      "nombre": "emisor (E)",
+      "x": -4,
+      "y": 0
+    },
+    {
+      "id": "B2",
+      "nombre": "base 2 (B2)",
+      "x": 2,
+      "y": -4
+    },
+    {
+      "id": "B1",
+      "nombre": "base 1 (B1)",
+      "x": 2,
+      "y": 4
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "2N2646",
+      "opciones": [
+        "2N2646"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "2N2646": {
+        "rb2": 2256.3,
+        "rb1": 4283.7,
+        "pbf": 10,
+        "nbf": 4,
+        "rgk": 1000000,
+        "cl": 1e-10,
+        "rse": 2
+      }
+    },
+    "internas": [
+      "x",
+      "gi",
+      "e1"
+    ],
+    "medida": {
+      "mas": "E",
+      "menos": "B1",
+      "i": 5
+    },
+    "elementos": [
+      {
+        "t": "R",
+        "a": "B2",
+        "b": "x",
+        "ohms": "rb2"
+      },
+      {
+        "t": "R",
+        "a": "x",
+        "b": "B1",
+        "ohms": "rb1"
+      },
+      {
+        "t": "Q",
+        "c": "gi",
+        "b": "x",
+        "e": "e1",
+        "pnp": true,
+        "params": {
+          "is": 1e-14,
+          "bf": "pbf",
+          "vaf": 50,
+          "rb": 0.5,
+          "rc": 0.05,
+          "re": 0.05
+        }
+      },
+      {
+        "t": "Q",
+        "c": "x",
+        "b": "gi",
+        "e": "B1",
+        "params": {
+          "is": 1e-14,
+          "bf": "nbf",
+          "vaf": 50,
+          "rb": 0.5,
+          "rc": 0.05,
+          "re": 0.05
+        }
+      },
+      {
+        "t": "R",
+        "a": "gi",
+        "b": "B1",
+        "ohms": "rgk"
+      },
+      {
+        "t": "R",
+        "a": "E",
+        "b": "e1",
+        "ohms": "rse"
+      },
+      {
+        "t": "C",
+        "a": "gi",
+        "b": "B1",
+        "farads": "cl"
+      },
+      {
+        "t": "C",
+        "a": "x",
+        "b": "e1",
+        "farads": "cl"
+      }
+    ]
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "2N2646": {
+          "fuente": "Central Semiconductor 2N2646 y 2N2647 (R1, 2 dic 2013), Maximum Ratings: voltaje inverso de B2 a emisor de 30 V, voltaje entre bases de 35 V, corriente eficaz de emisor de 50 mA y disipación de 300 mW.",
+          "limites": [
+            {
+              "nombre": "voltaje entre bases",
+              "de": "B2",
+              "a": "B1",
+              "max": 35,
+              "escala": 35,
+              "consejo": "baja el voltaje entre B2 y B1 o agrega una resistencia en serie con B2."
+            },
+            {
+              "nombre": "emisor inverso",
+              "de": "B2",
+              "a": "E",
+              "max": 30,
+              "escala": 30,
+              "consejo": "evita que el emisor quede más de 30 V bajo B2."
+            },
+            {
+              "nombre": "corriente de emisor",
+              "medida": "corriente",
+              "max": 0.05,
+              "consejo": "agrega una resistencia en serie con el emisor."
+            },
+            {
+              "nombre": "potencia",
+              "medida": "potencia",
+              "max": 0.3,
+              "consejo": "baja el voltaje entre bases o la corriente de emisor."
+            }
+          ]
+        }
+      }
+    },
+    "quema": {
+      "factor": 2,
+      "durante": 0.5,
+      "elemento": 2
+    }
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 4,
+      "y": -1
+    },
+    "valor": {
+      "x": 4,
+      "y": 1
+    }
+  },
+  "fuentes": {
+    "2N2646": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Central Semiconductor 2N2646 y 2N2647 (R1, 2 dic 2013) y Comset 2N2646/2647: η de 0.56 a 0.75 con VB2B1 = 10 V (se tomó el centro, 0.655, porque la hoja no da típico), RBB de 4.7 a 9.1 kΩ con 3 V (media geométrica, 6.54 kΩ, repartida en RB1 = 4.28 kΩ y RB2 = 2.26 kΩ), IP de 5 µA como máximo con VB2B1 = 25 V, IV de 4 mA como mínimo con VB2B1 = 20 V y RB2 = 100 Ω, VE(sat) de 2.5 V como máximo con 50 mA. Es un equivalente de un transistor programable (PUT): un PNP y un NPN realimentados, con el emisor en E, la base del PNP en el nodo entre RB2 y RB1 y el emisor del NPN en B1, de modo que dispara cuando VE llega a η · VB2B1 más la caída del emisor, unos 0.5 V. Las ganancias (PNP 10, NPN 4), la resistencia de 1 MΩ en la base del NPN, 100 pF en los nodos internos (sin ellos el disparo no converge) y 2 Ω de contacto en el emisor se eligieron para que las tres cifras queden dentro de la hoja: el modelo da IP de 3.7 µA, IV de 4.8 mA y VE(sat) de 0.9 V (la hoja solo trae límites; una resistencia de emisor mayor subiría VE(sat) pero bajaría IV de los 4 mA mínimos). El oscilador de relajación da una frecuencia dentro del 10 % de 1 / (R C ln(1 / (1 - η))). No modela la temperatura ni el tiempo de apagado."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": {
+      "kicad": "Device:Q_NUJT_BEB"
+    },
+    "valores": {
+      "2N2646": {
+        "fabricante": "Central Semiconductor",
+        "parte": "2N2646",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-18",
+            "patillas": {},
+            "huella": "Package_TO_SOT_THT:TO-18-3"
+          }
+        ],
+        "nota": "Caja TO-18 (encapsulado ya en el catalogo con tres patillas)",
+        "pendiente": {
+          "patillas": "Sin resolver. Central 2N2646/2N2647 R1 (2 dic 2013) p. 2, LEAD CODE: 1 emisor, 2 base 1, 3 base 2 (TO-18). Components101 (pagina de patillas, resumen de busqueda): 1 base 1, 2 emisor. Device:Q_NUJT_BEB de KiCad 9 numera B2 1, E 2, B1 3 pero es generico. Comset 2N2646 p. 1 dibuja la caja sin rotular. Propuesta: E 1, B1 2, B2 3 (Central)",
+          "hoja": "El enlace propio de Central para el 2N2646 no se hallo (404 con el patron de su sitio); se leyo la copia de phippselectronics.com del documento R1",
+          "lcsc": "No se hallo pagina de LCSC para el 2N2646 (busqueda del 26 oct 2026)"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Central 2N2646/2N2647 R1 p. 1 y 2; Comset 2N2646/2647 p. 1 y 2"
+        },
+        "aproximada": "Equivalente de un PUT (PNP y NPN realimentados): dispara en η · VB2B1 más la caída del emisor y su VE(sat) queda bajo el máximo de la hoja, no en un valor típico (la hoja no lo da)."
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+* PC817A que conmuta una carga de 470 ohm con pulsos de 5 V a 25 kHz en el LED
+.include modelos.lib
+V1 vin 0 PULSE(0 5 0 1p 1p 19.999999u 40u)
+R1 vin a 1k
+V2 vcc 0 DC 5
+RL vcc c 470
+D1 a x DOPT8
+VF1 x 0 0
+F1 c b VF1 0.005622
+Q1 c b 0 QOPT8
+.options reltol=1e-6 abstol=1e-14 vntol=1e-9
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20n 100u 0 20n
+wrdata salida.txt v(a) v(c) i(v1) i(v2)
+.endc
+.end

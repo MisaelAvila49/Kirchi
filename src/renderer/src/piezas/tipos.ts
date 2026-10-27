@@ -1,4 +1,6 @@
 import type { Punto } from '../doc/tipos'
+import type { GenerarDef } from './generadores'
+import type { TablaDef } from './tablaVerdad'
 
 export interface PinDef {
   id: string
@@ -38,6 +40,18 @@ export interface PropDef {
   /** No se escribe al crear la pieza, solo cuando el usuario la cambia (potencia nominal de la resistencia): los circuitos
    * nuevos y los viejos guardan los mismos bytes. */
   omitir?: boolean
+  /** Perilla en vivo: la propiedad se mueve mientras simula y llega al motor por un canal. La unidad es la de la magnitud
+   * (°C, lx, N·m); `escala: 'log'` (luz) hace que cada muesca multiplique en vez de sumar (`paso` y `pasoFino` cuentan muescas por década) y exige `min` positivo. */
+  enVivo?: EnVivo
+}
+
+export interface EnVivo {
+  magnitud: 'temperatura' | 'luz' | 'carga'
+  min: number
+  max: number
+  paso: number
+  pasoFino: number
+  escala?: 'log'
 }
 
 /** Un valor numérico con valores comunes (sin lista cerrada, texto libre ni ajuste de instrumento) ofrece su lista plegable. */
@@ -97,8 +111,9 @@ export interface SerieZener {
   zzt: number
 }
 
-/** Un número, o el nombre de un parámetro del modelo elegido o de una propiedad numérica de la pieza (con «-» delante, su opuesto). */
-export type ValorCompuesto = number | string
+/** Un número, o el nombre de un parámetro del modelo elegido o de una propiedad numérica de la pieza (con «-» delante, su
+ * opuesto), o `{ prop, por, mas }`: `mas + por × prop`, lineal en una propiedad (la salida de un sensor integrado). */
+export type ValorCompuesto = number | string | { prop: string; por: number; mas: number }
 
 /** Un elemento de una pieza `compuesto`; los nodos son pines de la pieza o redes de `internas`. */
 export type ElementoCompuesto =
@@ -113,6 +128,15 @@ export type ElementoCompuesto =
   /** Transformador: dos devanados acoplados con el punto en `a1` y `a2`; `l1` es la inductancia del primario, `n` la relación Np/Ns (L2 = L1 / n²) y `k` el acoplamiento. */
   | { t: 'T'; a1: string; b1: string; a2: string; b2: string; l1: ValorCompuesto; n: ValorCompuesto; k: ValorCompuesto }
   | { t: 'OA'; mas: string; menos: string; sal: string; vmas: string; vmenos: string; params: Record<string, ValorCompuesto> }
+  | { t: 'M'; d: string; g: string; s: string; pmos?: boolean; params: Record<string, ValorCompuesto> }
+  | { t: 'J'; d: string; g: string; s: string; pjf?: boolean; params: Record<string, ValorCompuesto> }
+  /** Fuentes controladas entre `p` y `n` por el voltaje (`E`, `G`) o la corriente (`H`, `F`) de `cp` y `cn`. */
+  | { t: 'E'; p: string; n: string; cp: string; cn: string; ganancia: ValorCompuesto }
+  | { t: 'G'; p: string; n: string; cp: string; cn: string; gm: ValorCompuesto }
+  | { t: 'H'; p: string; n: string; cp: string; cn: string; r: ValorCompuesto }
+  | { t: 'F'; p: string; n: string; cp: string; cn: string; ganancia: ValorCompuesto }
+  /** Fuente de valor externo: `k` por la perilla `canal` (id de una propiedad `enVivo`) más `c`, con `r` en serie opcional. */
+  | { t: 'EXT'; a: string; b: string; modo: 'v' | 'i'; canal: string; k: ValorCompuesto; c: ValorCompuesto; r?: ValorCompuesto }
 
 /** Parámetros de un modelo con los nombres y las unidades de ngspice («is», «bf», «vto»). */
 export type ParametrosSpice = Record<string, number>
@@ -122,6 +146,21 @@ export type ModeloDef =
   | { tipo: 'R' | 'C' | 'L' | 'V' | 'I'; a: string; b: string; prop: string; rserie?: string }
   /** Zener de la serie `serie` (voltaje → corriente de prueba `izt` en A e impedancia `zzt` en Ω de la hoja); `prop` es el
    * voltaje Zener. `is`, `n`, `cjo`, `vj` y `m` son del diodo de SPICE. */
+  /** JFET de nivel 1 (`pjf`: canal P), un juego de parámetros de SPICE por opción de `prop`. */
+  | { tipo: 'jfet'; d: string; g: string; s: string; pjf: boolean; prop: string; modelos: Record<string, ParametrosSpice> }
+  /** Termistor: `r25`, `beta`, `delta`, `tau` y `tmax` por opción de `prop` (o una tabla R/T en `tablas`); la temperatura
+   * ambiente es la perilla `temperatura`. */
+  | { tipo: 'termistor'; a: string; b: string; ptc?: true; prop: string; modelos: Record<string, ParametrosSpice>; tablas?: Record<string, [number, number][]>; temperatura: string }
+  /** Fotorresistencia: `r10`, `gamma`, `roscuro`, `tau_sube` y `tau_baja` por opción de `prop`; la luz es la perilla `luz`. */
+  | { tipo: 'ldr'; a: string; b: string; prop: string; modelos: Record<string, ParametrosSpice>; luz: string }
+  /** Motor a pasos de dos fases: 4 `nodos` (bipolar) o 6 (unipolar, con la toma central repetida); `carga` es la perilla del par. */
+  | { tipo: 'pasos'; nodos: string[]; unipolar?: true; prop: string; modelos: Record<string, ParametrosSpice>; carga?: string }
+  /** Puente H doble (L298): entradas IN1 a IN4, habilitaciones ENA y ENB, salidas OUT1 a OUT4, SENSA, SENSB, VS, VSS y GND; lo arma `netlist/puenteH.ts`. */
+  | { tipo: 'puente-h'; entradas: string[]; habilita: string[]; salidas: string[]; sensa: string; sensb: string; vs: string; vss: string; gnd: string; prop: string; modelos: Record<string, ParametrosSpice> }
+  /** Fuente controlada `forma` (E, G, H o F); `prop` es la propiedad numérica con su ganancia. */
+  | { tipo: 'controlada'; forma: 'E' | 'G' | 'H' | 'F'; p: string; n: string; cp: string; cn: string; prop: string }
+  /** Fuente por tramos: `puntos` es la propiedad de texto con los pares, `repetir` la lista de dos opciones (la segunda repite) y `modo` la lista voltaje o corriente. */
+  | { tipo: 'pwl'; a: string; b: string; puntos: string; repetir: string; modo: string }
   | { tipo: 'zener'; a: string; b: string; prop: string; is: number; n: number; cjo: number; vj: number; m: number; serie: Record<string, SerieZener>; sinFamiliaHasta?: number; por?: { prop: string; valores: Record<string, Record<string, SerieZener>> } }
   /** Transistor bipolar de Gummel-Poon: un juego de parámetros de SPICE por opción de `prop` («2N2222»). */
   | { tipo: 'bjt'; c: string; b: string; e: string; pnp: boolean; prop: string; modelos: Record<string, ParametrosSpice> }
@@ -156,8 +195,8 @@ export type ModeloDef =
       modelos?: Record<string, ParametrosSpice>
       internas?: string[]
       opcionales?: string[]
-      /** Los pines de los que sale el voltaje de la pieza y el elemento (índice de `elementos`) cuya corriente es la de la pieza. */
-      medida: { mas: string; menos: string; i: number }
+      /** Los pines de los que sale el voltaje de la pieza y el elemento (índice de `elementos`) cuya corriente es la de la pieza; `region` es el índice del transistor (Q, M o J) cuya región se muestra. */
+      medida: { mas: string; menos: string; i: number; region?: number }
       elementos: ElementoCompuesto[]
       terminales: string[]
     }
@@ -176,9 +215,11 @@ export type ModeloDef =
    * y las etiquetas con ese nombre quedan en la misma red. Un nombre que es voltaje da ese voltaje; otro es un riel de la
    * tabla del documento (`netlist/alimentaciones.ts`). */
   | { tipo: 'alimentacion'; pin: string; nombre: string }
-  /** Compuerta: `funcion` es not, and, or, nand, nor o xor; `entradas` y `salida` son pines; `familia` y `alimentacion`
-   * son propiedades de lista (familia de `componentes/familias-logicas.json` y su voltaje). */
-  | { tipo: 'compuerta'; funcion: 'not' | 'and' | 'or' | 'nand' | 'nor' | 'xor'; entradas: string[]; salida: string; familia: string; alimentacion: string }
+  /** Compuerta: `funcion` es not, and, or, nand, nor, xor o xnor; `entradas` y `salida` son pines; `familia` y `alimentacion`
+   * son propiedades de lista (familia de `componentes/familias-logicas.json` y su voltaje). Con `histeresis` (solo NOT) la
+   * entrada es un disparador Schmitt con los umbrales `schmitt` de su familia. Con `habilitacion` (un pin) y `activo`
+   * («bajo» o «alto») la salida queda en Z mientras no está habilitada y puede compartir red con otras salidas iguales. */
+  | { tipo: 'compuerta'; funcion: 'not' | 'buf' | 'and' | 'or' | 'nand' | 'nor' | 'xor' | 'xnor'; entradas: string[]; salida: string; familia: string; alimentacion: string; histeresis?: true; habilitacion?: string; activo?: 'bajo' | 'alto' }
   /** Biestable D por flanco de subida (74HC74) con PRE y CLR activos en bajo. */
   | { tipo: 'biestable-d'; d: string; clk: string; pre: string; clr: string; q: string; qn: string; familia: string; alimentacion: string }
   /** Biestable JK por flanco de bajada (74HC112) con PRE y CLR activos en bajo. */
@@ -192,6 +233,19 @@ export type ModeloDef =
   /** Temporizador 555: sus ocho pines y, por opción de `prop` (NE555, LM555, TLC555), los parámetros de su macromodelo. */
   | { tipo: '555'; gnd: string; trig: string; out: string; reset: string; cv: string; thr: string; dis: string; vcc: string; prop: string; modelos: Record<string, Parametros555> }
   /** Display de 7 segmentos: un LED por segmento (a a g y el punto) con su común; `conexion` dice cátodo o ánodo común. */
+  /** Combinacional por tabla: `comunes` más las entradas de cada rebanada eligen la fila. Sin `rebanadas` las columnas y
+   * salidas de la tabla son pines. Con ellas, cada rebanada traduce el nombre local de la tabla a un pin. `tabla` o `generar`. */
+  | { tipo: 'lut'; familia: string; alimentacion: string; comunes: string[]; rebanadas?: Record<string, string>[]; bidireccionales?: string[]; abiertas?: string[]; tabla?: TablaDef; generar?: GenerarDef; retardos: RetardosPorFamilia }
+  /** Núcleo de estado (contador o desplazamiento) y salidas: cada pin de `salidas` es `q3`, `!q3`, `a2` (registro auxiliar) o `tabla`. */
+  | { tipo: 'msi'; familia: string; alimentacion: string; nucleo: NucleoPieza; salidas: Record<string, string>; abiertas?: string[]; tabla?: TablaDef; retardos: RetardosPorFamilia }
+  /** ADC0804: `db` va del bit 0 al 7. Umbrales y niveles de la hoja, `rref` cada mitad de VREF/2, `r_lo` y `r_hi` las resistencias de salida y los tiempos de conversión. */
+  | { tipo: 'convertidor-ad'; cs: string; rd: string; wr: string; clkin: string; clkr: string; intr: string; vinp: string; vinn: string; agnd: string; vref2: string; dgnd: string; vcc: string; db: string[]; vil: number; vih: number; vtp: number; vtn: number; voh: number; vol: number; rref: number; r_lo: number; r_hi: number; ciclos_inicio: number; ciclos_bit: number; t_acceso: number; t_intr: number }
+  /** DAC0808: `a` va del bit más significativo (A1) al menos. */
+  | { tipo: 'convertidor-da'; a: string[]; io: string; gnd: string; vee: string; vcc: string; vrefp: string; vrefn: string; comp: string; vil: number; vih: number; t_asentamiento: number }
+  /** Interruptor DIP: un contacto por par de pines; `estado` es la propiedad de texto con un 0 o un 1 por contacto. */
+  | { tipo: 'interruptores'; contactos: [string, string][]; estado: string; r_on: number; r_off: number }
+  /** Teclado matricial: una tecla une su fila con su columna. `rebote` es la propiedad de lista que lo enciende. */
+  | { tipo: 'teclado'; filas: string[]; columnas: string[]; r_on: number; r_off: number; rebote?: string }
   | { tipo: 'display'; segmentos: string[]; comun: string; conexion: string; anodo: string; is: number; n: number; por?: ParametrosPor; inom?: number }
   /** Multímetro: «+» y COM; `modo` lista sus seis funciones e `ideal` es la casilla «Instrumento ideal». El significado de
    * cada propiedad de un instrumento lo fija `instrumentos/ajustes.ts`. */
@@ -255,6 +309,9 @@ export type AnimacionDef =
   | { tipo: 'cursor'; prop: string; desde: number; hasta: number; codo: number }
   /** Un tono de la propiedad `frecuencia` (Hz) con la forma `onda` mientras suena. */
   | { tipo: 'sonido'; frecuencia: string; onda: 'triangular' | 'senoidal' | 'cuadrada' }
+  /** Luces sueltas de una pieza compuesta: cada una brilla con la corriente del diodo `elemento` (índice de `modelo.elementos`)
+   * en el punto (`x`, `y`) del símbolo, con el color de LED `color`. */
+  | { tipo: 'luces'; luces: { elemento: number; x: number; y: number; color: string }[] }
 
 /** Las capas que pide cada animación, en el orden de sus estados (reposo antes que operado). */
 export function capasDeAnimacion(a: AnimacionDef | undefined): readonly string[] {
@@ -271,6 +328,97 @@ export function capasDeAnimacion(a: AnimacionDef | undefined): readonly string[]
   }
 }
 
+/** Los programas de los que una pieza guarda su nombre equivalente (el nombre del formato, nunca un archivo suyo). */
+export const FORMATOS_EQUIVALENCIA = ['kicad', 'ltspice', 'falstad', 'proteus', 'fritzing'] as const
+export type FormatoEquivalencia = (typeof FORMATOS_EQUIVALENCIA)[number]
+
+/** Nombre de la pieza en otros programas; `sinVerificar` lista los formatos cuyo nombre no se confirmó con el programa o su documentación. */
+export type Equivalencias = Partial<Record<FormatoEquivalencia, string | string[]>> & { sinVerificar?: string[] }
+
+/** Una forma física de la pieza: encapsulado, patillas y de dónde sale cada dato. */
+export interface Presentacion {
+  /** Id de `componentes/encapsulados.json`. */
+  encapsulado: string
+  /** Id de pin → patilla(s) física(s). El número vive aquí y no en `pines[]` porque cambia con el modelo, la familia y el encapsulado. */
+  patillas: Record<string, string | string[]>
+  /** Red implícita → patilla(s) que no son pines del símbolo: `{ VCC: '14', GND: '7' }`. */
+  alimentacion?: Record<string, string | string[]>
+  /** Patilla → qué es, cuando el modelo no la usa («Ajuste de offset», «NC»). */
+  sinModelo?: Record<string, string>
+  /** Cada unidad de un chip doble o cuádruple; la primera coincide con `patillas`. */
+  unidades?: { nombre: string; patillas: Record<string, string> }[]
+  /** Id de huella de KiCad «Biblioteca:Nombre»; sin ella, la del encapsulado. */
+  huella?: string
+  /** Número de parte si cambia con la presentación (MMBT3904 en SOT-23). */
+  parte?: string
+  lcsc?: { numero: string; comprobado?: string; sinVerificar?: true }
+  /** Presentación típica, no fijada por el valor (el electrolítico de 100 µF). */
+  representativa?: true
+  protoboard?: { arte?: string; separacion?: number }
+}
+
+/** Los datos físicos de una opción de la pieza. */
+export interface FilaDatos {
+  /** Sin pieza física: fuentes ideales, instrumentos, tierra, «Ideal». */
+  virtual?: true
+  fabricante?: string
+  parte?: string
+  /** Enlace https del fabricante, nunca un agregador. */
+  hoja?: string
+  /** En qué difiere el chip real del modelo. */
+  aproximada?: string
+  /** Reemplaza a la de la pieza en los formatos que trae. */
+  equivalencias?: Equivalencias
+  /** La primera es la de omisión. */
+  presentaciones?: Presentacion[]
+  /** Campo → por qué falta. */
+  pendiente?: Record<string, string>
+  comprobado?: { fecha: string; fuente: string }
+  nota?: string
+}
+
+export interface DatosPieza {
+  /** Propiedad de lista (o dos) que elige la fila; sin ella la única fila es «*». */
+  por?: string | [string, string]
+  equivalencias?: Equivalencias
+  /** Clave: la opción, «opciónA|opciónB» con dos propiedades, o «*». */
+  valores: Record<string, FilaDatos>
+}
+
+/** Retardo típico `[subida, bajada]` por salida (o grupo `Q*`, o `*`) a la alimentación `vcc` de la hoja, por opción de familia. */
+export type RetardosPorFamilia = Record<string, { vcc: number } & Record<string, number | [number, number]>>
+
+/** Una señal de control de `pieza.json`: el id de un pin, con `!` delante si es activa en bajo. */
+export interface RelojPieza {
+  senales: string[]
+  combina?: 'Y' | 'O'
+  flanco?: 'subida' | 'bajada'
+}
+export interface AccionPieza {
+  senal: string
+  sincrona?: boolean
+}
+export interface CargaPieza extends AccionPieza {
+  /** Pines de dato, el bit 0 primero. */
+  datos: string[]
+}
+export type NucleoPieza =
+  | { tipo: 'contador'; bits: number; modulo: number; reloj: RelojPieza; abajo?: RelojPieza; sentido?: string; habilita?: string[]; borra?: AccionPieza; carga?: CargaPieza }
+  | { tipo: 'desplazamiento'; bits: number; reloj: RelojPieza; serie?: string[]; borra?: AccionPieza; carga?: CargaPieza; almacen?: RelojPieza }
+
+/** El símbolo de un integrado dibujado por `scripts/generar-simbolo-ci.mjs` desde esta clave. */
+export interface CajaPieza {
+  titulo?: string
+  forma: 'funcional' | 'dip'
+  /** Ids de pin (con `!` si es activo en bajo); null deja un hueco. */
+  izquierda?: (string | null)[]
+  derecha?: (string | null)[]
+  arriba?: (string | null)[]
+  abajo?: (string | null)[]
+  ancho?: number
+  marcas?: Record<string, ('bajo' | 'dinamico' | 'z' | 'oc')[]>
+}
+
 export interface PiezaDef {
   id: string
   nombre: { es: string; en: string }
@@ -285,6 +433,11 @@ export interface PiezaDef {
   etiquetas: { ref: Punto; valor: Punto & { trasRotulo?: number } }
   rotulos?: Rotulo[]
   geometria: Geometria
+  /** Compuerta de cantidad variable de entradas: `base` es la pieza de dos, `n` las de esta y `max` el tope. Cada cantidad
+   * es una pieza (`and`, `and-3`…`and-8`) y la propiedad «Entradas» cambia de una a otra. */
+  entradas?: { base: string; n: number; max: number }
+  /** No sale en la Librería ni en el buscador (las de 3 a 8 entradas se alcanzan por la propiedad «Entradas»). */
+  oculta?: true
   /** Un dibujo extra según una propiedad de lista (la forma de la onda del generador), sobre el del símbolo. */
   variantes?: { prop: string; geometrias: Record<string, Geometria> }
   /** Dibujo de un interruptor con el contacto cerrado (`accionado.svg`: el botón presionado), con la caja de `geometria`. */
@@ -296,6 +449,12 @@ export interface PiezaDef {
   /** De dónde salen los parámetros de cada modelo, por opción de `modelo`: hoja de datos o modelo libre (documento,
    * revisión y URL); si se ajustaron a la hoja en vez de copiarse, se dice. */
   fuentes?: Record<string, string>
+  /** Datos físicos por opción: encapsulado, patillas, huella, hoja de datos y equivalencias. */
+  datos?: DatosPieza
+  /** Cómo se dibuja el símbolo generado (`caja` del `pieza.json`). */
+  caja?: CajaPieza
+  /** Grupo plegable de la Librería dentro de su categoría. */
+  grupo?: string
 }
 
 /** Máximo absoluto. De voltaje: V(`de`) − V(`a`) entre `min` y `max` (con `abs`, su valor absoluto contra `max`); `de`

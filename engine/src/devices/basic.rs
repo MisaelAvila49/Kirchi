@@ -288,3 +288,70 @@ impl Device for ISource {
         }
     }
 }
+
+#[cfg(test)]
+mod tests_pwl {
+    use crate::netlist::Wave;
+    use crate::{Netlist, Transient};
+
+    fn pwl(puntos: &[[f64; 2]], repetir: bool) -> Wave {
+        Wave::Pwl { puntos: puntos.to_vec(), repetir }
+    }
+
+    #[test]
+    fn pwl_vale_lo_esperado_en_esquinas_y_a_mitad_de_tramo() {
+        let w = pwl(&[[0.0, 0.0], [1e-3, 5.0], [3e-3, 1.0]], false);
+        assert_eq!(w.at(0.0), 0.0);
+        assert!((w.at(0.5e-3) - 2.5).abs() < 1e-12);
+        assert_eq!(w.at(1e-3), 5.0);
+        assert!((w.at(2e-3) - 3.0).abs() < 1e-12);
+        assert_eq!(w.at(3e-3), 1.0);
+        // Pasado el último punto se queda en su valor.
+        assert_eq!(w.at(1.0), 1.0);
+    }
+
+    #[test]
+    fn pwl_tiene_un_quiebre_en_cada_esquina_y_ninguno_despues() {
+        let w = pwl(&[[0.0, 0.0], [1e-3, 5.0], [3e-3, 1.0]], false);
+        assert_eq!(w.next_edge(0.0), 1e-3);
+        assert_eq!(w.next_edge(1e-3), 3e-3);
+        assert_eq!(w.next_edge(0.5e-3), 1e-3);
+        assert_eq!(w.next_edge(3e-3), f64::INFINITY);
+    }
+
+    #[test]
+    fn pwl_repite_con_el_ultimo_tiempo_como_periodo() {
+        let w = pwl(&[[0.0, 0.0], [1e-3, 5.0], [2e-3, 0.0]], true);
+        assert!((w.at(2.5e-3) - 2.5).abs() < 1e-9);
+        assert!((w.at(7.5e-3) - 2.5).abs() < 1e-9);
+        assert!((w.next_edge(2e-3) - 3e-3).abs() < 1e-12);
+        assert!((w.next_edge(5.5e-3) - 6e-3).abs() < 1e-12);
+        // Con un salto al cerrar el periodo, el paso que termina en él todavía lee el final del último tramo.
+        let salto = pwl(&[[0.0, 0.0], [1e-3, 4.0]], true);
+        assert_eq!(salto.during(1e-3, 1e-4), 4.0);
+        assert!((salto.during(1.5e-3, 1e-4) - 2.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn pwl_de_un_solo_punto_es_constante() {
+        for repetir in [false, true] {
+            let w = pwl(&[[0.0, 3.3]], repetir);
+            assert_eq!(w.at(0.0), 3.3);
+            assert_eq!(w.at(5.0), 3.3);
+            assert_eq!(w.next_edge(0.0), f64::INFINITY);
+        }
+    }
+
+    #[test]
+    fn una_fuente_pwl_alimenta_el_circuito_con_sus_esquinas_exactas() {
+        let mut tr = Transient::new(Netlist::from_json(r#"{"nodes":2,"elements":[
+            {"type":"V","a":1,"b":0,"wave":{"kind":"pwl","puntos":[[0,0],[1e-3,5],[2e-3,5],[3e-3,0]]}},
+            {"type":"R","a":1,"b":0,"ohms":1000}]}"#).unwrap(), 1e-3).unwrap();
+        tr.advance_to(0.5e-3, u32::MAX).unwrap();
+        assert!((tr.voltage(1) - 2.5).abs() < 1e-9, "{}", tr.voltage(1));
+        tr.advance_to(1.5e-3, u32::MAX).unwrap();
+        assert!((tr.voltage(1) - 5.0).abs() < 1e-9);
+        tr.advance_to(2.5e-3, u32::MAX).unwrap();
+        assert!((tr.voltage(1) - 2.5).abs() < 1e-9, "{}", tr.voltage(1));
+    }
+}

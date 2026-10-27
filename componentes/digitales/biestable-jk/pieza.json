@@ -2,6 +2,7 @@
   "id": "biestable-jk",
   "nombre": { "es": "Flip-flop JK", "en": "JK flip-flop" },
   "categoria": "digitales",
+  "grupo": "Biestables y contadores",
   "prefijo": "U",
   "buscar": ["u", "biestable jk", "biestable", "báscula", "bascula", "flip-flop jk", "jk", "74112", "74hc112", "4027"],
   "pines": [
@@ -27,5 +28,71 @@
     { "texto": "CLR", "x": 0, "y": 5.2, "tam": 1, "alinear": "arriba" },
     { "texto": "Q", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
     { "texto": "Q", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" }
-  ]
+  ],
+  "datos": {
+    "por": "familia",
+    "equivalencias": { "falstad": "156" },
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC112N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc112.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "J": "3", "CLK": "1", "K": "2", "PRE": "4", "CLR": "15", "Q": "5", "QN": "6" },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "unidades": [
+              { "nombre": "Biestable 1", "patillas": { "J": "3", "CLK": "1", "K": "2", "PRE": "4", "CLR": "15", "Q": "5", "QN": "6" } },
+              { "nombre": "Biestable 2", "patillas": { "J": "11", "CLK": "13", "K": "12", "PRE": "10", "CLR": "14", "Q": "9", "QN": "7" } }
+            ],
+            "parte": "SN74HC112N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC112 (SCLS099I), fig. 4-1 p. 2 (imagen); KiCad 74xx:74LS112 (misma función)" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS112AN",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls112a.pdf",
+        "equivalencias": { "kicad": "74xx:74LS112" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "J": "3", "CLK": "1", "K": "2", "PRE": "4", "CLR": "15", "Q": "5", "QN": "6" },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "unidades": [
+              { "nombre": "Biestable 1", "patillas": { "J": "3", "CLK": "1", "K": "2", "PRE": "4", "CLR": "15", "Q": "5", "QN": "6" } },
+              { "nombre": "Biestable 2", "patillas": { "J": "11", "CLK": "13", "K": "12", "PRE": "10", "CLR": "14", "Q": "9", "QN": "7" } }
+            ],
+            "parte": "SN74LS112AN",
+            "lcsc": { "numero": "C5338", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS112; TI SN74HC112 (misma función)" }
+      },
+      "CD4000B": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4027BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4027b.pdf",
+        "aproximada": "SET (PRE) y RESET (CLR) son activos en alto y el biestable cambia en el flanco de subida; el modelo tiene PRE y CLR activos en bajo y cambia en el de bajada.",
+        "equivalencias": { "kicad": "4xxx:4027" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "J": "10", "CLK": "13", "K": "11", "PRE": "9", "CLR": "12", "Q": "15", "QN": "14" },
+            "alimentacion": { "VDD": "16", "VSS": "8" },
+            "unidades": [
+              { "nombre": "Biestable 1", "patillas": { "J": "10", "CLK": "13", "K": "11", "PRE": "9", "CLR": "12", "Q": "15", "QN": "14" } },
+              { "nombre": "Biestable 2", "patillas": { "J": "6", "CLK": "3", "K": "5", "PRE": "7", "CLR": "4", "Q": "1", "QN": "2" } }
+            ],
+            "parte": "CD4027BE",
+            "lcsc": { "numero": "C5239", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4027B, Figure 5-1 y Table 5-1 (texto); KiCad 4xxx:4027" }
+      }
+    }
+  }
 }

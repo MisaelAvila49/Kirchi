@@ -1,0 +1,14 @@
+* Diodo 1N4001 en inversa con 60 V y 1 k: conduce en su ruptura de 50 V
+.include modelos.lib
+V1 1 0 DC 60
+R1 1 2 1k
+D1 0 2 D1N4001
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(2) i(v1)
+.endc
+.end

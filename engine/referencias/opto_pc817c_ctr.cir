@@ -1,0 +1,19 @@
+* PC817C con 5 V y 1 kohm en el LED y 5 V con 100 ohm en el colector: CTR nominal del rango C
+.include modelos.lib
+V1 vin 0 DC 5
+R1 vin a 1k
+V2 vcc 0 DC 5
+RL vcc c 100
+D1 a x DOPT8
+VF1 x 0 0
+F1 c b VF1 0.01408
+Q1 c b 0 QOPT8
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(a) v(c) i(v1) i(v2)
+.endc
+.end

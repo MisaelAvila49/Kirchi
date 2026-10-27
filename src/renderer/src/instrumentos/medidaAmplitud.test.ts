@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { FORMAS } from './ajustes'
-import { admiteRms, medidaAVpp, medidaEfectiva, vppAMedida } from './medidaAmplitud'
+import { admiteRms, AYUDA_MEDIDA, medidaAVpp, medidaEfectiva, vppAMedida } from './medidaAmplitud'
 
 describe('medida de la amplitud', () => {
   it('senoidal: 7.07 mVrms son 20 mVpp', () => {
@@ -30,5 +30,12 @@ describe('medida de la amplitud', () => {
   })
   it('ida y vuelta en toda forma y medida', () => {
     for (const f of FORMAS) for (const m of ['pp', 'pico', 'rms'] as const) expect(medidaAVpp(f, m, vppAMedida(f, m, 3.7))).toBeCloseTo(3.7, 12)
+  })
+})
+
+describe('globos de la amplitud', () => {
+  it('Pico dice de dónde a dónde va la señal y ningún globo lleva guion largo', () => {
+    expect(AYUDA_MEDIDA.pico).toBe('La señal va de offset − Vp a offset + Vp.')
+    for (const t of Object.values(AYUDA_MEDIDA)) expect(t).not.toContain('—')
   })
 })

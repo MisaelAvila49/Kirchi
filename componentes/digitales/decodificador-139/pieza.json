@@ -1,0 +1,102 @@
+{
+  "id": "decodificador-139",
+  "nombre": { "es": "Doble decodificador de 2 a 4 (74139)", "en": "Dual 2-to-4 decoder (74139)" },
+  "categoria": "digitales",
+  "grupo": "Decodificadores y multiplexores",
+  "prefijo": "U",
+  "buscar": ["u", "decodificador", "decoder", "2 a 4", "74139", "74hc139", "74ls139", "doble", "dual"],
+  "pines": [
+    { "id": "G", "nombre": "G (habilitación, activa en bajo)", "x": -6, "y": 4 },
+    { "id": "B", "nombre": "B", "x": -6, "y": 0 },
+    { "id": "A", "nombre": "A", "x": -6, "y": -2 },
+    { "id": "Y0", "nombre": "Y0", "x": 6, "y": -2 },
+    { "id": "Y1", "nombre": "Y1", "x": 6, "y": 0 },
+    { "id": "Y2", "nombre": "Y2", "x": 6, "y": 2 },
+    { "id": "Y3", "nombre": "Y3", "x": 6, "y": 4 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": ["G", "B", "A"],
+    "tabla": {
+      "columnas": ["G", "B", "A"],
+      "salidas": ["Y0", "Y1", "Y2", "Y3"],
+      "filas": ["1 X X > 1 1 1 1", "0 0 0 > 0 1 1 1", "0 0 1 > 1 0 1 1", "0 1 0 > 1 1 0 1", "0 1 1 > 1 1 1 0"]
+    },
+    "retardos": { "74HC": { "vcc": 4.5, "*": [1.4e-8, 1.4e-8] }, "74LS": { "vcc": 5, "*": [1.8e-8, 2.5e-8] } }
+  },
+  "caja": { "titulo": "X/Y", "forma": "funcional", "izquierda": ["A", "B", null, "!G"], "derecha": ["!Y0", "!Y1", "!Y2", "!Y3"] },
+  "fuentes": {
+    "74HC": "TI SN74HC139 (SCLS108E): tabla de función p. 7 y retardo típico de 14 ns de A o B a Y (p. 5, 4.5 V, CL 50 pF).",
+    "74LS": "TI SN74LS139A (SDLS013A): tabla de función p. 1 y retardo típico del select a Y con tres niveles, 18 ns de subida y 25 de bajada (p. 3, 5 V, CL 15 pF)."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC139N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc139.pdf",
+        "equivalencias": { "kicad": "74xx:74LS139" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "G": "1", "A": "2", "B": "3", "Y0": "4", "Y1": "5", "Y2": "6", "Y3": "7" },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "unidades": [
+              { "nombre": "Decodificador 1", "patillas": { "G": "1", "A": "2", "B": "3", "Y0": "4", "Y1": "5", "Y2": "6", "Y3": "7" } },
+              { "nombre": "Decodificador 2", "patillas": { "G": "15", "A": "14", "B": "13", "Y0": "12", "Y1": "11", "Y2": "10", "Y3": "9" } }
+            ],
+            "parte": "SN74HC139N",
+            "lcsc": { "numero": "C2906", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SN74HC139 (SCLS108E, feb 2022), p. 3, fig. 4; KiCad 74xx:74LS139 (misma función y orden; KiCad 9.0.0 no trae símbolo 74HC139)"
+        }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS139AN",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls139a.pdf",
+        "equivalencias": { "kicad": "74xx:74LS139" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": { "G": "1", "A": "2", "B": "3", "Y0": "4", "Y1": "5", "Y2": "6", "Y3": "7" },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "unidades": [
+              { "nombre": "Decodificador 1", "patillas": { "G": "1", "A": "2", "B": "3", "Y0": "4", "Y1": "5", "Y2": "6", "Y3": "7" } },
+              { "nombre": "Decodificador 2", "patillas": { "G": "15", "A": "14", "B": "13", "Y0": "12", "Y1": "11", "Y2": "10", "Y3": "9" } }
+            ],
+            "parte": "SN74LS139AN"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de SN74LS139AN en DIP (la búsqueda del 26 oct 2026 no lo devolvió)" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74LS139A (SDLS013A, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS139" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -8 }, "valor": { "x": 0, "y": 8 } },
+  "rotulos": [
+    { "texto": "A", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "G", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "Y0", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "Y1", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "Y2", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "Y3", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "X/Y", "x": 0, "y": -5, "tam": 1, "alinear": "centro" }
+  ]
+}

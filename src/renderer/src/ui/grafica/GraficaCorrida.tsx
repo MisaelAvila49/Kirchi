@@ -12,6 +12,7 @@ import type { TrazaVista } from './AspectoPanel'
 import HojaAspecto from './HojaAspecto'
 import { geometriaGrafica, lineasDeCursores, lineasDeCursoresCompactas } from './dibujo'
 import type { EntradaFigura } from './figura'
+import { cursoresInicialesXY } from './xy'
 import { cursoresIniciales, desplazarBoton, puedeDesplazar, zoomBoton, type EjeZoom } from './gestos'
 import GraficaCanvas from './GraficaCanvas'
 import { trazasUnicas, VISTA_COMPLETA, type VistaGrafica } from './modelo'
@@ -111,13 +112,13 @@ export default function GraficaCorrida(props: Props) {
     const m = modelo()
     return m ? geometriaGrafica(m, vista(), aspecto(), GEO_BOTONES.w, GEO_BOTONES.h, GEO_BOTONES.dpr) : null
   }
-  const cursoresEncendidos = () => vista().cursores !== null && !modelo()?.xy
+  const cursoresEncendidos = () => vista().cursores !== null && (!modelo()?.xy || !!vista().cursoresY)
   const alternarCursores = () => {
     const m = modelo()
     const g = geo()
     if (!m || !g || m.tipo !== 'lineas') return
-    if (vista().cursores) cambiarVista({ ...vista(), cursores: null })
-    else cambiarVista({ ...vista(), cursores: cursoresIniciales(g) })
+    if (cursoresEncendidos()) cambiarVista({ ...vista(), cursores: null, cursoresY: null })
+    else cambiarVista({ ...vista(), ...(m.xy ? cursoresInicialesXY(m, vista()) : { cursores: cursoresIniciales(g) }) })
   }
   const vistaCambiada = () => vista().x !== null || vista().y.some((f) => f !== null)
   const ajustar = () => cambiarVista({ ...vista(), x: null, y: [] })
@@ -235,7 +236,7 @@ export default function GraficaCorrida(props: Props) {
             botones={{
               ...(m().tipo === 'lineas'
                 ? {
-                    ...(m().xy ? {} : { cursores: { onClick: alternarCursores, activo: cursoresEncendidos() } }),
+                    cursores: { onClick: alternarCursores, activo: cursoresEncendidos() },
                     acercar: { onClick: () => acercar(-1) },
                     alejar: { onClick: () => acercar(1), deshabilitado: !vistaCambiada() },
                     restablecer: { onClick: ajustar, deshabilitado: !vistaCambiada() }
@@ -304,7 +305,7 @@ export default function GraficaCorrida(props: Props) {
                 <GraficaCanvas
                   modelo={m()}
                   vista={vista()}
-                  aspecto={m().xy ? { ...aspecto(), lectura: false } : aspecto()}
+                  aspecto={aspecto()}
                   tema={props.tema}
                   descripcion={descripcion()}
                   cursores={cursoresEncendidos()}

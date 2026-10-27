@@ -3,14 +3,14 @@
   "nombre": { "es": "Transistor PNP", "en": "PNP transistor" },
   "categoria": "semiconductores",
   "prefijo": "Q",
-  "buscar": ["pnp", "bjt", "transistor", "2n2907", "2n3906", "bc557", "tip32", "tip125", "bd140"],
+  "buscar": ["pnp", "bjt", "transistor", "2n2907", "2n3906", "bc557", "tip32", "tip125", "bd140", "bc327", "2n5401"],
   "pines": [
     { "id": "B", "nombre": "base", "x": -4, "y": 0 },
     { "id": "E", "nombre": "emisor", "x": 2, "y": -4 },
     { "id": "C", "nombre": "colector", "x": 2, "y": 4 }
   ],
   "props": [
-    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "2N2907", "opciones": ["2N2907", "2N3906", "BC557", "TIP32", "TIP125", "BD140"] }
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "2N2907", "opciones": ["2N2907", "2N3906", "BC557", "TIP32", "TIP125", "BD140", "BC327", "2N5401"] }
   ],
   "modelo": {
     "tipo": "bjt", "c": "C", "b": "B", "e": "E", "pnp": true, "prop": "modelo",
@@ -20,7 +20,9 @@
       "BC557": { "is": 7.316e-14, "bf": 354.1, "nf": 1, "vaf": 100, "ikf": 0.1018, "ise": 1.54e-13, "ne": 1.5, "br": 5, "rb": 41.72, "rc": 1.974, "re": 0.4361, "cje": 1.184e-11, "vje": 0.75, "mje": 0.33, "tf": 4.25e-10, "cjc": 7.223e-12, "vjc": 0.75, "mjc": 0.33, "tr": 1e-7 },
       "TIP32": { "is": 1.35e-12, "bf": 97, "nf": 1, "vaf": 100, "ikf": 0.98, "ise": 1.19e-12, "ne": 1.5, "br": 5, "rb": 1.33, "rc": 0.043, "re": 0.118, "cje": 3e-10, "vje": 0.75, "mje": 0.33, "tf": 4e-08, "cjc": 1.2e-10, "vjc": 0.75, "mjc": 0.33, "tr": 5e-07 },
       "TIP125": { "is": 5.1e-15, "bf": 3450, "nf": 1.4, "vaf": 100, "ise": 5.52e-18, "ne": 1.5, "br": 5, "rb": 4.03, "rc": 0.0166, "re": 0.2547, "cje": 5e-10, "vje": 0.75, "mje": 0.33, "tf": 3e-08, "cjc": 7.2e-10, "vjc": 0.75, "mjc": 0.33, "tr": 5e-07 },
-      "BD140": { "is": 2.19e-13, "bf": 115.7, "nf": 1, "vaf": 100, "ikf": 0.89, "ise": 7.07e-14, "ne": 1.5, "br": 5, "rb": 5.84, "rc": 0.171, "re": 0.126, "cje": 6e-11, "vje": 0.75, "mje": 0.33, "tf": 1.6e-09, "cjc": 2e-11, "vjc": 0.75, "mjc": 0.33, "tr": 1e-07 }
+      "BD140": { "is": 2.19e-13, "bf": 115.7, "nf": 1, "vaf": 100, "ikf": 0.89, "ise": 7.07e-14, "ne": 1.5, "br": 5, "rb": 5.84, "rc": 0.171, "re": 0.126, "cje": 6e-11, "vje": 0.75, "mje": 0.33, "tf": 1.6e-09, "cjc": 2e-11, "vjc": 0.75, "mjc": 0.33, "tr": 1e-07 },
+      "BC327": { "is": 1.264e-13, "bf": 550, "nf": 1, "vaf": 100, "ikf": 0.07736, "ise": 3.106e-19, "ne": 1.5, "br": 5, "rb": 4.756, "rc": 2.976e-5, "re": 0.3614, "cje": 3e-11, "vje": 0.75, "mje": 0.33, "tf": 7.6e-10, "cjc": 1.2e-11, "vjc": 0.75, "mjc": 0.33, "tr": 1e-7 },
+      "2N5401": { "is": 8.98e-15, "bf": 180, "nf": 1, "vaf": 100, "ikf": 0.06607, "ise": 2.572e-13, "ne": 1.5, "br": 5, "rb": 1.233, "rc": 3.151, "re": 1.903e-5, "cje": 3e-11, "vje": 0.75, "mje": 0.33, "tf": 1.2e-9, "cjc": 1.2e-11, "vjc": 0.75, "mjc": 0.33, "tr": 1e-7 }
     }
   },
   "etiquetas": { "ref": { "x": 4, "y": -1 }, "valor": { "x": 4, "y": 1 } },
@@ -69,6 +71,20 @@
             {"nombre": "Vce", "de": "C", "a": "E", "abs": true, "max": 80, "consejo": "baja el voltaje que soporta el transistor o elige uno de más voltaje."},
             {"nombre": "Vbe inverso", "de": "B", "a": "E", "max": 5, "escala": 5, "consejo": "evita polarizar la base al revés con más voltaje del que admite."}
           ]
+        },
+        "BC327": {
+          "fuente": "Diotec BC327...BC328, Maximum ratings: VCEO -45 V, VEBO -5 V.",
+          "limites": [
+            {"nombre": "Vce", "de": "C", "a": "E", "abs": true, "max": 45, "consejo": "baja el voltaje que soporta el transistor o elige uno de más voltaje."},
+            {"nombre": "Vbe inverso", "de": "B", "a": "E", "max": 5, "escala": 5, "consejo": "evita polarizar la base al revés con más voltaje del que admite."}
+          ]
+        },
+        "2N5401": {
+          "fuente": "onsemi 2N5401/D (copia, rev. 1) y MCC 2N5401, Maximum ratings: VCEO -150 V, VEBO -5 V.",
+          "limites": [
+            {"nombre": "Vce", "de": "C", "a": "E", "abs": true, "max": 150, "consejo": "baja el voltaje que soporta el transistor o elige uno de más voltaje."},
+            {"nombre": "Vbe inverso", "de": "B", "a": "E", "max": 5, "escala": 5, "consejo": "evita polarizar la base al revés con más voltaje del que admite."}
+          ]
         }
       }
     },
@@ -81,7 +97,9 @@
         "BC557": { "corriente": 0.1, "potencia": 0.625, "fuente": "ON Semiconductor, BC556B/D, Maximum Ratings: IC −100 mAdc, PD 625 mW a 25 °C" },
         "TIP32": { "corriente": 3, "potencia": 40, "fuente": "onsemi, TIP31/D rev. 17 (jun 2024), Maximum Ratings: IC 3.0 Adc continua, PD 40 W a TC = 25 °C" },
         "TIP125": { "corriente": 5, "potencia": 65, "fuente": "onsemi, TIP120/D rev. 10 (jun 2024), Maximum Ratings: IC 5.0 Adc continua, PD 65 W a TC = 25 °C" },
-        "BD140": { "corriente": 1.5, "potencia": 12.5, "fuente": "onsemi, BD136/BD138/BD140 rev. 2 (may 2024), Absolute Maximum Ratings: IC -1.5 A, PC 12.5 W a TC = 25 °C" }
+        "BD140": { "corriente": 1.5, "potencia": 12.5, "fuente": "onsemi, BD136/BD138/BD140 rev. 2 (may 2024), Absolute Maximum Ratings: IC -1.5 A, PC 12.5 W a TC = 25 °C" },
+        "BC327": { "corriente": 0.8, "potencia": 0.625, "fuente": "Diotec BC327...BC328, Maximum ratings: IC -800 mA, Ptot 625 mW a 25 °C" },
+        "2N5401": { "corriente": 0.6, "potencia": 0.625, "fuente": "onsemi 2N5401/D (copia, rev. 1) y MCC 2N5401, Maximum ratings: IC -600 mA, PD 625 mW a 25 °C" }
       }
     },
     "quema": { "factor": 2, "durante": 0.5 }
@@ -92,6 +110,133 @@
     "BC557": "Parámetros ajustados por Kirchi (no copiados) a ON Semiconductor, BC556B, BC557A, B, C, BC558B rev. 3 (mar 2007), https://www.onsemi.com/pdf/datasheet/bc556b-d.pdf, con las cifras típicas del grupo B: hFE 150, 290 y 180 a 10 µA, 2 mA y 100 mA (VCE = 5 V), VCE(sat) 0.075 V a 10 mA con IB = 0.5 mA y 0.3 V a 100 mA con 5 mA, VBE(sat) 0.7 V y 1.0 V en los mismos puntos, VBE(on) 0.62 V a 2 mA, fT 320 MHz típico (10 mA, 5 V) y Cob 3 pF típico. La hoja no da Cibo ni datos de conmutación: Cibo (10 pF), VAF (100 V), NE, BR, las uniones y TR (1e-7 s) son órdenes de magnitud sin validar.",
     "TIP32": "El complemento PNP del TIP31: mismos parámetros, misma hoja (onsemi TIP31/D rev. 17, https://www.onsemi.com/pdf/datasheet/tip31a-d.pdf, que cubre TIP31 y TIP32 con las mismas cifras). Ajustados por Kirchi, no copiados.",
     "TIP125": "El complemento PNP del TIP120 (misma hoja, onsemi TIP120/D rev. 10, https://www.onsemi.com/pdf/datasheet/tip120-d.pdf): mismos parámetros salvo la capacitancia de colector, ajustada a su Cob de 300 pF máx. Ajustados por Kirchi, no copiados.",
-    "BD140": "El complemento PNP del BD139: mismos parámetros, ajustados por Kirchi (no copiados) a onsemi BD136/BD138/BD140 rev. 2 (may 2024), https://www.onsemi.com/pdf/datasheet/bd136-d.pdf, que da las mismas cifras de hFE, VCE(sat) y VBE(on) con signo negativo."
+    "BD140": "El complemento PNP del BD139: mismos parámetros, ajustados por Kirchi (no copiados) a onsemi BD136/BD138/BD140 rev. 2 (may 2024), https://www.onsemi.com/pdf/datasheet/bd136-d.pdf, que da las mismas cifras de hFE, VCE(sat) y VBE(on) con signo negativo.",
+    "BC327": "El complemento PNP del BC337, con sus mismos parámetros, cotejado en el PDF de Diotec BC327...BC328 (https://diotec.com/request/datasheet/bc327.pdf), que da con signo negativo las mismas cifras de hFE, VCE(sat), VBE, fT (100 MHz típica) y capacitancia de colector (12 pF típica) que el BC337 de Diotec; la hoja BC327/D de onsemi no se pudo bajar.",
+    "2N5401": "El complemento PNP del 2N5551, ajustado por Kirchi (no copiado) a la hoja del 2N5401 y cotejado en dos PDF, una copia de onsemi 2N5401/D (rev. 1, may 2004) y Micro Commercial Components 2N5401 (rev. 3-1, 2019, https://www.mccsemi.com/pdf/Products/2N5401(TO-92).pdf): hFE 50 mín a 1 mA, 60 a 240 a 10 mA (MCC: hasta 300) y 50 mín a 50 mA (VCE = 5 V), VCE(sat) 0.2 V máx a 10 mA con IB = 1 mA y 0.5 V máx a 50 mA con 5 mA, VBE(sat) 1.0 V máx, fT de 100 a 300 MHz y Cobo 6 pF máx a 10 V. El ajuste buscó 1.7 veces el mínimo de hFE a 1 mA, la media geométrica del intervalo a 10 mA, 1.8 veces el mínimo a 50 mA, 0.4 veces el máximo de VCE(sat) y 0.72 V de VBE a 10 mA, y quedó en hFE 101, 109 y 87, VBE(sat) de 0.73 y 0.79 V, fT de 133 MHz y 5 pF a 10 V. Las demás capacitancias y tr no vienen en la hoja: son órdenes de magnitud sin validar."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Transistor_BJT:Q_PNP_BCE", "ltspice": "pnp", "falstad": "t", "proteus": "PNP", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "2N2907": {
+        "fabricante": "onsemi",
+        "parte": "2N2907A",
+        "hoja": "https://www.onsemi.com/download/data-sheet/pdf/2n2907a-d.pdf",
+        "equivalencias": { "kicad": "Transistor_BJT:Q_PNP_EBC" },
+        "presentaciones": [
+          { "encapsulado": "TO-18", "patillas": { "E": "1", "B": "2", "C": "3" }, "huella": "Package_TO_SOT_THT:TO-18-3" }
+        ],
+        "pendiente": { "lcsc": "La caja TO-18 no aparece en LCSC; los números hallados (PN2907ABU C14215, PN2907ATF C513106) son de TO-92" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "onsemi 2N2907A/D (rev. 3, nov 2013), TO-18 caso 206AA estilo 1: 1 Emisor, 2 Base, 3 Colector" },
+        "nota": "Una sola fuente: KiCad 9 no trae el 2N2907. La hoja que cita el modelo es de la caja metalica TO-18; el PN2907A en TO-92 (C14215 y C513106 en LCSC) no se llenó porque no se obtuvo su hoja"
+      },
+      "2N3906": {
+        "fabricante": "onsemi",
+        "parte": "2N3906BU",
+        "hoja": "https://www.onsemi.com/pdf/datasheet/2n3906-d.pdf",
+        "equivalencias": { "kicad": "Transistor_BJT:2N3906" },
+        "presentaciones": [
+          {
+            "encapsulado": "TO-92",
+            "patillas": { "E": "1", "B": "2", "C": "3" },
+            "huella": "Package_TO_SOT_THT:TO-92_Inline",
+            "lcsc": { "numero": "C124483", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "onsemi 2N3906, TO-92 caso 29 estilo 1: 1 Emisor, 2 Base, 3 Colector; coincide con Transistor_BJT:2N3906 de KiCad 9"
+        }
+      },
+      "BC557": {
+        "fabricante": "onsemi",
+        "parte": "BC557B",
+        "hoja": "https://www.onsemi.com/pdf/datasheet/bc556b-d.pdf",
+        "equivalencias": { "kicad": "Transistor_BJT:BC557" },
+        "presentaciones": [
+          { "encapsulado": "TO-92", "patillas": { "C": "1", "B": "2", "E": "3" }, "huella": "Package_TO_SOT_THT:TO-92_Inline" }
+        ],
+        "pendiente": { "lcsc": "En LCSC solo se hallaron BC557 de BLUE ROCKET, JSCJ y LGE, no el de onsemi" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "onsemi BC556/557/558, TO-92 caso 29 estilo 17 (C-B-E); coincide con Transistor_BJT:BC557 de KiCad 9"
+        }
+      },
+      "TIP32": {
+        "fabricante": "onsemi",
+        "parte": "TIP32CG",
+        "hoja": "https://www.onsemi.com/pdf/datasheet/tip31a-d.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": { "B": "1", "C": "2", "E": "3" },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical",
+            "lcsc": { "numero": "C513301", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "onsemi TIP31/TIP32 p. 1, TO-220 estilo 1: 1 Base, 2 y 4 Colector, 3 Emisor (símbolo PNP en la misma hoja); KiCad 9 no trae el TIP32, el TIP125 (B1 C2 E3) usa el mismo orden"
+        }
+      },
+      "TIP125": {
+        "fabricante": "onsemi",
+        "parte": "TIP125G",
+        "hoja": "https://www.onsemi.com/pdf/datasheet/tip120-d.pdf",
+        "equivalencias": { "kicad": "Transistor_BJT:TIP125" },
+        "presentaciones": [
+          { "encapsulado": "TO-220", "patillas": { "B": "1", "C": "2", "E": "3" }, "huella": "Package_TO_SOT_THT:TO-220-3_Vertical" }
+        ],
+        "pendiente": { "lcsc": "No se halló un TIP125 en LCSC (solo la hoja del TIP125 de ST y equivalentes en otros encapsulados)" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "onsemi TIP120/TIP125 p. 1: 1 Base, 2 Colector, 3 Emisor; coincide con Transistor_BJT:TIP125 de KiCad 9"
+        }
+      },
+      "BD140": {
+        "fabricante": "onsemi",
+        "parte": "BD140",
+        "hoja": "https://www.onsemi.com/pdf/datasheet/bd136-d.pdf",
+        "equivalencias": { "kicad": "Transistor_BJT:BD140" },
+        "presentaciones": [
+          {
+            "encapsulado": "TO-126",
+            "patillas": { "E": "1", "C": "2", "B": "3" },
+            "huella": "Package_TO_SOT_THT:TO-126-3_Vertical",
+            "lcsc": { "numero": "C38652", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "onsemi BD136/138/140 p. 1, TO-126 caso 340AS: 1 Emisor, 2 Colector, 3 Base; coincide con Transistor_BJT:BD140 de KiCad 9. LCSC C38652 es el BD140 de ST"
+        }
+      },
+      "BC327": {
+        "fabricante": "onsemi",
+        "parte": "BC327-25",
+        "hoja": "https://www.onsemi.com/pdf/datasheet/bc327-d.pdf",
+        "equivalencias": { "kicad": "Transistor_BJT:BC327" },
+        "presentaciones": [
+          { "encapsulado": "TO-92", "patillas": { "C": "1", "B": "2", "E": "3" }, "huella": "Package_TO_SOT_THT:TO-92_Inline" }
+        ],
+        "pendiente": { "lcsc": "Solo se hallaron BC327 de LGE y JSCJ en LCSC, no el de onsemi" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "onsemi BC327 (rev. 2, ene 2024), TO-92: 1 Colector, 2 Base, 3 Emisor; coincide con Transistor_BJT:BC327 de KiCad 9"
+        }
+      },
+      "2N5401": {
+        "fabricante": "onsemi",
+        "parte": "2N5401BU",
+        "hoja": "https://www.onsemi.com/pdf/datasheet/2n5401-d.pdf",
+        "equivalencias": { "kicad": "Transistor_BJT:Q_PNP_EBC" },
+        "presentaciones": [
+          { "encapsulado": "TO-92", "patillas": { "E": "1", "B": "2", "C": "3" }, "huella": "Package_TO_SOT_THT:TO-92_Inline" }
+        ],
+        "pendiente": { "lcsc": "Los 2N5401 de TO-92 en LCSC son de ST (Semtech C118543), JSCJ y Haolin, no de onsemi" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "onsemi 2N5401 (rev. 2.1) p. 1, TO-92: 1 Emisor, 2 Base, 3 Colector" },
+        "nota": "Una sola fuente: KiCad 9 no trae el 2N5401 de orificio pasante"
+      }
+    }
   }
 }

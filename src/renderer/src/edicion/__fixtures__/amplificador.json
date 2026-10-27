@@ -1,0 +1,331 @@
+{
+  "piezas": [
+    {
+      "ref": "Bocina",
+      "tipo": "resistencia",
+      "nombre": "Resistencia",
+      "valor": "8",
+      "props": {
+        "valor": "8"
+      },
+      "x": -7.5,
+      "y": -10,
+      "rot": 90,
+      "patillas": {
+        "1": "Salida",
+        "2": "GND"
+      },
+      "datos": true
+    },
+    {
+      "ref": "C1",
+      "tipo": "capacitor",
+      "nombre": "Capacitor",
+      "valor": "1m",
+      "props": {
+        "valor": "1m"
+      },
+      "x": -52.5,
+      "y": -17.5,
+      "rot": 0,
+      "patillas": {
+        "1": "Entrada",
+        "2": "red 1"
+      },
+      "datos": true
+    },
+    {
+      "ref": "C2",
+      "tipo": "capacitor",
+      "nombre": "Capacitor",
+      "valor": "1m",
+      "props": {
+        "valor": "1m"
+      },
+      "x": -17.5,
+      "y": -25,
+      "rot": 0,
+      "patillas": {
+        "1": "red 2",
+        "2": "Salida"
+      },
+      "datos": true
+    },
+    {
+      "ref": "CE",
+      "tipo": "capacitor",
+      "nombre": "Capacitor",
+      "valor": "4.7m",
+      "props": {
+        "valor": "4.7m"
+      },
+      "x": -20,
+      "y": -2.5,
+      "rot": 90,
+      "patillas": {
+        "1": "red 3",
+        "2": "GND"
+      },
+      "datos": true
+    },
+    {
+      "ref": "GND1",
+      "tipo": "tierra",
+      "nombre": "Tierra",
+      "x": -27.5,
+      "y": 7.5,
+      "rot": 0,
+      "patillas": {
+        "1": "GND"
+      }
+    },
+    {
+      "ref": "PWR1",
+      "tipo": "alimentacion",
+      "nombre": "Alimentación",
+      "valor": "VCC",
+      "x": -42.5,
+      "y": -45,
+      "rot": 0,
+      "patillas": {
+        "1": "VCC"
+      }
+    },
+    {
+      "ref": "Q1",
+      "tipo": "npn",
+      "nombre": "Transistor NPN",
+      "valor": "BD139",
+      "props": {
+        "modelo": "BD139"
+      },
+      "x": -30,
+      "y": -17.5,
+      "rot": 0,
+      "patillas": {
+        "B": "red 1",
+        "C": "red 2",
+        "E": "red 3"
+      },
+      "datos": true
+    },
+    {
+      "ref": "R1",
+      "tipo": "resistencia",
+      "nombre": "Resistencia",
+      "valor": "220",
+      "props": {
+        "potencia": "0.5 W",
+        "valor": "220"
+      },
+      "x": -42.5,
+      "y": -32.5,
+      "rot": 90,
+      "patillas": {
+        "1": "VCC",
+        "2": "red 1"
+      },
+      "datos": true
+    },
+    {
+      "ref": "R2",
+      "tipo": "resistencia",
+      "nombre": "Resistencia",
+      "valor": "47",
+      "props": {
+        "valor": "47"
+      },
+      "x": -42.5,
+      "y": -7.5,
+      "rot": 90,
+      "patillas": {
+        "1": "red 1",
+        "2": "GND"
+      },
+      "datos": true
+    },
+    {
+      "ref": "RC",
+      "tipo": "resistencia",
+      "nombre": "Resistencia",
+      "valor": "10",
+      "props": {
+        "potencia": "2 W",
+        "valor": "10"
+      },
+      "x": -27.5,
+      "y": -32.5,
+      "rot": 90,
+      "patillas": {
+        "1": "VCC",
+        "2": "red 2"
+      },
+      "datos": true
+    },
+    {
+      "ref": "RE",
+      "tipo": "resistencia",
+      "nombre": "Resistencia",
+      "valor": "2.2",
+      "props": {
+        "potencia": "1 W",
+        "valor": "2.2"
+      },
+      "x": -35,
+      "y": -2.5,
+      "rot": 90,
+      "patillas": {
+        "1": "red 3",
+        "2": "GND"
+      },
+      "datos": true
+    },
+    {
+      "ref": "XFG1",
+      "tipo": "generador",
+      "nombre": "Generador de funciones",
+      "valor": "1k",
+      "props": {
+        "amplitud": "20.00m",
+        "ideal": "sí"
+      },
+      "x": -62.5,
+      "y": -5,
+      "rot": 0,
+      "patillas": {
+        "+": "Entrada",
+        "COM": "GND"
+      }
+    },
+    {
+      "ref": "XSC1",
+      "tipo": "osciloscopio",
+      "nombre": "Osciloscopio",
+      "props": {
+        "a_vdiv": "10m",
+        "b_vdiv": "500m",
+        "base": "500u"
+      },
+      "x": 5,
+      "y": -45,
+      "rot": 0,
+      "patillas": {
+        "A": "Entrada",
+        "B": "Salida",
+        "C": "sin conectar",
+        "D": "sin conectar"
+      }
+    }
+  ],
+  "redes": [
+    {
+      "nombre": "GND",
+      "patillas": [
+        "Bocina.2",
+        "CE.2",
+        "GND1.1",
+        "R2.2",
+        "RE.2",
+        "XFG1.COM"
+      ]
+    },
+    {
+      "nombre": "Entrada",
+      "patillas": [
+        "C1.1",
+        "XFG1.+",
+        "XSC1.A"
+      ]
+    },
+    {
+      "nombre": "Salida",
+      "patillas": [
+        "Bocina.1",
+        "C2.2",
+        "XSC1.B"
+      ]
+    },
+    {
+      "nombre": "VCC",
+      "patillas": [
+        "PWR1.1",
+        "R1.1",
+        "RC.1"
+      ]
+    },
+    {
+      "nombre": "red 1",
+      "patillas": [
+        "C1.2",
+        "Q1.B",
+        "R1.2",
+        "R2.1"
+      ]
+    },
+    {
+      "nombre": "red 2",
+      "patillas": [
+        "C2.1",
+        "Q1.C",
+        "RC.2"
+      ]
+    },
+    {
+      "nombre": "red 3",
+      "patillas": [
+        "CE.1",
+        "Q1.E",
+        "RE.1"
+      ]
+    }
+  ],
+  "instrumentos": [
+    {
+      "ref": "XSC1",
+      "tipo": "osciloscopio",
+      "ajustes": {
+        "a_vdiv": "10m",
+        "b_vdiv": "500m",
+        "base": "500u"
+      },
+      "entradas": {
+        "A": "sin conectar",
+        "B": "sin conectar",
+        "C": "sin conectar",
+        "D": "sin conectar"
+      }
+    }
+  ],
+  "sondas": [],
+  "analisis": [
+    {
+      "nombre": "Transitorio 1",
+      "tipo": "tran"
+    },
+    {
+      "nombre": "Transitorio",
+      "tipo": "tran"
+    }
+  ],
+  "notas": [
+    {
+      "texto": "7.071mV rms",
+      "origen": "usuario"
+    }
+  ],
+  "etiquetas": [
+    {
+      "nombre": "Entrada",
+      "x": -65,
+      "y": -17.5,
+      "origen": "usuario"
+    },
+    {
+      "nombre": "Salida",
+      "x": -5,
+      "y": -25,
+      "origen": "usuario"
+    }
+  ],
+  "avisos": []
+}

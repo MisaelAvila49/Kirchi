@@ -10,6 +10,7 @@ import { agregarReciente, CARPETA_RESPALDOS, clasificarRuta, claveRuta, leerKirD
 import { escribirAtomico } from './escritura'
 import { ErrorPdf, htmlParaPdf, paginaValida, svgValido } from './pdf'
 import { buscarRecuperables, descartarRecuperacion, DiarioLleno, leerRecuperacion, Sesion } from './recuperacion'
+import { VigiaArchivo } from './vigiaArchivo'
 
 /** Archivos que el explorador deja en las carpetas que abre (en minúsculas): no frenan el borrado de una categoría. */
 const ARCHIVOS_DEL_SISTEMA: ReadonlySet<string> = new Set(['desktop.ini', 'thumbs.db'])
@@ -50,6 +51,8 @@ export interface Dependencias {
   plantillas?: string
   /** Avisa a la interfaz que el diario de autoguardado no se pudo escribir (llega al Registro). */
   avisarErrorDiario?(mensaje: string): void
+  /** Avisa a la interfaz que el archivo abierto cambió en el disco por otro lado. Sin ella no se vigila. */
+  avisarCambioEnDisco?(nombre: string): void
 }
 
 /** Dos rutas que nombran el mismo archivo (un cambio solo de mayúsculas en Windows). */
@@ -100,6 +103,9 @@ export class ServicioArchivos {
   /** Hay un PDF imprimiéndose (uno a la vez). */
   private pdfEnCurso = false
   private inicialPedido = false
+  /** El archivo del documento de esta ventana, según la última base del diario o el último guardado. */
+  private abierta: string | null = null
+  private vigia: VigiaArchivo | null = null
 
   constructor(private d: Dependencias) {
     this.plataforma = d.plataforma ?? process.platform
@@ -107,6 +113,36 @@ export class ServicioArchivos {
     this.sesion = d.sesion ?? new Sesion(d.dirDatos)
     this.permisosKir = new Permisos(this.plataforma)
     this.permisosExportar = new Permisos(this.plataforma)
+    const avisar = d.avisarCambioEnDisco
+    if (avisar) this.vigia = new VigiaArchivo((ruta) => avisar(nombreDeRuta(ruta)))
+  }
+
+  /** La ruta del archivo abierto en esta ventana, o null si el circuito no tiene archivo. */
+  get rutaAbierta(): string | null {
+    return this.abierta
+  }
+
+  /** Anota el archivo abierto; `propio` dice que lo que hay en el disco lo puso esta ventana (abrir, guardar, recargar). */
+  private ponerAbierta(ruta: string | null, propio: boolean): void {
+    this.abierta = ruta
+    this.vigia?.vigilar(ruta)
+    if (propio) this.vigia?.conocer()
+  }
+
+  /** Vuelve a leer del disco el archivo abierto, después de que cambió por fuera (Recargar). */
+  recargar(): ResultadoAbrir {
+    if (!this.abierta) return { ok: false, error: 'Este circuito no tiene un archivo que recargar.', recientes: this.d.recientes() }
+    return this.abrirRuta(this.abierta)
+  }
+
+  /** Revisa ya si el archivo abierto cambió en el disco (al volver a la ventana), sin esperar al sondeo. */
+  revisarDisco(): void {
+    this.vigia?.revisarAhora()
+  }
+
+  /** Deja de vigilar el archivo (la ventana se cerró). */
+  cerrar(): void {
+    this.vigia?.cerrar()
   }
 
   private anotarReciente(ruta: string): string[] {
@@ -248,6 +284,7 @@ export class ServicioArchivos {
     } catch (e) {
       return { ok: false, error: `No se pudo guardar ${nombre}: ${motivoDeError(e)}.` }
     }
+    this.ponerAbierta(ruta, true)
     // Lo guardado es la nueva base: el diario empieza de cero (un fallo aquí no deshace el guardado).
     this.conAvisoDeDiario(() => this.sesion.nuevaBase(bytes, { ruta, nombre, sucio: false }))
     return { ok: true, recientes: this.anotarReciente(ruta) }
@@ -331,6 +368,8 @@ export class ServicioArchivos {
     // que el usuario ya eligió (diálogo) o abrió; cualquier otra se guarda como «sin archivo».
     const ruta = this.permisosKir.puede(b.ruta) ? b.ruta : null
     const nombre = typeof b.nombre === 'string' && b.nombre.length <= 255 ? b.nombre : NOMBRE_NUEVO
+    // Una base limpia es lo que hay en el disco (abrir, recargar); una sucia solo rehace el diario y no cambia lo conocido.
+    this.ponerAbierta(ruta, b.sucio !== true)
     this.conAvisoDeDiario(() => this.sesion.nuevaBase(bytes, { ruta, nombre, sucio: b.sucio === true }))
   }
 

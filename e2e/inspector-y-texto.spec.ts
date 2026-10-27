@@ -171,11 +171,11 @@ test('el inspector de una nota tiene la sección Texto y rechaza un tamaño de 6
   await tam.press('Escape')
 })
 
-test('la Librería trae las 58 piezas en nueve categorías (con Instrumentos), sin errores de librería', async () => {
+test('la Librería trae las 102 piezas en nueve categorías (con Instrumentos), sin errores de librería', async () => {
   await sonda('cargar', VACIO)
   await page.keyboard.press('Escape')
-  await expect(page.locator('.lateral .panel-cabeza')).toContainText('58 piezas')
-  await expect(page.locator('.categoria-boton')).toHaveCount(9)
+  await expect(page.locator('.lateral .panel-cabeza')).toContainText('102 piezas')
+  await expect(page.locator('.categoria-boton:not(.grupo-boton)')).toHaveCount(9)
   expect(await sonda('errores')).toEqual([])
 })
 

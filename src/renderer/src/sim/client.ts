@@ -65,6 +65,8 @@ export interface MotorSimulacion {
   quemar(indice: number, si: boolean): number
   /** Los cambios de estado que se oyen; devuelve con qué dejar de oír. */
   alCruces(f: (c: CrucesSim) => void): () => void
+  /** Las redes digitales donde dos salidas de tres estados se contradicen (un 0 y un 1 a la vez); devuelve con qué dejar de oír. */
+  alConflictos?(f: (redes: number[]) => void): () => void
   /** Ajustes nuevos de los instrumentos sin recargar (base de tiempo, acoplamiento, disparo, modo del multímetro). */
   configurarInstrumentos(config: ConfigInstrumentos): void
   /** Cuántas columnas dibuja la pantalla del osciloscopio `k` (su ancho en píxeles de dispositivo). */
@@ -87,6 +89,8 @@ export interface MotorSimulacion {
    * el nuevo paso máximo si cambió la frecuencia de una fuente. Devuelve el número de secuencia (0 si nada que mandar),
    * que el motor repite en `alRechazo` para saber de qué cambio habla. */
   setValues(cambios: CambioEnCaliente[], h?: number): number
+  /** Escribe `valor` en el canal de una perilla en vivo; devuelve la secuencia con que el motor repite un rechazo (`indice = -1 - canal`). */
+  perilla(canal: number, valor: number): number
   /** Repone el elemento `indice` de la netlist (un fusible fundido). */
   reponer(indice: number): void
   /** Un solo paso corto del motor, aunque esté en pausa: las lecturas pasan a reflejar un valor recién cambiado. */
@@ -129,6 +133,7 @@ export class SimClient implements MotorSimulacion {
   private retrocesos = new Map<number, (r: { t: number; guardados: number }) => void>()
   private perdidosEstados = new Set<(perdidos: number, guardados: number) => void>()
   private cruces = new Set<(c: CrucesSim) => void>()
+  private conflictos = new Set<(redes: number[]) => void>()
   private capturas = new Map<number, (p: PantallaSab | null) => void>()
   private finas = new Map<number, (r: RegistroFino | null) => void>()
 
@@ -185,6 +190,9 @@ export class SimClient implements MotorSimulacion {
       const cruces: CrucesSim['cruces'] = []
       for (let k = 0; k + 2 < m.datos.length; k += 3) cruces.push({ elemento: m.datos[k], t: m.datos[k + 1], nivel: m.datos[k + 2] })
       for (const f of this.cruces) f({ cruces, perdidos: m.perdidos, ancla: { t: m.ancla.t, reloj: epocaALocal(m.ancla.reloj) }, velocidad: m.velocidad })
+    } else if (m.type === 'conflictos') {
+      if (this.pendiente || m.id !== this.idActivo) return
+      for (const f of this.conflictos) f(m.redes)
     } else if (this.pendiente?.id === m.id) this.fail(m.message)
     else if (!this.pendiente && m.id === this.idActivo) this.fail(m.message)
   }
@@ -289,6 +297,11 @@ export class SimClient implements MotorSimulacion {
     return () => this.cruces.delete(f)
   }
 
+  alConflictos(f: (redes: number[]) => void): () => void {
+    this.conflictos.add(f)
+    return () => this.conflictos.delete(f)
+  }
+
   configurarInstrumentos(config: ConfigInstrumentos): void {
     this.post({ type: 'instrumentos', config })
   }
@@ -341,6 +354,12 @@ export class SimClient implements MotorSimulacion {
     return seq
   }
 
+  perilla(canal: number, valor: number): number {
+    const seq = ++this.secuencia
+    this.post({ type: 'perilla', canal, valor, seq })
+    return seq
+  }
+
   reponer(indice: number): void {
     this.post({ type: 'reponer', indice })
   }
@@ -382,6 +401,7 @@ export class SimClient implements MotorSimulacion {
     this.rechazos.clear()
     this.rangos.clear()
     this.cruces.clear()
+    this.conflictos.clear()
     this.perdidosEstados.clear()
     for (const f of this.llegadas.values()) f({ t: Number.NaN, dt: 0, interrumpida: true })
     this.llegadas.clear()

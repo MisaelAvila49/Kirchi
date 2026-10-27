@@ -7,7 +7,9 @@ import type { Caja, Geometria, PiezaDef } from '../piezas/tipos'
 import { EscritorTrazos, EscritorTriangulos } from './buffers'
 import { etiquetasSinChoques, listasDe } from './apartar'
 import { cajaFigura, dibujarFiguras, nuevoPresupuesto } from './figuras'
-import { rotuloDePieza, rotulosDePieza, type Texto } from './etiquetas'
+import { rotuloDePieza, rotulosDePieza, textosLocales, type Texto } from './etiquetas'
+import { textosNumerosPatilla } from './numerosPatilla'
+import { partesVivas } from './ajusteEnPieza'
 import { haySondas, medidoresDe } from '../doc/sondas'
 import { dibujarCuerpoDeMedidor, dibujarPantallaDeMedidor, pantallaDeMedidor } from './medidores'
 import { banderasDeEntradas, banderasDelDocumento, rotulosDeEntradas, TAM_LETRA_BANDERA, TOKEN_DE_CANAL, type Bandera } from './sondas'
@@ -266,6 +268,23 @@ export interface OpcionesEscena {
   lecturasMedidores?: ReadonlyMap<Id, LecturaMedidor>
   /** Exportar: los cables y uniones con el color de su voltaje (escala azul a naranja); lo que no figura conserva el color de edición. */
   voltajes?: VoltajesDeCables
+  /** Dibuja el número de cada patilla junto a su pin (Vista › Números de patilla; al exportar, solo si están visibles). */
+  numerosPatilla?: boolean
+}
+
+/** Simulando, el valor de un termistor o fotorresistencia con resistencia visible se parte: aquí queda lo fijo (anclado a la
+ * izquierda donde empezaba la línea) y la capa de la vista previa escribe la resistencia del motor detrás. */
+function conResistenciaViva(p: Pieza, def: PiezaDef, doc: Documento, suyas: readonly Texto[]): readonly Texto[] {
+  const vivas = partesVivas(p, def)
+  if (!vivas) return suyas
+  const i = textosLocales(p, def, doc).findIndex((t) => t.cual === 'valor')
+  const t = suyas[i]
+  if (!t) return suyas
+  const w = anchoTexto(t.texto, t.tamaño)
+  const inicio = t.alinear === 'izq' ? t.x : t.alinear === 'der' ? t.x - w : t.x - w / 2
+  const fuera = suyas.slice()
+  fuera[i] = { ...t, texto: vivas.fijo, x: inicio, alinear: 'izq', vivo: { id: p.id, respaldo: vivas.respaldo } }
+  return fuera
 }
 
 export function construirEscena(doc: Documento, lib: Map<string, PiezaDef>, con: Conexiones, paleta: Paleta, opciones: OpcionesEscena = {}): Escena {
@@ -297,9 +316,10 @@ export function construirEscena(doc: Documento, lib: Map<string, PiezaDef>, con:
     dibujarPieza(t, tri, p, def, paleta.pieza, ANCHO_TRAZO, opciones.simulando)
     if (def) {
       const suyas = etiquetas.get(p.id)
-      if (suyas) agregarTextos(suyas)
+      if (suyas) agregarTextos(opciones.simulando ? conResistenciaViva(p, def, doc, suyas) : suyas)
       const suyasEntradas = entradas?.get(p.id)
       if (def.rotulos) agregarTextos(rotulosDePieza(p, def, suyasEntradas?.reemplazos))
+      if (opciones.numerosPatilla) agregarTextos(textosNumerosPatilla(p, def))
       if (suyasEntradas) for (const r of suyasEntradas.extra) textos.push(rotuloDePieza(p, def, r))
       sumar(cajaEnMundo(p, def))
     } else {

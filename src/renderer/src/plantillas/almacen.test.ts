@@ -166,12 +166,12 @@ describe('cargarPropias: topes', () => {
 })
 
 describe('plantillas incluidas', () => {
-  it('traen trece en «Incluidas», con nombre y descripción, y se leen con las mismas reglas que un .kir', () => {
+  it('traen quince en «Incluidas», con nombre y descripción, y se leen con las mismas reglas que un .kir', () => {
     const { items, errores } = plantillasIncluidas(lib)
     expect(errores).toEqual([])
     expect(items).toHaveLength(DEFINICIONES.length)
-    expect(DEFINICIONES.length).toBe(13)
-    expect(items.filter((i) => i.categoria === 'Incluidas')).toHaveLength(13)
+    expect(DEFINICIONES.length).toBe(15)
+    expect(items.filter((i) => i.categoria === 'Incluidas')).toHaveLength(15)
     for (const i of items) {
       expect(i.incluida).toBe(true)
       expect(i.categoria).toBe('Incluidas')
@@ -191,7 +191,7 @@ describe('plantillas incluidas', () => {
 describe('buscar y agrupar', () => {
   const { items } = plantillasIncluidas(lib)
   it('filtra por nombre y descripción sin acentos ni mayúsculas, todas las palabras', () => {
-    expect(filtrarPlantillas(items, '').length).toBe(13)
+    expect(filtrarPlantillas(items, '').length).toBe(15)
     expect(filtrarPlantillas(items, 'ASTABLE').map((i) => i.nombre)).toEqual(['555 astable'])
     expect(filtrarPlantillas(items, '555').length).toBe(2)
     expect(filtrarPlantillas(items, 'filtro corte').length).toBe(2)

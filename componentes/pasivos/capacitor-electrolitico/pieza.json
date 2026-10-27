@@ -14,5 +14,21 @@
     { "id": "esr", "nombre": "Resistencia serie (ESR)", "unidad": "Ω", "defecto": "0", "omitir": true, "comunes": ["0", "0.1", "0.3", "0.5", "1", "2"] }
   ],
   "modelo": { "tipo": "C", "a": "+", "b": "-", "prop": "valor", "rserie": "esr" },
-  "limites": { "voltaje": { "prop": "voltaje", "aviso": 1, "inverso": 1 }, "quema": { "factor": 1, "durante": 0.5 } }
+  "limites": { "voltaje": { "prop": "voltaje", "aviso": 1, "inverso": 1 }, "quema": { "factor": 1, "durante": 0.5 } },
+  "datos": {
+    "equivalencias": { "kicad": "Device:C_Polarized", "ltspice": "polcap", "falstad": "209", "proteus": "CAP-ELEC", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "*": {
+        "presentaciones": [
+          { "encapsulado": "Radial", "patillas": { "+": "1", "-": "2" }, "huella": "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm", "representativa": true }
+        ],
+        "pendiente": { "parte": "depende del valor y del voltaje", "hoja": "depende del fabricante", "lcsc": "depende del valor y del voltaje" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Convención de KiCad 9: símbolo Device:C_Polarized (1 es +, 2 es −) y huella CP_Radial_D6.3mm_P2.50mm (pad 1 cuadrado, el positivo). Dos fuentes de la misma biblioteca, sin hoja: el diámetro (5, 6.3, 8, 10 mm) depende del valor y del voltaje"
+        },
+        "nota": "Con otro diámetro cambian la huella y el paso (CP_Radial_D5.0mm_P2.00mm, D8.0mm_P3.50mm); el patillaje no cambia."
+      }
+    }
+  }
 }

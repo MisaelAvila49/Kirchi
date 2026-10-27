@@ -1,0 +1,99 @@
+{
+  "netlist": {
+    "nodes": 6,
+    "digital_nets": 0,
+    "elements": [
+      {
+        "type": "V",
+        "a": 1,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 30
+        }
+      },
+      {
+        "type": "R",
+        "a": 1,
+        "b": 2,
+        "ohms": 2.3
+      },
+      {
+        "type": "V",
+        "a": 3,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 15
+        }
+      },
+      {
+        "type": "M",
+        "d": 4,
+        "g": 3,
+        "s": 0,
+        "pmos": false,
+        "model": {
+          "vto": 4.4873,
+          "kp": 1.027467,
+          "lambda": 0
+        }
+      },
+      {
+        "type": "Q",
+        "c": 0,
+        "b": 4,
+        "e": 5,
+        "pnp": true,
+        "model": {
+          "is": 2.1245e-11,
+          "bf": 2,
+          "nf": 2
+        }
+      },
+      {
+        "type": "R",
+        "a": 2,
+        "b": 5,
+        "ohms": 0.016174
+      },
+      {
+        "type": "D",
+        "a": 0,
+        "b": 2,
+        "is": 4.35e-14,
+        "n": 1,
+        "rs": 0.045,
+        "tt": 6.7e-9
+      },
+      {
+        "type": "C",
+        "a": 3,
+        "b": 0,
+        "farads": 1.086e-9
+      },
+      {
+        "type": "C",
+        "a": 3,
+        "b": 2,
+        "farads": 1.4e-11
+      },
+      {
+        "type": "C",
+        "a": 2,
+        "b": 0,
+        "farads": 5.9e-11
+      }
+    ]
+  },
+  "fin": 0.2,
+  "hmax": 0.001,
+  "columnas": {
+    "v(c)": {
+      "nodo": 2
+    },
+    "i(v1)": {
+      "corriente": 0
+    }
+  }
+}

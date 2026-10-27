@@ -161,6 +161,7 @@ export function registrarArchivos(ventanaDe: (id: number) => Ventana | undefined
   manejar(CANALES.abrirReciente, (v, ruta) => v.servicio.abrirReciente(ruta))
   manejar(CANALES.abrirSoltado, (v, ruta) => v.servicio.abrirSoltado(ruta))
   manejar(CANALES.inicial, (v) => v.servicio.inicial())
+  manejar(CANALES.recargar, (v) => v.servicio.recargar())
   manejar(CANALES.rutaGuardar, (v, sugerida) => v.servicio.rutaGuardar(sugerida))
   manejar(CANALES.guardar, (v, ruta, bytes) => v.servicio.guardar(ruta, bytes))
   manejar(CANALES.olvidarRecientes, (v) => v.servicio.olvidarRecientes())

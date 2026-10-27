@@ -23,6 +23,8 @@ export interface FuenteEscena {
   seleccion: Documento | null
   area: AreaMm | null
   vivo: VivoExportar | null
+  /** Los números de patilla están visibles en el lienzo: el archivo los lleva. */
+  numerosPatilla?: boolean
 }
 
 /** Documento que se exporta para un alcance y opciones: todo, la selección o lo que cruza el área, con o sin instrumentos.
@@ -38,6 +40,7 @@ export function escenaDeExportar(f: FuenteEscena, alcance: AlcanceExportar, o: O
   const d = documentoAExportar(f, alcance, o) ?? documentoVacio()
   const con = d === f.doc ? f.con : calcularConexiones(d, f.lib)
   return construirEscena(d, f.lib, con, paleta, {
+    ...(f.numerosPatilla ? { numerosPatilla: true } : {}),
     ...(o.coloresVoltaje && f.vivo ? { voltajes: f.vivo.voltajes } : {}),
     ...(o.lecturasMedidores && f.vivo ? { lecturasMedidores: f.vivo.lecturas } : {})
   })

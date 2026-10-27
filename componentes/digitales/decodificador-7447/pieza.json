@@ -1,0 +1,142 @@
+{
+  "id": "decodificador-7447",
+  "nombre": { "es": "Decodificador 7447 de colector abierto", "en": "7447 open-collector decoder" },
+  "categoria": "digitales",
+  "grupo": "Decodificadores y multiplexores",
+  "prefijo": "U",
+  "buscar": ["u", "decodificador", "decoder", "7447", "74ls47", "colector abierto", "open collector", "rbo"],
+  "pines": [
+    { "id": "A", "nombre": "A", "x": -6, "y": -8 },
+    { "id": "B", "nombre": "B", "x": -6, "y": -6 },
+    { "id": "C", "nombre": "C", "x": -6, "y": -4 },
+    { "id": "D", "nombre": "D", "x": -6, "y": -2 },
+    { "id": "LT", "nombre": "LT (prueba de segmentos, activa en bajo)", "x": -6, "y": 2 },
+    { "id": "RBI", "nombre": "RBI (borrado de ceros, activa en bajo)", "x": -6, "y": 4 },
+    { "id": "BI/RBO", "nombre": "BI/RBO (borrado, entrada y salida, activa en bajo)", "x": 0, "y": 14 },
+    { "id": "a", "nombre": "a", "x": 6, "y": -8 },
+    { "id": "b", "nombre": "b", "x": 6, "y": -6 },
+    { "id": "c", "nombre": "c", "x": 6, "y": -4 },
+    { "id": "d", "nombre": "d", "x": 6, "y": -2 },
+    { "id": "e", "nombre": "e", "x": 6, "y": 0 },
+    { "id": "f", "nombre": "f", "x": 6, "y": 2 },
+    { "id": "g", "nombre": "g", "x": 6, "y": 4 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74LS", "opciones": ["74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": ["LT", "RBI", "BI/RBO", "D", "C", "B", "A"],
+    "bidireccionales": ["BI/RBO"],
+    "abiertas": ["a", "b", "c", "d", "e", "f", "g", "BI/RBO"],
+    "tabla": {
+      "columnas": ["LT", "RBI", "BI/RBO", "D", "C", "B", "A"],
+      "salidas": ["a", "b", "c", "d", "e", "f", "g", "BI/RBO"],
+      "filas": [
+        "1 0 0 0 0 0 0 > 1 1 1 1 1 1 1 0",
+        "0 X 0 X X X X > 1 1 1 1 1 1 1 1",
+        "1 1 0 X X X X > 1 1 1 1 1 1 1 1",
+        "1 0 0 1 X X X > 1 1 1 1 1 1 1 1",
+        "1 0 0 0 1 X X > 1 1 1 1 1 1 1 1",
+        "1 0 0 0 0 1 X > 1 1 1 1 1 1 1 1",
+        "1 0 0 0 0 0 1 > 1 1 1 1 1 1 1 1",
+        "1 0 1 0 0 0 0 > 1 1 1 1 1 1 1 0",
+        "0 X 1 X X X X > 0 0 0 0 0 0 0 1",
+        "1 1 1 0 0 0 0 > 0 0 0 0 0 0 1 1",
+        "1 X 1 0 0 0 1 > 1 0 0 1 1 1 1 1",
+        "1 X 1 0 0 1 0 > 0 0 1 0 0 1 0 1",
+        "1 X 1 0 0 1 1 > 0 0 0 0 1 1 0 1",
+        "1 X 1 0 1 0 0 > 1 0 0 1 1 0 0 1",
+        "1 X 1 0 1 0 1 > 0 1 0 0 1 0 0 1",
+        "1 X 1 0 1 1 0 > 1 1 0 0 0 0 0 1",
+        "1 X 1 0 1 1 1 > 0 0 0 1 1 1 1 1",
+        "1 X 1 1 0 0 0 > 0 0 0 0 0 0 0 1",
+        "1 X 1 1 0 0 1 > 0 0 0 0 1 0 0 1",
+        "1 X 1 1 0 1 0 > 1 1 1 0 0 1 0 1",
+        "1 X 1 1 0 1 1 > 1 1 0 0 1 1 0 1",
+        "1 X 1 1 1 0 0 > 1 0 1 1 1 0 0 1",
+        "1 X 1 1 1 0 1 > 0 1 1 0 1 0 0 1",
+        "1 X 1 1 1 1 0 > 1 1 1 0 0 0 0 1",
+        "1 X 1 1 1 1 1 > 1 1 1 1 1 1 1 1"
+      ]
+    },
+    "retardos": { "74LS": { "vcc": 5, "*": [1e-7, 1e-7] } }
+  },
+  "caja": {
+    "titulo": "BCD/7SEG",
+    "forma": "funcional",
+    "izquierda": ["A", "B", "C", "D", null, "!LT", "!RBI"],
+    "derecha": ["!a", "!b", "!c", "!d", "!e", "!f", "!g"],
+    "abajo": ["!BI/RBO"],
+    "marcas": { "a": ["oc"], "b": ["oc"], "c": ["oc"], "d": ["oc"], "e": ["oc"], "f": ["oc"], "g": ["oc"], "BI/RBO": ["oc"] }
+  },
+  "fuentes": {
+    "74LS": "TI SN5446A/47A/48, SN54LS47/LS48/LS49 (SDLS111): tabla de función p. 3 con sus notas. La hoja da solo máximos de 100 ns de A y de RBI a los segmentos (p. 11); sin típico, el modelo usa ese máximo, también en BI/RBO, que la hoja no tiene."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS47N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls47.pdf",
+        "equivalencias": { "kicad": "74xx:74LS47" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "B": "1",
+              "C": "2",
+              "LT": "3",
+              "BI/RBO": "4",
+              "RBI": "5",
+              "D": "6",
+              "A": "7",
+              "e": "9",
+              "d": "10",
+              "c": "11",
+              "b": "12",
+              "a": "13",
+              "g": "14",
+              "f": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS47N",
+            "lcsc": { "numero": "C129379", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SN5446A/47A/48, SN54LS47/LS48/LS49 (SDLS111, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS47 (9.0.0; su patilla 4 se rotula BI)"
+        },
+        "nota": "La hoja da solo tiempos máximos de 100 ns para las salidas y ningún típico."
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -14 }, "valor": { "x": 0, "y": 16 } },
+  "rotulos": [
+    { "texto": "A", "x": -3.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "C", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "D", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "LT", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "RBI", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "a", "x": 1.2000000000000002, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "b", "x": 1.2000000000000002, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "c", "x": 1.2000000000000002, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "d", "x": 1.2000000000000002, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "e", "x": 1.2000000000000002, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "f", "x": 1.2000000000000002, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "g", "x": 1.2000000000000002, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "BI/RBO", "x": 0, "y": 9.2, "tam": 1, "alinear": "arriba" },
+    { "texto": "BCD/7SEG", "x": 0, "y": -11, "tam": 1, "alinear": "centro" }
+  ]
+}

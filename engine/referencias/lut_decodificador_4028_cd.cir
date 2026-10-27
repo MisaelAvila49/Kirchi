@@ -1,0 +1,22 @@
+* Decodificador CD4028B a 5 V con el digito BCD en cuenta binaria y sus seis codigos ilegales
+.model adc_0 adc_bridge(in_low=1.5 in_high=3.5 rise_delay=1e-12 fall_delay=1e-12)
+.model uno_d d_pullup(load=1e-12)
+V1 n1 0 PULSE(0 5 1e-7 1e-12 1e-12 6.99999e-7 0.00000139999999999944)
+V2 n2 0 PULSE(0 5 2.96e-7 1e-12 1e-12 0.0000013999990000000001 0.00000279999999999888)
+V3 n3 0 PULSE(0 5 4.92e-7 1e-12 1e-12 0.0000027999989999999996 0.0000056000000000134405)
+V4 n4 0 PULSE(0 5 9.96e-7 1e-12 1e-12 0.0000055999989999999995 0.00001119999999996416)
+AIN0 [n4] [d10] adc_0
+AIN1 [n3] [d11] adc_0
+AIN2 [n2] [d12] adc_0
+AIN3 [n1] [d13] adc_0
+*@generar lut u0 {"comunes":["d10","d11","d12","d13"],"rebanadas":[{"entradas":[],"salidas":["d0","d1","d2","d3","d4","d5","d6","d7","d8","d9"]}],"tabla":[1,4,16,64,256,1024,4096,16384,65536,262144,0,0,0,0,0,0],"retardos":[[1.25e-7,1.25e-7],[1.25e-7,1.25e-7],[1.25e-7,1.25e-7],[1.25e-7,1.25e-7],[1.25e-7,1.25e-7],[1.25e-7,1.25e-7],[1.25e-7,1.25e-7],[1.25e-7,1.25e-7],[1.25e-7,1.25e-7],[1.25e-7,1.25e-7]]}
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 15000n 0 0.1n uic
+wrdata salida.txt v(n1)
+eprint d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 > eventos.txt
+.endc
+.end

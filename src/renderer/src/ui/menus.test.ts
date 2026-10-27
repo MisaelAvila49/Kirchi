@@ -128,21 +128,23 @@ describe('menús del clic derecho', () => {
     expect(filas(c)).toEqual([
       'Derivar desde aquí [Alt+clic]', 'Inspector', '—',
       'Cortar [Ctrl+X]', 'Copiar [Ctrl+C]', 'Pegar [Ctrl+V]', 'Duplicar [Ctrl+D]', '—',
-      'Medir con el multímetro', 'Medir con el osciloscopio', '—',
+      'Medir', '—',
       'Eliminar [Supr]'
     ])
-    const osc = items(c.entradas).find((x) => x.id === 'medir-osc')!
-    expect(osc).toMatchObject({ flecha: true, icono: 'osciloscopio' })
+    const medir = items(c.entradas).find((x) => x.id === 'medir')!
+    expect(medir).toMatchObject({ flecha: true })
+    expect(items(medir.submenu).map((x) => [x.id, x.texto])).toEqual([['medir-sonda', 'Sonda'], ['medir-mm', 'Multímetro'], ['medir-osc', 'Osciloscopio']])
+    const sub1 = (id: string) => items(items(medir.submenu).find((x) => x.id === id)!.submenu)
+    expect(sub1('medir-sonda').map((x) => [x.id, x.texto])).toEqual([['medir-sonda:voltaje', 'Voltaje'], ['medir-sonda:corriente', 'Corriente']])
     // Sin osciloscopio en el circuito, las cuatro entradas de uno nuevo.
-    expect(items(osc.submenu).map((x) => [x.id, x.texto])).toEqual([['medir-osc:nuevo:A', 'Entrada A'], ['medir-osc:nuevo:B', 'Entrada B'], ['medir-osc:nuevo:C', 'Entrada C'], ['medir-osc:nuevo:D', 'Entrada D']])
-    const mm = items(c.entradas).find((x) => x.id === 'medir-mm')!
-    expect(items(mm.submenu).map((x) => [x.id, x.texto])).toEqual([['medir-mm:rapido', 'Medidor rápido'], ['medir-mm:nuevo', 'Multímetro nuevo']])
+    expect(sub1('medir-osc').map((x) => [x.id, x.texto])).toEqual([['medir-osc:nuevo:A', 'Entrada A'], ['medir-osc:nuevo:B', 'Entrada B'], ['medir-osc:nuevo:C', 'Entrada C'], ['medir-osc:nuevo:D', 'Entrada D']])
+    expect(sub1('medir-mm').map((x) => [x.id, x.texto])).toEqual([['medir-mm:rapido', 'Medidor rápido'], ['medir-mm:nuevo', 'Multímetro completo']])
     const e = menuDeObjetivo({ tipo: 'etiqueta', id: 'e', en }, ctx())
     expect(e.titulo).toBe('Etiqueta de red VSAL')
     expect(filas(e)).toEqual([
       'Editar [doble clic]', 'Inspector', '—', 'Cortar [Ctrl+X]', 'Copiar [Ctrl+C]', 'Pegar [Ctrl+V]', 'Duplicar [Ctrl+D]', '—',
       'Girar 90° a la derecha [R]', 'Girar 90° a la izquierda [Shift+R]', 'Reflejar horizontal [X]', 'Reflejar vertical [Y]', '—',
-      'Medir con el multímetro', 'Medir con el osciloscopio', '—', 'Eliminar [Supr]'
+      'Medir', '—', 'Eliminar [Supr]'
     ])
     expect(menuDeObjetivo({ tipo: 'nota', id: 'n', en }, ctx()).titulo).toBe('Nota de texto')
   })
@@ -154,13 +156,16 @@ describe('menús del clic derecho', () => {
     d.piezas.m = pz('m', 'multimetro', 'XMM1', 260)
     const con = calcularConexiones(d, lib)
     const c = menuDeObjetivo({ tipo: 'cable', id: 'w', en }, ctx({ doc: d, con }))
-    const sub = (id: string) => items(items(c.entradas).find((x) => x.id === id)!.submenu).map((x) => [x.id, x.texto, x.detalle])
+    const medirSub = (c2: typeof c) => items(items(c2.entradas).find((x) => x.id === 'medir')!.submenu)
+    const sub = (id: string) => items(medirSub(c).find((x) => x.id === id)!.submenu).map((x) => [x.id, x.texto, x.detalle])
     expect(sub('medir-osc')).toEqual([['medir-osc:o:A', 'Entrada A', 'libre'], ['medir-osc:o:B', 'Entrada B', 'libre'], ['medir-osc:o:C', 'Entrada C', 'libre'], ['medir-osc:o:D', 'Entrada D', 'libre']])
-    expect(sub('medir-mm')).toEqual([['medir-mm:rapido', 'Medidor rápido', undefined], ['medir-mm:m:+', 'XMM1 · +', 'libre'], ['medir-mm:m:COM', 'XMM1 · COM', 'libre'], ['medir-mm:nuevo', 'Multímetro nuevo', undefined]])
-    // Con dos osciloscopios, cada entrada lleva su referencia.
+    expect(sub('medir-mm')).toEqual([['medir-mm:rapido', 'Medidor rápido', undefined], ['medir-mm:nuevo', 'Multímetro completo', undefined], ['medir-mm:m:+', 'XMM1 · +', 'libre'], ['medir-mm:m:COM', 'XMM1 · COM', 'libre']])
+    // Con dos osciloscopios, un nivel más: cada uno con sus cuatro entradas.
     d.piezas.o2 = pz('o2', 'osciloscopio', 'XSC2', 320)
     const dos = menuDeObjetivo({ tipo: 'cable', id: 'w', en }, ctx({ doc: d, con: calcularConexiones(d, lib) }))
-    expect(items(items(dos.entradas).find((x) => x.id === 'medir-osc')!.submenu).map((x) => x.texto).slice(0, 2)).toEqual(['XSC1 · Entrada A', 'XSC1 · Entrada B'])
+    const grupos = items(items(items(dos.entradas).find((x) => x.id === 'medir')!.submenu).find((x) => x.id === 'medir-osc')!.submenu)
+    expect(grupos.map((x) => x.texto)).toEqual(['XSC1', 'XSC2'])
+    expect(items(grupos[0].submenu).map((x) => x.id)).toEqual(['medir-osc:o:A', 'medir-osc:o:B', 'medir-osc:o:C', 'medir-osc:o:D'])
   })
 
   it('el menú de una sonda: invertir el sentido (corriente), Mediciones y eliminarla', () => {
@@ -174,13 +179,15 @@ describe('menús del clic derecho', () => {
     expect(pedidoDeAccion('medir-mm:m:COM')).toEqual({ con: 'multimetro', mm: 'm', terminal: 'COM' })
     expect(pedidoDeAccion('medir-mm:nuevo')).toEqual({ con: 'multimetro-nuevo' })
     expect(pedidoDeAccion('medir-mm:rapido')).toEqual({ con: 'medidor' })
+    expect(pedidoDeAccion('medir-sonda:voltaje')).toEqual({ con: 'voltaje' })
+    expect(pedidoDeAccion('medir-sonda:corriente')).toEqual({ con: 'corriente' })
     expect(pedidoDeAccion('borrar')).toBeNull()
   })
 
   it('vacío: colocar, pegar (deshabilitado sin portapapeles), L, G, T, Figura ▸ y encuadrar', () => {
     const m = menuDeObjetivo({ tipo: 'vacio', en }, ctx())
     expect(filas(m)).toEqual([
-      'Colocar pieza aquí… [doble clic]', 'Pegar aquí [Ctrl+V]', '—', 'Etiqueta de red [L]', 'Tierra [G]', 'Nota de texto [T]', 'Figura', '—', 'Encuadrar todo [F]'
+      'Colocar pieza aquí… [doble clic]', 'Pegar aquí [Ctrl+V]', '—', 'Etiqueta de red [L]', 'Tierra [G]', 'Nota de texto [T]', 'Figura', '—', 'Agrupar en encapsulados', 'Encuadrar todo [F]'
     ])
     // Las figuras también desde el lienzo en blanco, las mismas órdenes que el botón Figura.
     const figura = items(m.entradas).find((e) => e.id === 'figura')!
@@ -225,7 +232,7 @@ describe('menús del clic derecho', () => {
       'editar-valor': 'etiqueta', 'panel-inspector': 'inspector', borrar: 'borrar'
     })
     expect(icono(menuDeObjetivo({ tipo: 'vacio', en }, ctx()))).toEqual({
-      'colocar-aqui': 'pieza', 'pegar-aqui': 'pegar', etiqueta: 'etiqueta', tierra: 'tierra', nota: 'nota', figura: 'figura', encuadrar: 'encuadrar'
+      'colocar-aqui': 'pieza', 'pegar-aqui': 'pegar', etiqueta: 'etiqueta', tierra: 'tierra', nota: 'nota', figura: 'figura', 'agrupar-encapsulados': 'pieza', encuadrar: 'encuadrar'
     })
     const sinIcono = (m: ModeloMenu) => items(m.entradas).filter((e) => !e.icono).map((e) => e.id)
     expect(sinIcono(menuDeObjetivo({ tipo: 'cable', id: 'w', en }, ctx()))).toEqual([])

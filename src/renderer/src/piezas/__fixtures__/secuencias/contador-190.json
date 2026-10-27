@@ -1,0 +1,238 @@
+{
+ "fuente": {
+  "familias": [
+   "74HC",
+   "74LS"
+  ],
+  "documentos": [
+   {
+    "familia": "74HC",
+    "documento": "TI CD54HC190/CD74HC190 (con HC191), SCHS275E",
+    "revision": "oct 2003",
+    "pagina": 8,
+    "figura": "'typical load, count, and inhibit sequence for 'HC190'"
+   },
+   {
+    "familia": "74LS",
+    "documento": "TI SN54/74LS190 y LS191, SDLS072",
+    "revision": "mar 1988",
+    "pagina": 5,
+    "figura": "''190, 'LS190 DECADE COUNTERS: typical load, count, and inhibit sequences'"
+   }
+  ],
+  "lectura": "Los tiempos salen de medir la figura sobre una rejilla de un período de reloj; las dos hojas dibujan la misma secuencia. Error de lectura estimado: 0.1 período."
+ },
+ "escala": "t en períodos de reloj. El reloj sube en cada entero de 'subidas' y baja en 'bajadas'. Elegir el período mayor que 10 veces el retardo máximo de la hoja.",
+ "relojes": [
+  {
+   "senal": "CLK",
+   "inicial": 1,
+   "bajadas": [
+    -0.5,
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5,
+    6.5,
+    7.5,
+    8.5,
+    9.5,
+    10.5,
+    11.5
+   ],
+   "subidas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ]
+  }
+ ],
+ "inicial": {
+  "LOAD": 1,
+  "A": 0,
+  "B": 0,
+  "C": 0,
+  "D": 0,
+  "D/U": 1,
+  "CTEN": 1
+ },
+ "pasos": [
+  {
+   "t": -1.5,
+   "entradas": {
+    "A": 1,
+    "B": 1,
+    "C": 1,
+    "D/U": 0,
+    "CTEN": 0
+   }
+  },
+  {
+   "t": -1,
+   "entradas": {
+    "LOAD": 0
+   }
+  },
+  {
+   "t": -0.25,
+   "entradas": {
+    "LOAD": 1
+   }
+  },
+  {
+   "t": 4.25,
+   "entradas": {
+    "CTEN": 1
+   }
+  },
+  {
+   "t": 5.25,
+   "entradas": {
+    "D/U": 1
+   }
+  },
+  {
+   "t": 6.25,
+   "entradas": {
+    "CTEN": 0
+   }
+  }
+ ],
+ "salidas_codificadas": "cuenta = QD*8 + QC*4 + QB*2 + QA",
+ "muestras": [
+  {
+   "t": -0.6,
+   "salidas": {
+    "cuenta": 7
+   },
+   "origen": "figura: carga asíncrona a BCD 7 mientras LOAD está bajo (A, B y C en alto, D en bajo)"
+  },
+  {
+   "t": 0.25,
+   "salidas": {
+    "cuenta": 8,
+    "MAX/MIN": 0,
+    "RCO": 1
+   },
+   "origen": "figura, etiqueta 8"
+  },
+  {
+   "t": 1.25,
+   "salidas": {
+    "cuenta": 9,
+    "MAX/MIN": 1,
+    "RCO": 1
+   },
+   "origen": "figura, etiqueta 9 y pulso de MAX/MIN con el reloj en alto"
+  },
+  {
+   "t": 1.75,
+   "salidas": {
+    "cuenta": 9,
+    "MAX/MIN": 1,
+    "RCO": 0
+   },
+   "origen": "figura: RCO bajo durante la parte baja del reloj"
+  },
+  {
+   "t": 2.25,
+   "salidas": {
+    "cuenta": 0,
+    "MAX/MIN": 0,
+    "RCO": 1
+   },
+   "origen": "figura, etiqueta 0"
+  },
+  {
+   "t": 3.25,
+   "salidas": {
+    "cuenta": 1
+   },
+   "origen": "figura, etiqueta 1"
+  },
+  {
+   "t": 4.4,
+   "salidas": {
+    "cuenta": 2
+   },
+   "origen": "figura, etiqueta 2"
+  },
+  {
+   "t": 5.4,
+   "salidas": {
+    "cuenta": 2,
+    "MAX/MIN": 0
+   },
+   "origen": "figura, 'Inhibit' (CTEN alto)"
+  },
+  {
+   "t": 6.1,
+   "salidas": {
+    "cuenta": 2
+   },
+   "origen": "figura, sigue inhibido con D/U alto"
+  },
+  {
+   "t": 7.4,
+   "salidas": {
+    "cuenta": 1
+   },
+   "origen": "figura, 'Count Down' etiqueta 1"
+  },
+  {
+   "t": 8.25,
+   "salidas": {
+    "cuenta": 0,
+    "MAX/MIN": 1,
+    "RCO": 1
+   },
+   "origen": "figura, etiqueta 0 con MAX/MIN alto al contar hacia abajo"
+  },
+  {
+   "t": 8.75,
+   "salidas": {
+    "cuenta": 0,
+    "MAX/MIN": 1,
+    "RCO": 0
+   },
+   "origen": "figura: RCO bajo con el reloj en bajo"
+  },
+  {
+   "t": 9.25,
+   "salidas": {
+    "cuenta": 9,
+    "MAX/MIN": 0
+   },
+   "origen": "figura, etiqueta 9"
+  },
+  {
+   "t": 10.25,
+   "salidas": {
+    "cuenta": 8
+   },
+   "origen": "figura, etiqueta 8"
+  },
+  {
+   "t": 11.25,
+   "salidas": {
+    "cuenta": 7
+   },
+   "origen": "figura, etiqueta 7"
+  }
+ ],
+ "notas": [
+  "La hoja (HC190 p. 2) pide que D/U y CTEN cambien solo con CLK en alto; en la secuencia CTEN sube en 4.25 y baja en 6.25 y D/U sube en 5.25, los tres con CLK en alto.",
+  "Los datos A a D quedan 'no importa' después del flanco 0."
+ ]
+}

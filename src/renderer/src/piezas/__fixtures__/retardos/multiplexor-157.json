@@ -1,0 +1,104 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "cl_pF": 50,
+   "documento": "TI SN74HC157 (SCLS113F)",
+   "paginas": "5, tabla 4.5 (primera)",
+   "caminos": [
+    {
+     "de": "A o B",
+     "a": "Y",
+     "tPLH": {
+      "tip": 13,
+      "max": 25
+     },
+     "tPHL": {
+      "tip": 13,
+      "max": 25
+     },
+     "max_SN74_40_85C": 38
+    },
+    {
+     "de": "A/B",
+     "a": "Y",
+     "tPLH": {
+      "tip": 18,
+      "max": 25
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 25
+     },
+     "max_SN74_40_85C": 38
+    },
+    {
+     "de": "G",
+     "a": "Y",
+     "tPLH": {
+      "tip": 16,
+      "max": 23
+     },
+     "tPHL": {
+      "tip": 16,
+      "max": 23
+     },
+     "max_SN74_40_85C": 34
+    },
+    {
+     "de": "salida",
+     "a": "transición tt",
+     "tip": 8,
+     "max": 12,
+     "max_SN74_40_85C": 18
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS157 (SDLS058)",
+   "paginas": "5, switching characteristics",
+   "caminos": [
+    {
+     "de": "Data",
+     "a": "Y",
+     "tPLH": {
+      "tip": 9,
+      "max": 14
+     },
+     "tPHL": {
+      "tip": 9,
+      "max": 14
+     }
+    },
+    {
+     "de": "Strobe G",
+     "a": "Y",
+     "tPLH": {
+      "tip": 13,
+      "max": 20
+     },
+     "tPHL": {
+      "tip": 14,
+      "max": 21
+     }
+    },
+    {
+     "de": "Select A/B",
+     "a": "Y",
+     "tPLH": {
+      "tip": 15,
+      "max": 23
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 27
+     }
+    }
+   ]
+  }
+ }
+}

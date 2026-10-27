@@ -47,5 +47,6 @@
     { "texto": "B", "x": -5.2, "y": -2, "tam": 1.2, "alinear": "izq" },
     { "texto": "C", "x": -5.2, "y": 2, "tam": 1.2, "alinear": "izq" },
     { "texto": "D", "x": -5.2, "y": 6, "tam": 1.2, "alinear": "izq" }
-  ]
+  ],
+  "datos": { "valores": { "*": { "virtual": true, "nota": "Osciloscopio del simulador." } } }
 }

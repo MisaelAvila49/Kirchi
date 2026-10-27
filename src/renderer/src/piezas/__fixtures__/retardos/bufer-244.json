@@ -1,0 +1,94 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "documento": "TI SN74HC244 (SCLS130I)",
+   "paginas": "7 (tabla 5.9, 25 C) y 8 (tabla 5.10, rango completo)",
+   "caminos": [
+    {
+     "de": "A",
+     "a": "Y",
+     "cl_pF": 50,
+     "tpd": {
+      "tip": 13,
+      "max": 23,
+      "max_SN74_40_85C": 29
+     }
+    },
+    {
+     "de": "A",
+     "a": "Y",
+     "cl_pF": 150,
+     "tpd": {
+      "tip": 18,
+      "max": 33
+     }
+    },
+    {
+     "de": "OE",
+     "a": "Y habilita",
+     "cl_pF": 50,
+     "ten": {
+      "tip": 15,
+      "max": 30
+     }
+    },
+    {
+     "de": "OE",
+     "a": "Y deshabilita",
+     "cl_pF": 50,
+     "tdis": {
+      "tip": 15,
+      "max": 30
+     }
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 45,
+   "rl_ohm": 667,
+   "documento": "TI SNx4LS24x (SDLS144D)",
+   "paginas": "6, tabla 6.7 (para SNx4LS244)",
+   "caminos": [
+    {
+     "de": "A",
+     "a": "Y",
+     "tPLH": {
+      "tip": 12,
+      "max": 18
+     },
+     "tPHL": {
+      "tip": 12,
+      "max": 18
+     }
+    },
+    {
+     "de": "G",
+     "a": "Y a bajo (tPZL)",
+     "tip": 20,
+     "max": 30
+    },
+    {
+     "de": "G",
+     "a": "Y a alto (tPZH)",
+     "tip": 15,
+     "max": 23
+    },
+    {
+     "de": "G",
+     "a": "Y desde bajo (tPLZ, CL 5 pF)",
+     "tip": 10,
+     "max": 20
+    },
+    {
+     "de": "G",
+     "a": "Y desde alto (tPHZ, CL 5 pF)",
+     "tip": 15,
+     "max": 25
+    }
+   ]
+  }
+ }
+}

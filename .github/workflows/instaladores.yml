@@ -49,8 +49,8 @@ jobs:
           LINUX: ${{ inputs.linux }}
         run: |
           if [ "$MANUAL" != "true" ]; then WINDOWS=true; MACOS=true; LINUX=true; fi
-          mac='{"nombre":"macOS","os":"macos-latest","orden":"npx electron-builder --mac --publish never","artefactos":"dist/Kirchi-*-macos-*.dmg"}'
-          lin='{"nombre":"Linux","os":"ubuntu-24.04","orden":"npx electron-builder --linux --publish never","artefactos":"dist/Kirchi-*-linux-*.AppImage\ndist/Kirchi-*-linux-*.deb"}'
+          mac='{"nombre":"macOS","os":"macos-latest","orden":"npx electron-builder --mac --publish never","artefactos":"dist/Kirchi-*-macOS.dmg"}'
+          lin='{"nombre":"Linux","os":"ubuntu-24.04","orden":"npx electron-builder --linux --publish never","artefactos":"dist/Kirchi-*-Linux.AppImage\ndist/Kirchi-*-Linux.deb"}'
           lista=""
           [ "$MACOS" = "true" ] && lista="$mac"
           if [ "$LINUX" = "true" ]; then [ -n "$lista" ] && lista="$lista,"; lista="$lista$lin"; fi
@@ -171,8 +171,8 @@ jobs:
         with:
           name: kirchi-Windows
           path: |
-            dist/Kirchi-*-instalador-*.exe
-            dist/Kirchi-*-portatil-*.zip
+            dist/Kirchi-*-Windows-instalador.exe
+            dist/Kirchi-*-Windows-portable.zip
           if-no-files-found: error
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -253,7 +253,7 @@ jobs:
           path: ${{ matrix.artefactos }}
           if-no-files-found: error
 
-  # Borrador de la página de Releases con los instaladores y el código fuente de terceros (lo que piden la GPL, la LGPL y la MPL).
+  # Borrador de la página de Releases con los instaladores y el zip del código fuente de terceros (lo que piden la GPL, la LGPL y la MPL).
   # Solo con una etiqueta y con todas las plataformas en verde. La Tienda (appx) y ngspice suelto no se publican.
   publicar:
     name: Borrador de la release
@@ -266,22 +266,22 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: kirchi-@(Windows|macOS|Linux|fuentes-terceros)
+          pattern: kirchi-@(Windows|macOS|Linux)
           path: release
           merge-multiple: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: kirchi-fuentes-terceros
+          path: fuentes
       - name: Crear el borrador
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ETIQUETA: ${{ github.ref_name }}
         run: |
           version="${ETIQUETA#v}"
-          node -e '
-            const t = require("fs").readFileSync("CHANGELOG.md", "utf8").split(/\r?\n/)
-            const i = t.findIndex((l) => l.trim() === "## " + process.argv[1])
-            if (i < 0) { console.error("CHANGELOG.md no tiene la sección " + process.argv[1]); process.exit(1) }
-            const f = t.findIndex((l, j) => j > i && l.startsWith("## "))
-            console.log(t.slice(i + 1, f < 0 ? undefined : f).join("\n").trim())
-          ' "$version" > notas.md
+          node scripts/notas-release.mjs "$version" > notas.md
           test -s notas.md
+          # Las fuentes de terceros viajan en un solo zip, no sueltas.
+          (cd fuentes && zip -r -X "../release/Kirchi-$version-fuentes-de-terceros.zip" .)
           find release -type f
           gh release create "$ETIQUETA" release/* --draft --title "Kirchi $version" --notes-file notas.md

@@ -2,6 +2,7 @@
   "id": "biestable-d",
   "nombre": { "es": "Flip-flop D", "en": "D flip-flop" },
   "categoria": "digitales",
+  "grupo": "Biestables y contadores",
   "prefijo": "U",
   "buscar": ["u", "biestable d", "biestable", "báscula", "bascula", "flip-flop d", "flip flop", "ff", "7474", "74hc74", "4013"],
   "pines": [
@@ -25,5 +26,72 @@
     { "texto": "CLR", "x": 0, "y": 5.2, "tam": 1, "alinear": "arriba" },
     { "texto": "Q", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
     { "texto": "Q", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" }
-  ]
+  ],
+  "datos": {
+    "por": "familia",
+    "equivalencias": { "ltspice": "Digital\\dflop", "falstad": "155", "sinVerificar": ["ltspice"] },
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC74N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc74.pdf",
+        "equivalencias": { "kicad": "74xx:74HC74" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "D": "2", "CLK": "3", "PRE": "4", "CLR": "1", "Q": "5", "QN": "6" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Biestable 1", "patillas": { "D": "2", "CLK": "3", "PRE": "4", "CLR": "1", "Q": "5", "QN": "6" } },
+              { "nombre": "Biestable 2", "patillas": { "D": "12", "CLK": "11", "PRE": "10", "CLR": "13", "Q": "9", "QN": "8" } }
+            ],
+            "parte": "SN74HC74N",
+            "lcsc": { "numero": "C2895", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC74, pinout p. 5; KiCad 74xx:74HC74" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS74AN",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls74a.pdf",
+        "equivalencias": { "kicad": "74xx:74LS74" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "D": "2", "CLK": "3", "PRE": "4", "CLR": "1", "Q": "5", "QN": "6" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Biestable 1", "patillas": { "D": "2", "CLK": "3", "PRE": "4", "CLR": "1", "Q": "5", "QN": "6" } },
+              { "nombre": "Biestable 2", "patillas": { "D": "12", "CLK": "11", "PRE": "10", "CLR": "13", "Q": "9", "QN": "8" } }
+            ],
+            "parte": "SN74LS74AN"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS74; TI SN74HC74 (misma función)" }
+      },
+      "CD4000B": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4013BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4013b.pdf",
+        "aproximada": "SET (PRE) y RESET (CLR) son activos en alto y el biestable cambia en el flanco de subida; el modelo tiene PRE y CLR activos en bajo.",
+        "equivalencias": { "kicad": "4xxx:4013" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "D": "5", "CLK": "3", "PRE": "6", "CLR": "4", "Q": "1", "QN": "2" },
+            "alimentacion": { "VDD": "14", "VSS": "7" },
+            "unidades": [
+              { "nombre": "Biestable 1", "patillas": { "D": "5", "CLK": "3", "PRE": "6", "CLR": "4", "Q": "1", "QN": "2" } },
+              { "nombre": "Biestable 2", "patillas": { "D": "9", "CLK": "11", "PRE": "8", "CLR": "10", "Q": "13", "QN": "12" } }
+            ],
+            "parte": "CD4013BE",
+            "lcsc": { "numero": "C5199", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4013B (SCHS023), Terminal Assignment (texto); KiCad 4xxx:4013" }
+      }
+    }
+  }
 }

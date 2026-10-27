@@ -46,7 +46,7 @@ export interface TamañosNetlist {
   digitales: number
 }
 
-/** Valor en continua de una fuente: offset de la senoidal, nivel bajo del pulso y la escalera, alto de la cuadrada. Así el
+/** Valor en continua de una fuente: offset de la senoidal, nivel bajo del pulso y la escalera, alto de la cuadrada, primer valor de la de tramos. Así el
  * punto de operación no depende del instante de medida. */
 export function ondaEnContinua(w: Onda): Onda {
   switch (w.kind) {
@@ -59,6 +59,8 @@ export function ondaEnContinua(w: Onda): Onda {
     case 'pulse':
     case 'stair':
       return { kind: 'dc', v: w.low }
+    case 'pwl':
+      return { kind: 'dc', v: w.puntos[0][1] }
   }
 }
 

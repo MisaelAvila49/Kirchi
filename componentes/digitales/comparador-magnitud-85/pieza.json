@@ -1,0 +1,145 @@
+{
+  "id": "comparador-magnitud-85",
+  "nombre": { "es": "Comparador de magnitud de 4 bits (7485)", "en": "4-bit magnitude comparator (7485)" },
+  "categoria": "digitales",
+  "grupo": "Aritmética",
+  "prefijo": "U",
+  "buscar": ["u", "comparador", "comparator", "magnitud", "magnitude", "4 bits", "7485", "74hc85", "74ls85", "cascada"],
+  "pines": [
+    { "id": "A0", "nombre": "A0", "x": -6, "y": -12 },
+    { "id": "A1", "nombre": "A1", "x": -6, "y": -10 },
+    { "id": "A2", "nombre": "A2", "x": -6, "y": -8 },
+    { "id": "A3", "nombre": "A3", "x": -6, "y": -6 },
+    { "id": "B0", "nombre": "B0", "x": -6, "y": -2 },
+    { "id": "B1", "nombre": "B1", "x": -6, "y": 0 },
+    { "id": "B2", "nombre": "B2", "x": -6, "y": 2 },
+    { "id": "B3", "nombre": "B3", "x": -6, "y": 4 },
+    { "id": "IA<B", "nombre": "IA<B", "x": -6, "y": 8 },
+    { "id": "IA=B", "nombre": "IA=B", "x": -6, "y": 10 },
+    { "id": "IA>B", "nombre": "IA>B", "x": -6, "y": 12 },
+    { "id": "OA<B", "nombre": "OA<B", "x": 6, "y": 8 },
+    { "id": "OA=B", "nombre": "OA=B", "x": 6, "y": 10 },
+    { "id": "OA>B", "nombre": "OA>B", "x": 6, "y": 12 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": ["A0", "A1", "A2", "A3", "B0", "B1", "B2", "B3", "IA<B", "IA=B", "IA>B"],
+    "generar": {
+      "tipo": "compara",
+      "a": ["A0", "A1", "A2", "A3"],
+      "b": ["B0", "B1", "B2", "B3"],
+      "cascada": { "menor": "IA<B", "igual": "IA=B", "mayor": "IA>B" },
+      "salidas": { "menor": "OA<B", "igual": "OA=B", "mayor": "OA>B" }
+    },
+    "retardos": {
+      "74HC": { "vcc": 5, "OA<B": [1.6e-8, 1.6e-8], "OA>B": [1.6e-8, 1.6e-8], "OA=B": [1.4e-8, 1.4e-8] },
+      "74LS": { "vcc": 5, "OA<B": [2.4e-8, 2e-8], "OA>B": [2.4e-8, 2e-8], "OA=B": [2.7e-8, 2.3e-8] }
+    }
+  },
+  "caja": {
+    "titulo": "COMP",
+    "forma": "funcional",
+    "izquierda": ["A0", "A1", "A2", "A3", null, "B0", "B1", "B2", "B3", null, "IA<B", "IA=B", "IA>B"],
+    "derecha": [null, null, null, null, null, null, null, null, null, null, "OA<B", "OA=B", "OA>B"]
+  },
+  "fuentes": {
+    "74HC": "TI CD74HC85 (SCHS136F): tabla de verdad p. 10, con las filas de cascada de la conexión en serie y en paralelo. Retardos típicos de An o Bn a las salidas (16 ns a OA>B y OA<B, 14 ns a OA=B), solo dados a 5 V y CL 15 pF (tabla 5.5, p. 6).",
+    "74LS": "TI SN74LS85 (SDLS123): tabla de función p. 1. Retardos típicos de An o Bn a las salidas con tres niveles (24 y 20 ns) y a OA=B con cuatro (27 y 23 ns), p. 5 a 5 V con CL 15 pF."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD74HC85E",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd74hc85.pdf",
+        "equivalencias": { "kicad": "74xx:74HC85" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "B3": "1",
+              "IA<B": "2",
+              "IA=B": "3",
+              "IA>B": "4",
+              "OA>B": "5",
+              "OA=B": "6",
+              "OA<B": "7",
+              "B0": "9",
+              "A0": "10",
+              "B1": "11",
+              "A1": "12",
+              "A2": "13",
+              "B2": "14",
+              "A3": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "CD74HC85E",
+            "lcsc": { "numero": "C134106", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC85 (SCHS136F, feb 2022), p. 3; KiCad 74xx:74HC85 (9.0.0, extiende 74LS85)" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS85N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls85.pdf",
+        "equivalencias": { "kicad": "74xx:74LS85" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "B3": "1",
+              "IA<B": "2",
+              "IA=B": "3",
+              "IA>B": "4",
+              "OA>B": "5",
+              "OA=B": "6",
+              "OA<B": "7",
+              "B0": "9",
+              "A0": "10",
+              "B1": "11",
+              "A1": "12",
+              "A2": "13",
+              "B2": "14",
+              "A3": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS85N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de SN74LS85N de TI en DIP (solo SO-16 de TI y clones de otros fabricantes)" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN7485/LS85/S85 (SDLS123, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS85" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -18 }, "valor": { "x": 0, "y": 18 } },
+  "rotulos": [
+    { "texto": "A0", "x": -3.2, "y": -12, "tam": 1, "alinear": "izq" },
+    { "texto": "A1", "x": -3.2, "y": -10, "tam": 1, "alinear": "izq" },
+    { "texto": "A2", "x": -3.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "A3", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "B0", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "B1", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "B2", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "B3", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "IA<B", "x": -3.2, "y": 8, "tam": 1, "alinear": "izq" },
+    { "texto": "IA=B", "x": -3.2, "y": 10, "tam": 1, "alinear": "izq" },
+    { "texto": "IA>B", "x": -3.2, "y": 12, "tam": 1, "alinear": "izq" },
+    { "texto": "OA<B", "x": 3.2, "y": 8, "tam": 1, "alinear": "der" },
+    { "texto": "OA=B", "x": 3.2, "y": 10, "tam": 1, "alinear": "der" },
+    { "texto": "OA>B", "x": 3.2, "y": 12, "tam": 1, "alinear": "der" },
+    { "texto": "COMP", "x": 0, "y": -15, "tam": 1, "alinear": "centro" }
+  ]
+}

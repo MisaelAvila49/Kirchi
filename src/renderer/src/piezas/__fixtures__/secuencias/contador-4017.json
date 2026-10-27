@@ -1,0 +1,216 @@
+{
+ "fuente": {
+  "familias": [
+   "CD4000B",
+   "74HC"
+  ],
+  "documentos": [
+   {
+    "familia": "CD4000B",
+    "documento": "TI CD4017B, CD4022B, SCHS027C",
+    "revision": "feb 2004",
+    "pagina": "2 (3-52)",
+    "figura": "Fig. 2, 'Timing diagram for CD4017B'"
+   },
+   {
+    "familia": "74HC",
+    "documento": "TI CD54HC4017, CD74HC4017, SCHS200D",
+    "revision": "oct 2003",
+    "pagina": 6,
+    "figura": "FIGURE 5, 'Timing Diagrams' (misma forma que la del CD4017B)"
+   }
+  ],
+  "lectura": "Los tiempos salen de medir la figura sobre una rejilla de un período de reloj. La hoja del HC llama CP, CE (activo en bajo, equivale a INH), MR y TC a CLK, INH, RESET y CO. Error de lectura estimado: 0.1 período; INH sube en la figura casi sobre el flanco 11 y baja casi sobre el flanco 12, se desplazaron a 10.75 y 12.25 (dentro de las partes baja y alta del reloj) para quitar la ambigüedad."
+ },
+ "escala": "t en períodos de reloj. El reloj sube en cada entero de 'subidas' y baja en 'bajadas'. Elegir el período mayor que 10 veces el retardo máximo de la hoja (CD4017B: más de 6.5 us a 5 V).",
+ "relojes": [
+  {
+   "senal": "CLK",
+   "inicial": 1,
+   "bajadas": [
+    -0.5,
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5,
+    6.5,
+    7.5,
+    8.5,
+    9.5,
+    10.5,
+    11.5,
+    12.5,
+    13.5
+   ],
+   "subidas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ]
+  }
+ ],
+ "inicial": {
+  "RESET": 1,
+  "INH": 0
+ },
+ "pasos": [
+  {
+   "t": -1,
+   "entradas": {
+    "RESET": 0
+   }
+  },
+  {
+   "t": 10.75,
+   "entradas": {
+    "INH": 1
+   }
+  },
+  {
+   "t": 12.25,
+   "entradas": {
+    "INH": 0
+   }
+  }
+ ],
+ "salidas_codificadas": "cuenta = índice n de la única salida Qn en alto; CO en alto de 0 a 4 y en bajo de 5 a 9",
+ "muestras": [
+  {
+   "t": -0.5,
+   "salidas": {
+    "cuenta": 0,
+    "CO": 1
+   },
+   "origen": "figura, antes del primer flanco (RESET acaba de bajar)"
+  },
+  {
+   "t": 0.4,
+   "salidas": {
+    "cuenta": 1,
+    "CO": 1
+   },
+   "origen": "figura, salida '1'"
+  },
+  {
+   "t": 1.4,
+   "salidas": {
+    "cuenta": 2,
+    "CO": 1
+   },
+   "origen": "figura, salida '2'"
+  },
+  {
+   "t": 2.4,
+   "salidas": {
+    "cuenta": 3,
+    "CO": 1
+   },
+   "origen": "figura, salida '3'"
+  },
+  {
+   "t": 3.4,
+   "salidas": {
+    "cuenta": 4,
+    "CO": 1
+   },
+   "origen": "figura, salida '4'"
+  },
+  {
+   "t": 4.4,
+   "salidas": {
+    "cuenta": 5,
+    "CO": 0
+   },
+   "origen": "figura, salida '5' y CARRY OUT baja"
+  },
+  {
+   "t": 5.4,
+   "salidas": {
+    "cuenta": 6,
+    "CO": 0
+   },
+   "origen": "figura, salida '6'"
+  },
+  {
+   "t": 6.4,
+   "salidas": {
+    "cuenta": 7,
+    "CO": 0
+   },
+   "origen": "figura, salida '7'"
+  },
+  {
+   "t": 7.4,
+   "salidas": {
+    "cuenta": 8,
+    "CO": 0
+   },
+   "origen": "figura, salida '8'"
+  },
+  {
+   "t": 8.4,
+   "salidas": {
+    "cuenta": 9,
+    "CO": 0
+   },
+   "origen": "figura, salida '9'"
+  },
+  {
+   "t": 9.4,
+   "salidas": {
+    "cuenta": 0,
+    "CO": 1
+   },
+   "origen": "figura, salida '0' y CARRY OUT sube"
+  },
+  {
+   "t": 10.4,
+   "salidas": {
+    "cuenta": 1,
+    "CO": 1
+   },
+   "origen": "figura, salida '1'"
+  },
+  {
+   "t": 11.4,
+   "salidas": {
+    "cuenta": 1,
+    "CO": 1
+   },
+   "origen": "figura: CLOCK INHIBIT alto, la salida '1' dura dos períodos"
+  },
+  {
+   "t": 12.4,
+   "salidas": {
+    "cuenta": 2,
+    "CO": 1
+   },
+   "origen": "figura, salida '2' (avanza al bajar INH con CLK en alto, como dice la descripción)"
+  },
+  {
+   "t": 13.4,
+   "salidas": {
+    "cuenta": 3,
+    "CO": 1
+   },
+   "origen": "figura, salida '3'"
+  }
+ ],
+ "notas": [
+  "La figura del CD4017B arranca con RESET en alto hasta la caída marcada; antes cuenta 0 y todas las salidas Q1 a Q9 están en bajo.",
+  "Pendiente para el 74HC4017: la tabla de verdad de SCHS200D p. 2 define las flechas al revés. Esta figura (p. 6) se usó con el flanco de subida."
+ ]
+}

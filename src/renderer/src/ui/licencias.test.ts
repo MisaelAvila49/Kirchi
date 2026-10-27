@@ -70,7 +70,7 @@ describe('licencias de terceros', () => {
 
   it('el archivo está al día con node_modules, Cargo.lock y licencias/, sin problemas (node scripts/generar-licencias.mjs)', async () => {
     const { generar } = (await import(pathToFileURL(join(raiz, 'scripts', 'generar-licencias.mjs')).href)) as { generar(): { datos: LicenciasTerceros; errores: string[] } }
-    const r = generar()
+    const r = await generar()
     expect(r.errores).toEqual([])
     expect(r.datos).toEqual(datos)
   }, 60_000)

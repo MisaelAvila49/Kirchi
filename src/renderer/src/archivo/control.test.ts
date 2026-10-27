@@ -8,6 +8,8 @@ import { ControlArchivo, MENSAJE_SIN_ARCHIVOS, textoFecha, tituloVentana, type E
 import { Diario } from './diario'
 import { escribirKir, FORMATO_ACTUAL, leerKir } from './kir'
 import { strToU8, zipSync } from 'fflate'
+import type { PiezaDef } from '../piezas/tipos'
+import { libreriaSinDom } from '../prueba/pasoVista'
 
 const pieza = { id: 'p1', tipo: 'resistencia', ref: 'R1', x: 0, y: 0, rot: 0 as const, espejo: false, props: {} }
 
@@ -83,7 +85,7 @@ function editorFalso(): EditorArchivo & { soloLectura: boolean } {
   }
 }
 
-function armar(respuestas: { guardar?: Respuesta; recuperar?: RespuestaRecuperar } = {}, conApi = true) {
+function armar(respuestas: { guardar?: Respuesta; recuperar?: RespuestaRecuperar } = {}, conApi = true, lib?: Map<string, PiezaDef>) {
   const a = apiFalsa()
   const editor = editorFalso()
   const registro: string[] = []
@@ -99,6 +101,7 @@ function armar(respuestas: { guardar?: Respuesta; recuperar?: RespuestaRecuperar
     editor,
     diario,
     version: '0.0.1',
+    lib,
     ui: {
       preguntarGuardar: async (n) => {
         preguntas.push(n)
@@ -119,6 +122,22 @@ function armar(respuestas: { guardar?: Respuesta; recuperar?: RespuestaRecuperar
 }
 
 describe('ControlArchivo', () => {
+  it('avisa una vez en el Registro de lo que el archivo usa y la librería no tiene', async () => {
+    const recortada = new Map([...libreriaSinDom()].filter(([t]) => t !== 'resistencia'))
+    const t = armar({}, true, recortada)
+    t.disco.set('/disco/d.kir', escribirKir(divisor(), '0.0.1'))
+    await t.c.abrirReciente('/disco/d.kir')
+    expect(t.registro.filter((x) => x.startsWith('Este circuito usa lo que esta versión de Kirchi no tiene'))).toHaveLength(1)
+    expect(t.registro[0]).toContain('la pieza resistencia (R1, R2)')
+  })
+
+  it('con la librería completa no avisa', async () => {
+    const t = armar({}, true, libreriaSinDom())
+    t.disco.set('/disco/d.kir', escribirKir(divisor(), '0.0.1'))
+    await t.c.abrirReciente('/disco/d.kir')
+    expect(t.registro).toEqual([])
+  })
+
   it('título: asterisco con cambios y solo lectura', () => {
     expect(tituloVentana({ ruta: null, nombre: 'sin título.kir', soloLectura: false }, false)).toBe('sin título.kir · Kirchi')
     expect(tituloVentana({ ruta: '/p.kir', nombre: 'p.kir', soloLectura: true }, true)).toBe('p.kir * (solo lectura) · Kirchi')
@@ -197,6 +216,25 @@ describe('ControlArchivo', () => {
     await t.c.abrirReciente('/disco/malo.kir')
     expect(t.errores).toEqual(['No se pudo abrir malo.kir: el archivo no es un circuito de Kirchi: no se pudo descomprimir.'])
     expect(t.c.estado.ruta).toBeNull()
+  })
+
+  it('Recargar después de un cambio en el disco lee el archivo sin preguntar: el usuario ya eligió', async () => {
+    const t = armar()
+    t.o.guardarComo = '/disco/p.kir'
+    await t.c.guardar()
+    const otro = armar()
+    otro.editar()
+    otro.o.guardarComo = '/disco/q.kir'
+    await otro.c.guardar()
+    t.api.recargar = async () => ({ ok: true, archivo: { ruta: '/disco/p.kir', nombre: 'p.kir', bytes: otro.disco.get('/disco/q.kir')! }, recientes: [] })
+    t.editar()
+    expect(await t.c.recargar()).toBe(true)
+    expect(t.preguntas).toEqual([])
+    expect(Object.keys(t.editor.doc.piezas)).toHaveLength(1)
+    expect(t.editor.historial.sinGuardar).toBe(false)
+    t.api.recargar = async () => ({ ok: false, error: 'No se encontró p.kir.', recientes: [] })
+    expect(await t.c.recargar()).toBe(false)
+    expect(t.errores).toEqual(['No se encontró p.kir.'])
   })
 
   it('un .kir que abre el sistema con la ventana ya abierta: pregunta por los cambios y solo entonces lo carga', async () => {

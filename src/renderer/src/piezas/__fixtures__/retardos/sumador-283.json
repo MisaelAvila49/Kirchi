@@ -1,0 +1,127 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc_max": 4.5,
+   "vcc_tip": 5,
+   "cl_max_pF": 50,
+   "cl_tip_pF": 15,
+   "documento": "TI CD74HC283 (SCHS176E)",
+   "paginas": "6 y 7, tabla 5.5",
+   "nota": "el típico solo se da a 5 V y CL = 15 pF; el máximo a 4.5 V y CL = 50 pF. No hay típico a 4.5 V: se anota así y no se interpola",
+   "caminos": [
+    {
+     "de": "CIN (C0)",
+     "a": "S0 (S1)",
+     "tPLH_tPHL": {
+      "tip_5V_15pF": 13,
+      "max_4.5V": 32,
+      "max_85C": 40
+     }
+    },
+    {
+     "de": "CIN (C0)",
+     "a": "S1 (S2)",
+     "tPLH_tPHL": {
+      "tip_5V_15pF": 15,
+      "max_4.5V": 36,
+      "max_85C": 45
+     }
+    },
+    {
+     "de": "CIN (C0)",
+     "a": "S2 (S3) y COUT (C4)",
+     "tPLH_tPHL": {
+      "tip_5V_15pF": 16,
+      "max_4.5V": 39,
+      "max_85C": 49
+     }
+    },
+    {
+     "de": "CIN (C0)",
+     "a": "S3 (S4)",
+     "tPLH_tPHL": {
+      "tip_5V_15pF": 19,
+      "max_4.5V": 46,
+      "max_85C": 58
+     }
+    },
+    {
+     "de": "An, Bn",
+     "a": "COUT (C4)",
+     "tPLH_tPHL": {
+      "tip_5V_15pF": 16,
+      "max_4.5V": 39,
+      "max_85C": 49
+     }
+    },
+    {
+     "de": "An, Bn",
+     "a": "Sn",
+     "tPLH_tPHL": {
+      "tip_5V_15pF": 18,
+      "max_4.5V": 42,
+      "max_85C": 53
+     }
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS283 (SDLS095A)",
+   "paginas": "4, switching characteristics",
+   "caminos": [
+    {
+     "de": "C0",
+     "a": "cualquier S",
+     "tPLH": {
+      "tip": 16,
+      "max": 24
+     },
+     "tPHL": {
+      "tip": 15,
+      "max": 24
+     }
+    },
+    {
+     "de": "Ai o Bi",
+     "a": "Si",
+     "tPLH": {
+      "tip": 15,
+      "max": 24
+     },
+     "tPHL": {
+      "tip": 15,
+      "max": 24
+     }
+    },
+    {
+     "de": "C0",
+     "a": "C4",
+     "tPLH": {
+      "tip": 11,
+      "max": 17
+     },
+     "tPHL": {
+      "tip": 11,
+      "max": 22
+     }
+    },
+    {
+     "de": "Ai o Bi",
+     "a": "C4",
+     "tPLH": {
+      "tip": 11,
+      "max": 17
+     },
+     "tPHL": {
+      "tip": 12,
+      "max": 17
+     }
+    }
+   ]
+  }
+ }
+}

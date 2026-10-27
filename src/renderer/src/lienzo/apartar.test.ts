@@ -167,7 +167,7 @@ function circuitoPotApretado(): Documento {
   const pts = (a: [number, number][]) => a.map(([x, y]) => ({ x, y }))
   d.piezas.p_v1 = { id: 'p_v1', tipo: 'fuente-dc', ref: 'V1', x: 0, y: 0, rot: 0, espejo: false, props: { voltaje: '5' } }
   d.piezas.p_g = { id: 'p_g', tipo: 'tierra', ref: 'GND1', x: 0, y: 8, rot: 0, espejo: false, props: {} }
-  d.piezas.p_rv = { id: 'p_rv', tipo: 'potenciometro', ref: 'RV1', x: 14, y: 0, rot: 90, espejo: false, props: { valor: '10k', posicion: '25 %' } }
+  d.piezas.p_rv = { id: 'p_rv', tipo: 'potenciometro', ref: 'RV1', x: 14, y: 0, rot: 90, espejo: false, props: { valor: '10k', posicion: '25 %', junto: 'Nada' } }
   d.piezas.p_rc = { id: 'p_rc', tipo: 'resistencia', ref: 'R9', x: 24, y: 0, rot: 0, espejo: false, props: { valor: '1G' } }
   d.cables.a = { id: 'a', puntos: pts([[0, -4], [0, -8], [14, -8], [14, -4]]) }
   d.cables.b = { id: 'b', puntos: pts([[14, 4], [14, 8], [0, 8], [0, 4]]) }

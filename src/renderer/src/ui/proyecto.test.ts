@@ -223,7 +223,7 @@ describe('catálogo de la Librería', () => {
       expect(nombres, c.nombre).toEqual([...nombres].sort((a, b) => a.localeCompare(b, 'es')))
     }
     expect(cats.find((c) => c.nombre === 'Pasivos')!.piezas.map((p) => p.def.id)).toEqual(expect.arrayContaining(['capacitor', 'inductor', 'resistencia']))
-    expect(cats.reduce((n, c) => n + c.piezas.length, 0)).toBe(lib.size)
+    expect(cats.reduce((n, c) => n + c.piezas.length, 0)).toBe([...lib.values()].filter((d) => !d.oculta).length)
   })
 
   it('el filtro usa el buscador: acepta valor y oculta las categorías vacías', () => {
@@ -322,5 +322,28 @@ describe('piezas agrupadas por categoría de la Librería', () => {
     expect(g.map((x) => x.nombre)).toEqual(['Pasivos', 'Otras'])
     const f = vista(d, 'R1')
     expect(agruparPiezas(f.piezas, f.piezas).map((x) => x.nombre)).toEqual(['Pasivos'])
+  })
+})
+
+describe('encapsulados en el panel Proyecto', () => {
+  const nand = (id: string, unidad: string): Pieza => ({ id, tipo: 'nand', ref: `U1${unidad}`, x: 0, y: 0, rot: 0, espejo: false, props: { paquete: 'U1', unidad } })
+
+  it('lista cada paquete con sus unidades usadas y libres', () => {
+    const d = doc(nand('a', 'A'), nand('b', 'B'), nand('d', 'D'), pieza('r', 'resistencia', 'R1', 0, 0))
+    const v = vistaProyecto(d, lib, calcularConexiones(d, lib), new Map())
+    expect(v.paquetes).toHaveLength(1)
+    expect(v.paquetes[0]).toMatchObject({ paquete: 'U1', unidades: 'A, B y D; C libre' })
+    expect(v.paquetes[0].chip).toMatch(/74HC00|NAND/i)
+  })
+
+  it('un paquete lleno no dice libres y el filtro lo acota', () => {
+    const d = doc(...['A', 'B', 'C', 'D'].map((u) => nand(u, u)))
+    expect(vistaProyecto(d, lib, calcularConexiones(d, lib), new Map()).paquetes[0].unidades).toBe('A, B, C y D')
+    expect(vistaProyecto(d, lib, calcularConexiones(d, lib), new Map(), 'zzz').paquetes).toHaveLength(0)
+  })
+
+  it('sin piezas agrupadas no hay paquetes', () => {
+    const d = divisor()
+    expect(vistaProyecto(d, lib, calcularConexiones(d, lib), new Map()).paquetes).toEqual([])
   })
 })

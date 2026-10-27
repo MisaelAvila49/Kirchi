@@ -1,0 +1,163 @@
+{
+  "id": "sumador-283",
+  "nombre": { "es": "Sumador de 4 bits (74283)", "en": "4-bit adder (74283)" },
+  "categoria": "digitales",
+  "grupo": "Aritmética",
+  "prefijo": "U",
+  "buscar": ["u", "sumador", "adder", "4 bits", "74283", "74hc283", "74ls283", "suma", "acarreo", "carry"],
+  "pines": [
+    { "id": "A1", "nombre": "A1", "x": -6, "y": -10 },
+    { "id": "A2", "nombre": "A2", "x": -6, "y": -8 },
+    { "id": "A3", "nombre": "A3", "x": -6, "y": -6 },
+    { "id": "A4", "nombre": "A4", "x": -6, "y": -4 },
+    { "id": "B1", "nombre": "B1", "x": -6, "y": 0 },
+    { "id": "B2", "nombre": "B2", "x": -6, "y": 2 },
+    { "id": "B3", "nombre": "B3", "x": -6, "y": 4 },
+    { "id": "B4", "nombre": "B4", "x": -6, "y": 6 },
+    { "id": "C0", "nombre": "C0 (acarreo de entrada)", "x": -6, "y": 10 },
+    { "id": "S1", "nombre": "S1", "x": 6, "y": -10 },
+    { "id": "S2", "nombre": "S2", "x": 6, "y": -8 },
+    { "id": "S3", "nombre": "S3", "x": 6, "y": -6 },
+    { "id": "S4", "nombre": "S4", "x": 6, "y": -4 },
+    { "id": "C4", "nombre": "C4 (acarreo de salida)", "x": 6, "y": 10 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": ["A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4", "C0"],
+    "generar": {
+      "tipo": "suma",
+      "a": ["A1", "A2", "A3", "A4"],
+      "b": ["B1", "B2", "B3", "B4"],
+      "acarreo": "C0",
+      "suma": ["S1", "S2", "S3", "S4"],
+      "salida_acarreo": "C4"
+    },
+    "retardos": {
+      "74HC": {
+        "vcc": 5,
+        "S1": [1.8e-8, 1.8e-8],
+        "S2": [1.8e-8, 1.8e-8],
+        "S3": [1.8e-8, 1.8e-8],
+        "S4": [1.8e-8, 1.8e-8],
+        "C4": [1.6e-8, 1.6e-8]
+      },
+      "74LS": {
+        "vcc": 5,
+        "S1": [1.6e-8, 1.5e-8],
+        "S2": [1.6e-8, 1.5e-8],
+        "S3": [1.6e-8, 1.5e-8],
+        "S4": [1.6e-8, 1.5e-8],
+        "C4": [1.1e-8, 1.2e-8]
+      }
+    }
+  },
+  "caja": {
+    "titulo": "Σ",
+    "forma": "funcional",
+    "izquierda": ["A1", "A2", "A3", "A4", null, "B1", "B2", "B3", "B4", null, "C0"],
+    "derecha": ["S1", "S2", "S3", "S4", null, null, null, null, null, null, "C4"]
+  },
+  "fuentes": {
+    "74HC": "TI CD74HC283 (SCHS176E): la hoja describe la suma sin tabla de función, así que la tabla se genera como A + B + C0 en binario. Retardo típico de An o Bn a Sn (18 ns) y a C4 (16 ns), solo dado a 5 V y CL 15 pF (tabla 5.5, pp. 6 y 7).",
+    "74LS": "TI SN74LS283 (SDLS095A): la tabla se genera como A + B + C0 en binario. Retardos típicos de C0 a S (16 y 15 ns) y de An o Bn a C4 (11 y 12 ns), p. 4 a 5 V con CL 15 pF."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD74HC283E",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd74hc283.pdf",
+        "equivalencias": { "kicad": "74xx:74LS283" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "S2": "1",
+              "B2": "2",
+              "A2": "3",
+              "S1": "4",
+              "A1": "5",
+              "B1": "6",
+              "C0": "7",
+              "C4": "9",
+              "S4": "10",
+              "B4": "11",
+              "A4": "12",
+              "S3": "13",
+              "A3": "14",
+              "B3": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "CD74HC283E",
+            "lcsc": { "numero": "C139343", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI CD74HC283 (SCHS176E, jul 2022), p. 3 (la hoja rotula S0 a S3, A0 a A3, B0 a B3, CIN y COUT; aquí S1 a S4, A1 a A4, B1 a B4, C0 y C4 como la hoja LS); KiCad 74xx:74LS283 (misma función y orden)"
+        }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS283N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls283.pdf",
+        "equivalencias": { "kicad": "74xx:74LS283" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "S2": "1",
+              "B2": "2",
+              "A2": "3",
+              "S1": "4",
+              "A1": "5",
+              "B1": "6",
+              "C0": "7",
+              "C4": "9",
+              "S4": "10",
+              "B4": "11",
+              "A4": "12",
+              "S3": "13",
+              "A3": "14",
+              "B3": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS283N",
+            "lcsc": { "numero": "C1523494", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74283/LS283/S283 (SDLS095A, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS283" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -16 }, "valor": { "x": 0, "y": 16 } },
+  "rotulos": [
+    { "texto": "A1", "x": -3.2, "y": -10, "tam": 1, "alinear": "izq" },
+    { "texto": "A2", "x": -3.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "A3", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "A4", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "B1", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "B2", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "B3", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "B4", "x": -3.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "C0", "x": -3.2, "y": 10, "tam": 1, "alinear": "izq" },
+    { "texto": "S1", "x": 3.2, "y": -10, "tam": 1, "alinear": "der" },
+    { "texto": "S2", "x": 3.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "S3", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "S4", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "C4", "x": 3.2, "y": 10, "tam": 1, "alinear": "der" },
+    { "texto": "Σ", "x": 0, "y": -13, "tam": 1, "alinear": "centro" }
+  ]
+}

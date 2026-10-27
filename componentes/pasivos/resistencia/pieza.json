@@ -13,5 +13,101 @@
     { "id": "potencia", "nombre": "Potencia nominal", "defecto": "0.25 W", "opciones": ["0.125 W", "0.25 W", "0.5 W", "1 W", "2 W", "5 W"], "omitir": true }
   ],
   "modelo": { "tipo": "R", "a": "1", "b": "2", "prop": "valor" },
-  "limites": { "potencia": "potencia", "quema": { "factor": 2, "durante": 0.5 } }
+  "limites": { "potencia": "potencia", "quema": { "factor": 2, "durante": 0.5 } },
+  "datos": {
+    "por": "potencia",
+    "equivalencias": { "kicad": "Device:R", "ltspice": "res", "falstad": "r", "proteus": "RES", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "0.125 W": {
+        "presentaciones": [
+          {
+            "encapsulado": "Axial",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal",
+            "representativa": true
+          }
+        ],
+        "pendiente": { "parte": "depende del valor y del fabricante", "hoja": "depende del fabricante", "lcsc": "depende del valor" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 (Resistor_THT): R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal, cuya descripción declara 0.167 W; patillas 1 y 2 según la huella y Device:R. Representativa: la potencia no fija la huella de un fabricante"
+        }
+      },
+      "0.25 W": {
+        "presentaciones": [
+          {
+            "encapsulado": "Axial",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal",
+            "representativa": true
+          }
+        ],
+        "pendiente": { "parte": "depende del valor y del fabricante", "hoja": "depende del fabricante", "lcsc": "depende del valor" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 (Resistor_THT): R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal, cuya descripción declara 0.25 W; patillas 1 y 2 según la huella y Device:R. Representativa: la potencia no fija la huella de un fabricante"
+        }
+      },
+      "0.5 W": {
+        "presentaciones": [
+          {
+            "encapsulado": "Axial",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal",
+            "representativa": true
+          }
+        ],
+        "pendiente": { "parte": "depende del valor y del fabricante", "hoja": "depende del fabricante", "lcsc": "depende del valor" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 (Resistor_THT): R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal, cuya descripción declara 0.5 W; patillas 1 y 2 según la huella y Device:R. Representativa: la potencia no fija la huella de un fabricante"
+        }
+      },
+      "1 W": {
+        "presentaciones": [
+          {
+            "encapsulado": "Axial",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "Resistor_THT:R_Axial_DIN0411_L9.9mm_D3.6mm_P12.70mm_Horizontal",
+            "representativa": true
+          }
+        ],
+        "pendiente": { "parte": "depende del valor y del fabricante", "hoja": "depende del fabricante", "lcsc": "depende del valor" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 (Resistor_THT): R_Axial_DIN0411_L9.9mm_D3.6mm_P12.70mm_Horizontal, cuya descripción declara 1 W; patillas 1 y 2 según la huella y Device:R. Representativa: la potencia no fija la huella de un fabricante"
+        }
+      },
+      "2 W": {
+        "presentaciones": [
+          {
+            "encapsulado": "Axial",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "Resistor_THT:R_Axial_DIN0414_L11.9mm_D4.5mm_P15.24mm_Horizontal",
+            "representativa": true
+          }
+        ],
+        "pendiente": { "parte": "depende del valor y del fabricante", "hoja": "depende del fabricante", "lcsc": "depende del valor" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 (Resistor_THT): R_Axial_DIN0414_L11.9mm_D4.5mm_P15.24mm_Horizontal, cuya descripción declara 2 W; patillas 1 y 2 según la huella y Device:R. Representativa: la potencia no fija la huella de un fabricante"
+        }
+      },
+      "5 W": {
+        "presentaciones": [
+          {
+            "encapsulado": "Axial-potencia",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "Resistor_THT:R_Axial_Power_L25.0mm_W6.4mm_P27.94mm",
+            "representativa": true
+          }
+        ],
+        "pendiente": { "parte": "depende del valor y del fabricante", "hoja": "depende del fabricante", "lcsc": "depende del valor" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 (Resistor_THT): R_Axial_Power_L25.0mm_W6.4mm_P27.94mm, cuya descripción declara 5 W; patillas 1 y 2 según la huella y Device:R. Representativa: la potencia no fija la huella de un fabricante"
+        }
+      }
+    }
+  }
 }

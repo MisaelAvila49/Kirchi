@@ -3,7 +3,7 @@
   "nombre": { "es": "Amp. operacional", "en": "Operational amplifier" },
   "categoria": "integrados",
   "prefijo": "U",
-  "buscar": ["u", "op", "opamp", "amp op", "amplificador", "amplificador operacional", "741", "lm741", "lm358", "tl081", "lm324", "op07", "ne5532", "tlv9002", "rail to rail", "riel a riel"],
+  "buscar": ["u", "op", "opamp", "amp op", "amplificador", "amplificador operacional", "741", "lm741", "lm358", "tl081", "lm324", "op07", "ne5532", "tlv9002", "rail to rail", "riel a riel", "mcp6002", "mcp6001", "op27", "ideal"],
   "pines": [
     { "id": "-", "nombre": "entrada inversora (−)", "x": -6, "y": -2 },
     { "id": "+", "nombre": "entrada no inversora (+)", "x": -6, "y": 2 },
@@ -12,7 +12,7 @@
     { "id": "V-", "nombre": "alimentación V−", "x": 0, "y": 4 }
   ],
   "props": [
-    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "LM741", "opciones": ["LM741", "TL081", "LM358", "LM324", "OP07", "NE5532", "TLV9002"] }
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "LM741", "opciones": ["LM741", "TL081", "LM358", "LM324", "OP07", "NE5532", "TLV9002", "MCP6002", "OP27", "Ideal"] }
   ],
   "modelo": {
     "tipo": "ampop", "mas": "+", "menos": "-", "sal": "OUT", "vmas": "V+", "vmenos": "V-", "prop": "modelo",
@@ -23,7 +23,10 @@
       "LM324": { "a0": 100000, "gbw": 1.2e+06, "sr": 500000, "rin": 1e+07, "rout": 50, "ilim": 0.04, "dhi": 1.5, "dlo": 0.005, "rq": 42900 },
       "OP07": { "a0": 400000, "gbw": 600000, "sr": 300000, "rin": 3.3e+07, "rout": 60, "ilim": 0.025, "dhi": 2.2, "dlo": 2.2, "rq": 11250 },
       "NE5532": { "a0": 100000, "gbw": 1.2e+07, "sr": 5e+06, "rin": 300000, "rout": 0.3, "ilim": 0.038, "dhi": 2, "dlo": 2, "rq": 10000 },
-      "TLV9002": { "a0": 710000, "gbw": 1e+06, "sr": 2e+06, "rin": 1e+12, "rout": 1200, "ilim": 0.055, "dhi": 0.02, "dlo": 0.02, "rq": 91700 }
+      "TLV9002": { "a0": 710000, "gbw": 1e+06, "sr": 2e+06, "rin": 1e+12, "rout": 1200, "ilim": 0.055, "dhi": 0.02, "dlo": 0.02, "rq": 91700 },
+      "MCP6002": { "a0": 398000, "gbw": 1000000, "sr": 600000, "rin": 10000000000000, "rout": 50, "ilim": 0.023, "dhi": 0.005, "dlo": 0.005, "rq": 55000 },
+      "OP27": { "a0": 1800000, "gbw": 8000000, "sr": 2800000, "rin": 6000000, "rout": 70, "ilim": 0.025, "dhi": 0.72, "dlo": 0.72, "rq": 10000 },
+      "Ideal": { "a0": 100000000, "gbw": 10000000000, "sr": 1000000000000, "rin": 10000000000000, "rout": 0.001, "ilim": 1000, "dhi": 0, "dlo": 0, "rq": 1000000000000 }
     }
   },
   "limites": {
@@ -94,6 +97,24 @@
             {"nombre": "entrada sobre V+", "de": ["+", "-"], "a": "V+", "max": 0.5, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
             {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.5, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."}
           ]
+        },
+        "MCP6002": {
+          "fuente": "Microchip MCP6001/1R/1U/2/4, DS20001733L, Absolute Maximum Ratings: alimentación (VDD − VSS) de 7.0 V, entradas analógicas de 1.0 V bajo VSS a 1.0 V sobre VDD, voltaje diferencial de entrada hasta |VDD − VSS|.",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 7, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada sobre V+", "de": ["+", "-"], "a": "V+", "max": 1.0, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -1.0, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "voltaje entre las entradas", "de": "+", "a": "-", "abs": true, "sinQuema": true, "max": 7, "consejo": "pon una resistencia en serie con la entrada o limita la diferencia entre las dos entradas."}
+          ]
+        },
+        "OP27": {
+          "fuente": "Texas Instruments OP27A/OP27C, SLOS100E, Absolute Maximum Ratings: alimentación de ±22 V (44 V entre V+ y V−), entrada hasta la alimentación; las entradas llevan diodos en antiparalelo sin resistencias y pasan corriente desde unos ±0.7 V entre ellas (máximo ±25 mA).",
+          "limites": [
+            {"nombre": "alimentación (V+ a V−)", "de": "V+", "a": "V-", "max": 44, "consejo": "baja la alimentación o elige un amplificador que admita más."},
+            {"nombre": "entrada sobre V+", "de": ["+", "-"], "a": "V+", "max": 0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "entrada bajo V−", "de": ["+", "-"], "a": "V-", "min": -0.3, "escala": 10, "consejo": "limita la señal con una resistencia en serie o conéctala solo con la alimentación puesta."},
+            {"nombre": "voltaje entre las entradas", "de": "+", "a": "-", "abs": true, "sinQuema": true, "max": 0.7, "consejo": "pon una resistencia en serie con la entrada o limita la diferencia entre las dos entradas."}
+          ]
         }
       }
     },
@@ -108,6 +129,217 @@
     "LM324": "Texas Instruments LM124/LM224/LM324, SLOS066AE (ago 1975, rev. sep 2025), https://www.ti.com/lit/ds/symlink/lm324.pdf: GBW 1.2 MHz, SR 0.5 V/µs, ganancia 100 V/mV típica (VCC = 15 V), salida a VCC - 1.5 V y 5 mV de la tierra, corriente de corto 40 mA, ICC de 1.4 mA con cuatro amplificadores (0.35 mA por uno a 15 V, de ahí rq). Parámetros copiados de la hoja salvo rin y rout, que no vienen en ella y se tomaron iguales a los del LM358 (misma familia). Sin voltaje de offset: el modelo de una etapa no lo tiene.",
     "OP07": "Texas Instruments OP07/OP07C/OP07D, SLOS099H (sep 1983, rev. mar 2023), https://www.ti.com/lit/ds/symlink/op07.pdf (cifras del OP07C a ±15 V): ganancia 400 V/mV típica, GBW 0.6 MHz, SR 0.3 V/µs, resistencia de entrada 33 MΩ, salida de ±12.8 V con 10 kΩ (dhi y dlo de 2.2 V), disipación de 80 mW sin carga (2.67 mA, de ahí rq). Parámetros copiados de la hoja salvo rout (60 Ω) e ilim (25 mA), que esta revisión no da y se tomaron de las cifras tradicionales de la familia 741/OP07. Sin voltaje de offset (60 µV típicos de la hoja): el modelo de una etapa no lo tiene.",
     "NE5532": "Texas Instruments NE5532/NE5532A, SLOS075K (nov 1979, rev. dic 2025), https://www.ti.com/lit/ds/symlink/ne5532.pdf: GBW 12 MHz, SR 5 V/µs, ganancia 100 V/mV típica (RL = 2 kΩ), resistencia de entrada 300 kΩ típica, corriente de corto 38 mA, ICC de 6 mA con dos amplificadores (3 mA por uno, de ahí rq). Parámetros copiados de la hoja salvo rout (0.3 Ω) y la caída de salida (2 V a ±15 V), que esta revisión ya no publica y se tomaron de ediciones anteriores de la hoja. Sin voltaje de offset: el modelo de una etapa no lo tiene.",
-    "TLV9002": "Texas Instruments TLV9001/TLV9002/TLV9004 (riel a riel en entrada y salida), SBOS833R (oct 2017, rev. nov 2021), https://www.ti.com/lit/ds/symlink/tlv9002.pdf: GBW 1 MHz, SR 2 V/µs, ganancia 117 dB típica (7.1e5), salida a 20 mV de cada riel con 10 kΩ, corriente de corto 55 mA, impedancia de salida en lazo abierto 1.2 kΩ, IQ de 60 µA por amplificador a 5.5 V (de ahí rq). Parámetros copiados de la hoja salvo rin (1 TΩ), que no viene en ella (corriente de polarización de 5 pA, entrada CMOS). Sin voltaje de offset: el modelo de una etapa no lo tiene."
+    "TLV9002": "Texas Instruments TLV9001/TLV9002/TLV9004 (riel a riel en entrada y salida), SBOS833R (oct 2017, rev. nov 2021), https://www.ti.com/lit/ds/symlink/tlv9002.pdf: GBW 1 MHz, SR 2 V/µs, ganancia 117 dB típica (7.1e5), salida a 20 mV de cada riel con 10 kΩ, corriente de corto 55 mA, impedancia de salida en lazo abierto 1.2 kΩ, IQ de 60 µA por amplificador a 5.5 V (de ahí rq). Parámetros copiados de la hoja salvo rin (1 TΩ), que no viene en ella (corriente de polarización de 5 pA, entrada CMOS). Sin voltaje de offset: el modelo de una etapa no lo tiene.",
+    "MCP6002": "Microchip MCP6001/1R/1U/2/4 (riel a riel en entrada y salida), DS20001733L, https://ww1.microchip.com/downloads/en/DeviceDoc/MCP6001-1R-1U-2-4-1-MHz-Low-Power-Op-Amp-DS20001733L.pdf: GBW 1 MHz, SR 0.6 V/µs, ganancia en continua de 112 dB típica (3.98e5, RL = 10 kΩ), salida a 25 mV máx de cada riel con 10 kΩ a VDD/2, corriente de corto de ±23 mA con 5.5 V, impedancia de entrada de 1e13 Ω en modo común, IQ de 100 µA por amplificador a 5.5 V (de ahí rq). Parámetros ajustados por Kirchi (no copiados) a la hoja salvo rout (50 Ω) y dhi y dlo (5 mV), que la hoja no da como cifras: son órdenes de magnitud sin validar, elegidos para que con 10 kΩ a VDD/2 la salida quede a unos 19 mV de cada riel, bajo los 25 mV máx. Sin voltaje de offset: el modelo de una etapa no lo tiene.",
+    "OP27": "Texas Instruments OP27A/OP27C, SLOS100E (feb 1989, rev. feb 2010), https://www.ti.com/lit/ds/symlink/op27.pdf (cifras del OP27A a ±15 V): ganancia 1800 V/mV típica (1000 mín) con 2 kΩ y ±10 V, GBW de 8 MHz típica (5 mín) a 100 kHz, SR de 2.8 V/µs típica, salida de ±13.8 V típica con 2 kΩ, resistencia de salida de 70 Ω (dhi y dlo de 0.72 V, que sumados a la caída de 70 Ω con 6.9 mA dan esos 13.8 V). La hoja de TI no deja leer en su texto la resistencia de entrada diferencial: se usó 6 MΩ, la cifra de la hoja de Analog Devices del mismo amplificador, sin cotejar. La corriente de corto (25 mA) y la corriente de reposo (3 mA por amplificador a ±15 V, rq de 10 kΩ) se leyeron en las gráficas de la hoja, sin precisión de tabla. Sin voltaje de offset (10 µV típicos): el modelo de una etapa no lo tiene.",
+    "Ideal": "Amplificador ideal de Kirchi, sin hoja de datos ni pieza física: ganancia de 1e8, ancho de banda de 1e10 Hz, velocidad de cambio de 1e12 V/s, resistencia de entrada de 1e13 Ω y de salida de 1 mΩ, sin caída hacia los rieles y sin límite práctico de corriente. Son valores que el motor acepta (rangos de netlist/rangos.ts) y que siguen convergiendo; la ganancia de lazo cerrado de un inversor de 10 queda a menos de 0.01 % del valor ideal."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": {
+      "kicad": "Simulation_SPICE:OPAMP",
+      "ltspice": "OpAmps\\opamp",
+      "falstad": "a",
+      "proteus": "OPAMP",
+      "sinVerificar": ["ltspice", "proteus"]
+    },
+    "valores": {
+      "LM741": {
+        "fabricante": "Texas Instruments",
+        "parte": "LM741CN/NOPB",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm741.pdf",
+        "equivalencias": { "kicad": "Amplifier_Operational:LM741" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "-": "2", "+": "3", "OUT": "6", "V+": "7", "V-": "4" },
+            "sinModelo": { "1": "Ajuste de offset", "5": "Ajuste de offset", "8": "NC" },
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C13974", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM741, tabla Pin Functions (IN- 2, IN+ 3, OUT 6, offset 1 y 5, NC 8); Amplifier_Operational:LM741 de KiCad 9 (V+ 7, V- 4)"
+        }
+      },
+      "TL081": {
+        "fabricante": "Texas Instruments",
+        "parte": "TL081CP",
+        "hoja": "https://www.ti.com/lit/ds/symlink/tl081.pdf",
+        "equivalencias": { "kicad": "Amplifier_Operational:TL081" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "-": "2", "+": "3", "OUT": "6", "V+": "7", "V-": "4" },
+            "sinModelo": {
+              "1": "Ajuste de offset en el TL081 clásico (NC en la hoja TL081H)",
+              "5": "Ajuste de offset en el TL081 clásico (NC en la hoja TL081H)",
+              "8": "NC"
+            },
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C38969", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI TL081x, tabla Pin Functions paquete P (IN- 2, IN+ 3, VCC- 4, OUT 6, VCC+ 7, NC 8); Amplifier_Operational:TL081 de KiCad 9"
+        },
+        "nota": "Las patillas 1 y 5 difieren entre la hoja vigente (TL081H, NC) y el símbolo de KiCad 9 (NULL); IN-, IN+, V-, OUT y V+ coinciden en las dos"
+      },
+      "LM358": {
+        "fabricante": "Texas Instruments",
+        "parte": "LM358P",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm358.pdf",
+        "equivalencias": { "kicad": "Amplifier_Operational:LM358" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "-": "2", "+": "3", "OUT": "1", "V+": "8", "V-": "4" },
+            "unidades": [{ "nombre": "A", "patillas": { "-": "2", "+": "3", "OUT": "1" } }, { "nombre": "B", "patillas": { "-": "6", "+": "5", "OUT": "7" } }],
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C5213", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM158/LM358 (SLOS068AB, oct 2024) tabla 4-1 y figura 4-1 (PDIP-8): 1 OUT1, 2 IN1-, 3 IN1+, 4 V-, 5 IN2+, 6 IN2-, 7 OUT2, 8 V+; Amplifier_Operational:LM358 de KiCad 9"
+        }
+      },
+      "LM324": {
+        "fabricante": "Texas Instruments",
+        "parte": "LM324N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm324.pdf",
+        "equivalencias": { "kicad": "Amplifier_Operational:LM324" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "-": "2", "+": "3", "OUT": "1", "V+": "4", "V-": "11" },
+            "unidades": [
+              { "nombre": "A", "patillas": { "-": "2", "+": "3", "OUT": "1" } },
+              { "nombre": "B", "patillas": { "-": "6", "+": "5", "OUT": "7" } },
+              { "nombre": "C", "patillas": { "-": "9", "+": "10", "OUT": "8" } },
+              { "nombre": "D", "patillas": { "-": "13", "+": "12", "OUT": "14" } }
+            ],
+            "huella": "Package_DIP:DIP-14_W7.62mm",
+            "lcsc": { "numero": "C114380", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM124/LM324 (SLOS066AE, sep 2025) tabla 5-1 (PDIP-14): 1IN- 2, 1IN+ 3, 1OUT 1, 2IN- 6, 2IN+ 5, 2OUT 7, 3IN- 9, 3IN+ 10, 3OUT 8, 4IN- 13, 4IN+ 12, 4OUT 14, VCC- 11, VCC+ 4; Amplifier_Operational:LM324 de KiCad 9"
+        }
+      },
+      "OP07": {
+        "fabricante": "Texas Instruments",
+        "parte": "OP07CP",
+        "hoja": "https://www.ti.com/lit/ds/symlink/op07.pdf",
+        "equivalencias": { "kicad": "Amplifier_Operational:OP07" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "-": "2", "+": "3", "OUT": "6", "V+": "7", "V-": "4" },
+            "sinModelo": { "1": "Ajuste de offset", "5": "NC", "8": "Ajuste de offset" },
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C5224", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI OP07 (SLOS099H, mar 2023) tabla 5-1: IN+ 3, IN- 2, NC 5, offset 1 y 8, OUT 6, V+ 7, V- 4; Amplifier_Operational:OP07 de KiCad 9"
+        }
+      },
+      "NE5532": {
+        "fabricante": "Texas Instruments",
+        "parte": "NE5532P",
+        "hoja": "https://www.ti.com/lit/ds/symlink/ne5532.pdf",
+        "equivalencias": { "kicad": "Amplifier_Operational:NE5532" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "-": "2", "+": "3", "OUT": "1", "V+": "8", "V-": "4" },
+            "unidades": [{ "nombre": "A", "patillas": { "-": "2", "+": "3", "OUT": "1" } }, { "nombre": "B", "patillas": { "-": "6", "+": "5", "OUT": "7" } }],
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C5326", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI NE5532 (SLOS075K, dic 2025) tabla 4-1 (PDIP-8): 1IN+ 3, 1IN- 2, OUT1 1, 2IN+ 5, 2IN- 6, 2OUT 7, VCC+ 8, VCC- 4; Amplifier_Operational:NE5532 de KiCad 9"
+        }
+      },
+      "TLV9002": {
+        "fabricante": "Texas Instruments",
+        "parte": "TLV9002IDR",
+        "hoja": "https://www.ti.com/lit/ds/symlink/tlv9002.pdf",
+        "equivalencias": { "kicad": "Device:Opamp_Dual" },
+        "presentaciones": [
+          {
+            "encapsulado": "SOIC-8",
+            "patillas": { "-": "2", "+": "3", "OUT": "1", "V+": "8", "V-": "4" },
+            "unidades": [{ "nombre": "A", "patillas": { "-": "2", "+": "3", "OUT": "1" } }, { "nombre": "B", "patillas": { "-": "6", "+": "5", "OUT": "7" } }],
+            "huella": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+            "parte": "TLV9002IDR",
+            "lcsc": { "numero": "C398360", "sinVerificar": true }
+          },
+          {
+            "encapsulado": "VSSOP-8",
+            "patillas": { "-": "2", "+": "3", "OUT": "1", "V+": "8", "V-": "4" },
+            "unidades": [{ "nombre": "A", "patillas": { "-": "2", "+": "3", "OUT": "1" } }, { "nombre": "B", "patillas": { "-": "6", "+": "5", "OUT": "7" } }],
+            "huella": "Package_SO:VSSOP-8_3x3mm_P0.65mm",
+            "parte": "TLV9002IDGKR",
+            "lcsc": { "numero": "C398361", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI TLV9002, figura 6-6 y tabla de pines (D, DGK): 1 OUT1, 2 IN1-, 3 IN1+, 4 V-, 5 IN2+, 6 IN2-, 7 OUT2, 8 V+"
+        },
+        "nota": "No existe en DIP. Una sola fuente: KiCad 9 no trae el TLV9002 (solo TLV9001 y TLV9004)"
+      },
+      "MCP6002": {
+        "fabricante": "Microchip",
+        "parte": "MCP6002-I/P",
+        "hoja": "https://ww1.microchip.com/downloads/en/DeviceDoc/MCP6001-1R-1U-2-4-1-MHz-Low-Power-Op-Amp-DS20001733L.pdf",
+        "equivalencias": { "kicad": "Amplifier_Operational:MCP6002-xP" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "-": "2", "+": "3", "OUT": "1", "V+": "8", "V-": "4" },
+            "unidades": [{ "nombre": "A", "patillas": { "-": "2", "+": "3", "OUT": "1" } }, { "nombre": "B", "patillas": { "-": "6", "+": "5", "OUT": "7" } }],
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C640394", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Microchip MCP6001/1R/1U/2/4 (DS20001733L, 2020) figura del MCP6002 8-Lead PDIP: VOUTA 1, VINA- 2, VINA+ 3, VSS 4, VINB+ 5, VINB- 6, VOUTB 7, VDD 8; Amplifier_Operational:MCP6002-xP de KiCad 9"
+        },
+        "nota": "LCSC C640394 (MCP6002-I/P) se vio solo como enlace de hoja; el listado de producto hallado fue el MCP6002-E/P, C640393"
+      },
+      "OP27": {
+        "fabricante": "Analog Devices",
+        "parte": "OP27GPZ",
+        "hoja": "https://www.analog.com/media/en/technical-documentation/data-sheets/OP27.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-8",
+            "patillas": { "-": "2", "+": "3", "OUT": "6", "V+": "7", "V-": "4" },
+            "sinModelo": { "1": "Ajuste de offset", "5": "NC", "8": "Ajuste de offset" },
+            "huella": "Package_DIP:DIP-8_W7.62mm",
+            "lcsc": { "numero": "C408903", "sinVerificar": true }
+          }
+        ],
+        "pendiente": {
+          "equivalencias": "KiCad 9 no trae el OP27 ni un amplificador sencillo genérico de 8 patillas; el genérico de la pieza (Simulation_SPICE:OPAMP) numera 1 a 5 y no sigue el DIP-8"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Analog Devices OP27 (rev. H), figura Pin Configurations 8 patillas: 1 VOS trim, 2 -IN, 3 +IN, 4 V-, 5 NC, 6 OUT, 7 V+, 8 VOS trim"
+        },
+        "nota": "Una sola fuente: KiCad 9 no trae el OP27. La URL de la hoja de analog.com no respondió al descargarla; el contenido se leyó en una copia de la misma revisión H"
+      },
+      "Ideal": { "virtual": true, "nota": "Amplificador ideal de Kirchi, sin pieza física" }
+    }
   }
 }

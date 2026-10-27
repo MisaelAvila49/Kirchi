@@ -1,0 +1,19 @@
+* Motor 28BYJ-48 con la toma a 5 V y cada mitad a tierra como lo haria un ULN2003: un paso completo: la mitad A' se apaga y la B' se enciende a los 10 ms
+*@generar pasos mp {"r":50,"l":0.0325,"km":0.003808,"dientes":8,"td":0,"j":2.4e-9,"bm":0.0000061,"k_mutua":0.99,"unipolar":true}
+V5 com 0 DC 5
+V1 e1 0 PWL(0 5 0.01 5 0.01001 5 0.04 5)
+V2 e2 0 PWL(0 0 0.01 0 0.01001 5 0.04 5)
+V3 e3 0 PWL(0 5 0.01 5 0.01001 5 0.04 5)
+V4 e4 0 PWL(0 5 0.01 5 0.01001 0 0.04 0)
+X1 e1 e2 e3 e4 com com mp tc=0
+BW ws 0 V=v(x1.w)/63.68395
+BT ths 0 V=v(x1.th)/63.68395
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 20u 0.04 0 20u uic
+wrdata salida.txt i(v5) i(v1) i(v2) i(v3) i(v4) v(ws) v(ths)
+.endc
+.end

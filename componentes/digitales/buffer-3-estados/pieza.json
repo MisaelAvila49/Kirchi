@@ -1,0 +1,78 @@
+{
+  "id": "buffer-3-estados",
+  "nombre": { "es": "Búfer de tres estados", "en": "Tri-state buffer" },
+  "categoria": "digitales",
+  "grupo": "Registros y búferes",
+  "prefijo": "U",
+  "buscar": ["u", "buffer", "bufer", "búfer", "tres estados", "tri-state", "tristate", "3 estados", "bus", "74125", "74hc125", "oe"],
+  "pines": [
+    { "id": "A", "nombre": "A", "x": -6, "y": 0 },
+    { "id": "OE", "nombre": "OE (habilitación, activa en bajo)", "x": -2, "y": -6 },
+    { "id": "Y", "nombre": "Y", "x": 6, "y": 0 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS", "CD4000B"] },
+    { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
+  ],
+  "modelo": { "tipo": "compuerta", "funcion": "buf", "entradas": ["A"], "salida": "Y", "habilitacion": "OE", "activo": "bajo", "familia": "familia", "alimentacion": "alimentacion" },
+  "etiquetas": { "ref": { "x": 8, "y": -5 }, "valor": { "x": 0, "y": 5 } },
+  "datos": {
+    "por": "familia",
+    "equivalencias": { "falstad": "180" },
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC125N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc125.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "2", "OE": "1", "Y": "3" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "2", "OE": "1", "Y": "3" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "5", "OE": "4", "Y": "6" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "9", "OE": "10", "Y": "8" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "12", "OE": "13", "Y": "11" } }
+            ],
+            "parte": "SN74HC125N",
+            "lcsc": { "numero": "C2890", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC125, pinout p. 3; KiCad 74xx:74LS125 (misma función)" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS125AN",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls125a.pdf",
+        "equivalencias": { "kicad": "74xx:74LS125" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "2", "OE": "1", "Y": "3" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "2", "OE": "1", "Y": "3" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "5", "OE": "4", "Y": "6" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "9", "OE": "10", "Y": "8" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "12", "OE": "13", "Y": "11" } }
+            ],
+            "parte": "SN74LS125AN"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS125; TI SN74HC125 (misma función)" }
+      },
+      "CD4000B": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4503BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4503b.pdf",
+        "pendiente": {
+          "patillas": "el CD4503B es un búfer séxtuple con dos entradas de deshabilitación compartidas (patillas 1 y 15) y activas en alto; no encaja con un OE propio activo en bajo. Entradas D1 a D6 en 2, 4, 6, 10, 12 y 14; salidas Q1 a Q6 en 3, 5, 7, 9, 11 y 13; DISABLE A 1 (búferes 1 a 4), DISABLE B 15 (búferes 5 y 6); VDD 16, VSS 8 (TI CD4503B, diagrama funcional, una fuente)",
+          "lcsc": "no se halló un número LCSC de esta parte"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4503B, diagrama funcional p. 1 (imagen); sin segunda fuente y con lógica distinta del modelo" }
+      }
+    }
+  }
+}

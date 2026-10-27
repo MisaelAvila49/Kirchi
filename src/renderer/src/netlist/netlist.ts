@@ -1,4 +1,4 @@
-import type { ElementoMotor, NetlistMotor, Onda, Parametros } from '../../../compartido/netlistMotor'
+import type { CanalMotor, ElementoMotor, NetlistMotor, Onda, Parametros } from '../../../compartido/netlistMotor'
 import { clavePin, nombreDeTerminal, partirClavePin, porId, type Conexiones } from '../conexiones/conexiones'
 import { rielDeTerminal } from './alimentaciones'
 import { corrienteNominal } from '../sim/sobrecorriente'
@@ -18,6 +18,14 @@ import { esModeloInstrumento } from '../piezas/validarInstrumentos'
 import { repartirMemoria } from '../instrumentos/memoria'
 import { armarInstrumento, COLUMNA_MULTIMETRO, RANGO_OHM_INICIAL, sinInstrumentos, sinRejilla, type ArmadoInstrumento, type InstrumentosNetlist, type ModeloInstrumento, type SondaMotor, type SondaPorArmar } from './instrumentos'
 import { medidoresDe } from '../doc/sondas'
+import { esOptoacoplador, fuentesPrevias, PISTA_OPTOACOPLADOR } from './fuentesPrevias'
+import { armarAdc0804, armarDac0808, type RelojAdc } from './convertidores'
+import { elementoMsi, type ContextoMsi } from './msi'
+import { armarPuenteH } from './puenteH'
+import { aplicarUniones, unirCompartidas } from './paquetes'
+import { armarInterruptores, armarTeclado, PROP_TECLA } from './teclado'
+import { pinesDelModeloMsi } from '../piezas/validarMsi'
+import { leerPuntosPwl } from '../valores/pwl'
 import type { Puerto } from '../conexiones/corrientes'
 
 /** Interruptor cerrado y abierto; 1 GΩ respeta la tolerancia relativa de pivote de la LU densa. */
@@ -31,11 +39,13 @@ export const R_ABIERTO = 1e9
 /** Fuga a tierra de una red que solo une contactos con entradas CMOS (`entradasTrasContactos`): con el contacto abierto la
  * deja en unos 15 mV de 15 V y con el contacto cerrado toma 15 µA, imperceptibles. */
 export const R_FUGA = 1e6
+/** Canales de valor por netlist (el tope de `engine/src/netlist.rs`). */
+export const CANALES_MAX = 256
 
 export type { Onda, ElementoMotor, NetlistMotor } from '../../../compartido/netlistMotor'
 
 /** Los elementos del motor que no son de dos terminales analógicos: no tienen voltaje ni corriente de pieza propios. */
-export const ELEMENTOS_DIGITALES = new Set<ElementoMotor['type']>(['GATE', 'LOGIC', 'DFF', 'JKFF', 'COUNTER', 'DECODER', 'LATCH555', 'ADC', 'DAC', 'OUT555'])
+export const ELEMENTOS_DIGITALES = new Set<ElementoMotor['type']>(['GATE', 'LOGIC', 'DFF', 'JKFF', 'COUNTER', 'DECODER', 'LATCH555', 'LUT', 'MSI', 'ADC', 'DAC', 'OUT555'])
 
 /** Nodos de los terminales de un elemento en el orden del motor (`Element::nodes` de `engine/src/netlist.rs`); vacío en
  * digitales. Cada elemento analógico tiene en el motor una casilla de corriente por terminal y una más, la de la tierra
@@ -50,10 +60,21 @@ export function nodosDeElemento(e: ElementoMotor): number[] {
       return [e.c, e.b, e.e]
     case 'M':
       return [e.d, e.g, e.s]
+    case 'J':
+      return [e.d, e.g, e.s]
+    case 'E':
+    case 'G':
+    case 'H':
+    case 'F':
+      return [e.p, e.n, e.cp, e.cn]
+    case 'PASOS':
+      return [...e.nodos]
     case 'OA':
       return [e.p, e.n, e.out, e.vp, e.vn]
     case 'ADC':
       return [e.p, e.n]
+    case 'DACM':
+      return [e.out, e.ret, e.ref_p, e.ref_n]
     case 'DAC':
       // Como `Element::nodes` del motor: la salida y las alimentaciones explícitas que tenga.
       return [e.out, ...(e.lo !== undefined ? [e.lo] : []), ...(e.hi !== undefined ? [e.hi] : [])]
@@ -66,6 +87,8 @@ export function nodosDeElemento(e: ElementoMotor): number[] {
     case 'COUNTER':
     case 'DECODER':
     case 'LATCH555':
+    case 'LUT':
+    case 'MSI':
       return []
     default:
       return [e.a, e.b]
@@ -113,6 +136,13 @@ export interface ResultadoNetlist {
   displays: Map<Id, number[]>
   /** Red analógica del documento → la red digital que la maneja por un puente de salida (para dibujarla cuando conmuta). */
   manejoDeRed: Map<number, number>
+  /** Canal del motor de cada perilla en vivo, por `idPieza:propId`: a él escribe la interfaz al moverla. */
+  canalDe: Map<string, number>
+  /** Reloj de cada ADC0804: el RC que encontró (con su frecuencia) o externo. */
+  relojesAdc: Map<Id, RelojAdc>
+  /** Por convertidor: su elemento en la netlist (el `MSI` del ADC0804, el `DACM` del DAC0808) y, en el ADC, la red del documento
+   * de VREF/2 y la red digital de INTR, para leer el código, el voltaje que representa y si terminó. */
+  convertidores: Map<Id, { elemento: number; vref2?: number; intr?: number }>
   /** Los instrumentos armados, con sus elementos y sus sondas. */
   instrumentos: InstrumentosNetlist
   /** Por dónde entra a las redes del documento la corriente de cada casilla de terminal del motor (por elemento analógico:
@@ -122,7 +152,7 @@ export interface ResultadoNetlist {
   potencias: number[]
   /** Piezas de varios elementos: sus elementos en la netlist, el elemento cuya corriente es la de la pieza y las redes de
    * las que sale su voltaje. La lectura de la pieza es esa y la suma de las potencias de sus elementos, no la del último. */
-  compuestos: Map<Id, { elementos: number[]; i: number; mas: number; menos: number }>
+  compuestos: Map<Id, { elementos: number[]; i: number; mas: number; menos: number; region?: number }>
   sinModelo: string[]
   errores: string[]
   avisos: string[]
@@ -262,6 +292,24 @@ export function terminalesDelModelo(m: ModeloDef): string[] {
       case 'estado-logico':
         t = pinesDigitales(m).map((x) => x.id)
         break
+      case 'lut':
+      case 'msi': {
+        const { entradas, salidas } = pinesDelModeloMsi(m)
+        t = [...new Set([...entradas, ...salidas])]
+        break
+      }
+      case 'convertidor-ad':
+        t = [m.cs, m.rd, m.wr, m.clkin, m.clkr, m.intr, m.vinp, m.vinn, m.agnd, m.vref2, m.dgnd, m.vcc, ...m.db]
+        break
+      case 'convertidor-da':
+        t = [...m.a, m.io, m.gnd, m.vee, m.vcc, m.vrefp, m.vrefn, m.comp]
+        break
+      case 'interruptores':
+        t = m.contactos.flat()
+        break
+      case 'teclado':
+        t = [...m.filas, ...m.columnas]
+        break
       case 'multimetro':
         t = [m.mas, m.com]
         break
@@ -273,6 +321,19 @@ export function terminalesDelModelo(m: ModeloDef): string[] {
         break
       case 'fuente-variable':
         t = [m.mas, m.menos]
+        break
+      case 'jfet':
+        t = [m.d, m.g, m.s]
+        break
+      case 'controlada':
+        t = [m.p, m.n, m.cp, m.cn]
+        break
+      // El común de un unipolar se repite en `nodos`, pero es un solo pin.
+      case 'pasos':
+        t = [...new Set(m.nodos)]
+        break
+      case 'puente-h':
+        t = [...m.entradas, ...m.habilita, ...m.salidas, m.sensa, m.sensb, m.vs, m.vss, m.gnd]
         break
       default:
         t = [m.a, m.b]
@@ -322,12 +383,20 @@ function calcularGrupos(m: ModeloDef): { pines: number[]; tierra: boolean }[] {
       return [{ pines: [0, 2, 4, 6, 7], tierra: false }]
     case 'display':
       return [0, 1, 2, 3, 4, 5, 6, 7].map((k) => ({ pines: [k, 8], tierra: false }))
+    // La salida de una fuente controlada es una fuente; H y F además unen los dos pines de su control (la rama de 0 V).
+    case 'controlada':
+      return m.forma === 'E' || m.forma === 'G' ? [{ pines: [0, 1], tierra: false }] : [{ pines: [0, 1], tierra: false }, { pines: [2, 3], tierra: false }]
+    // Un devanado por fase; en el unipolar la toma central ata las mitades, así que todos los pines cuentan como unidos.
+    case 'pasos':
+      return m.unipolar ? [{ pines: [...new Set(m.nodos)].map((_, k) => k), tierra: false }] : [{ pines: [0, 1], tierra: false }, { pines: [2, 3], tierra: false }]
     case 'compuerta':
     case 'biestable-d':
     case 'biestable-jk':
     case 'contador':
     case 'decodificador':
     case 'estado-logico':
+    case 'lut':
+    case 'msi':
       // Cada salida es una fuente contra tierra (su puente); una entrada CMOS no toma corriente.
       return pinesDigitales(m).flatMap((x, k) => (x.salida ? [{ pines: [k], tierra: true }] : []))
     default:
@@ -341,6 +410,10 @@ export function pinesQueDebenConectarse(m: ModeloDef): string[] {
   // Un instrumento al aire no impide simular (su lectura dice «sin conectar»).
   if (esModeloDigital(m) || esModeloInstrumento(m)) return []
   if (m.tipo === '555') return [m.gnd, m.trig, m.reset, m.thr, m.vcc]
+  // Las salidas del ADC, las entradas del DAC, la compensación, el DIP y el teclado pueden quedar libres.
+  if (m.tipo === 'convertidor-ad') return [m.cs, m.rd, m.wr, m.vcc, m.agnd, m.dgnd, m.vinp, m.vinn]
+  if (m.tipo === 'convertidor-da') return [m.io, m.gnd, m.vee, m.vcc, m.vrefp, m.vrefn]
+  if (m.tipo === 'interruptores' || m.tipo === 'teclado') return []
   if (m.tipo === 'display') return [m.comun]
   if (m.tipo === 'compuesto') return m.terminales.filter((t) => !m.opcionales?.includes(t))
   // Un conmutador puede dejar un tiro libre: solo el común debe ir a algo.
@@ -561,10 +634,34 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
   const displays = new Map<Id, number[]>()
   const manejoDeRed = new Map<number, number>()
   const compuestos: ResultadoNetlist['compuestos'] = new Map()
+  const canalDe = new Map<string, number>()
+  const relojesAdc = new Map<Id, RelojAdc>()
+  const convertidores: ResultadoNetlist['convertidores'] = new Map()
   const nulo = (): ResultadoNetlist => ({
-    netlist: null, nodoDeRed, piezaDeElemento: [], potenciometros: new Map(), tipoDeElemento: [], umbrales, redDigital, digitales, temporizadores, displays, manejoDeRed, instrumentos, puertos: [], potencias: [], compuestos, sinModelo, errores, avisos
+    netlist: null, nodoDeRed, piezaDeElemento: [], potenciometros: new Map(), tipoDeElemento: [], umbrales, redDigital, digitales, temporizadores, displays, manejoDeRed, canalDe, relojesAdc, convertidores, instrumentos, puertos: [], potencias: [], compuestos, sinModelo, errores, avisos
   })
   if (sinModelo.length) return nulo()
+  // Un canal por perilla en vivo, con el valor del documento: moverla escribe al canal y no reconstruye la netlist.
+  const canales: CanalMotor[] = []
+  for (const p of piezas) {
+    const def = lib.get(p.tipo)!
+    for (const d of def.props) {
+      if (!d.enVivo) continue
+      const r = leerPropiedad(p, def, d.id, null)
+      if (!r.ok) errores.push(r.error)
+      else if (r.valor < d.enVivo.min || r.valor > d.enVivo.max) errores.push(`El valor de ${d.nombre} de ${p.ref} debe estar entre ${d.enVivo.min} y ${d.enVivo.max}${d.unidad ? ` ${d.unidad}` : ''}.`)
+      else {
+        canalDe.set(`${p.id}:${d.id}`, canales.length)
+        canales.push({ inicial: r.valor })
+      }
+    }
+  }
+  if (canales.length > CANALES_MAX) errores.push(`Hay ${canales.length} perillas en vivo y el motor admite ${CANALES_MAX}.`)
+
+  // Las patillas compartidas de un encapsulado son una sola: la unidad que las deja sueltas toma la red de la que las conecta.
+  const compartidas = unirCompartidas(doc, lib, con)
+  for (const c of compartidas.errores) errores.push(c.texto)
+  con = aplicarUniones(con, compartidas.uniones)
 
   // Un circuito solo de piezas digitales no necesita tierra: no tiene nodos analógicos.
   const soloDigital = piezas.every((p) => esModeloDigital(lib.get(p.tipo)?.modelo))
@@ -590,6 +687,20 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
   for (const r of [...puras].sort((a, b) => a - b)) redDigital.set(r, siguienteDigital++)
   const nuevaDigital = () => siguienteDigital++
   /** Elementos digitales, que van después de los analógicos y los puentes. */
+  /** Tablas de verdad de los `LUT` y los `MSI`, una por contenido distinto. */
+  const tablasMotor: (number | string)[][] = []
+  const indiceDeTabla = new Map<string, number>()
+  /** El índice de la tabla en `Netlist.tablas`: una sola por contenido. */
+  const indiceTabla = (filas: (number | string)[]): number => {
+    const llave = filas.join(',')
+    let i = indiceDeTabla.get(llave)
+    if (i === undefined) {
+      i = tablasMotor.length
+      tablasMotor.push(filas)
+      indiceDeTabla.set(llave, i)
+    }
+    return i
+  }
   const elementosDigitales: { pieza: Pieza; tipo: ModeloDef['tipo']; el: ElementoMotor; modelo?: true }[] = []
   /** Pendientes cuyo índice en la netlist hace falta después de numerar (la salida de un 555, los segmentos de un display). */
   const marcados = new Map<Pendiente, (indice: number) => void>()
@@ -613,6 +724,14 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     const etiqueta = (id: string) => `El pin ${nombrePin(id)} de ${p.ref}`
     const ids = terminalesDelModelo(m)
     const redes = ids.map((id) => con.redDePin.get(clavePin(p.id, id))!)
+    if (m.tipo === 'lut' || m.tipo === 'msi') {
+      armarMsi(p, def, m)
+      continue
+    }
+    if (m.tipo === 'convertidor-ad' || m.tipo === 'convertidor-da' || m.tipo === 'interruptores' || m.tipo === 'teclado') {
+      armarMixto(p, def, m)
+      continue
+    }
     if (esModeloDigital(m)) {
       armarDigital(p, def, m)
       continue
@@ -627,6 +746,14 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     }
     if (m.tipo === 'compuesto') {
       armarCompuesto(p, def, m, redes, ids, etiqueta)
+      continue
+    }
+    if (m.tipo === 'jfet' || m.tipo === 'termistor' || m.tipo === 'ldr' || m.tipo === 'pasos' || m.tipo === 'controlada' || m.tipo === 'pwl') {
+      armarNuevo(p, def, m, redes, ids, etiqueta)
+      continue
+    }
+    if (m.tipo === 'puente-h') {
+      armarPuente(p, def, m)
       continue
     }
     if (m.tipo === 'display') {
@@ -824,7 +951,7 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
 
   /** Pieza digital: su modelo con las redes digitales de sus pines y, por pin sobre una red analógica, un puente (entrada
    * lee el voltaje con los umbrales de la familia; salida es un Thévenin). Una entrada en la tierra lee 0 sin puente. */
-  function armarDigital(p: Pieza, def: PiezaDef, m: ModeloDigital): void {
+  function armarDigital(p: Pieza, def: PiezaDef, m: Exclude<ModeloDigital, { tipo: 'lut' | 'msi' }>): void {
     const f = familiaDe(p, def, m)
     if (!f.ok) {
       errores.push(f.error)
@@ -832,6 +959,14 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     }
     if (f.aviso) avisos.push(f.aviso)
     const k: ParametrosLogicos = f.params
+    const schmitt = m.tipo === 'compuerta' && m.histeresis === true
+    const tresEstados = m.tipo === 'compuerta' && m.habilitacion !== undefined
+    if (schmitt && k.vt_pos === undefined) {
+      errores.push(`${f.nombre} no tiene umbrales de disparador Schmitt para ${p.ref}.`)
+      return
+    }
+    // Una entrada con histéresis cambia en sus dos umbrales de disparo, no en los de la familia.
+    const [bajo, alto] = schmitt ? [k.vt_neg!, k.vt_pos!] : [k.in_low, k.in_high]
     const pines: PiezaDigitalNetlist['pines'] = []
     const red = (pin: string) => con.redDePin.get(clavePin(p.id, pin))!
     const nombre = (pin: string) => `El pin ${def.pines.find((x) => x.id === pin)!.nombre} de ${p.ref}`
@@ -844,18 +979,18 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
           const dn = d
           pendientes.push({
             pieza: p, terminales: [{ red: r, etiqueta: nombre(pin.id) }], tipo: m.tipo, grupos: [{ pines: [0], tierra: true }],
-            el: ([out]) => ({ type: 'DAC', input: dn, out, v_lo: k.v_lo, v_hi: k.v_hi, r_lo: k.r_lo, r_hi: k.r_hi, t_rise: k.t_rise, t_fall: k.t_fall })
+            el: ([out]) => ({ type: 'DAC', input: dn, out, v_lo: k.v_lo, v_hi: k.v_hi, r_lo: k.r_lo, r_hi: k.r_hi, t_rise: k.t_rise, t_fall: k.t_fall, ...(tresEstados ? { z: true } : {}) })
           })
           manejoDeRed.set(r, dn)
         } else if (r === tierraDoc) {
           elementosDigitales.push({ pieza: p, tipo: m.tipo, el: { type: 'LOGIC', out: d, value: 0 } })
         } else {
           const dn = d
-          entradasAnalogicas.push({ pieza: p, pin: def.pines.find((x) => x.id === pin.id)?.nombre ?? pin.id, red: r, bajo: k.in_low, alto: k.in_high, familia: opcionDe(p, def, 'familia') })
+          entradasAnalogicas.push({ pieza: p, pin: def.pines.find((x) => x.id === pin.id)?.nombre ?? pin.id, red: r, bajo, alto, familia: opcionDe(p, def, 'familia') })
           const carga = k.r_in !== undefined ? { r_in: k.r_in, v_in: k.v_in ?? 0 } : {}
           pendientes.push({
             pieza: p, terminales: [{ red: r, etiqueta: nombre(pin.id) }], tipo: m.tipo, grupos: k.r_in !== undefined ? [{ pines: [0], tierra: true }] : [],
-            el: ([nodo]) => ({ type: 'ADC', p: nodo, n: 0, out: dn, in_low: k.in_low, in_high: k.in_high, ...carga })
+            el: ([nodo]) => ({ type: 'ADC', p: nodo, n: 0, out: dn, in_low: bajo, in_high: alto, ...(schmitt ? { histeresis: true } : {}), ...carga })
           })
         }
       }
@@ -867,7 +1002,7 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     let el: ElementoMotor
     switch (m.tipo) {
       case 'compuerta':
-        el = { type: 'GATE', fn: m.funcion, inputs: m.entradas.map(de), output: de(m.salida), ...r }
+        el = { type: 'GATE', fn: m.funcion, inputs: m.entradas.map(de), output: de(m.salida), ...(m.habilitacion !== undefined ? { enable: de(m.habilitacion), enable_bajo: m.activo !== 'alto' } : {}), ...r }
         break
       case 'biestable-d':
         el = { type: 'DFF', d: de(m.d), clk: de(m.clk), pre: de(m.pre), clr: de(m.clr), q: de(m.q), qn: de(m.qn), ...r }
@@ -887,6 +1022,122 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     }
     digitales.set(p.id, { familia: f.nombre, alimentacion: f.vcc, elemento: -1, pines })
     elementosDigitales.push({ pieza: p, tipo: m.tipo, el, modelo: true })
+  }
+
+  /** Pieza `lut` o `msi`: como una pieza digital, pero un pin bidireccional lleva un puente de entrada y otro de salida
+   * sobre el mismo nodo cuando su red es analógica, y las tablas se comparten por contenido. */
+  function armarMsi(p: Pieza, def: PiezaDef, m: Extract<ModeloDigital, { tipo: 'lut' | 'msi' }>): void {
+    const f = familiaDe(p, def, m)
+    if (!f.ok) {
+      errores.push(f.error)
+      return
+    }
+    if (f.aviso) avisos.push(f.aviso)
+    const k = f.params
+    const red = (pin: string) => con.redDePin.get(clavePin(p.id, pin))!
+    const nombre = (pin: string) => `El pin ${def.pines.find((x) => x.id === pin)!.nombre} de ${p.ref}`
+    const leidas = new Map<string, number>()
+    const manejadas = new Map<string, number>()
+    const contexto: ContextoMsi = {
+      leer(pin) {
+        const antes = leidas.get(pin)
+        if (antes !== undefined) return antes
+        const r = red(pin)
+        let d = redDigital.get(r)
+        if (d === undefined) {
+          d = nuevaDigital()
+          if (r === tierraDoc) elementosDigitales.push({ pieza: p, tipo: m.tipo, el: { type: 'LOGIC', out: d, value: 0 } })
+          else {
+            const dn = d
+            entradasAnalogicas.push({ pieza: p, pin: def.pines.find((x) => x.id === pin)?.nombre ?? pin, red: r, bajo: k.in_low, alto: k.in_high, familia: opcionDe(p, def, 'familia') })
+            const carga = k.r_in !== undefined ? { r_in: k.r_in, v_in: k.v_in ?? 0 } : {}
+            pendientes.push({
+              pieza: p, terminales: [{ red: r, etiqueta: nombre(pin) }], tipo: m.tipo, grupos: k.r_in !== undefined ? [{ pines: [0], tierra: true }] : [],
+              el: ([nodo]) => ({ type: 'ADC', p: nodo, n: 0, out: dn, in_low: k.in_low, in_high: k.in_high, ...carga })
+            })
+          }
+        }
+        leidas.set(pin, d)
+        return d
+      },
+      manejar(pin, tres) {
+        const antes = manejadas.get(pin)
+        if (antes !== undefined) return antes
+        const r = red(pin)
+        let d = redDigital.get(r)
+        if (d === undefined) {
+          d = nuevaDigital()
+          const dn = d
+          pendientes.push({
+            pieza: p, terminales: [{ red: r, etiqueta: nombre(pin) }], tipo: m.tipo, grupos: [{ pines: [0], tierra: true }],
+            el: ([out]) => ({ type: 'DAC', input: dn, out, v_lo: k.v_lo, v_hi: k.v_hi, r_lo: k.r_lo, r_hi: k.r_hi, t_rise: k.t_rise, t_fall: k.t_fall, ...(tres ? { z: true } : {}) })
+          })
+          manejoDeRed.set(r, dn)
+        }
+        manejadas.set(pin, d)
+        return d
+      },
+      tabla: indiceTabla
+    }
+    const el = elementoMsi(m, k, opcionDe(p, def, m.familia), f.vcc, contexto)
+    if ('error' in el) {
+      errores.push(`${p.ref}: ${el.error}`)
+      return
+    }
+    const pines: PiezaDigitalNetlist['pines'] = pinesDigitales(m).map((pin) => ({
+      id: pin.id, nombre: def.pines.find((x) => x.id === pin.id)?.nombre ?? pin.id, red: (pin.salida ? manejadas.get(pin.id) : leidas.get(pin.id)) ?? -1, redDoc: red(pin.id), salida: pin.salida
+    }))
+    digitales.set(p.id, { familia: f.nombre, alimentacion: f.vcc, elemento: -1, pines })
+    elementosDigitales.push({ pieza: p, tipo: m.tipo, el, modelo: true })
+  }
+
+  /** Convertidores, DIP y teclado: lo arman `convertidores.ts` y `teclado.ts`; aquí solo se les dan las redes, lo que hay conectado alrededor y dónde poner los elementos. */
+  function armarMixto(p: Pieza, def: PiezaDef, m: Extract<ModeloDef, { tipo: 'convertidor-ad' | 'convertidor-da' | 'interruptores' | 'teclado' }>): void {
+    const red = (pin: string) => con.redDePin.get(clavePin(p.id, pin))!
+    const etiqueta = (pin: string) => `El pin ${def.pines.find((y) => y.id === pin)!.nombre} de ${p.ref}`
+    const analogico = (terminales: { red: number; etiqueta: string; mudo?: true; pin?: string }[], el: (nodos: number[]) => ElementoMotor, grupos: { pines: number[]; tierra: boolean }[]) =>
+      pendientes.push({ pieza: p, terminales, el, tipo: m.tipo, grupos })
+    if (m.tipo === 'interruptores' || m.tipo === 'teclado') {
+      const canal = (propId: string, k: number, inicial: 0 | 1) => {
+        canalDe.set(`${p.id}:${propId}:${k}`, canales.length)
+        canales.push({ inicial })
+        return canales.length - 1
+      }
+      if (m.tipo === 'teclado') armarTeclado(m, { red, etiqueta, canal, analogico })
+      else armarInterruptores(m, p.props[m.estado] ?? def.props.find((d) => d.id === m.estado)?.defecto ?? '', { red, etiqueta, canal, analogico })
+      return
+    }
+    const comun = { ref: p.ref, red, etiqueta, nuevaDigital, interna: nuevaInterna, analogico, digital: (el: ElementoMotor) => elementosDigitales.push({ pieza: p, tipo: m.tipo, el }), manejo: (r: number, d: number) => manejoDeRed.set(r, d) }
+    if (m.tipo === 'convertidor-da') return armarDac0808(m, comun)
+    /** Los valores (Ω o F) de las piezas de un tipo cuyos dos pines están en las redes `a` y `b`, en cualquier orden. */
+    const valoresEntre = (tipo: 'R' | 'C', a: number, b: number): number[] =>
+      piezas.flatMap((q) => {
+        const d = lib.get(q.tipo)
+        const mq = d?.modelo
+        if (!d || mq?.tipo !== tipo) return []
+        const [x, y] = [con.redDePin.get(clavePin(q.id, mq.a)), con.redDePin.get(clavePin(q.id, mq.b))]
+        if (!((x === a && y === b) || (x === b && y === a))) return []
+        const v = leerPropiedad(q, d, mq.prop, null)
+        return v.ok && v.valor > 0 ? [v.valor] : []
+      })
+    const r = armarAdc0804(m, {
+      ...comun,
+      resistenciasEntre: (a, b) => valoresEntre('R', a, b),
+      capacitoresATierra: (a) => (tierraDoc === undefined ? [] : valoresEntre('C', a, tierraDoc)),
+      // Algo más que la R de CLK R y la C a tierra toca la red de CLK IN.
+      relojExterno: (rIn) =>
+        (con.redes.find((x) => x.id === rIn)?.pines ?? []).some((clave) => {
+          const { piezaId, pinId } = partirClavePin(clave)
+          if (piezaId === p.id) return false
+          const q = doc.piezas[piezaId]
+          const mq = q ? lib.get(q.tipo)?.modelo : undefined
+          if (mq?.tipo !== 'R' && mq?.tipo !== 'C') return true
+          const otro = con.redDePin.get(clavePin(piezaId, pinId === mq.a ? mq.b : mq.a))
+          return mq.tipo === 'R' ? otro !== red(m.clkr) : otro !== tierraDoc
+        })
+    }, indiceTabla)
+    if ('error' in r) errores.push(r.error)
+    else relojesAdc.set(p.id, r.reloj)
   }
 
   /** El 555 como lo arma el motor: divisor de tres resistencias con la toma de abajo en una red interna, consumo,
@@ -954,6 +1205,88 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     if (1 / (hz * PASO_MIN) < PASOS_MINIMOS) avisos.push(`La fuente ${p.ref} de ${formatearValor(hz, 'Hz')} es más rápida de lo que la vista previa puede seguir.`)
   }
 
+  type ModeloNuevo = Extract<ModeloDef, { tipo: 'jfet' | 'termistor' | 'ldr' | 'pasos' | 'controlada' | 'pwl' }>
+
+  /** JFET, termistor, fotorresistencia, motor a pasos, fuentes controladas y PWL: un elemento del motor cada uno. La perilla
+   * de un sensor es su canal. */
+  function armarNuevo(p: Pieza, def: PiezaDef, m: ModeloNuevo, redes: number[], ids: string[], etiqueta: (id: string) => string): void {
+    const opcion = 'modelos' in m ? opcionDe(p, def, m.prop) : ''
+    const x = 'modelos' in m ? m.modelos[opcion] : {}
+    const canal = (prop: string): number | null => {
+      const c = canalDe.get(`${p.id}:${prop}`)
+      if (c === undefined) errores.push(`La perilla «${prop}» de ${p.ref} no existe o no se pudo leer.`)
+      return c ?? null
+    }
+    /** Los pines en el orden dado; un pin repetido (la toma central) dice su etiqueta una sola vez. */
+    const poner = (lista: string[], grupos: Pendiente['grupos'], el: Pendiente['el']) =>
+      pendientes.push({ pieza: p, terminales: lista.map((id, k) => ({ red: redes[ids.indexOf(id)], etiqueta: lista.indexOf(id) === k ? etiqueta(id) : '', pin: id })), el, tipo: m.tipo, grupos })
+    const mismaRed = () => void avisos.push(`${p.ref} tiene sus dos terminales en la misma red y se omite.`)
+    switch (m.tipo) {
+      case 'jfet':
+        poner([m.d, m.g, m.s], gruposDelModelo(m), ([d, g, s]) => ({ type: 'J', d, g, s, pjf: m.pjf, model: x }))
+        break
+      case 'termistor': {
+        if (redes[0] === redes[1]) return mismaRed()
+        const c = canal(m.temperatura)
+        if (c === null) return
+        const rt = m.tablas?.[opcion]
+        poner([m.a, m.b], gruposDelModelo(m), ([a, b]) => ({ type: 'TERM', a, b, tipo: m.ptc ? 'ptc' : 'ntc', r25: x.r25, beta: x.beta, ...(rt ? { rt } : {}), delta: x.delta, tau: x.tau, canal: c, tmax: x.tmax }))
+        break
+      }
+      case 'ldr': {
+        if (redes[0] === redes[1]) return mismaRed()
+        const c = canal(m.luz)
+        if (c === null) return
+        poner([m.a, m.b], gruposDelModelo(m), ([a, b]) => ({ type: 'LDR', a, b, r10: x.r10, gamma: x.gamma, roscuro: x.roscuro, tau_sube: x.tau_sube, tau_baja: x.tau_baja, canal: c }))
+        break
+      }
+      case 'pasos': {
+        const c = m.carga !== undefined ? canal(m.carga) : undefined
+        if (c === null) return
+        const opcionales = { ...(x.k_mutua !== undefined ? { k_mutua: x.k_mutua } : {}), ...(x.reduccion !== undefined ? { reduccion: x.reduccion } : {}), ...(c !== undefined ? { canal_carga: c } : {}) }
+        // Los índices de los grupos son de `nodos` (con la toma central repetida), no de los pines únicos.
+        const grupos = m.unipolar ? [{ pines: m.nodos.map((_, k) => k), tierra: false }] : gruposDelModelo(m)
+        poner(m.nodos, grupos, (nodos) => ({ type: 'PASOS', nodos, ...(m.unipolar ? { unipolar: true } : {}), r: x.r, l: x.l, km: x.km, dientes: x.dientes, td: x.td, j: x.j, bm: x.bm, ...opcionales }))
+        break
+      }
+      case 'controlada': {
+        const v = leerPropiedad(p, def, m.prop, null)
+        if (!v.ok) return void errores.push(v.error)
+        const valor = v.valor
+        poner([m.p, m.n, m.cp, m.cn], gruposDelModelo(m), ([pp, nn, cp, cn]) => {
+          const base = { p: pp, n: nn, cp, cn }
+          return m.forma === 'E' ? { type: 'E', ...base, ganancia: valor } : m.forma === 'G' ? { type: 'G', ...base, gm: valor } : m.forma === 'H' ? { type: 'H', ...base, r: valor } : { type: 'F', ...base, ganancia: valor }
+        })
+        break
+      }
+      case 'pwl': {
+        if (redes[0] === redes[1]) return mismaRed()
+        const texto = p.props[m.puntos] ?? def.props.find((d) => d.id === m.puntos)?.defecto ?? ''
+        const r = leerPuntosPwl(texto)
+        if (!r.ok) return void errores.push(`Los puntos de ${p.ref} no son válidos: ${r.error}`)
+        const opciones = (id: string) => def.props.find((d) => d.id === id)?.opciones ?? []
+        // El motor solo tiene PWL en fuentes de voltaje (`Element::I` no lleva onda).
+        if (/corr|^i$|amper/i.test(opcionDe(p, def, m.modo))) return void errores.push(`${p.ref} en modo corriente aún no se simula.`)
+        const repetir = opcionDe(p, def, m.repetir) === opciones(m.repetir)[1]
+        poner([m.a, m.b], gruposDelModelo(m), ([a, b]) => ({ type: 'V', a, b, wave: { kind: 'pwl', puntos: r.puntos, ...(repetir ? { repetir: true } : {}) } }))
+        break
+      }
+    }
+  }
+
+  /** El L298: lo arma `puenteH.ts`; aquí solo se le dan las redes, las etiquetas y dónde poner los elementos. */
+  function armarPuente(p: Pieza, def: PiezaDef, m: Extract<ModeloDef, { tipo: 'puente-h' }>): void {
+    const nombre = (pin: string) => `El pin ${def.pines.find((y) => y.id === pin)!.nombre} de ${p.ref}`
+    armarPuenteH(m, m.modelos[opcionDe(p, def, m.prop)], {
+      red: (pin) => con.redDePin.get(clavePin(p.id, pin))!,
+      etiqueta: nombre,
+      nuevaDigital,
+      analogico: (terminales, el, grupos) => pendientes.push({ pieza: p, terminales, el, tipo: m.tipo, grupos }),
+      digital: (el) => elementosDigitales.push({ pieza: p, tipo: m.tipo, el }),
+      manejo: (red, digital) => manejoDeRed.set(red, digital)
+    })
+  }
+
   function armarCompuesto(p: Pieza, def: PiezaDef, m: Extract<ModeloDef, { tipo: 'compuesto' }>, redes: number[], ids: string[], etiqueta: (id: string) => string): void {
     const modelo = m.modelos && m.prop ? m.modelos[opcionDe(p, def, m.prop)] : undefined
     const props = new Map<string, number>()
@@ -966,6 +1299,13 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
       props.set(prop, r.valor)
     }
     const valor = (v: Parameters<typeof resolverValor>[0]) => resolverValor(v, modelo, (id) => props.get(id)!)
+    for (const e of m.elementos) {
+      if (e.t === 'EXT' && !canalDe.has(`${p.id}:${e.canal}`)) {
+        errores.push(`La perilla «${e.canal}» de ${p.ref} no existe o no se pudo leer.`)
+        return
+      }
+    }
+    const canal = (prop: string) => canalDe.get(`${p.id}:${prop}`)!
     // Las fuentes senoidales internas (la trifásica) piden lo mismo que la fuente senoidal: frecuencia mayor que cero y, si pasa de lo
     // que la vista previa sigue, un aviso (uno por frecuencia distinta, no uno por fase).
     const frecuencias = new Set<number>()
@@ -982,9 +1322,12 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     const redDe = new Map<string, number>(ids.map((id, k) => [id, redes[k]]))
     for (const interna of m.internas ?? []) redDe.set(interna, nuevaInterna())
     const dicho = new Set<string>()
-    const c = { elementos: m.elementos.map(() => -1), i: -1, mas: redDe.get(m.medida.mas)!, menos: redDe.get(m.medida.menos)! }
+    const c = { elementos: m.elementos.map(() => -1), i: -1, mas: redDe.get(m.medida.mas)!, menos: redDe.get(m.medida.menos)!, ...(m.medida.region !== undefined ? { region: m.medida.region } : {}) }
     compuestos.set(p.id, c)
     m.elementos.forEach((e, k) => {
+      // Un elemento de dos terminales con los dos en la misma red (la punta lógica sobre su pinza +, la entrada del LM386 a tierra)
+      // no hace nada y el motor lo rechaza: se omite y su casilla queda en -1.
+      if ((e.t === 'R' || e.t === 'C' || e.t === 'L' || e.t === 'D' || e.t === 'I') && redDe.get(e.a) === redDe.get(e.b)) return
       const terminales = nodosDeElementoCompuesto(e).map((n) => {
         const red = redDe.get(n)!
         if (!ids.includes(n)) return { red, etiqueta: '', mudo: true as const }
@@ -993,7 +1336,7 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
         dicho.add(n)
         return { red, etiqueta: primera ? etiqueta(n) : '', pin: n }
       })
-      const q: Pendiente = { pieza: p, terminales, tipo: 'compuesto', grupos: gruposDeElemento(e), el: (ns) => elementoDelMotor(e, ns, valor) }
+      const q: Pendiente = { pieza: p, terminales, tipo: 'compuesto', grupos: gruposDeElemento(e), el: (ns) => elementoDelMotor(e, ns, valor, canal) }
       pendientes.push(q)
       marcados.set(q, (i) => {
         c.elementos[k] = i
@@ -1106,6 +1449,7 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     }
     return n
   }
+  if (canales.length > CANALES_MAX) errores.push(`Hay ${canales.length} canales (perillas, interruptores y teclas) y el motor admite ${CANALES_MAX}.`)
   const elementos: ElementoMotor[] = []
   const piezaDeElemento: Id[] = []
   const tipoDeElemento: ModeloDef['tipo'][] = []
@@ -1125,6 +1469,14 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     piezaDeElemento.push(d.pieza.id)
     tipoDeElemento.push(d.tipo)
   }
+  // Los convertidores se leen por su elemento propio: el MSI del ADC0804 (INTR es su última salida) y el DACM del DAC0808.
+  elementos.forEach((e, k) => {
+    const id = piezaDeElemento[k]
+    if (tipoDeElemento[k] === 'convertidor-ad' && e.type === 'MSI') {
+      const m = lib.get(doc.piezas[id]?.tipo ?? '')?.modelo
+      convertidores.set(id, { elemento: k, intr: e.salidas[e.salidas.length - 1], ...(m?.tipo === 'convertidor-ad' ? { vref2: con.redDePin.get(clavePin(id, m.vref2)) } : {}) })
+    } else if (tipoDeElemento[k] === 'convertidor-da' && e.type === 'DACM') convertidores.set(id, { elemento: k })
+  })
   // Por dónde entra la corriente de cada casilla de terminal (el reparto entre los tramos de cable).
   const puertos = puertosDeElementos(pendientes, elementos, nodoDeRed, con, lib, tierraDoc ?? -1)
   // Las fugas de las entradas tras un contacto (sin pieza) no avisan.
@@ -1155,6 +1507,7 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
   const raizTierra = uf.buscar(0)
   const islas = new Map<number, Set<string>>()
   const conTransformador = new Set<number>()
+  const conOptoacoplador = new Set<number>()
   pendientes.forEach((q, i) => {
     for (const g of q.grupos) {
       const raiz = uf.buscar(nodosDe[i][g.pines[0]])
@@ -1163,14 +1516,16 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
       refs.add(q.pieza.ref)
       islas.set(raiz, refs)
       if (esTransformador(lib.get(q.pieza.tipo))) conTransformador.add(raiz)
+      if (esOptoacoplador(lib.get(q.pieza.tipo))) conOptoacoplador.add(raiz)
     }
   })
   for (const [raiz, refs] of islas) {
     const lista = [...refs].sort()
-    const pista = conTransformador.has(raiz) ? ` ${PISTA_TRANSFORMADOR}` : ''
+    const pista = (conTransformador.has(raiz) ? ` ${PISTA_TRANSFORMADOR}` : '') + (conOptoacoplador.has(raiz) ? ` ${PISTA_OPTOACOPLADOR}` : '')
     errores.push((lista.length === 1 ? `${lista[0]} no tiene camino a tierra.` : `${lista.join(', ')} no tienen camino a tierra.`) + pista)
   }
 
+  errores.push(...fuentesPrevias(elementos, (k) => doc.piezas[piezaDeElemento[k]]?.ref ?? ''))
   for (const d of diodosDirectos(doc, lib, con)) errores.push(d.texto)
   if (siguiente < 2 && siguienteDigital === 0 && !errores.length) errores.push('El circuito no tiene nodos fuera de tierra.')
   // Las sondas de los instrumentos, con los nodos y los elementos ya numerados y la memoria repartida.
@@ -1200,8 +1555,8 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     return { kind: 'd', red: redDigital.get(s.redDoc)!, bajo: 0, alto: altoDe(s.redDoc), muestras: n, columna: s.columna }
   })
   return {
-    netlist: { nodes: siguiente, digital_nets: siguienteDigital, elements: elementos, ...(sondas.length ? { sondas } : {}) },
-    nodoDeRed, piezaDeElemento, potenciometros, tipoDeElemento, umbrales, redDigital, digitales, temporizadores, displays, manejoDeRed, instrumentos, puertos, potencias, compuestos, sinModelo, errores, avisos
+    netlist: { nodes: siguiente, digital_nets: siguienteDigital, elements: elementos, ...(sondas.length ? { sondas } : {}), ...(canales.length ? { canales } : {}), ...(tablasMotor.length ? { tablas: tablasMotor } : {}) },
+    nodoDeRed, piezaDeElemento, potenciometros, tipoDeElemento, umbrales, redDigital, digitales, temporizadores, displays, manejoDeRed, canalDe, relojesAdc, convertidores, instrumentos, puertos, potencias, compuestos, sinModelo, errores, avisos
   }
 }
 

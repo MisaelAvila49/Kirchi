@@ -1,0 +1,85 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "cl_pF": 50,
+   "documento": "TI SN74HC245 (SCLS131F)",
+   "paginas": "6, tabla 6.6",
+   "caminos": [
+    {
+     "de": "A o B",
+     "a": "B o A",
+     "tPLH": {
+      "tip": 15,
+      "max": 21
+     },
+     "tPHL": {
+      "tip": 15,
+      "max": 21
+     },
+     "max_SN74_40_85C": 26
+    },
+    {
+     "de": "OE",
+     "a": "A o B habilita (ten)",
+     "tip": 23,
+     "max": 46,
+     "max_SN74_40_85C": 58
+    },
+    {
+     "de": "OE",
+     "a": "A o B deshabilita (tdis)",
+     "tip": 25,
+     "max": 40,
+     "max_SN74_40_85C": 50
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 45,
+   "rl_ohm": 667,
+   "documento": "TI SN74LS245 (SDLS146B)",
+   "paginas": "5, tabla 7.6",
+   "caminos": [
+    {
+     "de": "A o B",
+     "a": "B o A",
+     "tPLH": {
+      "tip": 8,
+      "max": 12
+     },
+     "tPHL": {
+      "tip": 8,
+      "max": 12
+     }
+    },
+    {
+     "de": "OE",
+     "a": "bajo (tPZL)",
+     "tip": 27,
+     "max": 40
+    },
+    {
+     "de": "OE",
+     "a": "alto (tPZH)",
+     "tip": 25,
+     "max": 40
+    },
+    {
+     "de": "OE",
+     "a": "desde bajo (tPLZ, CL 5 pF)",
+     "tip": 15,
+     "max": 25
+    },
+    {
+     "de": "OE",
+     "a": "desde alto (tPHZ, CL 5 pF)",
+     "tip": 15,
+     "max": 28
+    }
+   ]
+  }
+ }
+}

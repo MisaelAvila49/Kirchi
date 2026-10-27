@@ -24,7 +24,10 @@ describe('compuertas lógicas', () => {
     ['or', 'digitales', 'U', ['A@-6,-2', 'B@-6,2', 'Y@6,0']],
     ['nor', 'digitales', 'U', ['A@-6,-2', 'B@-6,2', 'Y@6,0']],
     ['xor', 'digitales', 'U', ['A@-6,-2', 'B@-6,2', 'Y@6,0']],
-    ['not', 'digitales', 'U', ['A@-6,0', 'Y@6,0']]
+    ['xnor', 'digitales', 'U', ['A@-6,-2', 'B@-6,2', 'Y@6,0']],
+    ['not', 'digitales', 'U', ['A@-6,0', 'Y@6,0']],
+    ['not-schmitt', 'digitales', 'U', ['A@-6,0', 'Y@6,0']],
+    ['buffer-3-estados', 'digitales', 'U', ['A@-6,0', 'OE@-2,-6', 'Y@6,0']]
   ] as const)('%s: categoría %s, prefijo %s y pines', (id, categoria, prefijo, esperados) => {
     const def = lib.get(id)
     expect(def, id).toBeDefined()
@@ -38,14 +41,39 @@ describe('compuertas lógicas', () => {
     ['or', 'or'],
     ['nor', 'nor'],
     ['xor', 'xor'],
+    ['xnor', 'xnor'],
     ['not', 'not'],
-    ['inversor', 'not']
+    ['inversor', 'not'],
+    ['schmitt', 'not-schmitt'],
+    ['74hc14', 'not-schmitt'],
+    ['tres estados', 'buffer-3-estados'],
+    ['74hc125', 'buffer-3-estados']
   ] as const)('el buscador encuentra «%s» primero: %s', (q, id) => {
     expect(primero(q)).toBe(id)
   })
 
+  it('el inversor Schmitt dibuja el inversor y la marca de histéresis dentro del triángulo', () => {
+    const t = trazos('not-schmitt')
+    const nots = trazos('not')
+    expect(t.length).toBe(nots.length + 2)
+    expect(lib.get('not-schmitt')!.modelo).toMatchObject({ funcion: 'not', histeresis: true })
+    const triangulo = caja(nots.filter(cerrado).sort((x, y) => caja(y).maxX - caja(y).minX - (caja(x).maxX - caja(x).minX))[0])
+    const marca = t.filter((s) => !nots.some((n) => JSON.stringify(n) === JSON.stringify(s)))
+    for (const s of marca) for (const [x, y] of s) expect(x > triangulo.minX && x < triangulo.maxX && Math.abs(y) < 1, `(${x}, ${y})`).toBe(true)
+  })
+
+  it('el búfer de tres estados lleva una habilitación activa en bajo con su burbuja en la línea de OE', () => {
+    expect(lib.get('buffer-3-estados')!.modelo).toMatchObject({ funcion: 'buf', habilitacion: 'OE', activo: 'bajo' })
+    // Los trazos cerrados chicos son la burbuja de OE y la marca ▽ de tres estados; la burbuja es la de arriba.
+    const b = burbujas('buffer-3-estados').map(caja).sort((x, y) => x.minY - y.minY)
+    expect(b).toHaveLength(2)
+    expect((b[0].minX + b[0].maxX) / 2).toBeCloseTo(-2, 5)
+    expect(b[0].maxY).toBeLessThan(-2.5)
+    expect(Math.abs((b[1].minY + b[1].maxY) / 2)).toBeLessThan(1)
+  })
+
   it('simulan: ya no dicen «todavía no tiene modelo eléctrico»', () => {
-    const avisos = avisosDe(['and', 'nand', 'or', 'nor', 'xor', 'not', 'biestable-d', 'biestable-jk', 'contador', 'decodificador-7seg', 'estado-logico'])
+    const avisos = avisosDe(['and', 'nand', 'or', 'nor', 'xor', 'xnor', 'not', 'biestable-d', 'biestable-jk', 'contador', 'decodificador-7seg', 'estado-logico'])
     expect(avisos.some((t) => t.includes('modelo eléctrico'))).toBe(false)
   })
 
@@ -78,12 +106,18 @@ describe('compuertas lógicas', () => {
   })
 
   it('las piezas digitales llevan familia y alimentación, sin dibujarlas junto al símbolo', () => {
-    for (const id of ['and', 'nand', 'or', 'nor', 'xor', 'not', 'biestable-d', 'biestable-jk', 'contador', 'decodificador-7seg', 'estado-logico']) {
+    for (const id of ['and', 'nand', 'or', 'nor', 'xor', 'xnor', 'not', 'biestable-d', 'biestable-jk', 'contador', 'decodificador-7seg', 'estado-logico']) {
       const def = lib.get(id)!
       expect(def.props.find((p) => p.id === 'familia')).toMatchObject({ defecto: '74HC', opciones: ['74HC', '74LS', 'CD4000B'] })
       expect(def.props.find((p) => p.id === 'alimentacion')).toMatchObject({ defecto: '5 V' })
       expect(def.props.some((p) => p.mostrar)).toBe(false)
     }
+  })
+
+  it.each(['and', 'nand', 'or', 'nor', 'xor', 'xnor'])('%s: ofrece de 2 a 8 entradas y cada cantidad es una pieza con un pin más', (id) => {
+    expect(lib.get(id)!.props.find((p) => p.id === 'entradas')).toMatchObject({ defecto: '2', opciones: ['2', '3', '4', '5', '6', '7', '8'] })
+    for (let n = 3; n <= 8; n++) expect(lib.get(`${id}-${n}`)!.pines).toHaveLength(n + 1)
+    expect(buscar(id, lib).map((r) => r.def.id).filter((x) => x.startsWith(`${id}-`))).toEqual([])
   })
 
   /** Trazos como listas de puntos [x, y]. */
@@ -100,7 +134,7 @@ describe('compuertas lógicas', () => {
   /** Trazos cerrados chicos (la burbuja): ancho de 1.5 o menos. */
   const burbujas = (id: string) => trazos(id).filter((t) => cerrado(t) && caja(t).maxX - caja(t).minX <= 1.5)
 
-  it.each([['nand', 'and'], ['nor', 'or'], ['not', null]] as const)('%s: la burbuja es un trazo cerrado más que su compuerta simple, entre la punta del cuerpo y el pin Y', (id, simple) => {
+  it.each([['nand', 'and'], ['nor', 'or'], ['xnor', 'xor'], ['not', null]] as const)('%s: la burbuja es un trazo cerrado más que su compuerta simple, entre la punta del cuerpo y el pin Y', (id, simple) => {
     if (simple) expect(trazos(id).length, 'un trazo más').toBe(trazos(simple).length + 1)
     for (const s of ['and', 'or', 'xor']) expect(burbujas(s), s).toHaveLength(0)
     const b = burbujas(id)

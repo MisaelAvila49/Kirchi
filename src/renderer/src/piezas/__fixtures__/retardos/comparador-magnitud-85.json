@@ -1,0 +1,145 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc_max": 4.5,
+   "vcc_tip": 5,
+   "cl_max_pF": 50,
+   "cl_tip_pF": 15,
+   "documento": "TI CD74HC85 (SCHS136F)",
+   "paginas": "6, tabla 5.5",
+   "nota": "típico a 5 V y CL = 15 pF, máximo a 4.5 V y CL = 50 pF. La fila «(A>B) IN to (A=B) OUT» se copia como está impresa",
+   "caminos": [
+    {
+     "de": "An, Bn",
+     "a": "OA>B, OA<B",
+     "tPLH_tPHL": {
+      "tip_5V_15pF": 16,
+      "max_4.5V": 39,
+      "max_85C": 47
+     }
+    },
+    {
+     "de": "An, Bn",
+     "a": "OA=B",
+     "tPLH_tPHL": {
+      "tip_5V_15pF": 14,
+      "max_4.5V": 35,
+      "max_85C": 44
+     }
+    },
+    {
+     "de": "IA>B, IA<B, IA=B",
+     "a": "OA>B, OA<B",
+     "tPLH_tPHL": {
+      "tip_5V_15pF": 11,
+      "max_4.5V": 28,
+      "max_85C": 35
+     }
+    },
+    {
+     "de": "IA>B",
+     "a": "OA=B",
+     "tPLH_tPHL": {
+      "tip_5V_15pF": 9,
+      "max_4.5V": 24,
+      "max_85C": 30
+     }
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS85 (SDLS123)",
+   "paginas": "5, switching characteristics (sin típico donde la hoja no lo da)",
+   "caminos": [
+    {
+     "de": "An o Bn",
+     "a": "OA>B u OA<B, 1 nivel",
+     "tPLH": {
+      "tip": 14,
+      "max": null
+     },
+     "tPHL": {
+      "tip": 11,
+      "max": null
+     }
+    },
+    {
+     "de": "An o Bn",
+     "a": "OA>B u OA<B, 2 niveles",
+     "tPLH": {
+      "tip": 19,
+      "max": null
+     },
+     "tPHL": {
+      "tip": 15,
+      "max": null
+     }
+    },
+    {
+     "de": "An o Bn",
+     "a": "OA>B u OA<B, 3 niveles",
+     "tPLH": {
+      "tip": 24,
+      "max": 36
+     },
+     "tPHL": {
+      "tip": 20,
+      "max": 30
+     }
+    },
+    {
+     "de": "An o Bn",
+     "a": "OA=B, 4 niveles",
+     "tPLH": {
+      "tip": 27,
+      "max": 45
+     },
+     "tPHL": {
+      "tip": 23,
+      "max": 45
+     }
+    },
+    {
+     "de": "IA<B o IA=B",
+     "a": "OA>B",
+     "tPLH": {
+      "tip": 14,
+      "max": 22
+     },
+     "tPHL": {
+      "tip": 11,
+      "max": 17
+     }
+    },
+    {
+     "de": "IA=B",
+     "a": "OA=B",
+     "tPLH": {
+      "tip": 13,
+      "max": 20
+     },
+     "tPHL": {
+      "tip": 13,
+      "max": 26
+     }
+    },
+    {
+     "de": "IA>B o IA=B",
+     "a": "OA<B",
+     "tPLH": {
+      "tip": 14,
+      "max": 22
+     },
+     "tPHL": {
+      "tip": 11,
+      "max": 17
+     }
+    }
+   ]
+  }
+ }
+}

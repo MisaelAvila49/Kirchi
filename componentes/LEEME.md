@@ -123,7 +123,7 @@ Las piezas que SPICE no trae se describen con sus valores nominales; las ecuacio
 
 `comparador` es un comparador de colector abierto (LM393, LM311). Lleva los mismos pines y la misma `modelos` por opción de `prop` que `ampop` (`mas`, `menos`, `sal`, `vmas`, `vmenos`) y, por cada modelo, los nueve parámetros del amplificador más los del transistor de salida: `rbase` (Ω, entre el amplificador y la base) y `is`, `bf`, `rc`, `tf`, `tr`, `cje` y `cjc`. Kirchi lo arma con lo que el motor ya tiene, sin primitivas nuevas: un amplificador de una etapa, una resistencia y un transistor NPN con el colector en `sal` y el emisor en `vmenos`. Con `menos` arriba de `mas` el transistor conduce y la salida baja; al revés la salida queda al aire y la sube la resistencia de carga. La velocidad de respuesta sale del `gbw` (con poca sobreexcitación el retardo crece) y de `sr`. Si lo único que toca la salida no puede subirla (una resistencia hacia tierra, un medidor), la vista previa avisa «U1 es de colector abierto y su salida no tiene resistencia de carga a un voltaje: solo baja, nunca sube.». La medición de la pieza es la del transistor (VCE y corriente de bajada).
 
-`compuesto` es el comparador generalizado: una pieza armada con lo que el motor ya simula, sin primitivas nuevas. Lista `elementos` con sus nodos, que son pines de la pieza o redes de `internas`, y valores que son un número, el nombre de un parámetro del modelo elegido (`prop` con `modelos`, un juego de números por opción) o el id de una propiedad numérica de la pieza (con «-» delante, su opuesto). Un nombre se busca primero entre los parámetros del modelo. Los elementos son `R` (`ohms`), `C` (`farads`), `L` (`henries`), `V` (`volts`, continua), `I` (`amps`), `senoidal` (`amp`, `freq` y `fase` en grados), `D` (`params`: `is`, `n`, `rs`, `bv`, `ibv`, `cjo`, `vj`, `m`, `tt`, `fc`), `Q` (`c`, `b`, `e`, `pnp` y `params` con los nombres de ngspice del transistor) y `OA` (`mas`, `menos`, `sal`, `vmas`, `vmenos` y los nueve `params` del amplificador). `medida` dice de dónde sale la lectura de la pieza: el voltaje entre los pines `mas` y `menos`, la corriente del elemento número `i` (desde 0) y, como potencia, lo que disipan todos sus elementos menos las fuentes. `opcionales` son pines que pueden quedar al aire (los canales sin usar de un ULN2003). Cada pin lo debe usar algún elemento y cada red interna también. La validación rechaza la errata, el nombre que no se resuelve en todas las opciones y los parámetros de SPICE fuera de rango, con la ruta del campo. Los terminales (todos los pines, en su orden) los agrega la validación; no se escriben.
+`compuesto` es el comparador generalizado: una pieza armada con lo que el motor ya simula, sin primitivas nuevas. Lista `elementos` con sus nodos, que son pines de la pieza o redes de `internas`, y valores que son un número, el nombre de un parámetro del modelo elegido (`prop` con `modelos`, un juego de números por opción) o el id de una propiedad numérica de la pieza (con «-» delante, su opuesto). Un nombre se busca primero entre los parámetros del modelo. Los elementos son `R` (`ohms`), `C` (`farads`), `L` (`henries`), `V` (`volts`, continua), `I` (`amps`), `senoidal` (`amp`, `freq` y `fase` en grados), `D` (`params`: `is`, `n`, `rs`, `bv`, `ibv`, `cjo`, `vj`, `m`, `tt`, `fc`), `Q` (`c`, `b`, `e`, `pnp` y `params` con los nombres de ngspice del transistor) y `OA` (`mas`, `menos`, `sal`, `vmas`, `vmenos` y los nueve `params` del amplificador). `medida` dice de dónde sale la lectura de la pieza: el voltaje entre los pines `mas` y `menos`, la corriente del elemento número `i` (desde 0) y, como potencia, lo que disipan todos sus elementos menos las fuentes. `opcionales` son pines que pueden quedar al aire (los canales sin usar de un ULN2003). Cada pin lo debe usar algún elemento y cada red interna también. Un elemento `R`, `C`, `L`, `D` o `I` cuyos dos nodos caen en la misma red del circuito (la entrada de un amplificador unida a tierra, una punta unida a su pinza) no hace nada y se omite. La validación rechaza la errata, el nombre que no se resuelve en todas las opciones y los parámetros de SPICE fuera de rango, con la ruta del campo. Los terminales (todos los pines, en su orden) los agrega la validación; no se escriben.
 
 ```json
 "modelo": {
@@ -176,9 +176,15 @@ En un compuesto, un transistor con capacitancias de unión (`cje`, `cjc`, `tf`, 
 
 Las piezas digitales llevan dos propiedades de lista: `familia` (una de las de `componentes/familias-logicas.json`: 74HC, 74LS o CD4000B) y `alimentacion` (su voltaje, como «5 V»). La alimentación es implícita: no hay pines de VCC ni GND y la pieza no toma corriente del circuito. Los umbrales, los niveles, los retardos y las resistencias de salida salen de la familia a esa alimentación (`netlist/familias.ts`); se editan en `familias-logicas.json`, con un punto por alimentación de la hoja de datos.
 
-`compuerta` lleva `funcion` (not, and, or, nand, nor o xor), los pines `entradas` (uno en NOT y dos en las demás) y `salida`.
+`compuerta` lleva `funcion` (not, and, or, nand, nor, xor o xnor), los pines `entradas` (uno en NOT y dos en las demás) y `salida`. XOR y XNOR de varias entradas son la paridad.
 
     "modelo": { "tipo": "compuerta", "funcion": "nand", "entradas": ["A", "B"], "salida": "Y", "familia": "familia", "alimentacion": "alimentacion" }
+
+Una compuerta de dos entradas ofrece de 2 a 8 con `"entradas": { "max": 8 }` en el `pieza.json`, una propiedad de lista `entradas` (opciones de 2 a `max`, «2» por omisión) y un `simbolo-<n>.svg` por cada cantidad de 3 a `max`. La librería arma una pieza oculta por cantidad (`and-3`, `and-4`…) con los pines A, B, C… en una columna centrada de 5 mm en 5 mm y la salida Y donde la de dos entradas; cambiar la propiedad en el inspector cambia de pieza y lleva los cables de los pines que siguen. Un archivo sin la propiedad tiene dos entradas.
+
+Una NOT con `"histeresis": true` en el modelo es un inversor Schmitt: su entrada sube a 1 al pasar `vt_pos` y baja a 0 al bajar de `vt_neg`, sin zona indefinida entre los dos. Los dos umbrales salen de `entrada.schmitt` de la familia en `familias-logicas.json`, con un punto por alimentación (interpolados en línea recta), y una familia sin ellos no simula la pieza. En una red solo digital el nivel ya es 0 o 1 y la histéresis no interviene.
+
+Una compuerta con `"habilitacion"` (un pin) y `"activo"` (`"bajo"` o `"alto"`) es de tres estados: con la habilitación fuera de su nivel activo la salida queda en Z y con X lee X. Su función puede ser cualquiera, también `buf` (un búfer de una entrada). Las salidas de tres estados son las únicas que pueden compartir red, y la red toma el nivel que resuelven: 0 con Z es 0, 1 con Z es 1, Z con Z es Z y 0 con 1 es X, con un aviso en el Registro («Conflicto en el bus: dos salidas manejan la red N a niveles distintos»), una vez por red. Sobre una red analógica cada salida lleva su puente y lo suelta mientras está en Z.
 
 `biestable-d` (flanco de subida) y `biestable-jk` (flanco de bajada) llevan sus pines por nombre: `d` o `j` y `k`, `clk`, `pre` y `clr` (activos en bajo), `q` y `qn`. `contador` lleva `clk`, `rst` (activo en alto), `q` (Q0 a Q3), `co` y `hasta`, la propiedad de lista con «9» o «15». `decodificador` lleva `entradas` (A a D, A el bit menos significativo), `salidas` (a a g), `polaridad` (la propiedad de lista) y `bajo` (su opción de salidas activas en bajo). `estado-logico` lleva su pin `salida` y `prop`, la propiedad de lista con «0» y «1».
 
@@ -218,6 +224,8 @@ Los rótulos no cuentan como cuerpo para las colisiones, pero la referencia y el
 
 `mostrar: true` en una propiedad de lista (con `opciones`) hace que la opción elegida se dibuje como valor de la pieza cuando esta no tiene una propiedad numérica. Hoy lo llevan `modelo` de `npn`, `pnp`, `mosfet-n`, `mosfet-p`, `amp-op` y `temporizador-555`.
 
+Una propiedad de lista con id `junto` (Nada, Ajuste, Resistencia, Ambos; en el LM35 y el TMP36, Nada y Ajuste) elige qué se escribe tras el valor en el lienzo: la posición del cursor y sus dos tramos en el potenciómetro, la temperatura o la luz y la resistencia en el termistor y la fotorresistencia. Con `omitir`, un circuito que no la cambia no la guarda.
+
 ## Convención de `simbolo.svg`
 
 El `viewBox` usa las mismas unidades que los pines (rejilla fina), con el origen en el centro de la pieza. El elemento raíz lleva `fill="none" stroke="currentColor"`, de modo que todo se traza y nada se rellena. Un elemento con `fill="currentColor"` se rellena (por ejemplo el triángulo del diodo). Los valores `none`, `transparent` y vacío cuentan como ausencia de color.
@@ -248,6 +256,7 @@ La propiedad `amplitud` de `fuente-ac` es el valor de pico, no el eficaz: eficaz
 - `{ "tipo": "contacto", "manda": "operado" }` (solo el relé): elige entre las capas `estado-reposo` y `estado-operado` según la lectura del relé, con un recorrido de 60 ms. Las dos capas deben tener los mismos trazos con el mismo número de puntos (el recorrido los interpola). El interruptor y el botón no la usan: se dibujan con `accionado.svg`, y una pieza no puede traer las dos cosas.
 - `{ "tipo": "cursor", "prop": "posicion", "desde": -2.5, "hasta": 2.5, "codo": -3 }`: la capa `cursor` se corre en x de `desde` (0 %) a `hasta` (100 %) según la propiedad de la posición del potenciómetro; lo que está arriba de `codo` (y) no se mueve y donde la línea lo cruza se agrega un tramo horizontal. Al 50 % el dibujo es el de siempre. Se ve igual al editar, al simular y al exportar.
 - `{ "tipo": "sonido", "frecuencia": "frecuencia", "onda": "triangular" }`: el tono del zumbador mientras suena; `frecuencia` es una propiedad numérica en Hz y `onda` es `triangular`, `senoidal` o `cuadrada`.
+- `{ "tipo": "luces", "luces": [{ "elemento": 9, "x": 2, "y": -2, "color": "rojo" }] }` (solo piezas `compuesto`): luces sueltas en el símbolo. Cada una brilla como un LED con la corriente media del diodo `elemento` (índice de `modelo.elementos`, desde 0) y se dibuja en el punto (`x`, `y`) del símbolo, que son enteros pares, con el color rojo, verde, azul, amarillo o blanco. Como un LED, queda quieta si conmuta más rápido de lo que se ve sin destellar.
 
 Las capas son grupos del `simbolo.svg` con `data-capa` (minúsculas con guiones, sin capas dentro de capas ni repetidas):
 
@@ -301,3 +310,46 @@ Un transistor, un MOSFET o un amplificador puede llevar en el documento sus prop
 ```
 
 Una propiedad con `"omitir": true` no se escribe en el documento al colocar la pieza: la pieza toma su `defecto` hasta que se cambia, y un `.kir` de antes que no la trae se guarda con los mismos bytes.
+
+## Datos físicos
+
+La clave `datos` de `pieza.json` dice cómo es la pieza real: encapsulado, número de cada patilla, huella, hoja de datos y nombre en otros programas. Sus claves están cerradas en todos los niveles, igual que las del resto del archivo: una errata se rechaza y sugiere la clave parecida.
+
+```json
+"datos": {
+  "por": "modelo",
+  "equivalencias": { "kicad": "Device:Q_NPN_EBC", "ltspice": "npn", "falstad": "t" },
+  "valores": {
+    "2N3904": {
+      "fabricante": "onsemi",
+      "parte": "2N3904BU",
+      "hoja": "https://www.onsemi.com/pdf/datasheet/2n3904-d.pdf",
+      "presentaciones": [ { "encapsulado": "TO-92", "patillas": { "E": "1", "B": "2", "C": "3" }, "lcsc": { "numero": "C2150", "comprobado": "2026-10-28" } } ],
+      "comprobado": { "fecha": "2026-10-28", "fuente": "onsemi 2N3904/D, dibujo TO-92; cotejado con el símbolo de KiCad 9" }
+    }
+  }
+}
+```
+
+`por` es la propiedad de lista (o dos, como `["familia", "entradas"]`) que elige la fila; las llaves de `valores` son sus opciones, unidas con `|` si son dos. Sin `por`, la única fila va en la llave `*`. No hace falta una fila por opción para que la pieza cargue, pero la librería incluida las pide todas.
+
+Cada fila lleva:
+
+- `presentaciones`: la forma física, la primera es la de omisión. `encapsulado` es un id de `componentes/encapsulados.json`; `patillas` va del id de cada pin del símbolo a su patilla (un texto, o una lista si el pin toca varias); `alimentacion` pone las redes implícitas de un chip (`{ "VCC": "14", "GND": "7" }`); `sinModelo` nombra las patillas que el modelo no usa (`"5": "NC"`); `unidades` da cada sección de un chip doble o cuádruple, y la primera debe coincidir con `patillas`. `huella` es un id de KiCad «Biblioteca:Nombre» (sin ella vale la del encapsulado), `lcsc` el número de LCSC con su fecha de `comprobado` o con `sinVerificar: true`, y `protoboard` el arte y la separación en huecos.
+- `fabricante`, `parte` y `hoja` (siempre `https` y del fabricante, nunca un agregador).
+- `equivalencias`: el nombre de la pieza en `kicad`, `ltspice`, `falstad`, `proteus` y `fritzing`; los que no se confirmaron con el programa o su documentación se listan en `sinVerificar`.
+- `comprobado`: fecha y fuente exacta (documento, revisión, página y figura).
+
+Reglas que el validador comprueba: una patilla física aparece una sola vez; en un encapsulado numerado la unión de patillas, alimentación, patillas sin modelo y unidades distintas de la primera cubre de 1 a N exactamente; todos los pines del símbolo tienen patilla; las unidades mapean los mismos pines. Las compuertas de 3 a 8 entradas heredan los datos de la de dos, y la fila `familia|n` se comprueba contra los pines de la pieza de n entradas.
+
+El número de patilla vive en la presentación y no en `pines[]` porque cambia con el modelo, la familia y el encapsulado, mientras que el id del pin es el que usan los circuitos guardados. Cuando la hoja de datos no numera las terminales (LED, diodo, capacitor polarizado), el número es el del pad de la huella de KiCad, y `comprobado.fuente` lo dice.
+
+Lo que no se pudo verificar se marca y nunca se inventa:
+
+- `pendiente`: campo → por qué falta (`"lcsc": "depende del valor"`). `pendiente.patillas` exime de cubrir todos los pines.
+- `sinVerificar`: en `equivalencias` y en `lcsc`, un nombre o número que no se confirmó.
+- `aproximada`: en qué difiere el chip real del modelo.
+- `representativa`: presentación típica que no fija el valor (el electrolítico de 100 µF).
+- `virtual`: la pieza no existe físicamente (fuentes ideales, instrumentos, tierra, «Ideal»); no lleva presentaciones, parte ni hoja.
+
+Los nombres de huellas y símbolos son los de KiCad 9.0. Los números de patilla, de parte y de LCSC son hechos, no obras, y se guardan como tales. No se copian descripciones, imágenes ni tablas de LCSC. La biblioteca de KiCad es CC-BY-SA 4.0 con excepción para diseños y Kirchi no incluye ningún archivo suyo, solo nombres; lo mismo vale para los nombres de Falstad, Fritzing y Proteus. Las hojas de datos solo se enlazan, nunca se empaquetan.

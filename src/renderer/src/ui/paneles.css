@@ -89,6 +89,21 @@
 .panel-mediciones .entrada.fila-medida { flex-direction: column; align-items: stretch; gap: 4px; padding: 5px 6px; }
 .fila-cabeza { display: flex; align-items: center; gap: 7px; }
 .fila-ref { font: 600 12px var(--fuente-cifras); }
+/* Lógica y convertidores: cifra grande, formas, bits con nombre y nivel (no solo color) y renglones rotulados. */
+.panel-mediciones .entrada.fila-logica { flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 6px; }
+.fila-logica .fila-cabeza { flex-wrap: wrap; row-gap: 2px; }
+.logica-titulo { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+.logica-rotulo { margin-left: auto; font-size: 11px; font-weight: 400; }
+.pastilla-estado { margin-left: auto; padding: 0 8px; border-radius: 999px; background: var(--t-suave, var(--resalte)); color: var(--t-texto, var(--trazo)); font: 600 11px var(--fuente-cifras); line-height: 18px; }
+.logica-cifra { font-size: 26px; font-weight: 600; line-height: 1.1; }
+.logica-formas { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; }
+.logica-bits { display: flex; flex-wrap: wrap; gap: 3px; margin: 2px 0; }
+.logica-bit { min-width: 28px; padding: 2px 3px 1px; border-radius: 5px; background: var(--m-suave, var(--t-suave)); color: var(--m-texto, var(--t-texto)); font: 600 12px var(--fuente-cifras); line-height: 1.2; text-align: center; }
+.logica-bit small { display: block; font-size: 10px; font-weight: 400; line-height: 1.1; }
+.logica-renglones { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 2px 0 0; font-size: 12px; }
+.logica-renglones dt { color: var(--texto-secundario); }
+.logica-renglones dd { margin: 0; text-align: right; font-size: 11.5px; overflow-wrap: anywhere; }
+@media (forced-colors: active) { .logica-bit { forced-color-adjust: none; border: 1px solid CanvasText; background: Canvas; color: CanvasText; } }
 /* Las fichas no se parten ni se recortan: la que no cabe en el renglón pasa al de abajo («25.0 mW (entrega)»). */
 .mini-lecturas { display: flex; flex-wrap: wrap; gap: 3px; }
 .mini-lecturas span { flex: 1 0 auto; min-width: 52px; padding: 1px 4px; border-radius: 4px; background: var(--resalte); font-size: 10.5px; line-height: 16px; text-align: center; white-space: nowrap; }
@@ -236,6 +251,7 @@
 .aviso-grabacion { position: fixed; left: 50%; bottom: 44px; z-index: 35; display: flex; align-items: center; gap: 8px; max-width: min(640px, calc(100vw - 32px)); padding: 8px 10px 8px 14px; transform: translateX(-50%); background: var(--paneles); color: var(--trazo); border: 1px solid var(--bordes); border-radius: 10px; box-shadow: var(--sombra); font: 12.5px/1.3 var(--fuente-interfaz); }
 .aviso-grabacion .aviso-texto { flex: 1 1 auto; min-width: 0; }
 .aviso-grabacion.aviso-error { border-color: var(--invalido); }
+.aviso-grabacion.aviso-disco { bottom: 92px; }
 @media (prefers-reduced-motion: no-preference) {
   .aviso-grabacion { animation: aviso-grabacion-entra 160ms ease-out; }
 }

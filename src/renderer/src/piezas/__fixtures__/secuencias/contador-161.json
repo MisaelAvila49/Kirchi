@@ -1,0 +1,227 @@
+{
+ "fuente": {
+  "familias": [
+   "74HC",
+   "74LS"
+  ],
+  "documentos": [
+   {
+    "familia": "74HC",
+    "documento": "TI SN54HC161/SN74HC161, SCLS297D",
+    "revision": "sep 2003",
+    "pagina": 5,
+    "figura": "'typical clear, preset, count, and inhibit sequence' (sin número)"
+   },
+   {
+    "familia": "74LS",
+    "documento": "TI SN54/74LS160A a LS163A y '161/'163, SDLS060",
+    "revision": "mar 1988",
+    "pagina": 11,
+    "figura": "'typical clear, preset, count, and inhibit sequences' ('161, 'LS161A, '163, 'LS163A, 'S163 BINARY COUNTERS)"
+   }
+  ],
+  "lectura": "Los tiempos salen de medir la figura sobre una rejilla de un período de reloj; la hoja no da escala de tiempo. Error de lectura estimado: 0.1 período."
+ },
+ "escala": "t en períodos de reloj. El reloj sube en cada entero de 'subidas' y baja en 'bajadas'. Elegir el período mayor que 10 veces el retardo máximo de la hoja (por ejemplo 1 us a 4.5 V).",
+ "relojes": [
+  {
+   "senal": "CLK",
+   "inicial": 1,
+   "bajadas": [
+    -0.5,
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5,
+    6.5,
+    7.5,
+    8.5,
+    9.5,
+    10.5,
+    11.5,
+    12.5
+   ],
+   "subidas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
+  }
+ ],
+ "inicial": {
+  "CLR": 1,
+  "LOAD": 1,
+  "A": 0,
+  "B": 0,
+  "C": 0,
+  "D": 0,
+  "ENP": 0,
+  "ENT": 0
+ },
+ "pasos": [
+  {
+   "t": -1.5,
+   "entradas": {
+    "C": 1,
+    "D": 1
+   }
+  },
+  {
+   "t": -0.75,
+   "entradas": {
+    "CLR": 0
+   }
+  },
+  {
+   "t": 0.25,
+   "entradas": {
+    "CLR": 1
+   }
+  },
+  {
+   "t": 0.5,
+   "entradas": {
+    "LOAD": 0
+   }
+  },
+  {
+   "t": 1.25,
+   "entradas": {
+    "LOAD": 1,
+    "ENP": 1,
+    "ENT": 1
+   }
+  },
+  {
+   "t": 7.25,
+   "entradas": {
+    "ENP": 0
+   }
+  },
+  {
+   "t": 10.25,
+   "entradas": {
+    "ENP": 1,
+    "ENT": 0
+   }
+  }
+ ],
+ "salidas_codificadas": "cuenta = QD*8 + QC*4 + QB*2 + QA",
+ "muestras": [
+  {
+   "t": -0.4,
+   "salidas": {
+    "cuenta": 0,
+    "RCO": 0
+   },
+   "origen": "texto de la descripción (borrado asíncrono): la figura dibuja aquí la banda de dos niveles común al '161 y al '163",
+   "solo": [
+    "161"
+   ]
+  },
+  {
+   "t": 0.4,
+   "salidas": {
+    "cuenta": 0,
+    "RCO": 0
+   },
+   "origen": "figura: 'Sync Clear' (CLR bajo en el flanco 0)"
+  },
+  {
+   "t": 1.4,
+   "salidas": {
+    "cuenta": 12,
+    "RCO": 0
+   },
+   "origen": "figura: 'Preset' a 12 en el flanco 1 (LOAD bajo, C y D en alto, A y B en bajo)"
+  },
+  {
+   "t": 2.4,
+   "salidas": {
+    "cuenta": 13,
+    "RCO": 0
+   },
+   "origen": "figura, etiqueta 13"
+  },
+  {
+   "t": 3.4,
+   "salidas": {
+    "cuenta": 14,
+    "RCO": 0
+   },
+   "origen": "figura, etiqueta 14"
+  },
+  {
+   "t": 4.4,
+   "salidas": {
+    "cuenta": 15,
+    "RCO": 1
+   },
+   "origen": "figura, etiqueta 15 y pulso de RCO"
+  },
+  {
+   "t": 5.4,
+   "salidas": {
+    "cuenta": 0,
+    "RCO": 0
+   },
+   "origen": "figura, etiqueta 0"
+  },
+  {
+   "t": 6.4,
+   "salidas": {
+    "cuenta": 1,
+    "RCO": 0
+   },
+   "origen": "figura, etiqueta 1"
+  },
+  {
+   "t": 7.4,
+   "salidas": {
+    "cuenta": 2,
+    "RCO": 0
+   },
+   "origen": "figura, etiqueta 2"
+  },
+  {
+   "t": 8.4,
+   "salidas": {
+    "cuenta": 2,
+    "RCO": 0
+   },
+   "origen": "figura, 'Inhibit' (ENP bajo)"
+  },
+  {
+   "t": 10.4,
+   "salidas": {
+    "cuenta": 2,
+    "RCO": 0
+   },
+   "origen": "figura, ENP vuelve a alto con ENT bajo"
+  },
+  {
+   "t": 12.4,
+   "salidas": {
+    "cuenta": 2,
+    "RCO": 0
+   },
+   "origen": "figura, ENT bajo"
+  }
+ ],
+ "notas": [
+  "Entre -0.75 y 0.25 el '161 ya está en 0 y el '163 llega a 0 en el flanco 0, el 'Sync Clear' de la figura. En el '163 (SCLS298D p. 5, SDLS060 p. 11) no hay muestra en -0.4: el borrado es síncrono.",
+  "Los datos A a D quedan 'no importa' después de t = 1.5 (la figura los dibuja con líneas punteadas)."
+ ]
+}

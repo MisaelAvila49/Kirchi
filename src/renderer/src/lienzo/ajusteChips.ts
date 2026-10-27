@@ -1,14 +1,18 @@
-import { clavePin, type Conexiones, type Red } from '../conexiones/conexiones'
-import type { Punto } from '../doc/tipos'
+import { clavePin, partirClavePin, type Conexiones, type Red } from '../conexiones/conexiones'
+import type { Documento, Punto } from '../doc/tipos'
 import type { Golpe } from '../editor/indice'
-import type { Caja } from '../piezas/tipos'
+import { pinesEnMundo } from '../piezas/transformar'
+import type { Caja, PiezaDef } from '../piezas/tipos'
 import { cajaTexto } from './apartar'
 import type { Texto } from './etiquetas'
 import { CHIP_ALTO, CHIP_PAD_X } from './texto'
 
-/** Cuánto puede mover el lector un chip de voltaje: a lo más 8 unidades (10 mm) de su lugar calculado, sin que deje de
- * leerse como el voltaje de su red. Solo vive en la sesión. */
+/** Cuánto puede alejarse el lector un chip de voltaje de su red: a lo más 8 unidades (10 mm) del punto más cercano de
+ * sus cables o pines, para que no deje de leerse como el voltaje de esa red. Dentro de ese alcance lo lleva a donde quiera,
+ * a lo largo de toda la red. Solo vive en la sesión. */
 export const DESPLAZO_MAX_CHIP = 8
+/** Tope de cordura del desplazo guardado, en unidades: el alcance real lo da `acotarAlAlcance` al dibujar. */
+const DESPLAZO_TOPE = 4000
 
 export interface Desplazo {
   dx: number
@@ -17,19 +21,51 @@ export interface Desplazo {
 /** Desplazos por red (llave de `claveDeRedChip`), compartidos por el reparto y el arrastre. */
 export type Desplazos = Map<string, Desplazo>
 
-/** Acota el desplazo a un círculo de `DESPLAZO_MAX_CHIP` de radio; lo que no es número vale cero. */
+/** Sanea un desplazo: lo que no es número vale cero y lo absurdamente grande se recorta al tope. */
 export function limitarDesplazo(dx: number, dy: number): Desplazo {
   const x = Number.isFinite(dx) ? dx : 0, y = Number.isFinite(dy) ? dy : 0
   const largo = Math.hypot(x, y)
-  if (largo <= DESPLAZO_MAX_CHIP) return { dx: x, dy: y }
-  const k = DESPLAZO_MAX_CHIP / largo
+  if (largo <= DESPLAZO_TOPE) return { dx: x, dy: y }
+  const k = DESPLAZO_TOPE / largo
   return { dx: x * k, dy: y * k }
 }
 
-/** Desplazo de un chip al soltar: el que tenía (`base`, desde su lugar calculado) más lo que se movió el puntero, acotado
- * al radio. Siempre se cuenta desde el lugar calculado, así que se puede arrastrar sin límite sin salir del área. */
+/** Desplazo de un chip al soltar: el que tenía (`base`, desde su lugar calculado) más lo que se movió el puntero. Siempre
+ * se cuenta desde el lugar calculado; el alcance de la red se aplica al dibujar. */
 export function desplazoTrasArrastre(base: Desplazo, inicio: Punto, ahora: Punto): Desplazo {
   return limitarDesplazo(base.dx + ahora.x - inicio.x, base.dy + ahora.y - inicio.y)
+}
+
+/** Lleva (x, y) a lo más a `DESPLAZO_MAX_CHIP` de la red: de sus tramos de cable y de sus pines. Dentro del alcance no lo mueve. */
+export function acotarAlAlcance(doc: Documento, lib: Map<string, PiezaDef>, r: Pick<Red, 'pines' | 'cables'>, x: number, y: number): Punto {
+  let mejor = Infinity, mx = x, my = y
+  const prueba = (ax: number, ay: number, bx: number, by: number) => {
+    const vx = bx - ax, vy = by - ay
+    const l2 = vx * vx + vy * vy
+    const t = l2 === 0 ? 0 : Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / l2))
+    const px = ax + t * vx, py = ay + t * vy
+    const d = Math.hypot(x - px, y - py)
+    if (d < mejor) {
+      mejor = d
+      mx = px
+      my = py
+    }
+  }
+  for (const id of r.cables) {
+    const pts = doc.cables[id]?.puntos ?? []
+    if (pts.length === 1) prueba(pts[0].x, pts[0].y, pts[0].x, pts[0].y)
+    for (let i = 1; i < pts.length; i++) prueba(pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y)
+  }
+  for (const clave of r.pines) {
+    const { piezaId, pinId } = partirClavePin(clave)
+    const p = doc.piezas[piezaId]
+    const def = p ? lib.get(p.tipo) : undefined
+    const q = p && def ? pinesEnMundo(p, def).find((u) => u.id === pinId) : undefined
+    if (q) prueba(q.x, q.y, q.x, q.y)
+  }
+  if (mejor <= DESPLAZO_MAX_CHIP) return { x, y }
+  const k = DESPLAZO_MAX_CHIP / mejor
+  return { x: mx + (x - mx) * k, y: my + (y - my) * k }
 }
 
 /** Llave de una red estable en la sesión: el menor de sus pines («piezaId:pinId») o, sin pines, el menor de sus cables. El

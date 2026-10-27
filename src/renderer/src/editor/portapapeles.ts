@@ -2,8 +2,9 @@ import { crear, juntar, modificar, type Comando } from '../doc/comandos'
 import { ordenesAlFrente, porOrden } from '../doc/figuras'
 import type { GeneradorId } from '../doc/ids'
 import type { Cable, Documento, Etiqueta, Figura, Nota, Pieza, Punto, Sonda } from '../doc/tipos'
+import { paqueteDe, refDe } from '../doc/paquetes'
 import { siguienteReferenciaMedidor } from '../doc/referencias'
-import { esDeInstrumento } from '../doc/sondas'
+import { esDeInstrumento, sondaDeEntrada } from '../doc/sondas'
 import { enTramo } from '../conexiones/anclas'
 import { pinesEnMundo } from '../piezas/transformar'
 import type { PiezaDef } from '../piezas/tipos'
@@ -18,7 +19,7 @@ export interface Fragmento {
   etiquetas: Etiqueta[]
   notas: Nota[]
   figuras: Figura[]
-  /** Sondas que viajan: las de un instrumento en la selección y las de voltaje o corriente seleccionadas, solo si lo que
+  /** Sondas que viajan: las de un instrumento (en la selección o no) y las de voltaje, corriente o medidor, si lo que
    * tocan va también. Opcional: un fragmento viejo no las trae. */
   sondas?: Sonda[]
 }
@@ -26,7 +27,8 @@ export interface Fragmento {
 const abajo = (v: number) => Math.floor(v / PASO_REJILLA) * PASO_REJILLA + 0
 
 /** Sondas del documento que van con lo seleccionado, si su punto cae sobre un cable, etiqueta o pin (con `lib`) que
- * también va: una sonda sobre algo que se queda no mediría nada en la copia. */
+ * también va: una sonda sobre algo que se queda no mediría nada en la copia. Una de instrumento cuyo instrumento no va
+ * también viaja: al pegar se intenta unirla al original. */
 function sondasQueViajan(doc: Documento, sel: Seleccion, piezas: Pieza[], cables: Cable[], etiquetas: Etiqueta[], lib?: Map<string, PiezaDef>): Sonda[] {
   const todas = Object.values(doc.sondas ?? {})
   if (todas.length === 0) return []
@@ -34,7 +36,7 @@ function sondasQueViajan(doc: Documento, sel: Seleccion, piezas: Pieza[], cables
   if (lib) for (const p of piezas) { const def = lib.get(p.tipo); if (def) for (const q of pinesEnMundo(p, def)) pines.add(`${q.x},${q.y}`) }
   const toca = (s: Sonda) =>
     pines.has(`${s.x},${s.y}`) || etiquetas.some((e) => e.x === s.x && e.y === s.y) || cables.some((c) => c.puntos.some((q, i) => i > 0 && enTramo(c.puntos[i - 1], q, s.x, s.y)))
-  return todas.filter((s) => (esDeInstrumento(s) ? sel.piezas.has(s.instrumento) : sel.sondas.has(s.id)) && toca(s))
+  return todas.filter((s) => (!esDeInstrumento(s) || doc.piezas[s.instrumento] !== undefined) && toca(s))
 }
 
 export function copiar(doc: Documento, sel: Seleccion, lib?: Map<string, PiezaDef>): Fragmento | null {
@@ -68,8 +70,11 @@ export function copiar(doc: Documento, sel: Seleccion, lib?: Map<string, PiezaDe
 function mayoresPorPrefijo(doc: Documento): Map<string, number> {
   const max = new Map<string, number>()
   for (const p of Object.values(doc.piezas)) {
-    const m = /^(.*?)(\d+)$/.exec(p.ref)
-    if (m) max.set(m[1], Math.max(max.get(m[1]) ?? 0, Number(m[2])))
+    // El paquete de una unidad (U1 de U1B) también ocupa su número.
+    for (const t of [p.ref, p.props.paquete]) {
+      const m = t === undefined ? null : /^(.*?)(\d+)$/.exec(t)
+      if (m) max.set(m[1], Math.max(max.get(m[1]) ?? 0, Number(m[2])))
+    }
   }
   return max
 }
@@ -101,23 +106,36 @@ function renombresDeRedes(doc: Documento, f: Fragmento): Map<string, string> {
 
 /** `renombrarRedes`: plantillas y circuitos generados traen redes con nombre (Entrada, Salida) que no deben unirse al
  * colocarlos dos veces. Copiar y pegar a mano conserva los nombres (unir redes a propósito). */
-export function pegar(doc: Documento, lib: Map<string, PiezaDef>, f: Fragmento, en: Punto, gen: GeneradorId, renombrarRedes = false): { cmd: Comando; seleccion: Seleccion; renombradas: [string, string][] } {
+export function pegar(doc: Documento, lib: Map<string, PiezaDef>, f: Fragmento, en: Punto, gen: GeneradorId, renombrarRedes = false): { cmd: Comando; seleccion: Seleccion; renombradas: [string, string][]; sinCanal: number } {
   const renombres = renombrarRedes ? renombresDeRedes(doc, f) : new Map<string, string>()
   const cmds: Comando[] = []
   const seleccion = seleccionVacia()
   // Un solo recorrido del documento: el mayor número usado por prefijo; luego se cuenta hacia arriba.
   const siguiente = mayoresPorPrefijo(doc)
   const nuevoId = new Map<string, string>()
+  // Las unidades de un mismo paquete van juntas a un paquete nuevo y conservan sus letras.
+  const paquetes = new Map<string, string>()
   for (const p of f.piezas) {
     // Como Proteus: la referencia sigue con su propio prefijo (una cambiada a mano, RL1, da RL2); sin número, el de la pieza.
     const prefijo = /^(\D+)\d+$/.exec(p.ref)?.[1] ?? lib.get(p.tipo)?.prefijo
     let ref = p.ref
-    if (prefijo) {
+    const pq = paqueteDe(p)
+    if (pq) {
+      let nuevo = paquetes.get(pq.paquete)
+      if (!nuevo) {
+        const pref = /^(\D+)\d+$/.exec(pq.paquete)?.[1] ?? lib.get(p.tipo)?.prefijo ?? 'U'
+        const n = (siguiente.get(pref) ?? 0) + 1
+        siguiente.set(pref, n)
+        nuevo = `${pref}${n}`
+        paquetes.set(pq.paquete, nuevo)
+      }
+      ref = refDe(nuevo, pq.unidad)
+    } else if (prefijo) {
       const n = (siguiente.get(prefijo) ?? 0) + 1
       siguiente.set(prefijo, n)
       ref = `${prefijo}${n}`
     }
-    const nueva: Pieza = { ...p, id: gen('p'), x: p.x + en.x, y: p.y + en.y, props: { ...p.props }, ref }
+    const nueva: Pieza = { ...p, id: gen('p'), x: p.x + en.x, y: p.y + en.y, props: { ...p.props, ...(pq ? { paquete: paquetes.get(pq.paquete)! } : {}) }, ref }
     nuevoId.set(p.id, nueva.id)
     cmds.push(crear('pegar', 'piezas', nueva))
     seleccion.piezas.add(nueva.id)
@@ -137,11 +155,17 @@ export function pegar(doc: Documento, lib: Map<string, PiezaDef>, f: Fragmento, 
     cmds.push(crear('pegar', 'notas', nueva))
     seleccion.notas.add(nueva.id)
   }
-  // Las sondas de un instrumento pegado miden en la copia: apuntan al instrumento nuevo (sin él, no se pegan).
+  // Las sondas de un instrumento pegado miden en la copia. Si el instrumento no se pegó, la copia se une al original solo
+  // si su canal está libre; si no, se descarta y se cuenta.
   const pegadas: Record<string, Sonda> = {}
+  let sinCanal = 0
   for (const s of f.sondas ?? []) {
-    const instrumento = s.instrumento === undefined ? undefined : nuevoId.get(s.instrumento)
-    if (esDeInstrumento(s) && instrumento === undefined) continue
+    let instrumento = s.instrumento === undefined ? undefined : nuevoId.get(s.instrumento)
+    if (esDeInstrumento(s) && instrumento === undefined) {
+      const libre = doc.piezas[s.instrumento] !== undefined && !sondaDeEntrada(doc, s.instrumento, s.entrada) && !Object.values(pegadas).some((q) => q.instrumento === s.instrumento && q.entrada === s.entrada)
+      if (!libre) { sinCanal++; continue }
+      instrumento = s.instrumento
+    }
     const nueva: Sonda = { ...s, id: gen('s'), x: s.x + en.x, y: s.y + en.y, ...(instrumento !== undefined ? { instrumento } : {}) }
     // La referencia de un medidor no se repite: la copia toma la siguiente libre (contando las que ya se pegaron).
     if (nueva.tipo === 'medidor') nueva.ref = siguienteReferenciaMedidor({ ...doc, sondas: { ...doc.sondas, ...pegadas } })
@@ -159,7 +183,7 @@ export function pegar(doc: Documento, lib: Map<string, PiezaDef>, f: Fragmento, 
     cmds.push(crear('pegar', 'figuras', nueva))
     seleccion.figuras.add(nueva.id)
   }
-  return { cmd: juntar('pegar', cmds), seleccion, renombradas: [...renombres].map(([k, nuevo]) => [f.etiquetas.find((e) => claveDeNombre(e.nombre) === k)!.nombre, nuevo] as [string, string]) }
+  return { sinCanal, cmd: juntar('pegar', cmds), seleccion, renombradas: [...renombres].map(([k, nuevo]) => [f.etiquetas.find((e) => claveDeNombre(e.nombre) === k)!.nombre, nuevo] as [string, string]) }
 }
 
 export function duplicar(doc: Documento, lib: Map<string, PiezaDef>, sel: Seleccion, gen: GeneradorId): { cmd: Comando; seleccion: Seleccion } | null {

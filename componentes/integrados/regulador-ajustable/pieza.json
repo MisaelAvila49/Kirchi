@@ -68,5 +68,28 @@
   ],
   "fuentes": {
       "LM317": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments LM317, SLVS044Z (sep 1997, rev. abr 2025), https://www.ti.com/lit/ds/symlink/lm317.pdf: referencia de 1.25 V típica entre OUT y ADJ (1.2 a 1.3 V), corriente de ajuste de 50 µA típica (100 µA máx), regulación de carga de 0.1 % típica (0.5 % máx), de línea de 0.01 %/V típica, carga mínima de 3.5 mA típica (10 mA máx) y límite de corriente de 2.2 A típico (1.5 A mín). La caída de entrada sale de una curva de la hoja (figura 6-18) que no se leyó: se usaron los 2.0 V del 7805. El amplificador va entre IN y ADJ, la corriente de ajuste sale de IN hacia ADJ y una resistencia entre IN y OUT da la corriente en reposo (3.5 mA con 10 V): con menos carga que esa la salida sube, como en un LM317 real. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador de una etapa con una referencia de arranque suave, un divisor en la salida, un lazo proporcional-integral lento (cruza entre 10 Hz y 20 kHz según la carga y el capacitor, y no oscila con capacitores ideales de 0 a 1000 µF) y un transistor de paso sin capacitancias (con ellas la regla trapezoidal oscilaba). No modela el pliegue de la corriente de cortocircuito, la protección térmica ni el ruido, y el arranque y la recuperación de un escalón de carga tardan unos milisegundos."
+  },
+  "datos": {
+    "por": "modelo",
+    "valores": {
+      "LM317": {
+        "fabricante": "Texas Instruments",
+        "parte": "LM317T/NOPB",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm317.pdf",
+        "equivalencias": { "kicad": "Regulator_Linear:LM317_TO-220" },
+        "presentaciones": [
+          {
+            "encapsulado": "TO-220",
+            "patillas": { "ADJ": "1", "OUT": "2", "IN": "3" },
+            "huella": "Package_TO_SOT_THT:TO-220-3_Vertical",
+            "lcsc": { "numero": "C2870516", "sinVerificar": true }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM317 (SLVS044Z, abr 2025) Pin Functions, TO-220: ADJUST 1, OUTPUT 2 y lengüeta, INPUT 3; Regulator_Linear:LM317_TO-220 de KiCad 9"
+        }
+      }
+    }
   }
 }

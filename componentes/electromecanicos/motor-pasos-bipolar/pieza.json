@@ -1,0 +1,145 @@
+{
+  "id": "motor-pasos-bipolar",
+  "nombre": {
+    "es": "Motor a pasos bipolar",
+    "en": "Bipolar stepper motor"
+  },
+  "categoria": "electromecanicos",
+  "prefijo": "M",
+  "buscar": [
+    "motor a pasos",
+    "motor paso a paso",
+    "stepper",
+    "stepper motor",
+    "bipolar",
+    "nema 17",
+    "nema17",
+    "17hs4401",
+    "paso a paso"
+  ],
+  "pines": [
+    {
+      "id": "A+",
+      "nombre": "A+",
+      "x": -4,
+      "y": -2
+    },
+    {
+      "id": "A-",
+      "nombre": "A−",
+      "x": -4,
+      "y": 2
+    },
+    {
+      "id": "B+",
+      "nombre": "B+",
+      "x": 4,
+      "y": -2
+    },
+    {
+      "id": "B-",
+      "nombre": "B−",
+      "x": 4,
+      "y": 2
+    }
+  ],
+  "props": [
+    {
+      "id": "modelo",
+      "nombre": "Modelo",
+      "mostrar": true,
+      "defecto": "17HS4401",
+      "opciones": [
+        "17HS4401"
+      ]
+    },
+    {
+      "id": "carga",
+      "nombre": "Carga",
+      "unidad": "N·m",
+      "defecto": "0",
+      "enVivo": {
+        "magnitud": "carga",
+        "min": 0,
+        "max": 0.5,
+        "paso": 0.01,
+        "pasoFino": 0.001
+      }
+    }
+  ],
+  "modelo": {
+    "tipo": "pasos",
+    "nodos": [
+      "A+",
+      "A-",
+      "B+",
+      "B-"
+    ],
+    "prop": "modelo",
+    "carga": "carga",
+    "modelos": {
+      "17HS4401": {
+        "r": 1.5,
+        "l": 0.0028,
+        "km": 0.1664,
+        "dientes": 50,
+        "td": 0.022,
+        "j": 0.0000054,
+        "bm": 0.0023
+      }
+    }
+  },
+  "animacion": {
+    "tipo": "giro",
+    "vueltasMax": 4
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -6
+    },
+    "valor": {
+      "x": 0,
+      "y": 6
+    }
+  },
+  "fuentes": {
+    "17HS4401": "MotionKing, catálogo de motores híbridos MK1106 rev. 04 (p. 9), fila del 17HS4401: 1.8° por paso, 1.7 A, 1.5 Ω y 2.8 mH por fase, par de retención de 40 N·cm como mínimo, detente de 2.2 N·cm como máximo e inercia del rotor de 54 g·cm². De ahí salen r, l, j y td (el detente es un máximo, no un típico). Los 50 dientes salen del paso: 200 pasos por vuelta y 4 por ciclo eléctrico dan 50 pares de polos. La constante de par km = 0.1664 N·m/A sale del par de retención con las dos fases a 1.7 A (0.40 N·m = √2 · km · 1.7 A) y es una cota inferior porque la hoja da el par mínimo. La fricción viscosa no está en la hoja: se tomó la que deja el conjunto en amortiguamiento crítico con el amortiguamiento eléctrico km²/R (0.0023 N·m·s/rad) y es una estimación. Otros vendedores publican un 17HS4401 distinto (1.5 A, 1.8 Ω, 3.8 a 4.2 mH). Colores de los hilos: negro y verde forman la fase A, rojo y azul la B, según el diagrama de MotionKing y Surplustronics."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": {
+      "kicad": "Motor:Stepper_Motor_bipolar",
+      "sinVerificar": []
+    },
+    "valores": {
+      "17HS4401": {
+        "fabricante": "MotionKing",
+        "parte": "17HS4401",
+        "presentaciones": [
+          {
+            "encapsulado": "Cables-4",
+            "patillas": {
+              "A+": "negro",
+              "A-": "verde",
+              "B+": "rojo",
+              "B-": "azul"
+            }
+          }
+        ],
+        "pendiente": {
+          "huella": "Motor de cuatro hilos sueltos de 400 mm (hoja y tiendas), sin conector ni huella; el montaje es una brida NEMA 17 con cuatro M3 a 31 mm, que no es un componente de placa",
+          "lcsc": "No se halló un número LCSC para el 17HS4401",
+          "patillas": "Los colores salen de los dos documentos que los dan y coinciden (diagrama del catálogo MotionKing MK1106 rev. 04 y Surplustronics): A+ negro, A- verde, B+ rojo, B- azul. La página de datasheetcafe del mismo modelo dice rojo A+, verde A-, amarillo B+, azul B-, que discrepa en el primer devanado y en el color del segundo. Para simular solo importan los pares (negro con verde, rojo con azul).",
+          "hoja": "No hay hoja de StepperOnline: omc-stepperonline.com devuelve una página vacía a curl y 403 a WebFetch. Se usó el catálogo del fabricante MotionKing (MK1106 rev. 04, p. 9), alojado en datasheetcafe.com porque no se halló el PDF en motionking.com. Se propone agregar datasheetcafe.com a la lista de dominios de datosCompletos.test.ts con este porqué. Enlace: https://www.datasheetcafe.com/wp-content/uploads/2019/03/17HS4401.pdf",
+          "equivalencias": "El 17HS4401 aparece con otros valores en SAMM (1.5 A, 1.8 ohm, 4.2 mH, 38 mm) y en el 17HS4401S de Hanpose (1.5 A, 1.8 ohm, 3.8 mH). Kirchi sigue al 17HS4401 de MotionKing (1.7 A, 1.5 ohm, 2.8 mH, 40 mm)."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "MotionKing HB Stepper Motor Catalog MK1106 rev. 04 p. 9, fila 17HS4401: 1.8°, 40 mm, 1.7 A, 1.5 ohm, 2.8 mH, 40 N.cm mín., detente 2.2 N.cm máx., inercia 54 g.cm2, 4 hilos, 280 g; datasheetcafe (1.5 ohm ±10 %, 2.8 mH, hilos de 400 mm) y Surplustronics (1.7 A, 1.5 ohm, 40 N.cm, colores) como segundas fuentes"
+        },
+        "aproximada": "La fricción viscosa no la publica la hoja y es una estimación. El par de detente es el máximo de la hoja y la constante de par es una cota inferior calculada con el par de retención."
+      }
+    }
+  }
+}

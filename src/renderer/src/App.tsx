@@ -50,6 +50,9 @@ import { Atajos } from './editor/teclado'
 import { construirEscena } from './lienzo/escena'
 import type { Texto } from './lienzo/etiquetas'
 import { Lienzo } from './lienzo/Lienzo'
+import { Receptor } from './asistente/receptor'
+import { TEXTO_CAMBIOS_DEL_USUARIO, type EstadoAsistente } from '../../compartido/asistente'
+import type { PestañaConfig } from './ui/pestañasConfig'
 import { porcentajeAZoom, porcentajeZoom, siguientePasoZoom, zoomAPorcentaje, ZOOM_INICIAL } from './lienzo/medidas'
 import { paletaDeTema } from './lienzo/paleta'
 import { construirSuperposicion, type GuiaTutorial } from './lienzo/superposicion'
@@ -65,8 +68,12 @@ import Configuracion from './ui/Configuracion'
 import { crearGrabador } from './grabacion/grabador'
 import { crearControlGrabacion } from './grabacion/control'
 import AvisoGrabacionLienzo from './ui/AvisoGrabacion'
+import AvisoCambioEnDisco from './ui/AvisoCambioEnDisco'
 import PopoverGrabacion from './ui/PopoverGrabacion'
 import { alElegirSerie, sincronizarSerie } from './valores/serieElegida'
+import { textoEnVivo } from './valores/enVivo'
+import { perillasDe, textoPwlDe } from './ui/perillasVista'
+import type { PerillaVista } from './ui/ControlPerilla'
 import DialogoExportar, { type LecturaEsquema } from './ui/DialogoExportar'
 import { cajaDeNotas, conNotasEnSvg, type ContextoNotas, type NotaLectura, type Notas } from './ui/exportar/marco/notasEsquema'
 import DialogoGuardar from './ui/DialogoGuardar'
@@ -75,7 +82,7 @@ import EditorEnLinea from './ui/EditorEnLinea'
 import Globo from './ui/Globo'
 import { globoDeEtiqueta, globoDeSonda } from './ui/textosSonda'
 import HojaAtajos from './ui/HojaAtajos'
-import type { PotVista } from './ui/ControlPosicion'
+import type { PotVista } from './ui/ControlPerilla'
 import { compilarNetlist, opcionDe } from './netlist/netlist'
 import Inspector from './ui/Inspector'
 import { mapaDeAtajos } from './ui/hojaDeAtajos'
@@ -143,6 +150,7 @@ import { AlmacenAnalisis } from './analisis/almacen'
 import { armarContexto } from './analisis/contexto'
 import { seleccionDeGuardadas } from './analisis/ejecucion'
 import { analisisNuevo, nombraPiezaAusente, reconciliarAnalisis, seDescartaAlCancelar, tipoDeFicha, type TipoFicha } from './analisis/fichas'
+import ElegirAnalisis from './ui/ElegirAnalisis'
 import FichaAnalisis from './ui/FichaAnalisis'
 import { describirSeleccion } from './ui/cinta/descripcionSeleccion'
 import PanelGraficas from './ui/PanelGraficas'
@@ -281,13 +289,52 @@ export default function App() {
   const [menu, setMenu] = createSignal<MenuAbierto | null>(null)
   const [dialogo, setDialogo] = createSignal<'atajos' | 'configuracion' | 'tutorial' | 'oferta' | 'reanudar' | 'acerca' | null>(null)
   // Configuración abierta desde «Cambiar los atajos» de la hoja: entra con el foco en Atajos.
-  const [configEnAtajos, setConfigEnAtajos] = createSignal(false)
+  const [seccionConfig, setSeccionConfig] = createSignal<PestañaConfig | undefined>(undefined)
   // La serie comercial de los ajustes llega al editor de valores; un cambio desde su conmutador se guarda por aquí.
   createEffect(() => sincronizarSerie(ajustes().serieComercial))
   alElegirSerie((s) => cambiarAjustes({ serieComercial: s }))
   onCleanup(() => alElegirSerie(undefined))
-  const abrirConfiguracion = () => (setConfigEnAtajos(false), setDialogo('configuracion'))
+  const abrirConfiguracion = (seccion?: PestañaConfig) => (setSeccionConfig(seccion), setDialogo('configuracion'))
   const [limpio, setLimpio] = createSignal(false)
+  // «Conservar el mío» ante un cambio en el disco deja dos versiones: hasta que el usuario guarde o recargue, el asistente
+  // no edita la de la ventana (su respuesta lo explica) para que no siga divergiendo de la del disco.
+  let conservadoFrenteAlDisco = false
+  // El asistente (servidor MCP): el estado que muestran el indicador y Configuración, y el receptor que atiende al puente.
+  const apiAsistente = window.kirchi?.asistente
+  const [estadoAsistente, setEstadoAsistente] = createSignal<EstadoAsistente>({ activo: false, conectado: null })
+  if (apiAsistente) {
+    const receptor = new Receptor({
+      editor,
+      version: VERSION,
+      titulo: () => ({ titulo: archivo().nombre, archivo: archivo().ruta ? archivo().nombre : null }),
+      registrar: (t) => registrar(t, 'info'),
+      moverPerilla: (id, propId, valor) => void sim.moverPerilla(id, propId, valor),
+      animar: (e) => lienzo?.animar(e),
+      bloqueo: () => {
+        // Abrir otro archivo o volver a uno sin cambios también termina el conflicto.
+        if (!editor.historial.sinGuardar) conservadoFrenteAlDisco = false
+        return conservadoFrenteAlDisco ? TEXTO_CAMBIOS_DEL_USUARIO : null
+      }
+    })
+    let clienteVisto: string | null = null
+    const nuevoEstado = (e: EstadoAsistente) => {
+      const cliente = e.conectado?.cliente ?? null
+      if (cliente !== clienteVisto) {
+        if (clienteVisto !== null || cliente !== null) registrar(cliente ? `Asistente conectado: ${cliente}.` : 'El asistente se desconectó.', 'info')
+        clienteVisto = cliente
+      }
+      setEstadoAsistente(e)
+    }
+    void apiAsistente.estado().then(nuevoEstado)
+    const quitarEstado = apiAsistente.alEstado(nuevoEstado)
+    const quitarPeticion = apiAsistente.alPeticion((p) => {
+      void receptor
+        .atender(p.tipo, p.datos)
+        .catch((e: unknown) => ({ ok: false, motivo: e instanceof Error ? e.message : 'No se pudo atender la petición.' }))
+        .then((r) => apiAsistente.responder(p.id, r))
+    })
+    onCleanup(() => (quitarEstado(), quitarPeticion()))
+  }
   const [archivo, setArchivo] = createSignal<EstadoArchivo>(estadoNuevo())
   const [pregunta, setPregunta] = createSignal<Pregunta | null>(null)
   /** Diálogo de exportar abierto: el formato y el tamaño de la lámina que saldrá. */
@@ -335,6 +382,8 @@ export default function App() {
   // Todo lo que llega al Registro también se anuncia por la región viva (colocar con el teclado se dice así).
   /** El aviso breve sobre el lienzo (convertir un medidor de corriente); se cierra solo. */
   const [avisoLienzo, setAvisoLienzo] = createSignal<string | null>(null)
+  /** El archivo abierto cambió en el disco por otro lado (el asistente sin ventana, otro programa). */
+  const [cambioEnDisco, setCambioEnDisco] = createSignal(false)
   const registrar = (texto: string, tipo: EntradaRegistro['tipo'] = 'aviso') => {
     setRegistro((l) => agregarAlRegistro(l, texto, tipo, new Date()))
     setAnuncio('')
@@ -394,6 +443,7 @@ export default function App() {
     editor,
     diario,
     version: VERSION,
+    lib: libreria.piezas,
     ui: {
       preguntarGuardar: (nombre) => new Promise<Respuesta>((responder) => setPregunta({ tipo: 'guardar', nombre, responder })),
       ofrecerRecuperar: (recuperable) => new Promise<RespuestaRecuperar>((responder) => setPregunta({ tipo: 'recuperar', recuperable, responder })),
@@ -410,7 +460,10 @@ export default function App() {
       recientes: (l) => setAjustes((a) => ({ ...a, archivosRecientes: l })),
       estado: (e) => setArchivo(e),
       // «Aprende Kirchi»: los pasos de Archivo se cumplen con lo que de verdad ocurrió en el disco, no con los clics.
-      hecho: (e) => tutorial.registrar(e)
+      hecho: (e) => {
+        if (e === 'guardado') conservadoFrenteAlDisco = false
+        tutorial.registrar(e)
+      }
     }
   })
   // Vista previa: el control arma la netlist y habla con el worker; la interfaz lee a 10 Hz mientras está activa.
@@ -473,6 +526,7 @@ export default function App() {
     crearMotor: () => new SimClient(),
     circuito: () => ({ doc: editor.doc, lib: editor.lib, con: editor.con }),
     registrar: (t, tipo) => (tipo === 'error' ? errorDeArchivo(t) : registrar(t, tipo)),
+    revertirPerilla: (id, propId, texto) => editor.revertirEnCaliente(id, propId, texto),
     // Los cambios de estado que se oyen se programan desde el instante del motor.
     cruces: (c, pieza) => {
       if (sonidoActivo()) altavoz.aplicar(plan.cruces(c, pieza, fuenteSonora))
@@ -616,10 +670,14 @@ export default function App() {
   /** La cifra de las sondas de corriente con la histéresis de su última cifra; se vacía al detener. */
   const histeresisSondas = new Histeresis(3)
   createEffect(on(fase, (f) => f === 'detenida' && histeresisSondas.reiniciar()))
+  /** Cada corrida empieza con el Registro vacío: simular desde detenida y cada análisis. Los avisos viejos no se mezclan con los nuevos. */
+  const vaciarRegistroDeCorrida = () => setRegistro([])
   const simularOPausar = () => {
     if (sim.avance) return sim.interrumpir()
-    if (sim.fase === 'detenida') void sim.iniciar()
-    else if (sim.fase === 'corriendo') sim.pausar()
+    if (sim.fase === 'detenida') {
+      vaciarRegistroDeCorrida()
+      void sim.iniciar()
+    } else if (sim.fase === 'corriendo') sim.pausar()
     else if (sim.fase === 'pausada') sim.reanudar()
   }
   /** Botón sostenido: se suelta al levantar ratón o tecla, perder el foco o detener. Con «enclavado» queda presionado
@@ -703,6 +761,12 @@ export default function App() {
     }
     const pieza = editor.doc.piezas[id]
     const def = pieza ? editor.lib.get(pieza.tipo) : undefined
+    // Un foco fundido se repone con el mismo clic.
+    if (def?.modelo?.tipo === 'foco') {
+      const repuesto = fusibleFundido(id) && sim.reponer(id)
+      if (repuesto) leerPorCuadros()
+      return repuesto
+    }
     const accion = accionDeClic(def)
     // Un fusible fundido se repone; uno entero no se acciona (el clic lo selecciona).
     if (accion === 'reponer') {
@@ -753,7 +817,7 @@ export default function App() {
   /** Si el fusible `id` está fundido según la última lectura de la vista previa. */
   const fusibleFundido = (id: Id): boolean => {
     const x = lectura()?.piezas.get(id)?.extra
-    return x?.tipo === 'fusible' && x.fundido
+    return (x?.tipo === 'fusible' || x?.tipo === 'foco') && x.fundido
   }
   /** El interruptor, botón o fusible fundido que es lo único seleccionado, mientras corre la vista previa. */
   const accionable = () => {
@@ -804,6 +868,36 @@ export default function App() {
   const cambiarPot = (posicion: number, gesto?: string) => {
     const id = editor.potSeleccionado()
     if (id) editor.cambiarPosicionPot(id, posicion, gesto)
+  }
+  /** Las perillas en vivo de la pieza seleccionada, solo mientras simula (antes es una propiedad más del inspector). */
+  const perillasSel = (): PerillaVista[] => {
+    estado()
+    const s = sim.activa ? editor.perillaSeleccionada() : null
+    return s ? perillasDe(editor.doc.piezas[s.id], editor.lib.get(editor.doc.piezas[s.id].tipo)) : []
+  }
+  /** Los puntos de la fuente PWL seleccionada, para la gráfica miniatura del inspector. */
+  const pwlSel = (): string | null => {
+    estado()
+    const id = editor.unicaPiezaSeleccionada()
+    const p = id ? editor.doc.piezas[id] : undefined
+    return textoPwlDe(p, p ? editor.lib.get(p.tipo) : undefined)
+  }
+  // El valor llega al canal del motor por `moverPerilla`; sin canal (el potenciómetro) sigue el camino en caliente de siempre.
+  const cambiarPerilla = (p: PerillaVista, valor: number, gesto?: string) => {
+    if (editor.cambiarPerilla(p.id, p.propId, textoEnVivo({ unidad: p.unidad }, valor), gesto)) sim.moverPerilla(p.id, p.propId, valor)
+    anunciarPerilla()
+  }
+  let anuncioPerilla: ReturnType<typeof setTimeout> | undefined
+  const anunciarPerilla = () => {
+    clearTimeout(anuncioPerilla)
+    anuncioPerilla = setTimeout(() => {
+      const s = editor.perillaSeleccionada()
+      const p = s ? perillasDe(editor.doc.piezas[s.id], editor.lib.get(editor.doc.piezas[s.id].tipo)).find((x) => x.propId === s.propId) : undefined
+      if (p) {
+        setAnuncio('')
+        queueMicrotask(() => setAnuncio(`${p.ref}: ${p.nombre.toLowerCase()} ${formatearValor(p.valor, p.unidad)}.`))
+      }
+    }, 400)
   }
   /** Lo dicen los lectores de pantalla una vez que la rueda, el arrastre o el teclado dejan de mover el cursor. */
   let anuncioPot: ReturnType<typeof setTimeout> | undefined
@@ -967,7 +1061,7 @@ export default function App() {
   const dependenciasEsquema = (alcance: AlcanceExportar, docSeleccion: Documento | null, conNotas = false, congelado?: ReturnType<typeof congelarLecturas>): DependenciasExportar => {
     const fuentes = fuentesDeCss()
     const ctxNotas = congelado?.ctx ?? ctxNotasEsquema
-    const fuente: FuenteEscena = { doc: editor.doc, con: editor.con, lib: editor.lib, seleccion: docSeleccion, area: areaExportar(), vivo: congelado ? congelado.vivo : vivoExportar() }
+    const fuente: FuenteEscena = { doc: editor.doc, con: editor.con, lib: editor.lib, seleccion: docSeleccion, area: areaExportar(), vivo: congelado ? congelado.vivo : vivoExportar(), numerosPatilla: ajustes().numerosPatilla }
     return {
       api,
       escena: (p, o) => escenaDeExportar(fuente, alcance, o, p),
@@ -1558,7 +1652,7 @@ export default function App() {
       abrirExportar(id.slice('exportar:'.length) as FormatoExportar)
       return
     }
-    // «Medir con…» pone sondas. La
+    // «Medir ▸» pone sondas. La
     // pestaña de su instrumento se abre sin plegarla si ya estaba a la vista.
     const pedido = pedidoDeAccion(id)
     if (pedido) {
@@ -1606,6 +1700,9 @@ export default function App() {
         break
       case 'exportar-seleccion':
         abrirExportar(formatoEsquema(), 'seleccion')
+        break
+      case 'agrupar-encapsulados':
+        editor.agruparEncapsulados()
         break
       case 'duplicar':
         // Como Pegar aquí: la copia va al punto donde se hizo clic derecho.
@@ -1659,7 +1756,7 @@ export default function App() {
         {
           // Al simular, el rótulo de un estado lógico dice el nivel accionado (el documento no cambia).
           escena: () => {
-            const e = construirEscena(sim.activa ? sim.documentoVisible() : editor.docVista, editor.lib, editor.estado().con, paleta(), { sinOpacidad: contrasteAlto(), simulando: sim.activa })
+            const e = construirEscena(sim.activa ? sim.documentoVisible() : editor.docVista, editor.lib, editor.estado().con, paleta(), { sinOpacidad: contrasteAlto(), simulando: sim.activa, numerosPatilla: ajustes().numerosPatilla })
             // Un aviso cada vez que las figuras pasan el presupuesto de la escena (un .kir con miles de figuras punteadas).
             if (e.figurasSimplificadas && !figurasSimplificadas)
               queueMicrotask(() => registrar('Hay demasiadas figuras con guiones o puntos para dibujarlas todas así: algunas se ven con trazo continuo.'))
@@ -1769,6 +1866,18 @@ export default function App() {
           rueda: (p, e) => {
             if (!sim.activa || e.ctrlKey || arrastrePot) return false
             const id = editor.potEn(p)
+            const pe = id ? null : editor.perillaEn(p)
+            if (!id && pe) {
+              // Misma regla que el potenciómetro: la rueda mueve la perilla de la pieza (5 % del rango por muesca, 1 % con Shift).
+              const a = acumularRueda(restoRueda, e)
+              restoRueda = a.resto
+              if (a.pasos !== 0) {
+                if (editor.perillaSeleccionada()?.id !== pe.id) editor.seleccionar(seleccionDe('piezas', pe.id))
+                editor.pasoPerilla(pe.id, pe.propId, a.pasos, e.shiftKey)
+                anunciarPerilla()
+              }
+              return true
+            }
             if (!id) return false
             const a = acumularRueda(restoRueda, e)
             restoRueda = a.resto
@@ -1882,10 +1991,15 @@ export default function App() {
       alternarVoltajes,
       potenciometro: {
         paso: (dir) => {
+          if (editor.perillaSeleccionada()) {
+            editor.pasoPerillaSeleccionada(dir, false)
+            anunciarPerilla()
+            return
+          }
           editor.pasoPotenciometro(dir, false)
           anunciarPot()
         },
-        hay: () => editor.potSeleccionado() !== null
+        hay: () => editor.potSeleccionado() !== null || editor.perillaSeleccionada() !== null
       },
       tiempo: { ejecutar: (id) => void ejecutarComando(id, document.body) }
     })
@@ -2057,6 +2171,7 @@ export default function App() {
     // Un .kir que abrió el sistema (doble clic, arrastrado al icono) con Kirchi ya abierto: el proceso principal lo leyó con las
     // mismas comprobaciones de Abrir y aquí se pregunta por los cambios sin guardar antes de reemplazar.
     const quitarAbrirExterno = api?.alAbrirExterno((r) => void control.abrirExterno(r))
+    const quitarCambioEnDisco = api?.alCambioEnDisco?.(() => setCambioEnDisco(true))
     // Soltar un .kir en la ventana lo abre (la ruta la da el preload; el disco lo lee el proceso principal).
     const sobre = (e: DragEvent) => {
       if (!e.dataTransfer?.types.includes('Files')) return
@@ -2085,6 +2200,7 @@ export default function App() {
       quitarCerrar?.()
       quitarErrorDiario?.()
       quitarAbrirExterno?.()
+      quitarCambioEnDisco?.()
       window.removeEventListener('pointerdown', alPuntero, true)
       window.removeEventListener('keydown', alTeclado, true)
       quitarAtajos()
@@ -2665,6 +2781,7 @@ export default function App() {
   const ejecutarAnalisis = async () => {
     let a = elegidoAn()
     if (!a) return
+    vaciarRegistroDeCorrida()
     const r = armarContexto(doc(), editor.lib, con())
     if (!r.ok) {
       registrar(`${a.nombre}: ${r.error}`, 'error')
@@ -2699,7 +2816,7 @@ export default function App() {
   }
   const puedeEditarAnalisis = () => fase() === 'detenida' && !archivo().soloLectura
   const panelFicha = () => (
-    <Show when={fichaTipo()} fallback={<p class="secundario">Elige un análisis con el botón Analizar de Inicio para configurarlo.</p>}>
+    <Show when={fichaTipo()} fallback={<ElegirAnalisis onElegir={abrirFicha} motivoNoEditable={fase() !== 'detenida' ? MENSAJE_DETENER_PARA_EDITAR : archivo().soloLectura ? PISTA_SOLO_LECTURA : null} />}>
       {(t) => (
         <FichaAnalisis
           tipo={t()}
@@ -2890,6 +3007,7 @@ export default function App() {
       animaciones: animaciones(),
       movimientoReducido,
       sonido: ajustes().simulacion.sonido,
+      numerosPatilla: ajustes().numerosPatilla,
       tutorial: tutorial.estado() !== null,
       analisisCorriendo: (verAlmacen(), almacen.corriendo),
       analisisBloqueo: bloqueoAnalisis(),
@@ -2935,6 +3053,12 @@ export default function App() {
     lienzo?.invalidarSimulacion()
     anunciar(si ? 'Corriente animada visible.' : 'Corriente animada oculta.')
   }
+  const alternarNumerosPatilla = () => {
+    const si = !ajustes().numerosPatilla
+    cambiarAjustes({ numerosPatilla: si })
+    lienzo?.invalidarEscena()
+    anunciar(si ? 'Números de patilla visibles.' : 'Números de patilla ocultos.')
+  }
   const alternarAnimaciones = () => {
     const si = !animaciones()
     setAnimacionesSesion(si)
@@ -2953,7 +3077,10 @@ export default function App() {
   const avanzarAhora = () => {
     const d = delta()
     // Detener reinicia: el primer avance desde detenida empieza en 0 s y se dice.
-    if (sim.fase === 'detenida') setAvisoLienzo('La simulación empieza desde 0 s.')
+    if (sim.fase === 'detenida') {
+      setAvisoLienzo('La simulación empieza desde 0 s.')
+      vaciarRegistroDeCorrida()
+    }
     void sim.avanzar(intervaloDe(d, velocidad(), divisionOsc())).then((r) => {
       if (!r) return
       const texto = d === 'paso' ? `Un paso de cálculo de ${formatearMedida(r.dt, 's')}` : null
@@ -3012,6 +3139,7 @@ export default function App() {
     duplicar: () => editor.duplicar(),
     borrar: () => editor.borrar(),
     todo: () => editor.seleccionarTodo(),
+    'agrupar-encapsulados': () => void editor.agruparEncapsulados(),
     'girar-izq': () => editor.transformar('girarIzq'),
     girar: () => editor.transformar('girar'),
     'espejo-x': () => editor.transformar('espejoX'),
@@ -3044,6 +3172,7 @@ export default function App() {
     'mas-rapido': () => cambiarVelocidad(masRapida(velocidad())),
     corriente: () => alternarCorriente(),
     animaciones: () => alternarAnimaciones(),
+    'numeros-patilla': () => alternarNumerosPatilla(),
     sonido: () => alternarSonido(),
     'franja-osciloscopio': () => pestaña('osciloscopio'),
     'colocar-multimetro': () => tomar('multimetro'),
@@ -3239,6 +3368,7 @@ export default function App() {
           archivo={archivo().nombre}
           sinGuardar={estado().sinGuardar}
           soloLectura={archivo().soloLectura}
+          asistente={estadoAsistente().conectado ? { cliente: estadoAsistente().conectado!.cliente, onAbrir: () => abrirConfiguracion('asistente') } : undefined}
           pestaña={ajustes().cinta.pestaña}
           plegada={ajustes().cinta.plegada}
           onPestaña={elegirPestañaCinta}
@@ -3262,7 +3392,7 @@ export default function App() {
               clase={ajustes().panel === 'calculadoras' ? 'calculadoras' : ajustes().panel === 'plantillas' ? 'plantillas' : undefined}
               resumen={
                 ajustes().panel === 'libreria'
-                  ? plural(editor.lib.size, 'pieza', 'piezas')
+                  ? plural([...editor.lib.values()].filter((d) => !d.oculta).length, 'pieza', 'piezas')
                   : ajustes().panel === 'plantillas'
                     ? plural(itemsPlantillas().length, 'plantilla', 'plantillas')
                     : undefined
@@ -3279,6 +3409,8 @@ export default function App() {
                     lib={editor.lib}
                     onTomar={tomar}
                     onArrastrar={arrastrarPieza}
+                    gruposPlegados={ajustes().libreriaPlegada}
+                    onGruposPlegados={(libreriaPlegada) => cambiarAjustes({ libreriaPlegada })}
                     plantillas={apiPl ? { total: itemsPlantillas().length, onVer: () => cambiarAjustes({ panel: 'plantillas', lateral: true }) } : undefined}
                   />
                 </Match>
@@ -3329,6 +3461,7 @@ export default function App() {
               defDe={(id) => editor.lib.get(id)}
               onCambiarProp={(id, prop, texto) => editor.cambiarPropiedad(id, prop, texto)}
               onCambiarReferencia={(id, texto) => editor.cambiarReferencia(id, texto)}
+              onCambiarUnidad={(id, unidad) => editor.cambiarUnidad(id, unidad)}
               fichaGenerador={(id) => {
                 const r = () => ajustesGenerador(doc().piezas[id], editor.lib.get(doc().piezas[id]?.tipo ?? '')!)
                 return <PanelGenerador refGen={doc().piezas[id]?.ref ?? ''} ajustes={valido(r())} errorAjustes={errorDe(r())} onAjuste={(prop, t) => ajustarInstrumento(id, prop, t)} onAjustes={(c) => editor.cambiarAjustesInstrumento(id, c)} sinTono />
@@ -3384,6 +3517,9 @@ export default function App() {
               accion={accionSim()}
               pot={potSel()}
               onPot={cambiarPot}
+              perillas={perillasSel()}
+              onPerilla={cambiarPerilla}
+              pwl={pwlSel()}
               onConmutar={() => {
                 const a = accionable()
                 if (!a) return
@@ -3408,6 +3544,8 @@ export default function App() {
                     seleccion={seleccion()}
                     teclaSimular={teclaDe('simular')}
                     multimetros={filasMultimetros()}
+                    perillas={perillasSel()}
+                    onPerilla={cambiarPerilla}
                     onPieza={(id) => seleccionarPiezas([id])}
                     onRed={seleccionarRed}
                     lib={editor.lib}
@@ -3522,6 +3660,22 @@ export default function App() {
           />
         )}
       </Show>
+      <Show when={cambioEnDisco()}>
+        <AvisoCambioEnDisco
+          onRecargar={() => {
+            setCambioEnDisco(false)
+            conservadoFrenteAlDisco = false
+            void control.recargar()
+          }}
+          onConservar={() => {
+            setCambioEnDisco(false)
+            conservadoFrenteAlDisco = true
+            // Lo de la ventana queda como cambios sin guardar: al cerrar se pregunta y guardar reemplaza lo del disco.
+            editor.historial.marcarSucio()
+            setEstado(editor.estado())
+          }}
+        />
+      </Show>
       <Show when={grabacion.aviso()} keyed>
         {(a) => <AvisoGrabacionLienzo aviso={a} onAbrirCarpeta={() => void grabacion.abrirCarpeta()} onCambiarNombre={() => void grabacion.cambiarNombre()} onCerrar={grabacion.cerrarAviso} />}
       </Show>
@@ -3577,8 +3731,23 @@ export default function App() {
         <Configuracion
           ajustes={ajustes()}
           onCambiar={cambiarAjustes}
-          onCerrar={() => (setConfigEnAtajos(false), setDialogo(null))}
-          seccion={configEnAtajos() ? 'atajos' : undefined}
+          onCerrar={() => (setSeccionConfig(undefined), setDialogo(null))}
+          seccion={seccionConfig()}
+          asistente={
+            apiAsistente
+              ? {
+                  estado: { activo: estadoAsistente().activo, cliente: estadoAsistente().conectado?.cliente },
+                  carpeta: estadoAsistente().carpeta,
+                  onActivar: (activo) => void apiAsistente.activar(activo).then(setEstadoAsistente),
+                  onCambiarCarpeta: () => apiAsistente.cambiarCarpeta(),
+                  onRestablecer: () => apiAsistente.restablecerCarpeta(),
+                  onDesconectar: () => void apiAsistente.desconectar(),
+                  onCopiar: async () => {
+                    if (!(await copiarAlPortapapeles(await apiAsistente.textoConfiguracion()))) throw new Error('No se pudo copiar la configuración.')
+                  }
+                }
+              : undefined
+          }
           onRespaldos={api ? () => void api.abrirRespaldos() : undefined}
           atajos={atajos}
           versionAtajos={versionAtajos}
@@ -3771,7 +3940,7 @@ export default function App() {
             // foco regresa al lienzo y no a un botón que ya no existe.
             setDialogo(null)
             queueMicrotask(() => {
-              setConfigEnAtajos(true)
+              setSeccionConfig('atajos')
               setDialogo('configuracion')
             })
           }}

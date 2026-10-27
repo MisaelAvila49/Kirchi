@@ -1,0 +1,90 @@
+{
+  "id": "fuente-vccs",
+  "nombre": {
+    "es": "Transconductor (fuente de corriente controlada por voltaje, VCCS)",
+    "en": "Transconductor (voltage-controlled current source)"
+  },
+  "categoria": "fuentes",
+  "prefijo": "G",
+  "buscar": [
+    "g",
+    "fuente vccs",
+    "fuente controlada",
+    "dependiente",
+    "transconductancia",
+    "corriente controlada por voltaje"
+  ],
+  "pines": [
+    {
+      "id": "+",
+      "nombre": "+",
+      "x": 0,
+      "y": -4
+    },
+    {
+      "id": "-",
+      "nombre": "−",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "id": "C+",
+      "nombre": "control +",
+      "x": -4,
+      "y": -2
+    },
+    {
+      "id": "C-",
+      "nombre": "control −",
+      "x": -4,
+      "y": 2
+    }
+  ],
+  "props": [
+    {
+      "id": "gm",
+      "nombre": "Transconductancia (S)",
+      "defecto": "1m",
+      "comunes": [
+        "100u",
+        "1m",
+        "10m",
+        "100m"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "controlada",
+    "forma": "G",
+    "p": "+",
+    "n": "-",
+    "cp": "C+",
+    "cn": "C-",
+    "prop": "gm"
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 3,
+      "y": -1
+    },
+    "valor": {
+      "x": 3,
+      "y": 1
+    }
+  },
+  "datos": {
+    "equivalencias": {
+      "kicad": "Simulation_SPICE:GSOURCE",
+      "ltspice": "g",
+      "sinVerificar": [
+        "ltspice"
+      ]
+    },
+    "valores": {
+      "*": {
+        "virtual": true,
+        "nota": "Fuente ideal del simulador: su corriente, de + a − por dentro, es la transconductancia por el voltaje entre C+ y C−."
+      }
+    }
+  }
+}

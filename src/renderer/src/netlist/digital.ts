@@ -2,16 +2,18 @@ import { clavePin, partirClavePin, porId, type Conexiones } from '../conexiones/
 import type { Documento, Id, Pieza } from '../doc/tipos'
 import type { ModeloDef, PiezaDef } from '../piezas/tipos'
 import { pinesDelModeloDigital } from '../piezas/validarDigital'
+import { pinesDelModeloMsi } from '../piezas/validarMsi'
 import { formatearValor, leerValor } from '../valores/valores'
 import { FAMILIAS, parametrosDeFamilia, type Familia, type ParametrosLogicos } from './familias'
+import { salidasTresEstados } from './msi'
 
 /** Lo digital de la netlist: piezas digitales, su familia y alimentación, pines de entrada o salida y avisos previos a
  * simular (dos salidas en una red, entrada CMOS al aire, alimentación fuera de familia). Lo usan `compilarNetlist` y los
  * avisos de Proyecto para decir lo mismo. */
 
-export type ModeloDigital = Extract<ModeloDef, { tipo: 'compuerta' | 'biestable-d' | 'biestable-jk' | 'contador' | 'decodificador' | 'estado-logico' }>
+export type ModeloDigital = Extract<ModeloDef, { tipo: 'compuerta' | 'biestable-d' | 'biestable-jk' | 'contador' | 'decodificador' | 'estado-logico' | 'lut' | 'msi' }>
 
-const DIGITALES = new Set(['compuerta', 'biestable-d', 'biestable-jk', 'contador', 'decodificador', 'estado-logico'])
+const DIGITALES = new Set(['compuerta', 'biestable-d', 'biestable-jk', 'contador', 'decodificador', 'estado-logico', 'lut', 'msi'])
 
 /** El modelo es de una pieza solo digital (las compuertas, los biestables, el contador, el decodificador y el estado lógico). */
 export const esModeloDigital = (m: ModeloDef | undefined): m is ModeloDigital => m !== undefined && DIGITALES.has(m.tipo)
@@ -38,6 +40,12 @@ const cachePines = new WeakMap<ModeloDef, PinDigital[]>()
 /** Los pines de un modelo digital en el orden del modelo, con su dirección. */
 export function pinesDigitales(m: ModeloDigital): PinDigital[] {
   let r = cachePines.get(m)
+  if (!r && (m.tipo === 'lut' || m.tipo === 'msi')) {
+    // Un pin bidireccional va en las dos listas y cuenta como salida (maneja la red).
+    const { entradas, salidas } = pinesDelModeloMsi(m)
+    r = [...new Set([...entradas, ...salidas])].map((id) => ({ id, campo: id, salida: salidas.includes(id) }))
+    cachePines.set(m, r)
+  }
   if (!r) {
     r = pinesDelModeloDigital(m).map(([campo, id]) => ({ id: id as string, campo, salida: CAMPOS_DE_SALIDA.test(campo) }))
     cachePines.set(m, r)
@@ -103,21 +111,23 @@ export function alimentacionAlCambiarFamilia(p: Pieza, def: PiezaDef, m: ModeloD
 interface Salida {
   pieza: Pieza
   red: number
+  /** Salida de tres estados (con habilitación): puede compartir red con otras iguales. */
+  tres: boolean
 }
 
 /** Las salidas de cada red (digitales y la del 555), halladas en un solo recorrido. */
 function salidasPorRed(doc: Documento, lib: Map<string, PiezaDef>, con: Conexiones): Map<number, Salida[]> {
   const porRed = new Map<number, Salida[]>()
-  const poner = (pieza: Pieza, pin: string) => {
+  const poner = (pieza: Pieza, pin: string, tres = false) => {
     const red = con.redDePin.get(clavePin(pieza.id, pin))
     if (red === undefined) return
     const lista = porRed.get(red) ?? []
-    lista.push({ pieza, red })
+    lista.push({ pieza, red, tres })
     porRed.set(red, lista)
   }
   for (const p of Object.values(doc.piezas).sort(porId)) {
     const m = lib.get(p.tipo)?.modelo
-    if (esModeloDigital(m)) for (const pin of pinesDigitales(m)) if (pin.salida) poner(p, pin.id)
+    if (esModeloDigital(m)) for (const pin of pinesDigitales(m)) if (pin.salida) poner(p, pin.id, (m.tipo === 'compuerta' && m.habilitacion !== undefined) || ((m.tipo === 'lut' || m.tipo === 'msi') && salidasTresEstados(m).has(pin.id)))
     if (m?.tipo === '555') poner(p, m.out)
   }
   return porRed
@@ -126,12 +136,14 @@ function salidasPorRed(doc: Documento, lib: Map<string, PiezaDef>, con: Conexion
 /** «A», «A y B», «A, B y C». */
 export const enumerar = (refs: string[]) => (refs.length < 2 ? refs.join('') : `${refs.slice(0, -1).join(', ')} y ${refs[refs.length - 1]}`)
 
-/** Dos salidas en la misma red no simulan: en el chip real es un corto. Una oración por red. */
+/** Dos salidas fijas en la misma red no simulan: en el chip real es un corto. Una red admite a lo más una salida fija, más
+ * las de tres estados (con habilitación) que son las que se conectan a un bus. Una oración por red. */
 export function salidasUnidas(doc: Documento, lib: Map<string, PiezaDef>, con: Conexiones): { texto: string; piezas: Id[] }[] {
   const r: { texto: string; piezas: Id[] }[] = []
   for (const salidas of salidasPorRed(doc, lib, con).values()) {
-    if (salidas.length < 2) continue
-    const piezas = [...new Map(salidas.map((s) => [s.pieza.id, s.pieza])).values()]
+    const fijas = salidas.filter((s) => !s.tres)
+    if (fijas.length < 2) continue
+    const piezas = [...new Map(fijas.map((s) => [s.pieza.id, s.pieza])).values()]
     const refs = piezas.map((q) => q.ref).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
     const texto = piezas.length === 1 ? `Dos salidas de ${refs[0]} manejan la misma red: únelas con una compuerta, no con un cable.` : `${enumerar(refs)} manejan la misma red: une sus salidas con una compuerta, no con un cable.`
     r.push({ texto, piezas: piezas.map((q) => q.id) })

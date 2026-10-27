@@ -1,0 +1,49 @@
+{
+  "netlist": {
+    "nodes": 3,
+    "digital_nets": 0,
+    "elements": [
+      {
+        "type": "V",
+        "a": 1,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 5
+        }
+      },
+      {
+        "type": "R",
+        "a": 1,
+        "b": 2,
+        "ohms": 10000
+      },
+      {
+        "type": "LDR",
+        "a": 2,
+        "b": 0,
+        "r10": 70711,
+        "gamma": 0.8,
+        "roscuro": 5000000,
+        "tau_sube": 0.02,
+        "tau_baja": 0.03,
+        "canal": 0
+      }
+    ],
+    "canales": [
+      {
+        "inicial": 0.1
+      }
+    ]
+  },
+  "fin": 0.2,
+  "hmax": 0.001,
+  "columnas": {
+    "v(2)": {
+      "nodo": 2
+    },
+    "i(v1)": {
+      "corriente": 0
+    }
+  }
+}

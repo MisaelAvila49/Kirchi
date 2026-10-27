@@ -1,7 +1,7 @@
 /** Petición de análisis (datos de la interfaz) y su traducción a un mazo de ngspice: la netlist más una tarjeta de control con solo números y nombres generados, sin texto, rutas ni órdenes de la interfaz. */
 import type { NetlistMotor } from '../netlistMotor'
 import { ErrorExportacion, exportarSpice, numero, type Exportacion, type OpcionesExportar } from './exportar'
-import { MAX_CORRIDAS, MAX_PUNTOS_AC, puntosAc, puntosDc, puntosTran, TOPE_PUNTOS } from '../analisis/puntos'
+import { MAX_CORRIDAS, MAX_INCLUIR_AC, MAX_PUNTOS_AC, puntosAc, puntosDc, puntosTran, TOPE_PUNTOS } from '../analisis/puntos'
 
 /** Nombre del archivo de resultados que escribe el mazo en la carpeta de trabajo. */
 export const ARCHIVO_RAW = 'salida.raw'
@@ -13,7 +13,7 @@ export type AnalisisSpice =
   /** `paso` es el paso sugerido, `maximo` el paso más largo que se permite, `inicio` el instante desde el que se guarda; `uic` parte de cero. */
   | { tipo: 'tran'; paso: number; fin: number; inicio?: number; maximo?: number; uic?: boolean }
   /** `fuente`: el índice del elemento `V` que lleva la excitación (por omisión la primera) y `magnitud` su amplitud en volts (por omisión 1). */
-  | { tipo: 'ac'; barrido: 'dec' | 'oct' | 'lin'; puntos: number; desde: number; hasta: number; fuente?: number; magnitud?: number }
+  | { tipo: 'ac'; barrido: 'dec' | 'oct' | 'lin'; puntos: number; desde: number; hasta: number; fuente?: number; magnitud?: number; /** Frecuencias (Hz) que el resultado contiene exactamente además de la rejilla del barrido. */ incluir?: number[] }
   /** `fuente`: el índice del elemento `V` que se barre; `segunda`, otra fuente anidada (la primera recorre su rango por cada valor de la segunda). */
   | { tipo: 'dc'; fuente: number; desde: number; hasta: number; paso: number; segunda?: { fuente: number; desde: number; hasta: number; paso: number } }
 
@@ -94,10 +94,17 @@ export function validarPeticion(x: unknown): PeticionAnalisis {
       const desde = positivo(a.desde, 'La frecuencia inicial')
       const hasta = positivo(a.hasta, 'La frecuencia final')
       if (hasta <= desde) return falla('La frecuencia final debe ser mayor que la inicial.')
-      if (puntosAc(a.barrido, puntos, desde, hasta) > TOPE_PUNTOS) return falla('El barrido de CA pide demasiados puntos.')
+      let incluir: number[] | undefined
+      if (a.incluir !== undefined) {
+        if (!Array.isArray(a.incluir) || a.incluir.length > MAX_INCLUIR_AC) return falla(`Las frecuencias incluidas son una lista de hasta ${MAX_INCLUIR_AC}.`)
+        incluir = [...new Set(a.incluir.map((f) => positivo(f, 'Una frecuencia incluida')))].sort((x, y) => x - y)
+        if (incluir.some((f) => f < desde || f > hasta)) return falla('Una frecuencia incluida queda fuera del barrido.')
+        if (incluir.length === 0) incluir = undefined
+      }
+      if (puntosAc(a.barrido, puntos, desde, hasta, incluir?.length ?? 0) > TOPE_PUNTOS) return falla('El barrido de CA pide demasiados puntos.')
       const fuente = a.fuente === undefined ? undefined : indice(a.fuente, 'La fuente de entrada de CA')
       const magnitud = a.magnitud === undefined ? undefined : positivo(a.magnitud, 'La magnitud de la entrada de CA')
-      analisis = { tipo: 'ac', barrido: a.barrido, puntos, desde, hasta, ...(fuente !== undefined ? { fuente } : {}), ...(magnitud !== undefined ? { magnitud } : {}) }
+      analisis = { tipo: 'ac', barrido: a.barrido, puntos, desde, hasta, ...(fuente !== undefined ? { fuente } : {}), ...(magnitud !== undefined ? { magnitud } : {}), ...(incluir ? { incluir } : {}) }
       break
     }
     case 'dc': {
@@ -155,7 +162,7 @@ export function puntosDeAnalisis(a: AnalisisSpice): number {
     case 'tran':
       return puntosTran(a.fin, a.paso, a.maximo)
     case 'ac':
-      return puntosAc(a.barrido, a.puntos, a.desde, a.hasta)
+      return puntosAc(a.barrido, a.puntos, a.desde, a.hasta, a.incluir?.length ?? 0)
     case 'dc':
       return puntosDc(a.desde, a.hasta, a.paso) * (a.segunda ? puntosDc(a.segunda.desde, a.segunda.hasta, a.segunda.paso) : 1)
   }
@@ -239,7 +246,10 @@ export function armarMazo(p: PeticionAnalisis, opciones: OpcionesExportar = {}):
     if (expresion.startsWith('@')) guardar.push(expresion)
     lets.push(`let corr${k} = ${expresion}`)
   }
-  const corrida = [tarjeta, ...lets, `write ${ARCHIVO_RAW}`]
+  // Con frecuencias incluidas, además de la rejilla se corre un punto exacto por cada una (ngspice no tiene barrido por lista)
+  // y el servicio une los gráficos en uno solo (`unirBarridosAc`).
+  const tarjetas = a.tipo === 'ac' && a.incluir?.length ? [tarjeta, ...a.incluir.map((f) => `ac lin 1 ${numero(f)} ${numero(f)}`)] : [tarjeta]
+  const corrida = tarjetas.flatMap((t) => [t, ...lets, `write ${ARCHIVO_RAW}`])
   let cuerpoControl: string[]
   if (p.parametro) {
     const b = elementoBarrible(p.netlist, p.parametro.elemento)
@@ -255,7 +265,7 @@ export function armarMazo(p: PeticionAnalisis, opciones: OpcionesExportar = {}):
     `.options ${ops.join(' ')}`,
     '.control',
     'set filetype=ascii',
-    ...(p.parametro ? ['set appendwrite'] : []),
+    ...(p.parametro || tarjetas.length > 1 ? ['set appendwrite'] : []),
     guardar.length > 0 ? `save all ${guardar.join(' ')}` : 'save all',
     ...cuerpoControl,
     '.endc',

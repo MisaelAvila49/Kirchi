@@ -5,8 +5,9 @@ import type { PiezaDef } from '../piezas/tipos'
 export const MENSAJE_SOLO_EN_CALIENTE = 'Mientras corre la vista previa solo cambian los valores de fuentes y resistencias: detenla para cambiar este.'
 
 /** Propiedades que cambian sin detener la vista previa: valor de resistencia, potenciómetro y fuente (voltaje, corriente,
- * amplitud, frecuencia, ciclo) y voltaje de riel. El cursor del potenciómetro tiene su control. */
+ * amplitud, frecuencia, ciclo), voltaje de riel y toda perilla en vivo (`enVivo`). El cursor del potenciómetro tiene su control. */
 export function editableEnCaliente(def: PiezaDef | undefined, propId: string): boolean {
+  if (def?.props.find((d) => d.id === propId)?.enVivo) return true
   const m = def?.modelo
   switch (m?.tipo) {
     case 'R':

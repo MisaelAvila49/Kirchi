@@ -7,5 +7,11 @@
   "pines": [{ "id": "1", "nombre": "GND", "x": 0, "y": 0 }],
   "props": [],
   "modelo": { "tipo": "tierra", "pin": "1" },
-  "etiquetas": { "ref": { "x": 0, "y": 4 }, "valor": { "x": 0, "y": 4 } }
+  "etiquetas": { "ref": { "x": 0, "y": 4 }, "valor": { "x": 0, "y": 4 } },
+  "datos": {
+    "equivalencias": { "kicad": "power:GND", "ltspice": "0", "falstad": "g", "proteus": "GROUND", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "*": { "virtual": true }
+    }
+  }
 }

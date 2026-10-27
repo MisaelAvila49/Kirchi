@@ -1,0 +1,94 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "cl_pF": 50,
+   "documento": "TI SN74HC163 (SCLS298D)",
+   "paginas": "8",
+   "caminos": [
+    {
+     "de": "CLK",
+     "a": "Q",
+     "tPLH": {
+      "tip": 25,
+      "max": 41
+     },
+     "tPHL": {
+      "tip": 25,
+      "max": 41
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "RCO",
+     "tPLH": {
+      "tip": 24,
+      "max": 43
+     },
+     "tPHL": {
+      "tip": 24,
+      "max": 43
+     }
+    },
+    {
+     "de": "ENT",
+     "a": "RCO",
+     "tPLH": {
+      "tip": 17,
+      "max": 39
+     },
+     "tPHL": {
+      "tip": 17,
+      "max": 39
+     }
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS163A (SDLS060)",
+   "paginas": "15",
+   "caminos": [
+    {
+     "de": "CLK",
+     "a": "Q",
+     "tPLH": {
+      "tip": 13,
+      "max": 24
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 27
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "RCO",
+     "tPLH": {
+      "tip": 20,
+      "max": 35
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 35
+     }
+    },
+    {
+     "de": "ENT",
+     "a": "RCO",
+     "tPLH": {
+      "tip": 9,
+      "max": 14
+     },
+     "tPHL": {
+      "tip": 9,
+      "max": 14
+     }
+    }
+   ]
+  }
+ }
+}

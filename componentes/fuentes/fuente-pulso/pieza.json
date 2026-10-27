@@ -18,5 +18,11 @@
     { "id": "retardo", "nombre": "Retardo", "unidad": "s", "defecto": "0", "comunes": ["0", "100u", "1m", "10m"], "omitir": true }
   ],
   "modelo": { "tipo": "pulso", "a": "+", "b": "-", "alto": "alto", "frecuencia": "frecuencia", "ciclo": "ciclo", "ancho": "ancho", "subida": "subida", "bajada": "bajada", "retardo": "retardo" },
-  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } }
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
+  "datos": {
+    "equivalencias": { "kicad": "Simulation_SPICE:VPULSE", "ltspice": "voltage", "falstad": "v", "proteus": "DPULSE", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "*": { "virtual": true, "nota": "Fuente ideal de pulsos del simulador." }
+    }
+  }
 }

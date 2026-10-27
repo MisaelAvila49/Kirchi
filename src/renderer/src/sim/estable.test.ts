@@ -22,6 +22,9 @@ class MotorFijo implements MotorSimulacion {
     return 1
   }
   reponer() {}
+  perilla() {
+    return 1
+  }
   paso() {}
   setSpeed() {}
   read(): SimReading {

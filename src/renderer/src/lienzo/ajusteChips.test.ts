@@ -4,9 +4,10 @@ import { calcularConexiones, clavePin } from '../conexiones/conexiones'
 import { divisor } from '../prueba/circuitos'
 import { libreriaDePrueba } from '../prueba/libreria'
 import type { Lectura } from '../sim/lectura'
-import { cajaChip, cajaConChips, chipEn, claveDeRedChip, DESPLAZO_MAX_CHIP, desplazoTrasArrastre, limitarDesplazo, MARGEN_HOVER_CHIP, redDeGolpe, redesConChip, redLlevaChip } from './ajusteChips'
+import { acotarAlAlcance, cajaChip, cajaConChips, chipEn, claveDeRedChip, DESPLAZO_MAX_CHIP, desplazoTrasArrastre, limitarDesplazo, MARGEN_HOVER_CHIP, redDeGolpe, redesConChip, redLlevaChip } from './ajusteChips'
 import { chipsDeVoltaje } from './chips'
 
+import { documentoVacio } from '../doc/tipos'
 const lib = libreriaDePrueba().piezas
 const d = divisor()
 const con = calcularConexiones(d, lib)
@@ -15,33 +16,43 @@ const medio = con.redDePin.get(clavePin('p_r1', '2'))!
 const lectura = (redes: [number, number][]): Lectura => ({ t: 0, ratio: 1, redes: new Map(redes), piezas: new Map() })
 
 describe('desplazo de un chip', () => {
-  it('se acota a 8 unidades (10 mm) de donde lo puso el reparto, en cualquier dirección', () => {
+  it('se sanea: lo que no es número vale cero y lo absurdo se recorta', () => {
     expect(limitarDesplazo(1, -2)).toEqual({ dx: 1, dy: -2 })
-    expect(limitarDesplazo(5, -6)).toEqual({ dx: 5, dy: -6 })
-    expect(DESPLAZO_MAX_CHIP).toBe(8)
-    for (const [x, y] of [[20, 0], [0, -20], [30, 40], [-8, -8.1]]) {
-      const m = limitarDesplazo(x, y)
-      expect(Math.hypot(m.dx, m.dy)).toBeLessThanOrEqual(8 + 1e-9)
-    }
-    const m = limitarDesplazo(30, 40)
-    expect(m.dx).toBeCloseTo(4.8, 9)
-    expect(m.dy).toBeCloseTo(6.4, 9)
+    expect(limitarDesplazo(30, 40)).toEqual({ dx: 30, dy: 40 })
     expect(limitarDesplazo(NaN, Infinity)).toEqual({ dx: 0, dy: 0 })
+    const m = limitarDesplazo(1e9, 0)
+    expect(m.dx).toBeLessThan(1e5)
   })
 
-  it('el límite se cuenta desde el lugar calculado: arrastres repetidos nunca lo sacan del radio', () => {
+  it('el alcance (8 unidades) se cuenta desde la red, no desde el lugar calculado: el arrastre acumula', () => {
+    expect(DESPLAZO_MAX_CHIP).toBe(8)
     let d = { dx: 0, dy: 0 }
-    for (let i = 0; i < 200; i++) {
-      // Cada arrastre empieza donde está el chip y lo empuja 3 unidades hacia el mismo lado.
-      d = desplazoTrasArrastre(d, { x: 100, y: 50 }, { x: 103, y: 50 })
-      expect(Math.hypot(d.dx, d.dy)).toBeLessThanOrEqual(8 + 1e-9)
-    }
-    expect(d).toEqual({ dx: 8, dy: 0 })
-    // Y se puede regresar: el arrastre contrario lo trae de vuelta, sin quedar pegado al borde.
+    for (let i = 0; i < 5; i++) d = desplazoTrasArrastre(d, { x: 100, y: 50 }, { x: 103, y: 50 })
+    expect(d).toEqual({ dx: 15, dy: 0 })
     d = desplazoTrasArrastre(d, { x: 0, y: 0 }, { x: -5, y: 0 })
-    expect(d).toEqual({ dx: 3, dy: 0 })
-    // Un arrastre que no se mueve no cambia nada.
+    expect(d).toEqual({ dx: 10, dy: 0 })
     expect(desplazoTrasArrastre(d, { x: 1, y: 1 }, { x: 1, y: 1 })).toEqual(d)
+  })
+
+  it('acotarAlAlcance deja pasar lo que está a 8 unidades de la red y lleva al borde lo que está más lejos', () => {
+    const red = con.redes.find((x) => x.id === alta)!
+    const cable = d.cables[red.cables[0]].puntos
+    const p = cable[0]
+    // Sobre el cable y a 5 unidades de él: igual. A 30 unidades: a 8 de la red, en la misma dirección.
+    expect(acotarAlAlcance(d, lib, red, p.x, p.y)).toEqual({ x: p.x, y: p.y })
+    expect(acotarAlAlcance(d, lib, red, p.x, p.y - 5)).toEqual({ x: p.x, y: p.y - 5 })
+    const lejos = acotarAlAlcance(d, lib, red, p.x, p.y - 30)
+    expect(lejos.x).toBeCloseTo(p.x, 9)
+    expect(p.y - lejos.y).toBeGreaterThanOrEqual(8 - 1e-9)
+    expect(acotarAlAlcance(d, lib, red, lejos.x, lejos.y)).toEqual(lejos)
+  })
+
+  it('a lo largo de un cable largo el chip llega al otro extremo sin perder el alcance', () => {
+    const doc = documentoVacio()
+    doc.cables.c = { id: 'c', puntos: [{ x: 0, y: 0 }, { x: 40, y: 0 }] }
+    const red = { pines: [], cables: ['c'] }
+    expect(acotarAlAlcance(doc, lib, red, 40, -1.6)).toEqual({ x: 40, y: -1.6 })
+    expect(acotarAlAlcance(doc, lib, red, 60, 0).x).toBeCloseTo(48, 9)
   })
 })
 

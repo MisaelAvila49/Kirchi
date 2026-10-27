@@ -23,5 +23,61 @@
   },
   "etiquetas": { "ref": { "x": 0, "y": -4 } },
   "animacion": { "tipo": "brillo", "color": "color" },
-  "limites": { "quema": { "factor": 2, "durante": 0.5 } }
+  "limites": { "quema": { "factor": 2, "durante": 0.5 } },
+  "datos": {
+    "por": "color",
+    "equivalencias": { "kicad": "Device:LED", "ltspice": "LED", "falstad": "162", "proteus": "LED-RED", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "rojo": {
+        "presentaciones": [
+          { "encapsulado": "LED-5mm", "patillas": { "A": "2", "K": "1" }, "huella": "LED_THT:LED_D5.0mm", "representativa": true }
+        ],
+        "pendiente": { "parte": "varía por fabricante", "hoja": "varía por fabricante", "lcsc": "varía por fabricante y color" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Convención de KiCad 9: símbolo Device:LED (1 K, 2 A) y huella LED_THT:LED_D5.0mm (pad 1 cátodo, pad 2 ánodo); sin hoja porque la fila es representativa"
+        }
+      },
+      "verde": {
+        "presentaciones": [
+          { "encapsulado": "LED-5mm", "patillas": { "A": "2", "K": "1" }, "huella": "LED_THT:LED_D5.0mm", "representativa": true }
+        ],
+        "pendiente": { "parte": "varía por fabricante", "hoja": "varía por fabricante", "lcsc": "varía por fabricante y color" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Convención de KiCad 9: símbolo Device:LED (1 K, 2 A) y huella LED_THT:LED_D5.0mm (pad 1 cátodo, pad 2 ánodo); sin hoja porque la fila es representativa"
+        }
+      },
+      "azul": {
+        "presentaciones": [
+          { "encapsulado": "LED-5mm", "patillas": { "A": "2", "K": "1" }, "huella": "LED_THT:LED_D5.0mm", "representativa": true }
+        ],
+        "pendiente": { "parte": "varía por fabricante", "hoja": "varía por fabricante", "lcsc": "varía por fabricante y color" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Convención de KiCad 9: símbolo Device:LED (1 K, 2 A) y huella LED_THT:LED_D5.0mm (pad 1 cátodo, pad 2 ánodo); sin hoja porque la fila es representativa"
+        }
+      },
+      "amarillo": {
+        "presentaciones": [
+          { "encapsulado": "LED-5mm", "patillas": { "A": "2", "K": "1" }, "huella": "LED_THT:LED_D5.0mm", "representativa": true }
+        ],
+        "pendiente": { "parte": "varía por fabricante", "hoja": "varía por fabricante", "lcsc": "varía por fabricante y color" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Convención de KiCad 9: símbolo Device:LED (1 K, 2 A) y huella LED_THT:LED_D5.0mm (pad 1 cátodo, pad 2 ánodo); sin hoja porque la fila es representativa"
+        }
+      },
+      "blanco": {
+        "presentaciones": [
+          { "encapsulado": "LED-5mm", "patillas": { "A": "2", "K": "1" }, "huella": "LED_THT:LED_D5.0mm", "representativa": true }
+        ],
+        "pendiente": { "parte": "varía por fabricante", "hoja": "varía por fabricante", "lcsc": "varía por fabricante y color" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Convención de KiCad 9: símbolo Device:LED (1 K, 2 A) y huella LED_THT:LED_D5.0mm (pad 1 cátodo, pad 2 ánodo); sin hoja porque la fila es representativa"
+        }
+      }
+    }
+  }
 }

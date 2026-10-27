@@ -1,0 +1,237 @@
+{
+ "fuente": {
+  "familias": [
+   "74HC",
+   "74LS"
+  ],
+  "documentos": [
+   {
+    "familia": "74HC",
+    "documento": "TI CD54/74HC192, CD54/74HC193, CD54/74HCT193, SCHS163F",
+    "revision": "oct 2003",
+    "pagina": 9,
+    "figura": "Figure 2, 'HC193 SYNCHRONOUS BINARY COUNTERS, TYPICAL RESET, PRESET AND COUNT SEQUENCES'"
+   },
+   {
+    "familia": "74LS",
+    "documento": "TI SN54/74LS192 y LS193, SDLS074",
+    "revision": "mar 1988",
+    "pagina": 6,
+    "figura": "''193, 'LS193 BINARY COUNTERS: typical clear, load, and count sequences'"
+   }
+  ],
+  "lectura": "Los tiempos salen de medir la figura sobre una rejilla de un período de reloj. Los nombres de entrada son los del LS (A a D, CLR, LOAD, UP, DOWN, QA a QD, CO, BO); el HC los llama P0 a P3, MR, PL, CPU, CPD, Q0 a Q3, TCU y TCD. Error de lectura estimado: 0.1 período."
+ },
+ "escala": "t en períodos de reloj. UP y DOWN llevan cada uno su lista de subidas y bajadas. Elegir el período mayor que 10 veces el retardo máximo de la hoja.",
+ "relojes": [
+  {
+   "senal": "UP",
+   "inicial": 1,
+   "bajadas": [
+    -0.5,
+    0.5,
+    1.5,
+    2.5,
+    3.5
+   ],
+   "subidas": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ]
+  },
+  {
+   "senal": "DOWN",
+   "inicial": 1,
+   "bajadas": [
+    5.5,
+    6.5,
+    7.5,
+    8.5,
+    9.5
+   ],
+   "subidas": [
+    6,
+    7,
+    8,
+    9,
+    10
+   ]
+  }
+ ],
+ "inicial": {
+  "CLR": 0,
+  "LOAD": 1,
+  "A": 0,
+  "B": 0,
+  "C": 0,
+  "D": 0
+ },
+ "pasos": [
+  {
+   "t": -4,
+   "entradas": {
+    "A": 1,
+    "C": 1,
+    "D": 1
+   }
+  },
+  {
+   "t": -3.5,
+   "entradas": {
+    "CLR": 1
+   }
+  },
+  {
+   "t": -3,
+   "entradas": {
+    "CLR": 0
+   }
+  },
+  {
+   "t": -2,
+   "entradas": {
+    "LOAD": 0
+   }
+  },
+  {
+   "t": -1.5,
+   "entradas": {
+    "LOAD": 1
+   }
+  }
+ ],
+ "salidas_codificadas": "cuenta = QD*8 + QC*4 + QB*2 + QA",
+ "muestras": [
+  {
+   "t": -2.5,
+   "salidas": {
+    "cuenta": 0,
+    "CO": 1,
+    "BO": 1
+   },
+   "origen": "figura: 'Clear' (CLR en alto anula la carga y los relojes)"
+  },
+  {
+   "t": -1.75,
+   "salidas": {
+    "cuenta": 13,
+    "CO": 1,
+    "BO": 1
+   },
+   "origen": "figura: 'Preset' a 13 (carga asíncrona con LOAD bajo; la figura de la hoja anota 13)"
+  },
+  {
+   "t": 0.25,
+   "salidas": {
+    "cuenta": 14,
+    "CO": 1,
+    "BO": 1
+   },
+   "origen": "figura, etiqueta 14"
+  },
+  {
+   "t": 1.25,
+   "salidas": {
+    "cuenta": 15,
+    "CO": 1,
+    "BO": 1
+   },
+   "origen": "figura, etiqueta 15"
+  },
+  {
+   "t": 1.75,
+   "salidas": {
+    "cuenta": 15,
+    "CO": 0,
+    "BO": 1
+   },
+   "origen": "figura: CO bajo con UP bajo y cuenta 15"
+  },
+  {
+   "t": 2.25,
+   "salidas": {
+    "cuenta": 0,
+    "CO": 1,
+    "BO": 1
+   },
+   "origen": "figura, etiqueta 0"
+  },
+  {
+   "t": 3.25,
+   "salidas": {
+    "cuenta": 1
+   },
+   "origen": "figura, etiqueta 1"
+  },
+  {
+   "t": 4.25,
+   "salidas": {
+    "cuenta": 2
+   },
+   "origen": "figura, etiqueta 2"
+  },
+  {
+   "t": 5.25,
+   "salidas": {
+    "cuenta": 2
+   },
+   "origen": "figura, entre las dos cuentas (ningún reloj corre)"
+  },
+  {
+   "t": 6.25,
+   "salidas": {
+    "cuenta": 1
+   },
+   "origen": "figura, 'Count Down' etiqueta 1"
+  },
+  {
+   "t": 7.25,
+   "salidas": {
+    "cuenta": 0,
+    "CO": 1,
+    "BO": 1
+   },
+   "origen": "figura, etiqueta 0"
+  },
+  {
+   "t": 7.75,
+   "salidas": {
+    "cuenta": 0,
+    "CO": 1,
+    "BO": 0
+   },
+   "origen": "figura: BO bajo con DOWN bajo y cuenta 0"
+  },
+  {
+   "t": 8.25,
+   "salidas": {
+    "cuenta": 15,
+    "CO": 1,
+    "BO": 1
+   },
+   "origen": "figura, etiqueta 15"
+  },
+  {
+   "t": 9.25,
+   "salidas": {
+    "cuenta": 14
+   },
+   "origen": "figura, etiqueta 14"
+  },
+  {
+   "t": 10.25,
+   "salidas": {
+    "cuenta": 13
+   },
+   "origen": "figura, etiqueta 13"
+  }
+ ],
+ "notas": [
+  "Discrepancia de la hoja HC (Figure 2): dibuja los datos de preset con P0, P1 y P2 en alto y P3 en bajo (valor 7), mientras que las salidas y el texto dicen 'binary thirteen'. La figura del LS (A, C y D en alto, B en bajo, valor 13) sí es coherente, y es la que se usa aquí. Pendiente: confirmar con otra hoja del HC193.",
+  "Los datos después de que termina la carga son 'no importa'.",
+  "Las cuentas hacia arriba van con DOWN en alto y las de hacia abajo con UP en alto (nota B del LS193 y nota 2 del HC193)."
+ ]
+}

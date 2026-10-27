@@ -11,13 +11,14 @@ beforeAll(async () => {
   await init({ module_or_path: readFileSync(join(import.meta.dirname, '../sim/pkg/kirchi_engine_bg.wasm')) })
 })
 
-/** El motor acepta la netlist de un solo elemento (valida al construir; no la resuelve). */
+/** El motor acepta la netlist de un solo elemento (valida al construir; no la resuelve). Un elemento sin dispositivo todavía
+ * pasa la validación y se rechaza después con su aviso: eso también cuenta como aceptado. */
 function elMotorLaAcepta(e: ElementoMotor): boolean {
   try {
-    new Simulator(JSON.stringify({ nodes: 6, digital_nets: 16, elements: [e] }), 1e-6).free()
+    new Simulator(JSON.stringify({ nodes: 6, digital_nets: 16, elements: [e], canales: [{ inicial: 1 }] }), 1e-6).free()
     return true
-  } catch {
-    return false
+  } catch (error) {
+    return String(error).includes('aún no se simula')
   }
 }
 
@@ -37,12 +38,23 @@ const BASE: Record<string, ElementoMotor> = {
   M: { type: 'M', d: 1, g: 2, s: 0, pmos: false, model: { vto: 2, kp: 0.1, w: 1, l: 1 } },
   XFMR: { type: 'XFMR', a1: 1, b1: 0, a2: 2, b2: 0, l1: 1e-3, l2: 1e-3, k: 0.5 },
   OA: { type: 'OA', p: 1, n: 2, out: 3, vp: 4, vn: 5, model: {} },
+  J: { type: 'J', d: 1, g: 2, s: 0, pjf: false, model: { vto: -2, beta: 1e-3 } },
+  E: { type: 'E', p: 1, n: 0, cp: 2, cn: 0, ganancia: 10 },
+  G: { type: 'G', p: 1, n: 0, cp: 2, cn: 0, gm: 0.01 },
+  H: { type: 'H', p: 1, n: 0, cp: 2, cn: 3, r: 1000 },
+  F: { type: 'F', p: 1, n: 0, cp: 2, cn: 3, ganancia: 2 },
+  TERM: { type: 'TERM', a: 1, b: 0, tipo: 'ntc', r25: 10000, beta: 3950, delta: 2e-3, tau: 10, canal: 0, tmax: 150 },
+  LDR: { type: 'LDR', a: 1, b: 0, r10: 10000, gamma: 0.7, roscuro: 1e6, tau_sube: 0.02, tau_baja: 0.03, canal: 0 },
+  PASOS: { type: 'PASOS', nodos: [1, 2, 3, 4], r: 10, l: 0.01, km: 0.1, dientes: 50, td: 1e-3, j: 1e-5, bm: 1e-4 },
+  EXT: { type: 'EXT', a: 1, b: 0, modo: 'v', canal: 0, k: 0.01, c: 0.5 },
   GATE: { type: 'GATE', fn: 'not', inputs: [0], output: 1, rise_delay: 5e-9, fall_delay: 5e-9, z_como: 'x' },
   DFF: { type: 'DFF', d: 0, clk: 1, pre: 2, clr: 3, q: 4, qn: 5, rise_delay: 5e-9, fall_delay: 5e-9, z_como: 'x' },
   JKFF: { type: 'JKFF', j: 0, k: 1, clk: 2, pre: 3, clr: 4, q: 5, qn: 6, rise_delay: 5e-9, fall_delay: 5e-9, z_como: 'x' },
   COUNTER: { type: 'COUNTER', clk: 0, rst: 1, q: [2, 3, 4, 5], co: 6, modulo: 10, rise_delay: 5e-9, fall_delay: 5e-9, z_como: 'x' },
   DECODER: { type: 'DECODER', inputs: [0, 1, 2, 3], outputs: [4, 5, 6, 7, 8, 9, 10], activo_alto: true, rise_delay: 5e-9, fall_delay: 5e-9, z_como: 'x' },
   LATCH555: { type: 'LATCH555', trig: 0, thr: 1, res: 2, q: 3, delay: 1e-7 },
+  DACM: { type: 'DACM', modo: 'voltaje', out: 1, ret: 0, ref_p: 2, ref_n: 0, bits: [0, 1], t_asentamiento: 1e-7 },
+  INTC: { type: 'INTC', a: 1, b: 0, canal: 0, r_on: 0.1, r_off: 1e9 },
   // Con los umbrales en los extremos, cada uno se prueba hasta el borde sin cruzar al otro.
   ADC: { type: 'ADC', p: 1, n: 0, out: 0, in_low: -1e3, in_high: 1e3 },
   DAC: { type: 'DAC', input: 0, out: 1, v_lo: 0, v_hi: 5, r_lo: 55, r_hi: 55, t_rise: 7e-9, t_fall: 7e-9 },
@@ -117,6 +129,54 @@ describe('rangos de los valores contra el motor de verdad (las tablas de rangos.
     for (const [e, ok] of casos) {
       expect(errorDeRango(e, 'V1') === null, JSON.stringify(e)).toBe(ok)
       expect(elMotorLaAcepta(e), JSON.stringify(e)).toBe(ok)
+    }
+  })
+
+  it('la fuente por tramos, la resistencia de EXT, la tabla del termistor y las terminales de PASOS', () => {
+    const pwl = (puntos: [number, number][]) => ({ type: 'V', a: 1, b: 0, wave: { kind: 'pwl', puntos } }) as ElementoMotor
+    const largo = Array.from({ length: 1001 }, (_, i) => [i, 0] as [number, number])
+    const casos: [ElementoMotor, boolean][] = [
+      [pwl([[0, 0], [1e-3, 5]]), true],
+      [pwl(largo.slice(0, 1000)), true],
+      [pwl(largo), false],
+      [pwl([]), false],
+      [pwl([[1e-3, 0], [2e-3, 5]]), false],
+      [pwl([[0, 0], [1e-3, 5], [1e-3, 1]]), false],
+      [pwl([[0, 0], [1e-3, 1e7]]), false],
+      [{ ...BASE.EXT, r: 100 } as ElementoMotor, true],
+      [{ ...BASE.EXT, r: 0 } as ElementoMotor, false],
+      [{ ...BASE.TERM, rt: [[0, 300], [25, 100]] } as ElementoMotor, true],
+      [{ ...BASE.TERM, rt: [[25, 100]] } as ElementoMotor, false],
+      [{ ...BASE.TERM, rt: [[25, 100], [25, 90]] } as ElementoMotor, false],
+      [{ ...BASE.TERM, rt: [[0, 100], [25, 0]] } as ElementoMotor, false],
+      [{ ...BASE.PASOS, k_mutua: 1 } as ElementoMotor, false],
+      [{ ...BASE.PASOS, reduccion: 0.5 } as ElementoMotor, false],
+      [{ ...BASE.PASOS, unipolar: true } as ElementoMotor, false],
+      [{ ...BASE.PASOS, nodos: [1, 2, 3, 4, 5, 0], unipolar: true, k_mutua: 0.99, reduccion: 64 } as ElementoMotor, true]
+    ]
+    for (const [e, ok] of casos) {
+      expect(errorDeRango(e, 'X1') === null, JSON.stringify(e)).toBe(ok)
+      expect(elMotorLaAcepta(e), JSON.stringify(e)).toBe(ok)
+    }
+  })
+
+  it('los retardos de un LUT o un MSI y la resistencia de salida de un DACM coinciden con el motor', () => {
+    const lut = (r: number): ElementoMotor => ({ type: 'LUT', comunes: [], rebanadas: [{ entradas: [0, 1], salidas: [2] }], tabla: 0, retardos: [[1e-9, r]], z_como: 'x' })
+    const msi = (r: number): ElementoMotor => ({
+      type: 'MSI', entradas: [0], salidas: [1], nucleo: { tipo: 'contador', bits: 1, modulo: 2, reloj: { senales: [{ entrada: 0 }] } }, de: [{ tipo: 'directa', fuente: { bit: 0 } }], retardos: [[r, 1e-9]], z_como: 'x'
+    })
+    const dacm = (r: number): ElementoMotor => ({ ...BASE.DACM, r_out: r }) as ElementoMotor
+    const acepta = (e: ElementoMotor) => {
+      try {
+        new Simulator(JSON.stringify({ nodes: 6, digital_nets: 16, tablas: [[0, 1, 1, 0]], elements: [e] }), 1e-6).free()
+        return true
+      } catch (error) {
+        return String(error).includes('aún no se simula')
+      }
+    }
+    for (const [e, ok] of [[lut(1e-3), true], [lut(1e-12), true], [lut(2e-3), false], [lut(0), false], [msi(1e-3), true], [msi(1e-13), false], [dacm(100), true], [dacm(0), false], [dacm(1e13), false]] as const) {
+      expect(errorDeRango(e, 'U1') === null, JSON.stringify(e)).toBe(ok)
+      expect(acepta(e), JSON.stringify(e)).toBe(ok)
     }
   })
 

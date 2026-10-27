@@ -12,6 +12,8 @@ const g = (await import(pathToFileURL(join(raiz, 'scripts/generar-licencias.mjs'
   problemas(paquetes: Paquete[], carpetas: string[]): string[]
   carpetasExtra(): string[]
   LICENCIAS: string
+  licenciaPermitida(expresion: string): boolean
+  paquetesDelProcesoPrincipal(): Promise<string[]>
 }
 
 const MIT = 'MIT License\n\nCopyright (c) 2024 Autora\n\nPermission is hereby granted'
@@ -119,5 +121,30 @@ describe('código fuente que acompaña a los instaladores (scripts/preparar-fuen
     expect(texto).toContain('ngspice-47.tar.gz')
     expect(texto).toContain(faer.nombre)
     expect(texto).toContain('MPL 2.0')
+  })
+})
+
+describe('licencias de lo que se empaqueta', () => {
+  it('solo admite MIT, BSD, ISC, 0BSD, Apache-2.0 y OFL-1.1, con alternativas OR y términos AND', () => {
+    for (const l of ['MIT', 'ISC', 'BSD-3-Clause', 'BSD-2-Clause', '0BSD', 'Apache-2.0', 'OFL-1.1', 'MIT OR GPL-3.0', '(MIT OR Apache-2.0) AND ISC']) expect(g.licenciaPermitida(l), l).toBe(true)
+    for (const l of ['GPL-3.0', 'LGPL-2.1', 'MPL-2.0', 'desconocida', 'MIT AND GPL-3.0', 'CC-BY-4.0']) expect(g.licenciaPermitida(l), l).toBe(false)
+  })
+
+  it('un paquete de npm con licencia fuera de la lista es un problema', () => {
+    expect(g.problemas([paquete({ origen: 'npm', licencia: 'GPL-3.0' })], []).join()).toMatch(/fuera de la lista permitida/)
+    expect(g.problemas([paquete({ origen: 'npm', licencia: 'MIT' })], [])).toEqual([])
+  })
+
+  it('el proceso principal empaqueta el SDK de MCP, zod y ajv, y cada uno aparece con su texto en el JSON generado', async () => {
+    const nombres = await g.paquetesDelProcesoPrincipal()
+    for (const n of ['@modelcontextprotocol/sdk', 'zod', 'ajv', 'fflate', 'rbush']) expect(nombres, n).toContain(n)
+    expect(nombres).not.toContain('electron')
+    const json = JSON.parse(readFileSync(join(raiz, 'src', 'renderer', 'src', 'ui', 'licenciasTerceros.json'), 'utf8')) as { textos: string[]; paquetes: { nombre: string; licencia: string; origen: string; texto: number }[] }
+    for (const n of nombres) {
+      const p = json.paquetes.find((q) => q.origen === 'npm' && q.nombre === n)
+      expect(p, n).toBeDefined()
+      expect(json.textos[p!.texto].length, n).toBeGreaterThan(100)
+    }
+    expect(json.paquetes.find((p) => p.nombre === '@modelcontextprotocol/sdk')!.licencia).toBe('MIT')
   })
 })

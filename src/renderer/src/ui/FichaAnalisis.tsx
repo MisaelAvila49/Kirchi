@@ -167,6 +167,57 @@ function Campo(props: PropsCampo) {
   )
 }
 
+/** Una lista de frecuencias en Hz separadas por comas («60, 120»): vacía vale ninguna. Lee al salir del campo o con Enter. */
+function CampoFrecuencias(props: { etiqueta: string; valor: readonly number[] | undefined; onValor(v: number[]): void; desactivado?: boolean; pista?: string }) {
+  const id = `an-${createUniqueId()}`
+  const pista = usarPista(props.pista)
+  const [error, setError] = createSignal<string | null>(null)
+  const mostrado = () => (props.valor ?? []).map((f) => sinPrefijo(f)).join(', ')
+  let texto = mostrado()
+  const aplicar = () => {
+    const partes = texto.split(/[,;]|\s+/).map((t) => t.trim()).filter((t) => t !== '')
+    const lista: number[] = []
+    for (const t of partes) {
+      const v = leerValor(t)
+      if (!v || !(v.valor > 0) || (v.unidad && v.unidad !== 'Hz')) return setError(`«${t}» no es una frecuencia en Hz.`)
+      lista.push(v.valor)
+    }
+    setError(null)
+    const unicas = [...new Set(lista)].sort((x, y) => x - y)
+    if (unicas.join(',') !== (props.valor ?? []).join(',')) props.onValor(unicas)
+  }
+  return (
+    <div class="fld fld-an">
+      <span class="fld-rotulo">
+        <label for={id}>{props.etiqueta}</label>
+        <PistaBoton pista={pista} ajuste={props.etiqueta} />
+      </span>
+      <input
+        id={id}
+        class="campo"
+        type="text"
+        inputMode="decimal"
+        placeholder="60, 120"
+        value={mostrado()}
+        disabled={props.desactivado}
+        aria-invalid={error() ? 'true' : undefined}
+        aria-describedby={error() ? `${id}-e` : undefined}
+        onInput={(e) => (texto = e.currentTarget.value)}
+        onChange={aplicar}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') aplicar()
+        }}
+      />
+      <Show when={error()}>
+        <p class="fld-error" id={`${id}-e`} role="alert">
+          {error()}
+        </p>
+      </Show>
+      <PistaTexto pista={pista} />
+    </div>
+  )
+}
+
 function Lista(props: { etiqueta: string; valor: string; opciones: readonly { valor: string; texto: string }[]; onValor(v: string): void; desactivado?: boolean; pista?: string }) {
   const id = `an-${createUniqueId()}`
   const pista = usarPista(props.pista)
@@ -286,6 +337,7 @@ export default function FichaAnalisis(props: PropsFicha) {
             <Campo etiqueta={c.barrido === 'lin' ? 'Puntos en total' : `Puntos por ${c.barrido === 'dec' ? 'década' : 'octava'}`} valor={c.puntos} unidad="" entero onValor={(v) => v !== undefined && cambiarConfig((x) => ({ ...(x as typeof c), puntos: v }))} desactivado={sinEditar()} pista={pistaDe('ac.puntos')} />
             <Campo etiqueta="Frecuencia inicial" valor={c.desde} unidad="Hz" onValor={(v) => v !== undefined && cambiarConfig((x) => ({ ...(x as typeof c), desde: v }))} desactivado={sinEditar()} pista={pistaDe('ac.desde')} />
             <Campo etiqueta="Frecuencia final" valor={c.hasta} unidad="Hz" onValor={(v) => v !== undefined && cambiarConfig((x) => ({ ...(x as typeof c), hasta: v }))} desactivado={sinEditar()} pista={pistaDe('ac.hasta')} />
+            <CampoFrecuencias etiqueta="Incluir frecuencias" valor={c.incluir} onValor={(v) => cambiarConfig((x) => ({ ...(x as typeof c), incluir: v.length ? v : undefined }))} desactivado={sinEditar()} pista={pistaDe('ac.incluir')} />
           </>
         )
       case 'tran':

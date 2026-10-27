@@ -1,0 +1,15 @@
+* Fuente de voltaje controlada por corriente de 2 kohm que mide la corriente de una resistencia de 1 kohm
+V1 1 0 DC 1
+R1 1 2 1k
+VH1_CTL 2 0 DC 0
+H1 3 0 VH1_CTL 2k
+RL 3 0 10k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(2) v(3) i(v1)
+.endc
+.end

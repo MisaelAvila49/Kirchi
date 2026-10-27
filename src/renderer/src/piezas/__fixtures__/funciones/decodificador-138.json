@@ -1,0 +1,39 @@
+{
+ "columnas": [
+  "G1",
+  "G2A",
+  "G2B",
+  "C",
+  "B",
+  "A"
+ ],
+ "salidas": [
+  "Y0",
+  "Y1",
+  "Y2",
+  "Y3",
+  "Y4",
+  "Y5",
+  "Y6",
+  "Y7"
+ ],
+ "filas": [
+  "X 1 X X X X > 1 1 1 1 1 1 1 1",
+  "X X 1 X X X > 1 1 1 1 1 1 1 1",
+  "0 X X X X X > 1 1 1 1 1 1 1 1",
+  "1 0 0 0 0 0 > 0 1 1 1 1 1 1 1",
+  "1 0 0 0 0 1 > 1 0 1 1 1 1 1 1",
+  "1 0 0 0 1 0 > 1 1 0 1 1 1 1 1",
+  "1 0 0 0 1 1 > 1 1 1 0 1 1 1 1",
+  "1 0 0 1 0 0 > 1 1 1 1 0 1 1 1",
+  "1 0 0 1 0 1 > 1 1 1 1 1 0 1 1",
+  "1 0 0 1 1 0 > 1 1 1 1 1 1 0 1",
+  "1 0 0 1 1 1 > 1 1 1 1 1 1 1 0"
+ ],
+ "fuente": {
+  "documento": "TI SN74HC138 (SCLS107G)",
+  "pagina": "10, tabla 8-1 Function Table",
+  "comprobada_con": "TI SN74LS138 (SDLS014), p. 2, FUNCTION TABLE: las 11 filas son iguales",
+  "convencion": "H = 1, L = 0, X = no importa. G2A y G2B activos en bajo, G1 en alto, salidas activas en bajo"
+ }
+}

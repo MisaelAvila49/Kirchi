@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { FromWorker, ToWorker } from './protocol'
 import { MAX_ELEMENTS, MAX_NODES, MAX_REDES_DIGITALES, readSim, SAB_LENGTH, SLOT, writeSim } from './protocol'
 
 describe('protocolo de memoria compartida', () => {
@@ -119,5 +120,14 @@ describe('protocolo de memoria compartida', () => {
     expect(r.time).toBe(2)
     expect(Array.from(r.voltages)).toEqual([0, 7])
     expect(Array.from(r.currents)).toEqual([3])
+  })
+})
+
+describe('mensaje de perilla', () => {
+  it('lleva canal, valor y secuencia, y su rechazo se distingue del paso por indice -1 - canal', () => {
+    const m: ToWorker = { type: 'perilla', canal: 0, valor: 85, seq: 4 }
+    const r: FromWorker = { type: 'rechazado', id: 1, indice: -1 - m.canal, message: 'canal 0: la cola de cambios está llena', seq: m.seq }
+    expect(r.indice).toBe(-1)
+    expect(JSON.parse(JSON.stringify(m))).toEqual(m)
   })
 })

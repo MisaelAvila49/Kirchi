@@ -124,5 +124,72 @@
     "4 MHz": "Parámetros de la rama motional (L1, C1, R1) y de la capacitancia en paralelo (C0) del modelo de Butterworth y Van Dyke, con L1 calculada de la frecuencia de resonancia serie y de C1: fs = 1 / (2π √(L1 C1)). Cristal HC-49/US de uso general: C0 de 4 pF (la hoja da 7 pF máx, Mouser HC49US Series). La hoja no publica C1 ni la ESR de esta banda: C1 de 20 fF y R1 de 100 Ω son valores típicos de un corte AT fundamental, sin validar contra una hoja.",
     "8 MHz": "Parámetros de la rama motional (L1, C1, R1) y de la capacitancia en paralelo (C0) del modelo de Butterworth y Van Dyke, con L1 calculada de la frecuencia de resonancia serie y de C1: fs = 1 / (2π √(L1 C1)). Cristal HC-49/US de uso general: C0 de 4 pF (7 pF máx) y ESR de 60 Ω (80 Ω máx en la banda de 7 a 8.9 MHz, según la hoja de la serie HC49US de Mouser). C1 de 20 fF es un valor típico de un corte AT fundamental que la hoja no publica.",
     "16 MHz": "Parámetros de la rama motional (L1, C1, R1) y de la capacitancia en paralelo (C0) del modelo de Butterworth y Van Dyke, con L1 calculada de la frecuencia de resonancia serie y de C1: fs = 1 / (2π √(L1 C1)). Cristal HC-49/US de uso general: C0 de 4 pF (7 pF máx). La ESR de la banda de 16 MHz no se pudo leer: R1 de 40 Ω y C1 de 20 fF son valores típicos sin validar. La resonancia serie va a 16 MHz exactos, pero una fuente a esa frecuencia ya queda por debajo de los 20 pasos por periodo que la vista previa puede dar (paso mínimo de 10 ns) y lo avisa."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Device:Crystal", "ltspice": "Misc\\crystal", "falstad": "412", "proteus": "CRYSTAL", "sinVerificar": ["ltspice", "proteus"] },
+    "valores": {
+      "32.768 kHz": {
+        "presentaciones": [
+          {
+            "encapsulado": "Cilindro-cristal",
+            "patillas": { "1": "1", "2": "2" },
+            "huella": "Crystal:Crystal_DS26_D2.0mm_L6.0mm_Vertical",
+            "representativa": true
+          }
+        ],
+        "pendiente": {
+          "parte": "depende del fabricante y de la carga (pF)",
+          "hoja": "depende del fabricante",
+          "lcsc": "depende de la frecuencia y de la carga"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 Crystal_DS26_D2.0mm_L6.0mm_Vertical (cilindro de 2 × 6 mm, el de los relojes) y símbolo Device:Crystal (1 y 2); sin hoja, la fila es representativa"
+        }
+      },
+      "4 MHz": {
+        "presentaciones": [
+          { "encapsulado": "HC-49", "patillas": { "1": "1", "2": "2" }, "huella": "Crystal:Crystal_HC49-U_Vertical", "representativa": true }
+        ],
+        "pendiente": {
+          "parte": "depende del fabricante y de la carga (pF)",
+          "hoja": "depende del fabricante",
+          "lcsc": "depende de la frecuencia y de la carga"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 Crystal_HC49-U_Vertical (HC-49/U de dos patillas) y símbolo Device:Crystal (1 y 2); sin hoja, la fila es representativa"
+        }
+      },
+      "8 MHz": {
+        "presentaciones": [
+          { "encapsulado": "HC-49", "patillas": { "1": "1", "2": "2" }, "huella": "Crystal:Crystal_HC49-U_Vertical", "representativa": true }
+        ],
+        "pendiente": {
+          "parte": "depende del fabricante y de la carga (pF)",
+          "hoja": "depende del fabricante",
+          "lcsc": "depende de la frecuencia y de la carga"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 Crystal_HC49-U_Vertical (HC-49/U de dos patillas) y símbolo Device:Crystal (1 y 2); sin hoja, la fila es representativa"
+        }
+      },
+      "16 MHz": {
+        "presentaciones": [
+          { "encapsulado": "HC-49", "patillas": { "1": "1", "2": "2" }, "huella": "Crystal:Crystal_HC49-U_Vertical", "representativa": true }
+        ],
+        "pendiente": {
+          "parte": "depende del fabricante y de la carga (pF)",
+          "hoja": "depende del fabricante",
+          "lcsc": "depende de la frecuencia y de la carga"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Huella de KiCad 9 Crystal_HC49-U_Vertical (HC-49/U de dos patillas) y símbolo Device:Crystal (1 y 2); sin hoja, la fila es representativa"
+        }
+      }
+    }
   }
 }

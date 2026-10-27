@@ -3,14 +3,44 @@
 
 use std::collections::VecDeque;
 
+use crate::canales::Canales;
 use crate::devices::{Event, Reading, Tol};
 use crate::digital::modelos::construir;
 use crate::digital::simulador::EstadoDigital;
 use crate::digital::{a_ps, a_ps_arriba, a_s, Digital, Nivel};
 use crate::error::EngineError;
-use crate::netlist::{Element, Netlist, SondaDef};
+use crate::netlist::{Element, LectorDef, Netlist, SondaDef};
 use crate::sonda::{EstadoSonda, Interpolacion, Sonda};
 use crate::transient::{Cruce, EstadoTransient, Medida, SolverKind, Transient, DEFAULT_ITER_BUDGET};
+
+/// Muestras pendientes que admite el simulador.
+pub const MAX_MUESTRAS: usize = 4096;
+
+/// Una muestra de un lector: el número del lector, el instante pedido y el valor leído.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Muestra {
+    pub lector: usize,
+    pub t: f64,
+    pub v: f64,
+}
+
+/// El puente de valores (canales y lectores) repartido entre las islas.
+#[derive(Default)]
+struct Valores {
+    /// Todos los canales con el valor que les puso el exterior; cada isla guarda además su copia de los que lee.
+    canales: Canales,
+    /// Por canal, las islas que lo leen.
+    lectoras: Vec<Vec<usize>>,
+    /// Por lector, su isla y su número dentro de ella; y por isla, el lector global de cada uno de los suyos.
+    lecturas: Vec<(usize, usize)>,
+    de_local: Vec<Vec<usize>>,
+    /// Las islas con lectores.
+    con_lectores: Vec<usize>,
+    /// Cambios de canal que llegaron con un tiempo anterior al de la isla que los lee.
+    tardios: u64,
+    /// Muestras tomadas que aún no se entregan.
+    listas: Vec<Muestra>,
+}
 
 /// Dónde vive una sonda: en su isla (con el mismo número que en la netlist) o en la lógica.
 #[derive(Clone, Copy, Debug)]
@@ -95,8 +125,8 @@ pub struct Mixto {
     lugar: Vec<Lugar>,
     /// Elemento global de cada modelo digital.
     global_de_modelo: Vec<usize>,
-    /// Por red digital, los puentes de salida que la leen: (isla, elemento local).
-    lectores: Vec<Vec<(usize, usize)>>,
+    /// Por red digital, los elementos analógicos que la leen: (isla, elemento local, posición de la red en sus entradas).
+    lectores: Vec<Vec<(usize, usize, usize)>>,
     /// Por isla, las salidas digitales que llegan a sus puentes de salida.
     horizontes: Vec<Horizonte>,
     readings: Vec<Reading>,
@@ -117,6 +147,7 @@ pub struct Mixto {
     potencias: Vec<(usize, usize)>,
     /// Retroceder: los estados guardados antes de cada avance en pausa (ver `guardar_estado`).
     guardados: Historial,
+    valores: Valores,
 }
 
 /// Cuántos estados guarda como máximo `Mixto::guardar_estado` (los últimos 200 avances).
@@ -134,6 +165,7 @@ struct EstadoMixto {
     t_logica: f64,
     readings: Vec<Reading>,
     sondas_digitales: Vec<EstadoSonda>,
+    canales: Canales,
     /// `Mixto::time()` cuando se guardó.
     tiempo: f64,
     bytes: usize,
@@ -206,7 +238,17 @@ impl Mixto {
         if !hay_logica {
             let nodos = net.nodes;
             let defs = net.sondas.clone();
+            let canales = Canales::todos(&net.canales);
+            let n_lectores = net.lectores.len();
             let tr = transitorio(net)?;
+            let valores = Valores {
+                lectoras: (0..canales.total()).map(|c| if tr.lee_canal(c) { vec![0] } else { Vec::new() }).collect(),
+                canales,
+                lecturas: (0..n_lectores).map(|k| (0, k)).collect(),
+                de_local: vec![(0..n_lectores).collect()],
+                con_lectores: if n_lectores > 0 { vec![0] } else { Vec::new() },
+                ..Valores::default()
+            };
             let mut m = Self {
                 islas: vec![Isla { tr, globales: (0..ne).collect(), entradas: Vec::new(), sumidero: true }],
                 logica: None,
@@ -228,6 +270,7 @@ impl Mixto {
                 casillas,
                 potencias: Vec::new(),
                 guardados: Historial::default(),
+                valores,
             };
             m.armar_sondas(&defs)?;
             m.leer();
@@ -351,9 +394,10 @@ impl Mixto {
             elementos[i].push(e.con_nodos(|n| nodo[n].map_or(0, |(_, l)| l)));
             globales[i].push(k);
         }
+        let (lectores_de_isla, lecturas, de_local) = repartir_lectores(&net, &nodo, &lugar, n_final)?;
         let mut islas = Vec::with_capacity(n_final);
         for (i, (els, glob)) in elementos.into_iter().zip(globales).enumerate() {
-            let local = Netlist { nodes: cuantos[i], digital_nets: net.digital_nets, elements: els, sondas: Vec::new() };
+            let local = Netlist { nodes: cuantos[i], digital_nets: net.digital_nets, elements: els, sondas: Vec::new(), canales: net.canales.clone(), lectores: lectores_de_isla[i].clone(), tablas: Vec::new() };
             let tr = transitorio(local).map_err(|e| a_global_de(&glob, e))?;
             islas.push(Isla { tr, globales: glob, entradas: Vec::new(), sumidero: sumidero[i] });
         }
@@ -362,9 +406,10 @@ impl Mixto {
         let mut modelos = Vec::new();
         let mut global_de_modelo = Vec::new();
         let mut puentes = Vec::new();
-        let mut lectores: Vec<Vec<(usize, usize)>> = vec![Vec::new(); net.digital_nets];
+        let mut lectores: Vec<Vec<(usize, usize, usize)>> = vec![Vec::new(); net.digital_nets];
+        let tablas: Vec<std::sync::Arc<[u64]>> = net.tablas.iter().map(|t| std::sync::Arc::from(t.as_slice())).collect();
         for (k, e) in net.elements.iter().enumerate() {
-            if let Some(m) = construir(e) {
+            if let Some(m) = construir(e, k, &tablas, &net.tablas)? {
                 lugar[k] = Some(Lugar::Logica { modelo: modelos.len() });
                 global_de_modelo.push(k);
                 modelos.push(m);
@@ -373,8 +418,8 @@ impl Mixto {
                     islas[isla].entradas.push((local, puentes.len(), Nivel::X));
                     puentes.push(r as u32);
                 }
-                for r in e.entradas_digitales() {
-                    lectores[r].push((isla, local));
+                for (bit, r) in e.entradas_digitales().into_iter().enumerate() {
+                    lectores[r].push((isla, local, bit));
                 }
             }
         }
@@ -389,17 +434,18 @@ impl Mixto {
         logica.arrancar(&iniciales);
         // 7. El horizonte de cada isla: hacia atrás desde las redes que leen sus puentes de salida, por los modelos que las
         // manejan, hasta los puentes de entrada. Un evento en otra red nunca cambia lo que la isla ve, así que no la detiene.
-        let mut conductor: Vec<Option<usize>> = vec![None; net.digital_nets];
+        // Una red de tres estados puede tener varias salidas: el horizonte pasa por todas.
+        let mut conductor: Vec<Vec<usize>> = vec![Vec::new(); net.digital_nets];
         for (k, e) in net.elements.iter().enumerate() {
             for r in e.salidas_digitales() {
-                conductor[r] = Some(k);
+                conductor[r].push(k);
             }
         }
         // Un índice de las redes que lee cada isla y otro de las salidas de cada red, y una marca con el número de la isla que la
         // puso: así cada horizonte cuesta lo que recorre y no el tamaño de la netlist entera (con mil islas en cadena era cuadrático).
         let mut lee_isla: Vec<Vec<usize>> = vec![Vec::new(); islas.len()];
         for (r, ls) in lectores.iter().enumerate() {
-            for &(i, _) in ls {
+            for &(i, _, _) in ls {
                 if lee_isla[i].last() != Some(&r) {
                     lee_isla[i].push(r);
                 }
@@ -416,7 +462,7 @@ impl Mixto {
                     continue;
                 }
                 salidas.extend(&salidas_por_red[r]);
-                if let Some(k) = conductor[r].filter(|&k| net.elements[k].es_digital()) {
+                for &k in conductor[r].iter().filter(|&&k| net.elements[k].es_digital()) {
                     pila.extend(net.elements[k].entradas_digitales());
                 }
             }
@@ -428,8 +474,8 @@ impl Mixto {
             horizontes.push(Horizonte { salidas });
         }
         for (r, ls) in lectores.iter().enumerate() {
-            for &(i, l) in ls {
-                islas[i].tr.fijar_nivel(l, logica.nivel(r), true);
+            for &(i, l, b) in ls {
+                islas[i].tr.fijar_nivel_bit(l, b, logica.nivel(r), true);
             }
         }
         let mut m = Self {
@@ -453,6 +499,15 @@ impl Mixto {
             casillas,
             potencias: Vec::new(),
             guardados: Historial::default(),
+            valores: Valores::default(),
+        };
+        m.valores = Valores {
+            lectoras: (0..net.canales.len()).map(|c| (0..m.islas.len()).filter(|&i| m.islas[i].tr.lee_canal(c)).collect()).collect(),
+            canales: Canales::todos(&net.canales),
+            con_lectores: (0..m.islas.len()).filter(|&i| !de_local[i].is_empty()).collect(),
+            lecturas,
+            de_local,
+            ..Valores::default()
         };
         m.armar_sondas(&net.sondas)?;
         m.leer();
@@ -739,8 +794,8 @@ impl Mixto {
                 cambiadas.extend_from_slice(logica.procesar(te)?);
                 for &red in cambiadas.iter() {
                     let n = logica.nivel(red as usize);
-                    for &(i, l) in &lectores[red as usize] {
-                        islas[i].tr.fijar_nivel(l, n, false);
+                    for &(i, l, b) in &lectores[red as usize] {
+                        islas[i].tr.fijar_nivel_bit(l, b, n, false);
                     }
                     if let Some(js) = sondas_de_red.get(red as usize) {
                         for &j in js {
@@ -822,7 +877,9 @@ impl Mixto {
             + self.readings.len() * std::mem::size_of::<Reading>()
             + entradas.iter().map(Vec::len).sum::<usize>()
             + std::mem::size_of::<EstadoMixto>();
-        self.guardados.meter(EstadoMixto { islas, entradas, logica, t_logica: self.t_logica, readings: self.readings.clone(), sondas_digitales, tiempo: self.time(), bytes });
+        let canales = self.valores.canales.clone();
+        let bytes = bytes + canales.bytes();
+        self.guardados.meter(EstadoMixto { islas, entradas, logica, t_logica: self.t_logica, readings: self.readings.clone(), sondas_digitales, canales, tiempo: self.time(), bytes });
     }
 
     /// Vuelve al último estado guardado (y lo olvida): devuelve el instante al que volvió, o None si no hay ninguno. Las sondas
@@ -846,6 +903,8 @@ impl Mixto {
         }
         self.t_logica = e.t_logica;
         self.readings.clone_from(&e.readings);
+        self.valores.canales.clone_from(&e.canales);
+        self.valores.listas.clear();
         self.cambiadas.clear();
         self.perdidas = 0;
         Some(e.tiempo)
@@ -873,6 +932,99 @@ impl Mixto {
         self.guardados.recortar();
     }
 
+    /// Pone el canal `canal` en `valor` a partir de `t` (segundos). Cada isla que lo lee lo aplica en `max(t, su tiempo)`; si `t` ya
+    /// pasó para alguna, se cuenta en `tardios`. Rechaza un canal fuera de rango, un valor o un tiempo no finitos y una cola llena.
+    /// No descarta los estados guardados.
+    pub fn poner_valor(&mut self, canal: usize, t: f64, valor: f64) -> Result<(), EngineError> {
+        if canal >= self.valores.canales.total() {
+            return Err(EngineError::Invalid(format!("canal {canal} fuera de rango")));
+        }
+        if !(t.is_finite() && valor.is_finite()) {
+            return Err(EngineError::Invalid(format!("canal {canal}: el tiempo y el valor deben ser finitos")));
+        }
+        let ahora = self.time();
+        self.valores.canales.compactar(ahora, 0.0);
+        let mut lleno = self.valores.canales.lleno(canal);
+        for &i in &self.valores.lectoras[canal] {
+            self.islas[i].tr.compactar_canales();
+            lleno |= self.islas[i].tr.canal_lleno(canal);
+        }
+        if lleno {
+            return Err(EngineError::Invalid(format!("canal {canal}: la cola de cambios está llena")));
+        }
+        self.valores.canales.poner(canal, t.max(ahora), valor, ahora)?;
+        let mut tardios = 0;
+        for &i in &self.valores.lectoras[canal] {
+            tardios += u64::from(self.islas[i].tr.poner_valor(canal, t, valor)?);
+        }
+        if self.valores.lectoras[canal].is_empty() && t < ahora {
+            tardios += 1;
+        }
+        self.valores.tardios += tardios;
+        Ok(())
+    }
+
+    /// El valor del canal en el tiempo del simulador (NaN si el canal no existe).
+    pub fn valor_canal(&self, canal: usize) -> f64 {
+        if canal >= self.valores.canales.total() {
+            return f64::NAN;
+        }
+        let ahora = self.time();
+        self.valores.canales.valor(canal, ahora, ahora)
+    }
+
+    /// Cuántos cambios de canal llegaron con un tiempo anterior al de la isla que los lee, desde que se construyó.
+    pub fn tardios(&self) -> u64 {
+        self.valores.tardios
+    }
+
+    /// Programa una lectura exacta en `t` (segundos). Rechaza un lector fuera de rango, un tiempo no finito y más de
+    /// `MAX_MUESTRAS` pendientes. Una `t` que ya pasó para la isla del lector se responde con su lectura vigente y su tiempo.
+    pub fn pedir_muestra(&mut self, lector: usize, t: f64) -> Result<(), EngineError> {
+        let Some(&(i, l)) = self.valores.lecturas.get(lector) else {
+            return Err(EngineError::Invalid(format!("lector {lector} fuera de rango")));
+        };
+        if !t.is_finite() {
+            return Err(EngineError::Invalid(format!("lector {lector}: el tiempo debe ser finito")));
+        }
+        let pendientes: usize = self.valores.listas.len() + self.valores.con_lectores.iter().map(|&j| self.islas[j].tr.muestras_programadas()).sum::<usize>();
+        if pendientes >= MAX_MUESTRAS {
+            return Err(EngineError::Invalid(format!("hay {MAX_MUESTRAS} muestras pendientes")));
+        }
+        self.islas[i].tr.pedir_muestra(l, t)?;
+        self.recoger_muestras();
+        Ok(())
+    }
+
+    /// Pasa a `out` las muestras cumplidas, en orden de tiempo.
+    pub fn tomar_muestras(&mut self, out: &mut Vec<Muestra>) {
+        self.recoger_muestras();
+        self.valores.listas.sort_by(|a, b| a.t.total_cmp(&b.t));
+        out.append(&mut self.valores.listas);
+    }
+
+    /// El tiempo de la isla del lector y su lectura con el último paso, sin programar nada (NaN si el lector no existe).
+    pub fn leer_ahora(&self, lector: usize) -> (f64, f64) {
+        match self.valores.lecturas.get(lector) {
+            Some(&(i, l)) => (self.islas[i].tr.time(), self.islas[i].tr.leer_ahora(l).unwrap_or(f64::NAN)),
+            None => (self.time(), f64::NAN),
+        }
+    }
+
+    /// Lleva las muestras que tomaron las islas a la lista del simulador, con el número global de su lector.
+    fn recoger_muestras(&mut self) {
+        if self.valores.con_lectores.is_empty() {
+            return;
+        }
+        let mut tmp = Vec::new();
+        for k in 0..self.valores.con_lectores.len() {
+            let i = self.valores.con_lectores[k];
+            self.islas[i].tr.tomar_muestras(&mut tmp);
+            let globales = &self.valores.de_local[i];
+            self.valores.listas.extend(tmp.drain(..).map(|m| Muestra { lector: globales[m.lector], t: m.t, v: m.v }));
+        }
+    }
+
     /// Hasta dónde puede avanzar la isla `i` sin pasar un evento pendiente que llega a sus puentes de salida. La cabeza de la
     /// cola, si es de una de esas salidas, es el mínimo (aunque esté cancelada, es una cota segura); si no, se recorren.
     fn horizonte(&self, i: usize, t_end: f64) -> f64 {
@@ -882,12 +1034,18 @@ impl Mixto {
             Some((t, s)) if hz.admite(s) => Some(t),
             _ => l.pendiente_en(&hz.salidas),
         };
-        te.map_or(t_end, |t| a_s(t).min(t_end))
+        let h = te.map_or(t_end, |t| a_s(t).min(t_end));
+        // Un modelo que pidió despertar puede programar una salida que llegue a sus puentes: la isla no pasa de ahí.
+        let h = l.proximo_despertar().map_or(h, |t| h.min(a_s(t)));
+        // El próximo cambio de un canal que lee la isla, si queda más allá de lo que ya alcanzó.
+        let cambio = self.islas[i].tr.proximo_cambio_canal();
+        if cambio > self.islas[i].alcanzado() { h.min(cambio) } else { h }
     }
 
     /// Las lecturas de cada elemento en el orden de la netlist: las de su isla o, de un modelo digital, su segunda lectura
     /// y su estado.
     fn leer(&mut self) {
+        self.recoger_muestras();
         for (k, l) in self.lugar.iter().enumerate() {
             self.readings[k] = match *l {
                 Lugar::Isla { isla, local } => self.islas[isla].tr.readings()[local],
@@ -972,6 +1130,11 @@ impl Mixto {
     /// Los elementos (en el orden de la netlist) de un lazo que no se asentó al arrancar.
     pub fn lazo_de_arranque(&self) -> Vec<usize> {
         self.logica.as_ref().map_or_else(Vec::new, |l| l.lazo_de_arranque().iter().map(|&m| self.global_de_modelo[m]).collect())
+    }
+
+    /// Las redes digitales que entraron en conflicto (dos salidas de tres estados, una en 0 y otra en 1) desde la última llamada.
+    pub fn tomar_conflictos(&mut self) -> Vec<u32> {
+        self.logica.as_mut().map_or_else(Vec::new, |l| l.tomar_conflictos())
     }
 
     /// El invariante de la lógica (`Digital::comprobar`), para las pruebas de robustez.
@@ -1150,6 +1313,37 @@ impl Historial {
 }
 
 /// Un error de una isla con sus elementos numerados como en la netlist completa: el mensaje de la interfaz nombra la pieza.
+/// Reparte los lectores entre las islas: la lista de cada una (con nodos y elementos numerados como en la isla), la isla y el
+/// número local de cada lector y el lector global de cada número local.
+#[allow(clippy::type_complexity)]
+fn repartir_lectores(net: &Netlist, nodo: &[Option<(usize, usize)>], lugar: &[Option<Lugar>], islas: usize) -> Result<(Vec<Vec<LectorDef>>, Vec<(usize, usize)>, Vec<Vec<usize>>), EngineError> {
+    let mut por_isla: Vec<Vec<LectorDef>> = vec![Vec::new(); islas];
+    let mut de_local: Vec<Vec<usize>> = vec![Vec::new(); islas];
+    let mut lecturas = Vec::with_capacity(net.lectores.len());
+    for (k, d) in net.lectores.iter().enumerate() {
+        let (isla, local) = match *d {
+            LectorDef::V { p, n } => {
+                let sitio = |x: usize| if x == 0 { Ok(None) } else { nodo[x].map(Some).ok_or_else(|| EngineError::Invalid(format!("lector {k}: el nodo {x} no tiene elementos analógicos"))) };
+                let (sp, sn) = (sitio(p)?, sitio(n)?);
+                let isla = match (sp, sn) {
+                    (Some((a, _)), Some((b, _))) if a != b => return Err(EngineError::Invalid(format!("lector {k}: los nodos {p} y {n} están en islas distintas"))),
+                    (Some((a, _)), _) | (_, Some((a, _))) => a,
+                    (None, None) => return Err(EngineError::Invalid(format!("lector {k}: ambos nodos son la tierra"))),
+                };
+                (isla, LectorDef::V { p: sp.map_or(0, |s| s.1), n: sn.map_or(0, |s| s.1) })
+            }
+            LectorDef::I { elemento } => match lugar[elemento] {
+                Some(Lugar::Isla { isla, local }) => (isla, LectorDef::I { elemento: local }),
+                _ => return Err(EngineError::Invalid(format!("lector {k}: el elemento {elemento} no es analógico"))),
+            },
+        };
+        lecturas.push((isla, por_isla[isla].len()));
+        por_isla[isla].push(local);
+        de_local[isla].push(k);
+    }
+    Ok((por_isla, lecturas, de_local))
+}
+
 fn a_global_de(globales: &[usize], e: EngineError) -> EngineError {
     let g = |k: Option<usize>| k.map(|k| globales.get(k).copied().unwrap_or(k));
     match e {

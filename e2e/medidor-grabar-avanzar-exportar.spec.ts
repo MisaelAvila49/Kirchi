@@ -58,7 +58,7 @@ async function menuEn(page: Page, x: number, y: number, ...ruta: RegExp[]) {
     await page.waitForTimeout(250)
   }
 }
-const medidorRapido = (page: Page) => menuEn(page, 32, 0, /Medir con el multímetro/, /^Medidor rápido/)
+const medidorRapido = (page: Page) => menuEn(page, 32, 0, /^Medir/, /^Multímetro/, /^Medidor rápido/)
 
 async function dialogoGuardar(app: ElectronApplication, ruta: string) {
   await app.evaluate(({ dialog }, ruta) => {

@@ -1,0 +1,142 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "documento": "TI CD74HC193 (SCHS163F)",
+   "paginas": "6 y 7",
+   "caminos": [
+    {
+     "de": "UP",
+     "a": "CO",
+     "tPLH": {
+      "tip": 10,
+      "max": 25
+     },
+     "tPHL": {
+      "tip": 10,
+      "max": 25
+     }
+    },
+    {
+     "de": "DOWN",
+     "a": "BO",
+     "tPLH": {
+      "tip": 10,
+      "max": 25
+     },
+     "tPHL": {
+      "tip": 10,
+      "max": 25
+     }
+    },
+    {
+     "de": "UP, DOWN",
+     "a": "Q",
+     "tPLH": {
+      "tip": 18,
+      "max": 43
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 43
+     }
+    },
+    {
+     "de": "LOAD",
+     "a": "Q",
+     "tPLH": {
+      "tip": 18,
+      "max": 44
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 44
+     }
+    },
+    {
+     "de": "CLR",
+     "a": "Q",
+     "tPLH": {
+      "tip": 17,
+      "max": 40
+     },
+     "tPHL": {
+      "tip": 17,
+      "max": 40
+     }
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS193 (SDLS074)",
+   "paginas": "8",
+   "caminos": [
+    {
+     "de": "UP",
+     "a": "CO",
+     "tPLH": {
+      "tip": 17,
+      "max": 26
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 24
+     }
+    },
+    {
+     "de": "DOWN",
+     "a": "BO",
+     "tPLH": {
+      "tip": 16,
+      "max": 24
+     },
+     "tPHL": {
+      "tip": 15,
+      "max": 24
+     }
+    },
+    {
+     "de": "UP, DOWN",
+     "a": "Q",
+     "tPLH": {
+      "tip": 27,
+      "max": 38
+     },
+     "tPHL": {
+      "tip": 30,
+      "max": 47
+     }
+    },
+    {
+     "de": "LOAD",
+     "a": "Q",
+     "tPLH": {
+      "tip": 24,
+      "max": 40
+     },
+     "tPHL": {
+      "tip": 25,
+      "max": 40
+     }
+    },
+    {
+     "de": "CLR",
+     "a": "Q",
+     "tPLH": {
+      "tip": 23,
+      "max": 35
+     },
+     "tPHL": {
+      "tip": 23,
+      "max": 35
+     }
+    }
+   ]
+  }
+ }
+}

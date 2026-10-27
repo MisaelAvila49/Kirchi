@@ -1,0 +1,98 @@
+{
+  "id": "tmp36",
+  "nombre": { "es": "Sensor TMP36", "en": "TMP36 sensor" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["tmp36", "sensor de temperatura", "temperature sensor", "tmp36gt9z", "termometro"],
+  "pines": [
+    { "id": "+VS", "nombre": "alimentación (+VS)", "x": 0, "y": -6 },
+    { "id": "VOUT", "nombre": "salida (VOUT)", "x": 6, "y": 0 },
+    { "id": "GND", "nombre": "tierra (GND)", "x": 0, "y": 6 }
+  ],
+  "props": [
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "TMP36GT9Z", "opciones": ["TMP36GT9Z"] },
+    {
+      "id": "temperatura",
+      "nombre": "Temperatura",
+      "unidad": "°C",
+      "defecto": "25",
+      "enVivo": { "magnitud": "temperatura", "min": -40, "max": 125, "paso": 5, "pasoFino": 1 }
+    },
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Ajuste", "opciones": ["Nada", "Ajuste"], "omitir": true }
+  ],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "TMP36GT9Z": { "a0": 100000, "gbw": 1000000, "sr": 1000000, "rin": 1000000000000, "rout": 60, "ilim": 0.00025, "dhi": 1.5, "dlo": 0.01, "rq": 101000 }
+    },
+    "internas": ["t"],
+    "medida": { "mas": "VOUT", "menos": "GND", "i": 1 },
+    "elementos": [
+      { "t": "EXT", "a": "t", "b": "GND", "modo": "v", "canal": "temperatura", "k": 0.01, "c": 0.5 },
+      {
+        "t": "OA",
+        "mas": "t",
+        "menos": "VOUT",
+        "sal": "VOUT",
+        "vmas": "+VS",
+        "vmenos": "GND",
+        "params": { "a0": "a0", "gbw": "gbw", "sr": "sr", "rin": "rin", "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" }
+      }
+    ]
+  },
+  "rotulos": [
+    { "texto": "°C", "x": 0, "y": 0, "tam": 1.8 },
+    { "texto": "+VS", "x": 0, "y": -3, "tam": 1.1 },
+    { "texto": "GND", "x": 0, "y": 3, "tam": 1.1 },
+    { "texto": "OUT", "x": 1.8, "y": 0, "tam": 1.1, "alinear": "der" }
+  ],
+  "fuentes": {
+    "TMP36GT9Z": "Analog Devices, TMP35/TMP36/TMP37 (Rev. E, 8/08), https://www.analog.com/media/en/technical-documentation/data-sheets/TMP35_36_37.pdf: salida de 0.5 V más 10 mV/°C (750 mV a 25 °C), rango de -40 a 125 °C, alimentación de 2.7 a 5.5 V, cortocircuito de 250 µA como máximo (p. 8) y corriente en reposo de 50 µA como máximo (Tabla 1, p. 3), que se pone como resistencia entre alimentaciones (101 kΩ a 5 V, que con la corriente propia de la salida suman los 50 µA). La impedancia de salida de 60 Ω se derivó de la regulación de carga de 6 m°C/µA (la hoja solo dice «baja»). Kirchi lo arma con una fuente de valor externo y un seguidor alimentado por +VS y GND. No modela el error de ±3 °C ni el autocalentamiento de 162 °C/W. El margen de la salida contra +VS (1.5 V) y contra GND (10 mV) y el ancho de banda del seguidor son del modelo, no de la hoja."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Sensor_Temperature:TMP36xS" },
+    "valores": {
+      "TMP36GT9Z": {
+        "fabricante": "Analog Devices",
+        "parte": "TMP36GT9Z",
+        "hoja": "https://www.analog.com/media/en/technical-documentation/data-sheets/TMP35_36_37.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-92",
+            "patillas": { "+VS": "1", "VOUT": "2", "GND": "3" },
+            "huella": "Package_TO_SOT_THT:TO-92_Inline",
+            "lcsc": { "numero": "C53490", "comprobado": "2026-10-26" }
+          }
+        ],
+        "pendiente": {
+          "hoja": "analog.com no respondió desde esta red (tiempo agotado); la URL es la que cita Sensor_Temperature:TMP36xS de KiCad 9. El texto se leyó de la copia de Digi-Key (media.digikey.com/pdf/Data%20Sheets/Analog%20Devices%20PDFs/TMP35,36,37.pdf), revisión E de 8/08.",
+          "segunda_fuente": "KiCad 9 no trae TMP36 de TO-92 (solo TMP36xS, SOIC-8). La segunda fuente de las patas es la página de Adafruit, que da izquierda +alimentación, centro salida, derecha tierra sin decir la orientación; coincide en el orden, no en la vista.",
+          "tolerancia_lcsc": "LCSC C53490 lista ±2 °C; la hoja da ±3 °C como máximo a 25 °C para el grado G (TMP36GT9Z) y ±2 °C como típico sobre temperatura. Se usan las cifras de la hoja."
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "ADI TMP35/TMP36/TMP37 Rev. E p. 1, Figura 4 T-3 (TO-92) vista inferior: PIN 1 +VS, PIN 2 VOUT, PIN 3 GND; Ordering Guide p. 19 (TMP36GT9Z, ±3.0 °C, TO-92). LCSC C53490 (nombre TMP36GT9Z, TO-92)"
+        }
+      }
+    }
+  },
+  "limites": {
+    "absolutos": {
+      "prop": "modelo",
+      "valores": {
+        "TMP36GT9Z": {
+          "fuente": "Analog Devices, TMP35/TMP36/TMP37 (Rev. E), Tabla 2, p. 4: voltaje de alimentación máximo de 7 V.",
+          "limites": [
+            { "nombre": "alimentación", "de": "+VS", "a": "GND", "max": 7, "escala": 7, "consejo": "baja el voltaje de alimentación del sensor." }
+          ]
+        }
+      }
+    }
+  },
+  "etiquetas": {
+    "ref": { "x": 7, "y": -3 },
+    "valor": { "x": 7, "y": 3 }
+  }
+}

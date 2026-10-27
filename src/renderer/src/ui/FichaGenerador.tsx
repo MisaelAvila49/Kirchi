@@ -5,7 +5,7 @@ import { extrasDeForma, marcasDeTiempo, nombreDeForma, trazoIcono, usaFrecuencia
 import { formatearValor, leerValor } from '../valores/valores'
 import CampoPerilla from './CampoPerilla'
 import Conmutador from './Conmutador'
-import { admiteRms, EXPLICACION_SIN_RMS, medidaAVpp, medidaEfectiva, TITULO_MEDIDA, UNIDAD_MEDIDA, vppAMedida, type MedidaAmplitud } from '../instrumentos/medidaAmplitud'
+import { admiteRms, AYUDA_MEDIDA, EXPLICACION_SIN_RMS, medidaAVpp, medidaEfectiva, TITULO_MEDIDA, UNIDAD_MEDIDA, vppAMedida, type MedidaAmplitud } from '../instrumentos/medidaAmplitud'
 import { medidaAmplitud, modoAmplitud, modoTiempo, setMedidaAmplitud, setModoAmplitud, setModoTiempo } from './modosGenerador'
 
 const SIMETRIAS = ['0 %', '10 %', '20 %', '25 %', '30 %', '40 %', '50 %', '60 %', '70 %', '75 %', '80 %', '90 %', '100 %']
@@ -205,9 +205,9 @@ export default function FichaGenerador(props: Props) {
                 valor={medidaEfectiva(props.a.forma, medidaAmplitud())}
                 onCambiar={setMedidaAmplitud}
                 opciones={[
-                  { valor: 'pp', texto: 'Pico a pico' },
-                  { valor: 'pico', texto: 'Pico' },
-                  { valor: 'rms', texto: 'rms', desactivada: !admiteRms(props.a.forma), titulo: admiteRms(props.a.forma) ? 'Valor eficaz de la parte alterna' : EXPLICACION_SIN_RMS }
+                  { valor: 'pp', texto: 'Pico a pico', titulo: AYUDA_MEDIDA.pp },
+                  { valor: 'pico', texto: 'Pico', titulo: AYUDA_MEDIDA.pico },
+                  { valor: 'rms', texto: 'rms', desactivada: !admiteRms(props.a.forma), titulo: admiteRms(props.a.forma) ? AYUDA_MEDIDA.rms : EXPLICACION_SIN_RMS }
                 ]}
               />
               <Show when={medidaEfectiva(props.a.forma, medidaAmplitud())} keyed>

@@ -3,6 +3,7 @@ import { destransformar, transformar } from '../piezas/transformar'
 import { MAX_TEXTO_PROP, type PiezaDef, type Rotulo } from '../piezas/tipos'
 import { rielDeTerminal, SIN_RIELES, type ConRieles } from '../netlist/alimentaciones'
 import { formatearValor, leerValor } from '../valores/valores'
+import { partesDeAjuste, PROP_JUNTO, SEPARADOR_AJUSTE } from './ajusteEnPieza'
 import { alineacionPorX, emDeTam, TAM_ETIQUETA, type Alineacion } from './medidas'
 import { anchoEnEm } from './metricas'
 import type { Token } from './paleta'
@@ -33,6 +34,9 @@ export interface Texto {
   minimoPx?: number
   /** Llave de la red de un chip de voltaje (`claveDeRedChip`): con ella el lector lo mueve un poco. */
   clave?: string
+  /** Valor de una pieza con resistencia en vivo (termistor, fotorresistencia) mientras simula: este texto es lo que no cambia y la
+   * capa de la vista previa escribe tras él la resistencia del motor; `respaldo` es la del documento si aún no hay lectura. */
+  vivo?: { id: string; respaldo: string }
 }
 
 /** Texto de la primera propiedad numérica (sin `opciones`) o, si no hay, la opción elegida de la primera lista con
@@ -41,12 +45,18 @@ export function textoDeValor(p: Pieza, def: PiezaDef, doc: ConRieles = SIN_RIELE
   // Un terminal de alimentación muestra el voltaje de su riel; con un nombre que ya es un voltaje («+15V»), nada.
   const riel = rielDeTerminal(doc, p, def)
   if (riel) return riel.deNombre ? null : riel.valor === null ? riel.texto : formatearValor(riel.valor, 'V')
-  const prop = def.props.find((d) => !d.opciones && !d.texto && !d.ajuste)
+  // Con la opción «Mostrar» (junto), el valor lleva el ajuste y la resistencia tras él; el ajuste de la perilla no es el valor.
+  const conJunto = def.props.some((d) => d.id === PROP_JUNTO)
+  const prop = def.props.find((d) => !d.opciones && !d.texto && !d.ajuste && !(conJunto && d.enVivo))
+  let base: string | null
   if (!prop) {
-    const lista = def.props.find((d) => d.mostrar && d.opciones)
-    return lista ? (p.props[lista.id] ?? lista.defecto) : null
-  }
-  return valorFormateado(p.props[prop.id] ?? prop.defecto, prop.unidad)
+    const lista = conJunto ? undefined : def.props.find((d) => d.mostrar && d.opciones)
+    base = lista ? (p.props[lista.id] ?? lista.defecto) : null
+  } else base = valorFormateado(p.props[prop.id] ?? prop.defecto, prop.unidad)
+  if (!conJunto) return base
+  const { ajuste, resistencia } = partesDeAjuste(p, def)
+  const partes = [base, ajuste, resistencia].filter((x): x is string => x !== null && x !== '')
+  return partes.length ? partes.join(SEPARADOR_AJUSTE) : null
 }
 
 /** Valores ya leídos y formateados, por unidad y texto guardado: leer y formatear cuesta cerca de medio microsegundo por

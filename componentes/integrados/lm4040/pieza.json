@@ -1,0 +1,196 @@
+{
+  "id": "lm4040",
+  "nombre": { "es": "LM4040 referencia", "en": "LM4040 reference" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["u", "lm4040", "4040", "referencia", "reference", "shunt", "referencia de voltaje", "voltage reference"],
+  "pines": [{ "id": "K", "nombre": "cátodo (K)", "x": 0, "y": -6 }, { "id": "A", "nombre": "ánodo (A)", "x": 0, "y": 6 }],
+  "props": [{ "id": "modelo", "nombre": "Voltaje", "mostrar": true, "defecto": "2.5 V", "opciones": ["2.048 V", "2.5 V", "3 V", "4.096 V", "5 V", "10 V"] }],
+  "modelo": {
+    "tipo": "compuesto",
+    "prop": "modelo",
+    "modelos": {
+      "2.048 V": { "vref": 1.225, "r1": 134354, "r2": 200000, "a0": 20000, "gbw": 500, "rout": 500, "ilim": 0.005, "dhi": 0.8, "dlo": 0.01, "rq": 1000000000000, "rs": 0.3 },
+      "2.5 V": { "vref": 1.225, "r1": 208148, "r2": 200000, "a0": 20000, "gbw": 500, "rout": 500, "ilim": 0.005, "dhi": 0.8, "dlo": 0.01, "rq": 1000000000000, "rs": 0.3 },
+      "3 V": { "vref": 1.225, "r1": 289777, "r2": 200000, "a0": 20000, "gbw": 500, "rout": 500, "ilim": 0.005, "dhi": 0.8, "dlo": 0.01, "rq": 1000000000000, "rs": 0.4 },
+      "4.096 V": { "vref": 1.225, "r1": 468710, "r2": 200000, "a0": 20000, "gbw": 500, "rout": 500, "ilim": 0.005, "dhi": 0.8, "dlo": 0.01, "rq": 1000000000000, "rs": 0.5 },
+      "5 V": { "vref": 1.225, "r1": 616299, "r2": 200000, "a0": 20000, "gbw": 500, "rout": 500, "ilim": 0.005, "dhi": 0.8, "dlo": 0.01, "rq": 1000000000000, "rs": 0.5 },
+      "10 V": { "vref": 1.225, "r1": 1432596, "r2": 200000, "a0": 20000, "gbw": 500, "rout": 500, "ilim": 0.005, "dhi": 0.8, "dlo": 0.01, "rq": 1000000000000, "rs": 0.7 }
+    },
+    "internas": ["vr", "tap", "g", "ae"],
+    "medida": { "mas": "K", "menos": "A", "i": 3 },
+    "elementos": [
+      { "t": "OA", "mas": "tap", "menos": "vr", "sal": "g", "vmas": "K", "vmenos": "ae", "params": { "a0": "a0", "gbw": "gbw", "sr": 15000, "rin": 1000000000000, "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" } },
+      { "t": "V", "a": "vr", "b": "ae", "volts": "vref" },
+      { "t": "Q", "c": "K", "b": "g", "e": "ae", "params": { "is": 1e-14, "bf": 150, "nf": 1, "br": 1 } },
+      { "t": "R", "a": "ae", "b": "A", "ohms": "rs" },
+      { "t": "D", "a": "A", "b": "K", "params": { "is": 1e-14, "n": 1 } },
+      { "t": "R", "a": "K", "b": "tap", "ohms": "r1" },
+      { "t": "R", "a": "tap", "b": "ae", "ohms": "r2" }
+    ]
+  },
+  "limites": {
+    "quema": { "factor": 2, "durante": 0.5, "elemento": 2 },
+    "compuesto": [
+      {
+        "nombre": "corriente inversa",
+        "elementos": [3],
+        "medida": "corriente",
+        "sentido": "positiva",
+        "max": 0.02,
+        "consejo": "agrega una resistencia en serie con K que limite la corriente a menos de 15 mA.",
+        "fuente": "Texas Instruments LM4040-N, SNOS633N, Absolute Maximum Ratings: corriente inversa de 20 mA como máximo (operación de IRMIN a 15 mA)."
+      },
+      {
+        "nombre": "corriente directa",
+        "elementos": [4],
+        "medida": "corriente",
+        "sentido": "positiva",
+        "max": 0.01,
+        "consejo": "K quedó por debajo de A: limita la corriente con una resistencia o invierte la conexión.",
+        "fuente": "Texas Instruments LM4040-N, SNOS633N, Absolute Maximum Ratings: corriente directa de 10 mA como máximo."
+      }
+    ]
+  },
+  "etiquetas": { "ref": { "x": 3, "y": -3 }, "valor": { "x": 3, "y": 3 } },
+  "fuentes": {
+    "2.048 V": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments LM4040-N, SNOS633N (dic 1991, rev. ago 2025), https://www.ti.com/lit/ds/symlink/lm4040-n.pdf: voltaje inverso de 2.048 V con 100 µA (tolerancia de ±0.1 % del grado A) e impedancia dinámica de 0.3 Ω típica a 1 mA y 120 Hz. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador entre el punto medio de un divisor interno de K a A y una referencia de 1.225 V que maneja un transistor de K a A, una resistencia entre el emisor y A que fija la impedancia dinámica y el diodo de A a K de la hoja. El divisor de 200 kΩ abajo se calcula para que a la corriente de prueba queden los 2.048 V de la hoja. El amplificador interno tiene un producto ganancia-ancho de banda de 500 Hz, para que el lazo cruce lejos de la regla de paso de la vista previa; el arranque tarda unos 100 µs. No modela la corriente mínima de operación (de 45 a 75 µA típica según el voltaje), el ruido ni la deriva con la temperatura.",
+    "2.5 V": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments LM4040-N, SNOS633N (dic 1991, rev. ago 2025), https://www.ti.com/lit/ds/symlink/lm4040-n.pdf: voltaje inverso de 2.5 V con 100 µA (tolerancia de ±0.1 % del grado A) e impedancia dinámica de 0.3 Ω típica a 1 mA y 120 Hz. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador entre el punto medio de un divisor interno de K a A y una referencia de 1.225 V que maneja un transistor de K a A, una resistencia entre el emisor y A que fija la impedancia dinámica y el diodo de A a K de la hoja. El divisor de 200 kΩ abajo se calcula para que a la corriente de prueba queden los 2.5 V de la hoja. El amplificador interno tiene un producto ganancia-ancho de banda de 500 Hz, para que el lazo cruce lejos de la regla de paso de la vista previa; el arranque tarda unos 100 µs. No modela la corriente mínima de operación (de 45 a 75 µA típica según el voltaje), el ruido ni la deriva con la temperatura.",
+    "3 V": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments LM4040-N, SNOS633N (dic 1991, rev. ago 2025), https://www.ti.com/lit/ds/symlink/lm4040-n.pdf: voltaje inverso de 3 V con 100 µA (tolerancia de ±0.1 % del grado A) e impedancia dinámica de 0.4 Ω típica a 1 mA y 120 Hz. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador entre el punto medio de un divisor interno de K a A y una referencia de 1.225 V que maneja un transistor de K a A, una resistencia entre el emisor y A que fija la impedancia dinámica y el diodo de A a K de la hoja. El divisor de 200 kΩ abajo se calcula para que a la corriente de prueba queden los 3 V de la hoja. El amplificador interno tiene un producto ganancia-ancho de banda de 500 Hz, para que el lazo cruce lejos de la regla de paso de la vista previa; el arranque tarda unos 100 µs. No modela la corriente mínima de operación (de 45 a 75 µA típica según el voltaje), el ruido ni la deriva con la temperatura.",
+    "4.096 V": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments LM4040-N, SNOS633N (dic 1991, rev. ago 2025), https://www.ti.com/lit/ds/symlink/lm4040-n.pdf: voltaje inverso de 4.096 V con 100 µA (tolerancia de ±0.1 % del grado A) e impedancia dinámica de 0.5 Ω típica a 1 mA y 120 Hz. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador entre el punto medio de un divisor interno de K a A y una referencia de 1.225 V que maneja un transistor de K a A, una resistencia entre el emisor y A que fija la impedancia dinámica y el diodo de A a K de la hoja. El divisor de 200 kΩ abajo se calcula para que a la corriente de prueba queden los 4.096 V de la hoja. El amplificador interno tiene un producto ganancia-ancho de banda de 500 Hz, para que el lazo cruce lejos de la regla de paso de la vista previa; el arranque tarda unos 100 µs. No modela la corriente mínima de operación (de 45 a 75 µA típica según el voltaje), el ruido ni la deriva con la temperatura.",
+    "5 V": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments LM4040-N, SNOS633N (dic 1991, rev. ago 2025), https://www.ti.com/lit/ds/symlink/lm4040-n.pdf: voltaje inverso de 5 V con 100 µA (tolerancia de ±0.1 % del grado A) e impedancia dinámica de 0.5 Ω típica a 1 mA y 120 Hz. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador entre el punto medio de un divisor interno de K a A y una referencia de 1.225 V que maneja un transistor de K a A, una resistencia entre el emisor y A que fija la impedancia dinámica y el diodo de A a K de la hoja. El divisor de 200 kΩ abajo se calcula para que a la corriente de prueba queden los 5 V de la hoja. El amplificador interno tiene un producto ganancia-ancho de banda de 500 Hz, para que el lazo cruce lejos de la regla de paso de la vista previa; el arranque tarda unos 100 µs. No modela la corriente mínima de operación (de 45 a 75 µA típica según el voltaje), el ruido ni la deriva con la temperatura.",
+    "10 V": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments LM4040-N, SNOS633N (dic 1991, rev. ago 2025), https://www.ti.com/lit/ds/symlink/lm4040-n.pdf: voltaje inverso de 10 V con 150 µA (tolerancia de ±0.1 % del grado A) e impedancia dinámica de 0.7 Ω típica a 1 mA y 120 Hz. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador entre el punto medio de un divisor interno de K a A y una referencia de 1.225 V que maneja un transistor de K a A, una resistencia entre el emisor y A que fija la impedancia dinámica y el diodo de A a K de la hoja. El divisor de 200 kΩ abajo se calcula para que a la corriente de prueba queden los 10 V de la hoja. El amplificador interno tiene un producto ganancia-ancho de banda de 500 Hz, para que el lazo cruce lejos de la regla de paso de la vista previa; el arranque tarda unos 100 µs. No modela la corriente mínima de operación (de 45 a 75 µA típica según el voltaje), el ruido ni la deriva con la temperatura."
+  },
+  "datos": {
+    "por": "modelo",
+    "equivalencias": { "kicad": "Reference_Voltage:LM4040LP-2.5" },
+    "valores": {
+      "2.048 V": {
+        "fabricante": "Texas Instruments",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm4040-n.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-92",
+            "patillas": { "K": "2", "A": "3" },
+            "sinModelo": { "1": "Sin conexión interna: flotante o unida al ánodo" },
+            "huella": "Package_TO_SOT_THT:TO-92_Inline"
+          }
+        ],
+        "pendiente": {
+          "parte": "un número por voltaje (LM4040AIZ-2.5/NOPB para 2.5 V)",
+          "lcsc": "un número por voltaje; el LM4040AIZ-2.5/NOPB aparece como C544355 pero no se asigna a la fila común"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM4040-N (SNOS633N, ago 2025) tabla 4-1, TO-92: Anodo 3, Cátodo 2, patilla 1 sin conexión (flotar o unir al ánodo); Reference_Voltage:LM4040LP-2.5 de KiCad 9 (2 K, 3 A)"
+        },
+        "nota": "Mismo encapsulado y patillas para todos los voltajes de la pieza"
+      },
+      "2.5 V": {
+        "fabricante": "Texas Instruments",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm4040-n.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-92",
+            "patillas": { "K": "2", "A": "3" },
+            "sinModelo": { "1": "Sin conexión interna: flotante o unida al ánodo" },
+            "huella": "Package_TO_SOT_THT:TO-92_Inline"
+          }
+        ],
+        "pendiente": {
+          "parte": "un número por voltaje (LM4040AIZ-2.5/NOPB para 2.5 V)",
+          "lcsc": "un número por voltaje; el LM4040AIZ-2.5/NOPB aparece como C544355 pero no se asigna a la fila común"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM4040-N (SNOS633N, ago 2025) tabla 4-1, TO-92: Anodo 3, Cátodo 2, patilla 1 sin conexión (flotar o unir al ánodo); Reference_Voltage:LM4040LP-2.5 de KiCad 9 (2 K, 3 A)"
+        },
+        "nota": "Mismo encapsulado y patillas para todos los voltajes de la pieza"
+      },
+      "3 V": {
+        "fabricante": "Texas Instruments",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm4040-n.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-92",
+            "patillas": { "K": "2", "A": "3" },
+            "sinModelo": { "1": "Sin conexión interna: flotante o unida al ánodo" },
+            "huella": "Package_TO_SOT_THT:TO-92_Inline"
+          }
+        ],
+        "pendiente": {
+          "parte": "un número por voltaje (LM4040AIZ-2.5/NOPB para 2.5 V)",
+          "lcsc": "un número por voltaje; el LM4040AIZ-2.5/NOPB aparece como C544355 pero no se asigna a la fila común"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM4040-N (SNOS633N, ago 2025) tabla 4-1, TO-92: Anodo 3, Cátodo 2, patilla 1 sin conexión (flotar o unir al ánodo); Reference_Voltage:LM4040LP-2.5 de KiCad 9 (2 K, 3 A)"
+        },
+        "nota": "Mismo encapsulado y patillas para todos los voltajes de la pieza"
+      },
+      "4.096 V": {
+        "fabricante": "Texas Instruments",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm4040-n.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-92",
+            "patillas": { "K": "2", "A": "3" },
+            "sinModelo": { "1": "Sin conexión interna: flotante o unida al ánodo" },
+            "huella": "Package_TO_SOT_THT:TO-92_Inline"
+          }
+        ],
+        "pendiente": {
+          "parte": "un número por voltaje (LM4040AIZ-2.5/NOPB para 2.5 V)",
+          "lcsc": "un número por voltaje; el LM4040AIZ-2.5/NOPB aparece como C544355 pero no se asigna a la fila común"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM4040-N (SNOS633N, ago 2025) tabla 4-1, TO-92: Anodo 3, Cátodo 2, patilla 1 sin conexión (flotar o unir al ánodo); Reference_Voltage:LM4040LP-2.5 de KiCad 9 (2 K, 3 A)"
+        },
+        "nota": "Mismo encapsulado y patillas para todos los voltajes de la pieza"
+      },
+      "5 V": {
+        "fabricante": "Texas Instruments",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm4040-n.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-92",
+            "patillas": { "K": "2", "A": "3" },
+            "sinModelo": { "1": "Sin conexión interna: flotante o unida al ánodo" },
+            "huella": "Package_TO_SOT_THT:TO-92_Inline"
+          }
+        ],
+        "pendiente": {
+          "parte": "un número por voltaje (LM4040AIZ-2.5/NOPB para 2.5 V)",
+          "lcsc": "un número por voltaje; el LM4040AIZ-2.5/NOPB aparece como C544355 pero no se asigna a la fila común"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM4040-N (SNOS633N, ago 2025) tabla 4-1, TO-92: Anodo 3, Cátodo 2, patilla 1 sin conexión (flotar o unir al ánodo); Reference_Voltage:LM4040LP-2.5 de KiCad 9 (2 K, 3 A)"
+        },
+        "nota": "Mismo encapsulado y patillas para todos los voltajes de la pieza"
+      },
+      "10 V": {
+        "fabricante": "Texas Instruments",
+        "hoja": "https://www.ti.com/lit/ds/symlink/lm4040-n.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "TO-92",
+            "patillas": { "K": "2", "A": "3" },
+            "sinModelo": { "1": "Sin conexión interna: flotante o unida al ánodo" },
+            "huella": "Package_TO_SOT_THT:TO-92_Inline"
+          }
+        ],
+        "pendiente": {
+          "parte": "un número por voltaje (LM4040AIZ-2.5/NOPB para 2.5 V)",
+          "lcsc": "un número por voltaje; el LM4040AIZ-2.5/NOPB aparece como C544355 pero no se asigna a la fila común"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI LM4040-N (SNOS633N, ago 2025) tabla 4-1, TO-92: Anodo 3, Cátodo 2, patilla 1 sin conexión (flotar o unir al ánodo); Reference_Voltage:LM4040LP-2.5 de KiCad 9 (2 K, 3 A)"
+        },
+        "nota": "Mismo encapsulado y patillas para todos los voltajes de la pieza"
+      }
+    }
+  }
+}

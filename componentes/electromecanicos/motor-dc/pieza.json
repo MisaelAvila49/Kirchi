@@ -19,5 +19,22 @@
     { "texto": "M", "x": 0, "y": 0.1, "tam": 2 }
   ],
   "animacion": { "tipo": "giro", "vueltasMax": 2 },
-  "limites": { "voltaje": { "prop": "voltaje", "aviso": 1.5 }, "quema": { "factor": 2, "durante": 0.5 } }
+  "limites": { "voltaje": { "prop": "voltaje", "aviso": 1.5 }, "quema": { "factor": 2, "durante": 0.5 } },
+  "datos": {
+    "equivalencias": { "kicad": "Motor:Motor_DC", "proteus": "MOTOR", "sinVerificar": ["proteus"] },
+    "valores": {
+      "*": {
+        "pendiente": {
+          "presentaciones": "depende del motor (tipo 130, 280, 540, con caja reductora); no hay encapsulado común",
+          "parte": "depende del motor",
+          "hoja": "depende del fabricante",
+          "lcsc": "depende del motor"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Sin presentación común única; KiCad 9 Motor:Motor_DC tiene dos patillas (1 +, 2 −) pero no hay huella de motor genérica"
+        }
+      }
+    }
+  }
 }

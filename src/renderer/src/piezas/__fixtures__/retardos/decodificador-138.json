@@ -1,0 +1,103 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "cl_pF": 50,
+   "documento": "TI SN74HC138 (SCLS107G)",
+   "paginas": "6 (tabla 6.9) y 7 (tabla 6.10)",
+   "caminos": [
+    {
+     "de": "A, B, C",
+     "a": "Y0 a Y7",
+     "tPLH": {
+      "tip": 18,
+      "max": 36
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 36
+     },
+     "max_SN74_40_85C": 45
+    },
+    {
+     "de": "G1, G2A, G2B",
+     "a": "Y0 a Y7",
+     "tPLH": {
+      "tip": 18,
+      "max": 31
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 31
+     },
+     "max_SN74_40_85C": 39
+    },
+    {
+     "de": "salida",
+     "a": "transición tt",
+     "tip": 8,
+     "max": 15,
+     "max_SN74_40_85C": 19
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS138 (SDLS014)",
+   "paginas": "4, switching characteristics",
+   "caminos": [
+    {
+     "de": "Select binario",
+     "a": "Y (2 niveles)",
+     "tPLH": {
+      "tip": 11,
+      "max": 20
+     },
+     "tPHL": {
+      "tip": 18,
+      "max": 41
+     }
+    },
+    {
+     "de": "Select binario",
+     "a": "Y (3 niveles)",
+     "tPLH": {
+      "tip": 21,
+      "max": 27
+     },
+     "tPHL": {
+      "tip": 20,
+      "max": 39
+     }
+    },
+    {
+     "de": "Enable",
+     "a": "Y (2 niveles)",
+     "tPLH": {
+      "tip": 12,
+      "max": 18
+     },
+     "tPHL": {
+      "tip": 20,
+      "max": 32
+     }
+    },
+    {
+     "de": "Enable",
+     "a": "Y (3 niveles)",
+     "tPLH": {
+      "tip": 14,
+      "max": 26
+     },
+     "tPHL": {
+      "tip": 13,
+      "max": 38
+     }
+    }
+   ]
+  }
+ }
+}

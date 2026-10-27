@@ -3,7 +3,9 @@
  * Seguridad: lo que entra es no confiable (llega por IPC). Ningún nombre del usuario pasa al texto de SPICE (nodos `n<número>`, redes digitales `d<número>`), los números se escriben sin configuración regional y se rechaza lo no finito.
  */
 
-import type { ElementoMotor, NetlistMotor, Onda } from '../netlistMotor'
+import type { ElementoMotor, FuenteMsi, NetlistMotor, NucleoMsi, Onda, SalidaMsi } from '../netlistMotor'
+import { sintetizarLut, sintetizarMsi } from './sintesis'
+import { subcircuitoLdr, subcircuitoPasos, subcircuitoTermistor } from './subcircuitos'
 
 /** Una pieza que no se puede exportar: el mensaje la nombra (con su referencia si quien llama la dio). */
 export class ErrorExportacion extends Error {
@@ -21,6 +23,8 @@ export interface OpcionesExportar {
   fuenteAc?: number
   /** Amplitud de esa excitación en volts (por omisión 1: el resultado queda en ganancia). */
   magnitudAc?: number
+  /** Código vigente de cada convertidor de aproximaciones (índice en la netlist → código): sus salidas se exportan fijas en él. Sin entrada, 0. */
+  codigoMsi?: ReadonlyMap<number, number>
 }
 
 export interface SondaExportada {
@@ -71,6 +75,8 @@ export function numero(v: number, que = 'un valor'): string {
 const R_UNO_PS = 1e-12
 
 const PARAMETROS_BJT = new Set(['is', 'bf', 'nf', 'vaf', 'ikf', 'ise', 'ne', 'br', 'nr', 'var', 'ikr', 'isc', 'nc', 'rb', 'irb', 'rbm', 're', 'rc', 'cje', 'vje', 'mje', 'tf', 'xtf', 'vtf', 'itf', 'cjc', 'vjc', 'mjc', 'xcjc', 'tr', 'fc'])
+/** Los de `JfetModel` del motor que ngspice reconoce con el mismo nombre. */
+const PARAMETROS_JFET = new Set(['vto', 'beta', 'lambda', 'is', 'n', 'cgs', 'cgd', 'pb', 'fc', 'rd', 'rs', 'b'])
 const PARAMETROS_MOS = new Set(['vto', 'kp', 'lambda', 'rd', 'rs', 'cbd', 'cbs', 'is', 'pb', 'mj', 'fc', 'cgso', 'cgdo'])
 /** Los de `OpampModel::default` del motor. */
 const OA_POR_OMISION: Record<string, number> = { a0: 2e5, gbw: 1e6, sr: 0.5e6, rin: 2e6, rout: 75, ilim: 25e-3, dhi: 1, dlo: 1, rq: 17.6e3 }
@@ -216,7 +222,40 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
   }
   /** Un voltaje de nodo dentro de una expresión: la tierra es 0. */
   const vn = (n: string): string => (n === '0' ? '0' : `v(${n})`)
+  /** Valor inicial del canal que nombra el campo `campo` (el que la perilla tiene en el documento). */
+  const valorDeCanal = (e: Campos, campo = 'canal'): number => {
+    const c = e[campo]
+    const canal = typeof c === 'number' && Number.isInteger(c) ? netlist.canales?.[c] : undefined
+    if (!canal || typeof canal.inicial !== 'number') return falla(`su canal «${campo}» no existe.`)
+    return canal.inicial
+  }
+  /** La tabla R/T del termistor: al menos dos pares con temperatura ascendente y resistencia positiva. */
+  const tablaTermistor = (t: unknown): [number, number][] | undefined => {
+    if (t === undefined) return undefined
+    const ok = Array.isArray(t) && t.length >= 2 && t.length <= 1000 && t.every((p, i) => Array.isArray(p) && p.length === 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]) && p[1] > 0 && (i === 0 || p[0] > t[i - 1][0]))
+    if (!ok) return falla('su tabla R/T debe tener pares [°C, Ω] con la temperatura ascendente y R positiva.')
+    return t as [number, number][]
+  }
   const retardo = (e: Campos, c: string): number => Math.max(R_UNO_PS, num(e, c))
+  /** Las redes digitales de una lista del elemento. */
+  const redesDe = (v: unknown, c: string): string[] => {
+    if (!Array.isArray(v) || v.length > 1024) return falla(`«${c}» debe ser una lista de redes digitales.`)
+    return v.map((x) => redDe(x, c))
+  }
+  /** Una tabla de `NetlistMotor.tablas` por su índice. */
+  const tablaDe = (indice: unknown): (number | string)[] => {
+    const t = typeof indice === 'number' && Number.isInteger(indice) ? netlist.tablas?.[indice] : undefined
+    if (!Array.isArray(t)) return falla('su tabla no existe en la netlist.')
+    return t
+  }
+  /** La síntesis de un elemento genérico; un parámetro que no cabe se informa con el nombre de la pieza. */
+  const sintesis = (hacer: () => { modelos: string[]; lineas: string[] }): { modelos: string[]; lineas: string[] } => {
+    try {
+      return hacer()
+    } catch (err) {
+      return falla(err instanceof Error ? err.message : 'no se puede sintetizar.')
+    }
+  }
 
   /** Parámetros de un modelo: solo los nombres de la lista, con su valor finito. */
   const parametros = (m: unknown, permitidos: ReadonlySet<string>, aparte: readonly string[] = []): string => {
@@ -305,6 +344,16 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
         }
         puntos.push(`${f(periodo)} ${f(nivel(actual))}`)
         return `pwl(${puntos.join(' ')}) r=0`
+      }
+      case 'pwl': {
+        const pts = o.puntos
+        if (!Array.isArray(pts) || pts.length < 1 || pts.length > 1000 || pts.some((p) => !Array.isArray(p) || p.length !== 2 || !Number.isFinite(p[0]) || !Number.isFinite(p[1]))) {
+          return falla('sus puntos por tramos no son válidos.')
+        }
+        if (pts[0][0] !== 0 || pts.some((p, i) => i > 0 && !(p[0] > pts[i - 1][0]))) return falla('los tiempos de sus puntos deben crecer desde 0.')
+        // Un solo punto no tiene tramos: SPICE lo pide como continua.
+        if (pts.length === 1) return `dc ${f(pts[0][1])}`
+        return `pwl(${pts.map(([t, v]) => `${f(t)} ${f(v)}`).join(' ')})${o.repetir === true ? ' r=0' : ''}`
       }
       default:
         return falla('su forma de onda no se puede exportar.')
@@ -499,25 +548,52 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
         const entradas = Array.isArray(e.inputs) ? e.inputs : falla('sus entradas no son una lista.')
         if (entradas.length < 1 || entradas.length > 64) falla('debe tener de 1 a 64 entradas.')
         const ins = (entradas as unknown[]).map((v) => redDe(v, 'inputs'))
-        const sal = red(e, 'output')
-        const ds = ['not', 'and', 'or', 'nand', 'nor', 'xor']
+        const salida = red(e, 'output')
+        const ds = ['not', 'buf', 'and', 'or', 'nand', 'nor', 'xor', 'xnor']
         if (typeof fn !== 'string' || !ds.includes(fn)) falla('su función lógica no se puede exportar.')
-        const codigo = fn === 'not' ? 'd_inverter' : `d_${fn as string}`
-        const m = modelo('gt', (n) => `.model ${n} ${codigo}(rise_delay=${f(retardo(e, 'rise_delay'))} fall_delay=${f(retardo(e, 'fall_delay'))} inertial_delay=true)`)
-        if (fn === 'not') {
-          if (ins.length !== 1) falla('una compuerta NOT lleva una entrada.')
-          cuerpo.push(`a${k} ${ins[0]} ${sal} ${m}`)
-        } else if (fn === 'xor') {
-          if (ins.length !== 2) falla('una compuerta XOR lleva dos entradas.')
-          cuerpo.push(`a${k} [${ins.join(' ')}] ${sal} ${m}`)
+        // Con habilitación, la función va a una red propia con 1 ps y un d_tristate la lleva a la salida con el retardo de la compuerta.
+        const tri = e.enable !== undefined
+        const sal = tri && fn !== 'buf' ? redAuxiliar() : salida
+        const codigo = fn === 'not' ? 'd_inverter' : fn === 'buf' ? 'd_buffer' : `d_${fn as string}`
+        const [rd, fd] = tri ? [R_UNO_PS, R_UNO_PS] : [retardo(e, 'rise_delay'), retardo(e, 'fall_delay')]
+        const m = modelo('gt', (n) => `.model ${n} ${codigo}(rise_delay=${f(rd)} fall_delay=${f(fd)} inertial_delay=true)`)
+        if (fn === 'not' || fn === 'buf') {
+          if (ins.length !== 1) falla('una compuerta NOT o búfer lleva una entrada.')
+          if (!(tri && fn === 'buf')) cuerpo.push(`a${k} ${ins[0]} ${sal} ${m}`)
+        } else if (fn === 'xor' || fn === 'xnor') {
+          if (ins.length < 2) falla('una compuerta XOR o XNOR lleva al menos dos entradas.')
+          // d_xor y d_xnor tienen dos entradas: con más, una cadena de XOR de 1 ps y la última etapa con los retardos de la compuerta.
+          const cadena = modelo('xr', (n) => `.model ${n} d_xor(rise_delay=1e-12 fall_delay=1e-12)`)
+          let parcial = ins[0]
+          ins.slice(1, -1).forEach((entrada, j) => {
+            const siguiente = redAuxiliar()
+            cuerpo.push(`a${k}x${j} [${parcial} ${entrada}] ${siguiente} ${cadena}`)
+            parcial = siguiente
+          })
+          cuerpo.push(`a${k} [${parcial} ${ins[ins.length - 1]}] ${sal} ${m}`)
         } else {
           // XSPICE pide al menos dos entradas: una sola se repite, que lógicamente es lo mismo.
           cuerpo.push(`a${k} [${(ins.length === 1 ? [ins[0], ins[0]] : ins).join(' ')}] ${sal} ${m}`)
         }
         ;(entradas as unknown[]).forEach((v) => lee(v, e.z_como))
+        if (tri) {
+          const hab = redDe(e.enable, 'enable')
+          // d_tristate habilita en alto: una habilitación activa en bajo pasa por un inversor de 1 ps.
+          let en = hab
+          if (e.enable_bajo === true) {
+            en = redAuxiliar()
+            cuerpo.push(`a${k}e ${hab} ${en} ${modelo('iv', (n) => `.model ${n} d_inverter(rise_delay=1e-12 fall_delay=1e-12)`)}`)
+          }
+          // Un solo retardo para dato y habilitación: el medio de los dos de la compuerta (iguales en 74HC y CD4000B).
+          const retardoTres = (retardo(e, 'rise_delay') + retardo(e, 'fall_delay')) / 2
+          const ts = modelo('ts', (n) => `.model ${n} d_tristate(delay=${f(retardoTres)})`)
+          cuerpo.push(`a${k}t ${fn === 'buf' ? ins[0] : sal} ${en} ${salida} ${ts}`)
+          lee(e.enable, e.z_como)
+        }
         maneja(e.output)
         break
       }
+
       case 'LOGIC': {
         const o = red(e, 'out')
         const valor = e.value
@@ -607,8 +683,21 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
       case 'ADC': {
         const [p, n] = [nodo(e, 'p'), nodo(e, 'n')]
         const o = red(e, 'out')
-        const m = modelo('ad', (nm) => `.model ${nm} adc_bridge(in_low=${f(num(e, 'in_low'))} in_high=${f(num(e, 'in_high'))} rise_delay=1e-12 fall_delay=1e-12)`)
-        cuerpo.push(`a${k} ${n === '0' ? `[${p}]` : `[%vd ${p} ${n}]`} [${o}] ${m}`)
+        if (e.histeresis) {
+          // Un interruptor con histéresis (SW de SPICE) cierra en el centro más vh y abre en el centro menos vh: pone 1 V en xh cuando
+          // la entrada pasó el umbral de subida y 0 V cuando bajó del de bajada; un puente que corta en 0.5 V lo pasa a nivel lógico.
+          const [bajo, alto] = [num(e, 'in_low'), num(e, 'in_high')]
+          const [centro, medio_ancho] = [(bajo + alto) / 2, (alto - bajo) / 2].map((v) => Math.round(v * 1e9) / 1e9)
+          const sw = modelo('sw', (nm) => `.model ${nm} sw(vt=${f(centro)} vh=${f(medio_ancho)} ron=1 roff=1e9)`)
+          const puente = modelo('ad', (nm) => `.model ${nm} adc_bridge(in_low=0.5 in_high=0.5 rise_delay=1e-12 fall_delay=1e-12)`)
+          cuerpo.push(`v${k}s xs${k} 0 dc 1`)
+          cuerpo.push(`s${k} xs${k} xh${k} ${p} ${n} ${sw}`)
+          cuerpo.push(`r${k}h xh${k} 0 1k`)
+          cuerpo.push(`a${k} [xh${k}] [${o}] ${puente}`)
+        } else {
+          const m = modelo('ad', (nm) => `.model ${nm} adc_bridge(in_low=${f(num(e, 'in_low'))} in_high=${f(num(e, 'in_high'))} rise_delay=1e-12 fall_delay=1e-12)`)
+          cuerpo.push(`a${k} ${n === '0' ? `[${p}]` : `[%vd ${p} ${n}]`} [${o}] ${m}`)
+        }
         if (e.r_in !== undefined) {
           // Una entrada 74LS toma corriente: r_in a un voltaje interno v_in respecto de n.
           cuerpo.push(`v${k}i xa${k} ${n} dc ${f(valorDe(e, 'v_in', 0))}`)
@@ -649,6 +738,161 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
         cuerpo.push(`bov${k} ${vcc} ${o} i=v(oc${k})*${comun}`)
         cuerpo.push(`bog${k} ${gnd} ${o} i=(1-v(oc${k}))*${comun}`)
         cuerpo.push(`bd${k} ${dis} ${gnd} i=(${vn(dis)}-${vn(gnd)})*(${f(gon)}*(1-v(oc${k}))+${f(goff)}*v(oc${k}))`)
+        break
+      }
+      case 'J': {
+        const [d, g, s] = [nodo(e, 'd'), nodo(e, 'g'), nodo(e, 's')]
+        const ps = parametros(e.model, PARAMETROS_JFET)
+        const m = modelo('jm', (n) => `.model ${n} ${e.pjf === true ? 'pjf' : 'njf'}(${ps})`)
+        cuerpo.push(`j${k} ${d} ${g} ${s} ${m}`)
+        break
+      }
+      case 'E':
+      case 'G': {
+        const ns = [nodo(e, 'p'), nodo(e, 'n'), nodo(e, 'cp'), nodo(e, 'cn')]
+        cuerpo.push(`${tipo === 'E' ? 'e' : 'g'}${k} ${ns.join(' ')} ${f(num(e, tipo === 'E' ? 'ganancia' : 'gm'))}`)
+        break
+      }
+      case 'H':
+      case 'F': {
+        const [p, n, cp, cn] = [nodo(e, 'p'), nodo(e, 'n'), nodo(e, 'cp'), nodo(e, 'cn')]
+        const letra = tipo === 'H' ? 'h' : 'f'
+        // La corriente de control se mide en una fuente de 0 V propia de la pieza, como la rama interna del motor.
+        const medidor = `v${letra}${k}_ctl`
+        cuerpo.push(`${medidor} ${cp} ${cn} dc 0`, `${letra}${k} ${p} ${n} ${medidor} ${f(num(e, tipo === 'H' ? 'r' : 'ganancia'))}`)
+        break
+      }
+      case 'TERM': {
+        const [a, b] = [nodo(e, 'a'), nodo(e, 'b')]
+        const tipoT = e.tipo
+        if (tipoT !== 'ntc' && tipoT !== 'ptc') falla('su tipo debe ser ntc o ptc.')
+        const rt = tablaTermistor(e.rt)
+        const p = { tipo: tipoT as 'ntc' | 'ptc', r25: positivo(e, 'r25'), beta: positivo(e, 'beta'), rt, delta: positivo(e, 'delta'), tau: positivo(e, 'tau') }
+        const amb = valorDeCanal(e)
+        const m = modelo('tm', (n) => subcircuitoTermistor(n, p))
+        cuerpo.push(`x${k} ${a} ${b} ${m} amb=${f(amb)}`)
+        avisos.push(`${etiqueta()}: ngspice no lo quema al pasar su temperatura máxima.`)
+        break
+      }
+      case 'LDR': {
+        const [a, b] = [nodo(e, 'a'), nodo(e, 'b')]
+        const p = { r10: positivo(e, 'r10'), gamma: positivo(e, 'gamma'), roscuro: positivo(e, 'roscuro'), tau_sube: positivo(e, 'tau_sube'), tau_baja: positivo(e, 'tau_baja') }
+        const lux = valorDeCanal(e)
+        const m = modelo('ld', (n) => subcircuitoLdr(n, p))
+        cuerpo.push(`x${k} ${a} ${b} ${m} lux=${f(Number.isFinite(lux) && lux > 0 ? lux : 0)}`)
+        break
+      }
+      case 'PASOS': {
+        const lista = e.nodos
+        const unipolar = e.unipolar === true
+        if (!Array.isArray(lista) || lista.length !== (unipolar ? 6 : 4)) return falla(`necesita ${unipolar ? 6 : 4} nodos.`)
+        const ns = lista.map((v, i) => nodo({ [`nodos[${i}]`]: v }, `nodos[${i}]`))
+        const kMutua = valorDe(e, 'k_mutua', 0.99)
+        if (!(kMutua >= 0 && kMutua < 1)) falla('«k_mutua» debe estar entre 0 y 1.')
+        const reduccion = valorDe(e, 'reduccion', 1)
+        if (!(reduccion > 0)) falla('«reduccion» debe ser mayor que cero.')
+        const p = { unipolar, r: positivo(e, 'r'), l: positivo(e, 'l'), k_mutua: kMutua, km: num(e, 'km'), dientes: positivo(e, 'dientes'), td: num(e, 'td'), j: positivo(e, 'j'), bm: positivo(e, 'bm') }
+        // La carga del canal llega al eje dividida por la reducción, como en el motor.
+        const carga = e.canal_carga === undefined ? 0 : valorDeCanal(e, 'canal_carga') / reduccion
+        const m = modelo('pp', (n) => subcircuitoPasos(n, p))
+        cuerpo.push(`x${k} ${ns.join(' ')} ${m} tc=${f(Number.isFinite(carga) ? carga : 0)}`)
+        break
+      }
+      case 'EXT': {
+        const [a, b] = [nodo(e, 'a'), nodo(e, 'b')]
+        // Un análisis no tiene perilla que se mueva: la fuente vale lo que tiene el canal en el documento.
+        const valor = num(e, 'k') * valorDeCanal(e) + num(e, 'c')
+        if (!Number.isFinite(valor)) falla('su valor no es finito.')
+        if (e.modo === 'i') {
+          cuerpo.push(`i${k} ${a} ${b} dc ${f(valor)}`)
+        } else if (e.modo === 'v') {
+          const r = valorDe(e, 'r', 0)
+          if (!(r >= 0)) falla('«r» no puede ser negativa.')
+          cuerpo.push(r > 0 ? `v${k} ${a} xe${k} dc ${f(valor)}` : `v${k} ${a} ${b} dc ${f(valor)}`)
+          if (r > 0) cuerpo.push(`re${k} xe${k} ${b} ${f(r)}`)
+          sondaDeElemento.set(k, `i(v${k})`)
+          nombreDeElemento(`v${k}`)
+        } else {
+          falla('su modo debe ser v o i.')
+        }
+        break
+      }
+      case 'LUT': {
+        const comunes = redesDe(e.comunes, 'comunes')
+        if (!Array.isArray(e.rebanadas) || e.rebanadas.length === 0 || e.rebanadas.length > 1024) falla('debe tener al menos una rebanada.')
+        const rebanadas = (e.rebanadas as Campos[]).map((r) => ({ entradas: redesDe(r.entradas, 'entradas'), salidas: redesDe(r.salidas, 'salidas') }))
+        const s = sintesis(() => sintetizarLut(`u${k}`, { comunes, rebanadas, tabla: tablaDe(e.tabla), retardos: e.retardos as [number, number][], abierta: e.abierta as boolean[] | undefined }))
+        modelos.push(...s.modelos)
+        cuerpo.push(...s.lineas)
+        for (const v of e.comunes as unknown[]) lee(v, e.z_como)
+        for (const r of e.rebanadas as Campos[]) {
+          for (const v of r.entradas as unknown[]) lee(v, e.z_como)
+          maneja(...(r.salidas as unknown[]))
+        }
+        break
+      }
+      case 'MSI': {
+        const entradas = redesDe(e.entradas, 'entradas')
+        const salidas = redesDe(e.salidas, 'salidas')
+        const nucleo = e.nucleo as NucleoMsi
+        if (typeof nucleo !== 'object' || nucleo === null) falla('su núcleo no tiene la forma esperada.')
+        const aproximaciones = nucleo.tipo === 'aproximaciones'
+        const s = sintesis(() =>
+          sintetizarMsi(`u${k}`, {
+            entradas,
+            salidas,
+            nucleo,
+            de: e.de as SalidaMsi[],
+            fuentes: e.fuentes as FuenteMsi[] | undefined,
+            tabla: e.tabla === undefined ? undefined : tablaDe(e.tabla),
+            retardos: e.retardos as [number, number][],
+            abierta: e.abierta as boolean[] | undefined,
+            ...(aproximaciones ? { codigo: opciones.codigoMsi?.get(k) } : {})
+          })
+        )
+        modelos.push(...s.modelos)
+        cuerpo.push(...s.lineas)
+        if (aproximaciones) avisos.push(`El convertidor ${etiqueta()} se exporta con el código del instante actual: ngspice no simula su conversión.`)
+        for (const v of e.entradas as unknown[]) lee(v, e.z_como)
+        maneja(...(e.salidas as unknown[]))
+        break
+      }
+      case 'DACM': {
+        const [o, ret, rp, rn] = [nodo(e, 'out'), nodo(e, 'ret'), nodo(e, 'ref_p'), nodo(e, 'ref_n')]
+        const bits = redesDe(e.bits, 'bits')
+        if (bits.length < 1 || bits.length > 16) falla('admite de 1 a 16 bits.')
+        const ta = positivo(e, 't_asentamiento')
+        const rOut = valorDe(e, 'r_out', 0)
+        if (!(rOut >= 0)) falla('«r_out» no puede ser negativa.')
+        if (e.modo !== 'voltaje' && e.modo !== 'corriente') falla('su modo debe ser voltaje o corriente.')
+        if (rp === rn) falla('sus referencias no pueden estar en el mismo nodo.')
+        // Cada bit pasa a un nodo de 0 a 1 V con la rampa de asentamiento: k es la suma de sus pesos, y la rampa de varios bits a la vez es la de k.
+        const m = modelo('da', (n) => `.model ${n} dac_bridge(out_low=0 out_high=1 out_undef=0.5 t_rise=${f(ta)} t_fall=${f(ta)})`)
+        bits.forEach((b, i) => {
+          cuerpo.push(`a${k}d${i} [${b}] [kb${k}x${i}] ${m}`)
+          cuerpo.push(`rk${k}x${i} kb${k}x${i} 0 1g`)
+        })
+        const kexpr = bits.map((_, i) => `v(kb${k}x${i})*${f(2 ** -(i + 1))}`).join('+')
+        if (e.modo === 'voltaje') {
+          const x = rOut > 0 ? `xz${k}` : o
+          cuerpo.push(`bz${k} ${x} ${ret} v=(${kexpr})*(${vn(rp)}-${vn(rn)})`)
+          if (rOut > 0) cuerpo.push(`rz${k} ${o} xz${k} ${f(rOut)}`)
+        } else {
+          // Una fuente de 0 V entre las referencias mide la corriente de referencia, que sale k veces por la salida.
+          cuerpo.push(`vz${k} ${rp} ${rn} dc 0`)
+          cuerpo.push(`bz${k} ${o} ${ret} i=(${kexpr})*i(vz${k})`)
+          if (rOut > 0) cuerpo.push(`rz${k} ${o} ${ret} ${f(rOut)}`)
+        }
+        for (const b of e.bits as unknown[]) lee(b, 'x')
+        break
+      }
+      case 'INTC': {
+        const [a, b] = [nodo(e, 'a'), nodo(e, 'b')]
+        const [ron, roff] = [positivo(e, 'r_on'), positivo(e, 'r_off')]
+        // Un análisis no pulsa teclas: el contacto vale lo que el canal tiene en el documento.
+        cuerpo.push(`rm${k} ${a} ${b} ${f(valorDeCanal(e) > 0.5 ? ron : roff)}`)
+        sondaDeElemento.set(k, `@rm${k}[i]`)
+        nombreDeElemento(`rm${k}`)
         break
       }
       default:
@@ -705,7 +949,7 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
   }
 
   const opcionesFinal = new Set(opcionesSolver)
-  if (netlist.elements.some((el) => ['GATE', 'DFF', 'JKFF', 'COUNTER', 'DECODER', 'LATCH555', 'ADC', 'DAC', 'OUT555', 'LOGIC'].includes((el as unknown as Campos).type as string))) opcionesFinal.add('xtrtol=7')
+  if (netlist.elements.some((el) => ['GATE', 'DFF', 'JKFF', 'COUNTER', 'DECODER', 'LATCH555', 'ADC', 'DAC', 'OUT555', 'LOGIC', 'LUT', 'MSI', 'DACM'].includes((el as unknown as Campos).type as string))) opcionesFinal.add('xtrtol=7')
 
   const partes = [...(usaAmpop ? [...SUBCKT_AMPOP] : []), ...modelos, ...cuerpo]
   return { cuerpo: partes.join('\n') + '\n', archivos, opciones: [...opcionesFinal], sondas, corrienteDeElemento: sondaDeElemento, avisos, tabla }

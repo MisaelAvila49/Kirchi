@@ -6,6 +6,8 @@ import type { PiezaDef } from '../piezas/tipos'
 import type { FaseSim } from '../sim/control'
 import type { Lectura } from '../sim/lectura'
 import IconoCinta from './cinta/IconoCinta'
+import type { PerillaVista } from './ControlPerilla'
+import SeccionPerillas from './SeccionPerillas'
 import { tonoDeCategoria } from './colores'
 import { colorDeRed, fichasDe, vistaMediciones } from './mediciones'
 import { recortar } from './proyecto'
@@ -35,6 +37,9 @@ interface Props {
   teclaSimular?: string
   /** Los multímetros del circuito con su cifra: la lectura que ya no tiene pestaña en la franja. */
   multimetros?: readonly FilaMultimetro[]
+  /** Las perillas en vivo de la pieza seleccionada, en una fila compacta mientras simula. */
+  perillas?: readonly PerillaVista[]
+  onPerilla?(perilla: PerillaVista, valor: number, gesto?: string): void
   onPieza(id: Id): void
   onRed(red: number): void
   /** El botón Simular del panel sin vista previa: la misma orden que la cinta (por el ejecutor). */
@@ -44,12 +49,13 @@ interface Props {
 /** Mediciones: estado vivo, redes con la muestra de su voltaje y piezas con sus lecturas como fichas de magnitud. */
 export default function PanelMediciones(props: Props) {
   const [filtro, setFiltro] = createSignal('')
-  const vista = createMemo(() => vistaMediciones(props.doc, props.nombres, props.lectura, filtro()))
+  const vista = createMemo(() => vistaMediciones(props.doc, props.nombres, props.lectura, filtro(), props.lib))
   // Topadas en 200 filas cada lista: el color y las fichas se calculan solo para las pintadas.
   const redes = createMemo(() => recortar(vista()?.redes ?? []))
   const piezas = createMemo(() => recortar(vista()?.piezas ?? []))
+  const logica = createMemo(() => recortar(vista()?.logica ?? []))
   const tiposUsados = createMemo(() =>
-    [...new Set(piezas().filas.map((p) => props.doc.piezas[p.id]?.tipo).filter((t): t is string => !!t))]
+    [...new Set([...piezas().filas, ...logica().filas].map((p) => props.doc.piezas[p.id]?.tipo).filter((t): t is string => !!t))]
       .map((t) => props.lib.get(t))
       .filter((d): d is PiezaDef => !!d)
   )
@@ -139,6 +145,83 @@ export default function PanelMediciones(props: Props) {
             </ul>
             <Resto n={redes().resto} />
           </section>
+          <SeccionPerillas compacta perillas={props.perillas ?? []} onCambiar={(p, v, g) => props.onPerilla?.(p, v, g)} />
+          <Show when={v().logica.length > 0}>
+            <section class="categoria" aria-labelledby="mediciones-logica">
+              <h3 id="mediciones-logica" class="categoria-titulo">
+                Lógica y convertidores <span class="cifra pastilla">{v().logica.length}</span>
+              </h3>
+              <ul class="lista" aria-labelledby="mediciones-logica">
+                <Index each={logica().filas}>
+                  {(f) => {
+                    const tipo = () => props.doc.piezas[f().id]?.tipo
+                    return (
+                      <li>
+                        <button type="button" class="entrada fila-logica" aria-current={props.seleccion.piezas.has(f().id) ? 'true' : undefined} onClick={() => props.onPieza(f().id)}>
+                          <span class="fila-cabeza">
+                            <Show when={tipo()}>
+                              {(t) => (
+                                <span class="ficha-simbolo" data-tono={tonoDeCategoria(props.lib.get(t())?.categoria ?? '')} aria-hidden="true">
+                                  <UsoSimbolo tipo={t()} prefijo="mediciones-simbolo" />
+                                </span>
+                              )}
+                            </Show>
+                            <span class="fila-ref">{f().ref}</span>
+                            <span class="logica-titulo">{f().titulo}</span>
+                            <Show when={f().estado}>
+                              {(e) => (
+                                <span class="pastilla-estado" data-tono={e().tono}>
+                                  {e().texto}
+                                </span>
+                              )}
+                            </Show>
+                            <Show when={f().rotulo}>
+                              <span class="secundario logica-rotulo">{f().rotulo}</span>
+                            </Show>
+                          </span>
+                          <Show when={f().cifra}>
+                            <output class="cifra logica-cifra" aria-label={`Lectura de ${f().ref}`}>
+                              {f().cifra}
+                            </output>
+                          </Show>
+                          <Show when={f().formas.length > 0}>
+                            <span class="cifra secundario logica-formas">
+                              <Index each={f().formas}>{(x) => <span>{x()}</span>}</Index>
+                            </span>
+                          </Show>
+                          <Show when={f().bits.length > 0}>
+                            <span class="logica-bits" role="list" aria-label={`Bits de ${f().ref}, del más al menos significativo`}>
+                              <Index each={f().bits}>
+                                {(b) => (
+                                  <span class="logica-bit" role="listitem" data-magnitud={b().valor === '1' ? 'v' : undefined} data-tono={b().valor === '1' ? undefined : 'gris'}>
+                                    <small>{b().nombre}</small>
+                                    {b().valor}
+                                  </span>
+                                )}
+                              </Index>
+                            </span>
+                          </Show>
+                          <Show when={f().renglones.length > 0}>
+                            <dl class="logica-renglones">
+                              <Index each={f().renglones}>
+                                {(r) => (
+                                  <>
+                                    <dt>{r().rotulo}</dt>
+                                    <dd class="cifra">{r().valor}</dd>
+                                  </>
+                                )}
+                              </Index>
+                            </dl>
+                          </Show>
+                        </button>
+                      </li>
+                    )
+                  }}
+                </Index>
+              </ul>
+              <Resto n={logica().resto} />
+            </section>
+          </Show>
           <section class="categoria" aria-labelledby="mediciones-piezas">
             <h3 id="mediciones-piezas" class="categoria-titulo">
               Piezas <span class="cifra pastilla">{v().piezas.length}</span>

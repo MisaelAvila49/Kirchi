@@ -6,6 +6,8 @@ import { nombreDeCarpeta } from '../grabacion/textos'
 import { TAMAÑOS_INTERFAZ } from '../../../compartido/ventana'
 import { COLOR_CABLE } from '../lienzo/paleta'
 import SeccionAtajos from './SeccionAtajos'
+import PistaGlobo from './PistaGlobo'
+import SeccionAsistente, { type PropsAsistente } from './SeccionAsistente'
 import SeccionSimulacion from './SeccionSimulacion'
 import Dialogo from './Dialogo'
 import { siguientePestaña } from './cinta/navegacion'
@@ -30,6 +32,8 @@ interface Props {
   versionAtajos?: () => number
   /** Abre con el foco en Atajos (desde la hoja de atajos). */
   seccion?: PestañaConfig
+  /** El asistente. Sin él no se muestra la pestaña Asistente. */
+  asistente?: PropsAsistente
   /** La carpeta de las grabaciones; sin él (sin proceso principal) la fila no se muestra. */
   grabacion?: Pick<ApiGrabacion, 'cambiarCarpeta' | 'restablecerCarpeta'>
 }
@@ -38,8 +42,8 @@ interface Props {
  * Diálogo de Configuración con pestañas. Cada cambio se guarda al momento (el del lienzo se aplica al reabrir). Pestañas según WAI-ARIA: flechas, Inicio y Fin, y solo la elegida entra con Tab.
  */
 export default function Configuracion(props: Props) {
-  const pestañas = () => pestañasVisibles(!!props.atajos)
-  const [activa, setActiva] = createSignal<PestañaConfig>(pestañaInicial(props.seccion, !!props.atajos))
+  const pestañas = () => pestañasVisibles(!!props.atajos, !!props.asistente)
+  const [activa, setActiva] = createSignal<PestañaConfig>(pestañaInicial(props.seccion, !!props.atajos, !!props.asistente))
   let lista!: HTMLDivElement
   // La carpeta de grabaciones la guarda el proceso principal: aquí se muestra la de ahora y se actualiza al cambiarla.
   const [carpeta, setCarpeta] = createSignal<string | undefined>(props.ajustes.carpetaGrabaciones)
@@ -96,38 +100,31 @@ export default function Configuracion(props: Props) {
       <div role="tabpanel" id={`config-panel-${activa()}`} tabIndex={0} aria-labelledby={`config-tab-${activa()}`} class="panel-config">
         <Switch>
           <Match when={activa() === 'general'}>
-            <fieldset class="opciones">
-              <legend>Valores comerciales</legend>
-              <p id="nota-serie" class="secundario nota-dialogo">
-                La serie que ofrece el editor al escribir un valor. Un valor fuera de la serie se avisa, nunca se bloquea.
+            <fieldset class="grupo">
+              <legend>Archivos</legend>
+              <p class="pista">
+                Cada diálogo recuerda su última carpeta.
+                <PistaGlobo
+                  id="pista-archivos"
+                  texto="Abrir, Guardar como y Exportar vuelven a la última carpeta que usó cada uno. Al guardar encima de un circuito se conservan sus tres versiones anteriores en la carpeta de respaldos."
+                />
               </p>
-              <div class="opciones-fila">
-                <For each={SERIES_COMERCIALES}>
-                  {(s) => (
-                    <label class="opcion">
-                      <input type="radio" name="serie-comercial" value={s} checked={props.ajustes.serieComercial === s} aria-describedby="nota-serie" onChange={() => props.onCambiar({ serieComercial: s })} />
-                      {NOMBRE_SERIE[s]}
-                    </label>
-                  )}
-                </For>
-              </div>
-            </fieldset>
-            <fieldset class="opciones">
-              <legend>Rendimiento</legend>
-              <label class="opcion">
-                <input type="checkbox" checked={props.ajustes.lienzoSincronizado} aria-describedby="nota-lienzo-sincronizado" onChange={(e) => props.onCambiar({ lienzoSincronizado: e.currentTarget.checked })} />
-                Dibujo del lienzo sincronizado
-              </label>
-              <p id="nota-lienzo-sincronizado" class="secundario nota-dialogo">
-                Encendido, el lienzo no parpadea al abrir o cerrar paneles. Apagado ocupa menos memoria de video. Se aplica al reabrir Kirchi.
-              </p>
+              <Show when={props.onRespaldos}>
+                {(abrir) => (
+                  <div class="fila">
+                    <button type="button" class="boton" onClick={() => abrir()()}>
+                      Abrir la carpeta de respaldos
+                    </button>
+                  </div>
+                )}
+              </Show>
             </fieldset>
             <Show when={props.grabacion}>
-              <fieldset class="opciones">
+              <fieldset class="grupo">
                 <legend>Grabaciones</legend>
-                <div class="opciones-fila fila-carpeta-grabaciones">
+                <div class="fila fila-carpeta-grabaciones">
                   <span>Carpeta de grabaciones</span>
-                  <span class="cifra" id="carpeta-grabaciones" title={carpeta()}>
+                  <span class="carpeta cifra" id="carpeta-grabaciones" title={carpeta()}>
                     {nombreDeCarpeta(carpeta())}
                   </span>
                   <button type="button" class="boton" onClick={() => void cambiarCarpeta()}>
@@ -144,38 +141,76 @@ export default function Configuracion(props: Props) {
                 </Show>
               </fieldset>
             </Show>
+            <fieldset class="grupo">
+              <legend>Valores comerciales</legend>
+              <p class="pista">
+                La serie que ofrece el editor al escribir un valor.
+                <PistaGlobo id="pista-serie" texto="Un valor fuera de la serie se avisa, nunca se bloquea." />
+              </p>
+              <div class="fila">
+                <For each={SERIES_COMERCIALES}>
+                  {(s) => (
+                    <label class="opcion">
+                      <input type="radio" name="serie-comercial" value={s} checked={props.ajustes.serieComercial === s} aria-describedby="pista-serie" onChange={() => props.onCambiar({ serieComercial: s })} />
+                      {NOMBRE_SERIE[s]}
+                    </label>
+                  )}
+                </For>
+              </div>
+            </fieldset>
+            <fieldset class="grupo">
+              <legend>Tutorial</legend>
+              <div class="fila">
+                <label class="opcion">
+                  <input
+                    type="checkbox"
+                    checked={props.ajustes.tutorial.avanzarSolo}
+                    aria-describedby="pista-avanzar-solo"
+                    onChange={(e) => props.onCambiar({ tutorial: { ...props.ajustes.tutorial, avanzarSolo: e.currentTarget.checked } })}
+                  />
+                  Avanzar solo en el tutorial
+                </label>
+                <PistaGlobo
+                  id="pista-avanzar-solo"
+                  texto="Un paso cumplido pasa al siguiente a los 2.5 segundos. Se detiene mientras el ratón o el foco están en el globo. Apagado, se avanza con Siguiente."
+                />
+              </div>
+            </fieldset>
           </Match>
           <Match when={activa() === 'apariencia'}>
-            <fieldset class="opciones">
+            <fieldset class="grupo">
               <legend>Tema</legend>
-              <For each={TEMAS}>
-                {(t) => (
-                  <label class="opcion">
-                    <input type="radio" name="tema" value={t} checked={props.ajustes.tema === t} onChange={() => props.onCambiar({ tema: t })} />
-                    {NOMBRE_TEMA[t]}
-                  </label>
-                )}
-              </For>
+              <div class="fila">
+                <For each={TEMAS}>
+                  {(t) => (
+                    <label class="opcion">
+                      <input type="radio" name="tema" value={t} checked={props.ajustes.tema === t} onChange={() => props.onCambiar({ tema: t })} />
+                      {NOMBRE_TEMA[t]}
+                    </label>
+                  )}
+                </For>
+              </div>
             </fieldset>
-            <fieldset class="opciones">
+            <fieldset class="grupo">
               <legend>Color de cables al editar</legend>
-              <For each={COLORES_DE_CABLE}>
-                {(c) => (
-                  <label class="opcion">
-                    <input type="radio" name="cables" value={c} checked={props.ajustes.colorCables === c} onChange={() => props.onCambiar({ colorCables: c })} />
-                    <span class="muestra" style={{ background: COLOR_CABLE[c][props.ajustes.tema] }} aria-hidden="true" />
-                    {NOMBRE_CABLE[c]}
-                  </label>
-                )}
-              </For>
+              <div class="fila">
+                <For each={COLORES_DE_CABLE}>
+                  {(c) => (
+                    <label class="opcion">
+                      <input type="radio" name="cables" value={c} checked={props.ajustes.colorCables === c} onChange={() => props.onCambiar({ colorCables: c })} />
+                      <span class="muestra" style={{ background: COLOR_CABLE[c][props.ajustes.tema] }} aria-hidden="true" />
+                      {NOMBRE_CABLE[c]}
+                    </label>
+                  )}
+                </For>
+              </div>
             </fieldset>
-            <fieldset class="opciones">
+            <fieldset class="grupo">
               <legend>Tamaño de la interfaz</legend>
-              <p id="nota-tamaño-interfaz" class="secundario nota-dialogo">
-                Ahora: <span class="cifra">{props.ajustes.tamañoInterfaz} %</span>. Es el mismo zoom de Vista › Zoom de la página y de Ctrl++, Ctrl+- y Ctrl+0
-                (que vuelve a 100 %).
+              <p id="nota-tamaño-interfaz" class="pista">
+                Ahora: <span class="cifra">{props.ajustes.tamañoInterfaz} %</span>. Es el zoom de Ctrl++, Ctrl+- y Ctrl+0.
               </p>
-              <div class="opciones-fila">
+              <div class="fila">
                 <For each={TAMAÑOS_INTERFAZ}>
                   {(t) => (
                     <label class="opcion">
@@ -195,42 +230,16 @@ export default function Configuracion(props: Props) {
             </fieldset>
           </Match>
           <Match when={activa() === 'simulacion'}>
-            <SeccionSimulacion simulacion={props.ajustes.simulacion} onCambiar={(p) => props.onCambiar({ simulacion: { ...props.ajustes.simulacion, ...p } })} />
+            <SeccionSimulacion
+              simulacion={props.ajustes.simulacion}
+              onCambiar={(p) => props.onCambiar({ simulacion: { ...props.ajustes.simulacion, ...p } })}
+              lienzoSincronizado={props.ajustes.lienzoSincronizado}
+              onLienzoSincronizado={(v) => props.onCambiar({ lienzoSincronizado: v })}
+            />
           </Match>
-          <Match when={activa() === 'archivos'}>
-            <fieldset class="opciones">
-              <legend>Archivos</legend>
-              <p class="secundario nota-dialogo">
-                Abrir, Guardar como y Exportar vuelven a la última carpeta que usó cada uno, también al reabrir Kirchi. Al guardar encima de un circuito, Kirchi conserva sus tres versiones anteriores en la carpeta de respaldos.
-              </p>
-              <Show when={props.onRespaldos}>
-                {(abrir) => (
-                  <button type="button" class="boton" onClick={() => abrir()()}>
-                    Abrir la carpeta de respaldos
-                  </button>
-                )}
-              </Show>
-            </fieldset>
-          </Match>
+          <Match when={activa() === 'asistente' && props.asistente}>{(a) => <SeccionAsistente {...a()} />}</Match>
           <Match when={activa() === 'atajos' && props.atajos}>
             {(a) => <SeccionAtajos atajos={a()} version={props.versionAtajos} onCambio={() => props.onAtajos?.()} autofoco={props.seccion === 'atajos'} />}
-          </Match>
-          <Match when={activa() === 'tutorial'}>
-            <fieldset class="opciones">
-              <legend>Tutorial</legend>
-              <label class="opcion">
-                <input
-                  type="checkbox"
-                  checked={props.ajustes.tutorial.avanzarSolo}
-                  aria-describedby="nota-avanzar-solo"
-                  onChange={(e) => props.onCambiar({ tutorial: { ...props.ajustes.tutorial, avanzarSolo: e.currentTarget.checked } })}
-                />
-                Avanzar solo en el tutorial
-              </label>
-              <p id="nota-avanzar-solo" class="secundario nota-dialogo">
-                Encendido, un paso cumplido pasa al siguiente a los 2 segundos y medio, y se detiene mientras el ratón o el foco están en el globo. Apagado, se avanza con Siguiente.
-              </p>
-            </fieldset>
           </Match>
         </Switch>
       </div>

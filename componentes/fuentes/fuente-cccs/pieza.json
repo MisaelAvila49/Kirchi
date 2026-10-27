@@ -1,0 +1,90 @@
+{
+  "id": "fuente-cccs",
+  "nombre": {
+    "es": "Fuente de corriente controlada por corriente (CCCS)",
+    "en": "Current-controlled current source"
+  },
+  "categoria": "fuentes",
+  "prefijo": "F",
+  "buscar": [
+    "f",
+    "fuente cccs",
+    "fuente controlada",
+    "dependiente",
+    "espejo de corriente",
+    "corriente controlada por corriente"
+  ],
+  "pines": [
+    {
+      "id": "+",
+      "nombre": "+",
+      "x": 0,
+      "y": -4
+    },
+    {
+      "id": "-",
+      "nombre": "−",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "id": "C+",
+      "nombre": "control +",
+      "x": -4,
+      "y": -2
+    },
+    {
+      "id": "C-",
+      "nombre": "control −",
+      "x": -4,
+      "y": 2
+    }
+  ],
+  "props": [
+    {
+      "id": "ganancia",
+      "nombre": "Ganancia (A/A)",
+      "defecto": "2",
+      "comunes": [
+        "0.5",
+        "1",
+        "2",
+        "10",
+        "100"
+      ]
+    }
+  ],
+  "modelo": {
+    "tipo": "controlada",
+    "forma": "F",
+    "p": "+",
+    "n": "-",
+    "cp": "C+",
+    "cn": "C-",
+    "prop": "ganancia"
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 3,
+      "y": -1
+    },
+    "valor": {
+      "x": 3,
+      "y": 1
+    }
+  },
+  "datos": {
+    "equivalencias": {
+      "ltspice": "f",
+      "sinVerificar": [
+        "ltspice"
+      ]
+    },
+    "valores": {
+      "*": {
+        "virtual": true,
+        "nota": "Fuente ideal del simulador: su corriente, de + a − por dentro, es la ganancia por la corriente que entra por C+ y sale por C−."
+      }
+    }
+  }
+}

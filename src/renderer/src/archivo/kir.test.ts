@@ -627,3 +627,33 @@ describe('.kir: figuras de dibujo (formato 4)', () => {
     expect(r.doc).toEqual(d)
   })
 })
+
+describe('requiere en el manifiesto', () => {
+  const manifiestoDe = (bytes: Uint8Array) => JSON.parse(strFromU8(unzipSync(bytes)['manifest.json']))
+
+  it('el formato no cambia y la lista sale del documento', () => {
+    const m = manifiestoDe(escribirKir(completo(), '0.0.1'))
+    expect(m.formato).toBe(formatoDe(completo()))
+    expect(m.requiere).toEqual(['pieza:fuente-dc', 'pieza:resistencia', 'pieza:tierra'])
+  })
+
+  it('sin piezas no hay clave', () => {
+    expect(manifiestoDe(escribirKir(documentoVacio(), '0.0.1'))).not.toHaveProperty('requiere')
+  })
+
+  it('un archivo con requisitos desconocidos los devuelve y abre el resto', () => {
+    const m = JSON.stringify({ app: 'kirchi', formato: FORMATO_ACTUAL, version: '9', requiere: ['pieza:tl431'] })
+    const r = leerKir(zip({ 'manifest.json': m, 'circuito.json': serializarDocumento(completo()) }))
+    expect(r.ok && r.requiere).toEqual(['pieza:tl431'])
+    expect(r.ok && Object.keys(r.doc.piezas).length).toBe(4)
+  })
+
+  it('una lista inválida se ignora y un archivo sin ella da lista vacía', () => {
+    const malo = JSON.stringify({ app: 'kirchi', formato: FORMATO_ACTUAL, version: '9', requiere: [1, 2] })
+    const datos = serializarDocumento(completo())
+    const a = leerKir(zip({ 'manifest.json': malo, 'circuito.json': datos }))
+    const b = leerKir(zip({ 'manifest.json': manif(), 'circuito.json': datos }))
+    expect(a.ok && a.requiere).toEqual([])
+    expect(b.ok && b.requiere).toEqual([])
+  })
+})

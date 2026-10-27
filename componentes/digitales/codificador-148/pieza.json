@@ -1,0 +1,161 @@
+{
+  "id": "codificador-148",
+  "nombre": { "es": "Codificador de prioridad de 8 a 3 (74148)", "en": "8-to-3 priority encoder (74148)" },
+  "categoria": "digitales",
+  "grupo": "Decodificadores y multiplexores",
+  "prefijo": "U",
+  "buscar": ["u", "codificador", "encoder", "prioridad", "priority", "8 a 3", "74148", "74hc148", "74ls148", "gs", "eo"],
+  "pines": [
+    { "id": "I0", "nombre": "I0", "x": -6, "y": -8 },
+    { "id": "I1", "nombre": "I1", "x": -6, "y": -6 },
+    { "id": "I2", "nombre": "I2", "x": -6, "y": -4 },
+    { "id": "I3", "nombre": "I3", "x": -6, "y": -2 },
+    { "id": "I4", "nombre": "I4", "x": -6, "y": 0 },
+    { "id": "I5", "nombre": "I5", "x": -6, "y": 2 },
+    { "id": "I6", "nombre": "I6", "x": -6, "y": 4 },
+    { "id": "I7", "nombre": "I7", "x": -6, "y": 6 },
+    { "id": "EI", "nombre": "EI (habilitación de entrada, activa en bajo)", "x": -6, "y": 10 },
+    { "id": "A2", "nombre": "A2", "x": 6, "y": -8 },
+    { "id": "A1", "nombre": "A1", "x": 6, "y": -6 },
+    { "id": "A0", "nombre": "A0", "x": 6, "y": -4 },
+    { "id": "GS", "nombre": "GS (grupo seleccionado, activa en bajo)", "x": 6, "y": 0 },
+    { "id": "EO", "nombre": "EO (habilitación de salida, activa en bajo)", "x": 6, "y": 2 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "lut",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "comunes": ["EI", "I0", "I1", "I2", "I3", "I4", "I5", "I6", "I7"],
+    "tabla": {
+      "columnas": ["EI", "I0", "I1", "I2", "I3", "I4", "I5", "I6", "I7"],
+      "salidas": ["A2", "A1", "A0", "GS", "EO"],
+      "filas": [
+        "1 X X X X X X X X > 1 1 1 1 1",
+        "0 1 1 1 1 1 1 1 1 > 1 1 1 1 0",
+        "0 X X X X X X X 0 > 0 0 0 0 1",
+        "0 X X X X X X 0 1 > 0 0 1 0 1",
+        "0 X X X X X 0 1 1 > 0 1 0 0 1",
+        "0 X X X X 0 1 1 1 > 0 1 1 0 1",
+        "0 X X X 0 1 1 1 1 > 1 0 0 0 1",
+        "0 X X 0 1 1 1 1 1 > 1 0 1 0 1",
+        "0 X 0 1 1 1 1 1 1 > 1 1 0 0 1",
+        "0 0 1 1 1 1 1 1 1 > 1 1 1 0 1"
+      ]
+    },
+    "retardos": {
+      "74HC": {
+        "vcc": 4.5,
+        "A2": [2.3e-8, 2.3e-8],
+        "A1": [2.3e-8, 2.3e-8],
+        "A0": [2.3e-8, 2.3e-8],
+        "GS": [2.5e-8, 2.5e-8],
+        "EO": [2e-8, 2e-8]
+      },
+      "74LS": { "vcc": 5, "A2": [2e-8, 1.6e-8], "A1": [2e-8, 1.6e-8], "A0": [2e-8, 1.6e-8], "GS": [3.5e-8, 9e-9], "EO": [7e-9, 2.5e-8] }
+    }
+  },
+  "caja": {
+    "titulo": "HPRI/BIN",
+    "forma": "funcional",
+    "izquierda": ["!I0", "!I1", "!I2", "!I3", "!I4", "!I5", "!I6", "!I7", null, "!EI"],
+    "derecha": ["!A2", "!A1", "!A0", null, "!GS", "!EO"]
+  },
+  "fuentes": {
+    "74HC": "TI SN74HC148 (SCLS109H): tabla de función p. 9 y retardos típicos de las entradas de 0 a 7 a A, GS y EO (23, 25 y 20 ns, p. 5, 4.5 V, CL 50 pF). EI usa estos mismos valores.",
+    "74LS": "TI SN74LS148 (SDLS053B): tabla de función p. 3 y retardos típicos de las entradas a A (el camino en contrafase, 20 y 16 ns), GS (35 y 9) y EO (7 y 25), p. 10 a 5 V con CL 15 pF. EI usa estos mismos valores."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC148N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc148.pdf",
+        "equivalencias": { "kicad": "74xx:74LS148" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "I4": "1",
+              "I5": "2",
+              "I6": "3",
+              "I7": "4",
+              "EI": "5",
+              "A2": "6",
+              "A1": "7",
+              "A0": "9",
+              "I0": "10",
+              "I1": "11",
+              "I2": "12",
+              "I3": "13",
+              "GS": "14",
+              "EO": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74HC148N",
+            "lcsc": { "numero": "C5233", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC148 (SCLS109H, mar 2022), p. 3; KiCad 74xx:74LS148 (misma función y orden)" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS148N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls148.pdf",
+        "equivalencias": { "kicad": "74xx:74LS148" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "I4": "1",
+              "I5": "2",
+              "I6": "3",
+              "I7": "4",
+              "EI": "5",
+              "A2": "6",
+              "A1": "7",
+              "A0": "9",
+              "I0": "10",
+              "I1": "11",
+              "I2": "12",
+              "I3": "13",
+              "GS": "14",
+              "EO": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS148N",
+            "lcsc": { "numero": "C81840", "sinVerificar": true }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74147/148, SN74LS147/LS148 (SDLS053B, may 2004), p. 1, TOP VIEW; KiCad 74xx:74LS148" }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -14 }, "valor": { "x": 0, "y": 14 } },
+  "rotulos": [
+    { "texto": "I0", "x": -3.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "I1", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "I2", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "I3", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "I4", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "I5", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "I6", "x": -3.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "I7", "x": -3.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "EI", "x": -3.2, "y": 10, "tam": 1, "alinear": "izq" },
+    { "texto": "A2", "x": 3.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "A1", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "A0", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "GS", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "EO", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "HPRI/BIN", "x": 0, "y": -11, "tam": 1, "alinear": "centro" }
+  ]
+}

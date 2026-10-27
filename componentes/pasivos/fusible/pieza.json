@@ -11,5 +11,19 @@
   "props": [
     { "id": "corriente", "nombre": "Corriente nominal", "unidad": "A", "defecto": "1", "comunes": ["100m", "500m", "1", "2", "5"] }
   ],
-  "modelo": { "tipo": "fusible", "a": "1", "b": "2", "prop": "corriente", "rPorA": 0.1, "fusion": 2, "tau": 0.125 }
+  "modelo": { "tipo": "fusible", "a": "1", "b": "2", "prop": "corriente", "rPorA": 0.1, "fusion": 2, "tau": 0.125 },
+  "datos": {
+    "equivalencias": { "kicad": "Device:Fuse", "falstad": "404", "proteus": "FUSE", "sinVerificar": ["proteus"] },
+    "valores": {
+      "*": {
+        "pendiente": {
+          "presentaciones": "depende del tipo (vidrio de 5 × 20 mm con portafusibles, de lámina, autorrestablecible); KiCad 9 solo trae huellas de portafusibles de cada fabricante",
+          "parte": "depende del tipo y de la corriente",
+          "hoja": "depende del fabricante",
+          "lcsc": "depende del tipo y de la corriente"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "Sin presentación común única; no se eligió una para no inventarla" }
+      }
+    }
+  }
 }

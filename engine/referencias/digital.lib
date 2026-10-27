@@ -65,3 +65,12 @@ BOV vcc out I = V(oc) * ((V(gnd) + {vlo})*(1 - V(oc)) + (V(vcc) + {vhi})*V(oc) -
 BOG gnd out I = (1 - V(oc)) * ((V(gnd) + {vlo})*(1 - V(oc)) + (V(vcc) + {vhi})*V(oc) - V(out)) / ({rlo}*(1 - V(oc)) + {rhi}*V(oc))
 BDIS dis gnd I = V(dis, gnd) * ({gon}*(1 - V(oc)) + {goff}*V(oc))
 .ends
+
+* Compuertas de varias entradas y disparador Schmitt (74HC a 5 V): XNOR de 5 ns; el XOR de 1 ps arma la cadena de una XNOR de tres entradas.
+* El interruptor sw_hc14 conmuta con histeresis: cierra en 2.766667 V (centro 2.25 mas vh) y abre en 1.733333 V, los umbrales tipicos del SN74HC14.
+.model xnor_hc5 d_xnor(rise_delay=5n fall_delay=5n inertial_delay=true)
+.model xor_1ps d_xor(rise_delay=1e-12 fall_delay=1e-12)
+.model sw_hc14 SW(vt=2.25 vh=0.516667 ron=1 roff=1e9)
+
+* Salida de tres estados 74HC (74HC125): retardo de 5 ns de la entrada y de la habilitacion; OE activo en bajo con un inversor de 1 ps.
+.model ts_hc5 d_tristate(delay=5n)

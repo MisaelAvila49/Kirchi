@@ -67,12 +67,12 @@ test('guardar una selección como plantilla, verla en el panel Plantillas, coloc
     const archivo = join(carpeta, 'Mis plantillas', 'Mi divisor.kir')
     expect(existsSync(archivo)).toBe(true)
     expect(readdirSync(join(carpeta, 'Mis plantillas'))).toEqual(['Mi divisor.kir'])
-    // El panel Plantillas del riel (entre Librería y Proyecto) la lista, con su descripción, y trae las trece incluidas.
+    // El panel Plantillas del riel (entre Librería y Proyecto) la lista, con su descripción, y trae las quince incluidas.
     await abrirPanelPlantillas(page)
     const fila = page.locator('.pl-fila', { hasText: 'Mi divisor' })
     await expect(fila).toHaveCount(1)
     await expect(fila.locator('.pl-descripcion')).toHaveText('Dos resistencias en serie.')
-    await expect(page.locator('.pl-fila[data-plantilla^="Incluidas/"]')).toHaveCount(13)
+    await expect(page.locator('.pl-fila[data-plantilla^="Incluidas/"]')).toHaveCount(15)
     // Colocarla: un clic en la plantilla y otro en el lienzo, sin encimarse. Un solo deshacer la quita entera.
     // La vista abre a ~24 px por unidad (la ventana ve unos 90 × 52 unidades): se vacía el lienzo para que el lugar no dependa del zoom.
     await sonda(page, 'cargar', { piezas: {}, cables: {}, etiquetas: {}, notas: {} })

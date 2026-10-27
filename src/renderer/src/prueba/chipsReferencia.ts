@@ -1,7 +1,8 @@
 import { partirClavePin, type Conexiones, type Red } from '../conexiones/conexiones'
 import type { Documento, Punto } from '../doc/tipos'
 import { cajaTexto } from '../lienzo/apartar'
-import { limitarDesplazo } from '../lienzo/ajusteChips'
+import { acotarAlAlcance, limitarDesplazo } from '../lienzo/ajusteChips'
+import { candidatosEnEntrada } from '../lienzo/anclaChip'
 import { FACTOR_ANILLO, HUECO_MISMA_LINEA, MARGEN_PIN_X, MARGEN_PIN_Y, SEPARACION_CHIP, TAM_CHIP, type OpcionesChips } from '../lienzo/chips'
 import type { Texto } from '../lienzo/etiquetas'
 import { ANCHO_TRAZO } from '../lienzo/medidas'
@@ -162,7 +163,9 @@ export function chipsDeVoltajeReferencia(doc: Documento, lib: Map<string, PiezaD
     const chip = (x: number, y: number, alinear: Texto['alinear']): Texto => ({ texto, x, y, alinear, tamaño: TAM_CHIP, color: 'trazo', fuente: 'cifras', chip: true, clave })
     const t = tramoMasLargo(doc, r)
     let candidatos: Texto[]
-    if (t?.horizontal) {
+    const enEntrada = candidatosEnEntrada(doc, lib, r)
+    if (enEntrada) candidatos = enEntrada.map((c) => chip(c.x, c.y, c.alinear))
+    else if (t?.horizontal) {
       const cx = (t.a.x + t.b.x) / 2
       candidatos = [chip(cx, t.a.y - SEPARACION_CHIP, 'centro'), chip(cx, t.a.y + SEPARACION_CHIP, 'centro')]
     } else if (t) {
@@ -185,7 +188,8 @@ export function chipsDeVoltajeReferencia(doc: Documento, lib: Map<string, PiezaD
     const d = clave ? opciones.desplazos?.get(clave) : undefined
     if (d) {
       const m = limitarDesplazo(d.dx, d.dy)
-      out.push({ ...elegido, x: elegido.x + m.dx, y: elegido.y + m.dy })
+      const q = acotarAlAlcance(doc, lib, r, elegido.x + m.dx, elegido.y + m.dy)
+      out.push({ ...elegido, x: q.x, y: q.y })
     } else out.push(elegido)
   }
   return out

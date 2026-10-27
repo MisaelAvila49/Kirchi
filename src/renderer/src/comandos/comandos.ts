@@ -11,11 +11,11 @@ const ES_MAC = typeof navigator !== 'undefined' && /mac/i.test(navigator.platfor
 export type IdComando =
   | 'guardar' | 'nuevo' | 'abrir' | 'guardar-como' | 'recientes' | 'exportar' | 'guardar-plantilla'
   | 'deshacer' | 'rehacer'
-  | 'cortar' | 'copiar' | 'pegar' | 'duplicar' | 'borrar' | 'todo'
+  | 'cortar' | 'copiar' | 'pegar' | 'duplicar' | 'borrar' | 'todo' | 'agrupar-encapsulados'
   | 'girar-izq' | 'girar' | 'espejo-x' | 'espejo-y' | 'restablecer-textos'
   | 'pieza' | 'figura' | 'figura-linea' | 'figura-rectangulo' | 'figura-elipse' | 'figura-flecha' | 'etiqueta' | 'tierra' | 'alimentacion' | 'nota'
   | 'simular' | 'detener' | 'voltajes'
-  | 'avanzar' | 'retroceder' | 'avanzar-tiempo' | 'avanzar-hasta' | 'velocidad' | 'mas-lento' | 'mas-rapido' | 'corriente' | 'animaciones' | 'sonido'
+  | 'avanzar' | 'retroceder' | 'avanzar-tiempo' | 'avanzar-hasta' | 'velocidad' | 'mas-lento' | 'mas-rapido' | 'corriente' | 'animaciones' | 'sonido' | 'numeros-patilla'
   | 'franja-osciloscopio' | 'franja-registro'
   | 'analisis-op' | 'analisis-dc' | 'analisis-ac' | 'analisis-tran' | 'analisis-fourier' | 'analisis-param' | 'analisis-ejecutar' | 'analisis-cancelar' | 'panel-analisis' | 'franja-graficas'
   | 'instrumentos' | 'analizar'
@@ -70,6 +70,7 @@ export const COMANDOS: Readonly<Record<IdComando, DefComandoCinta>> = {
   pegar: { texto: 'Pegar', nombre: 'Pegar en el cursor', textoMenu: 'Pegar aquí', icono: 'pegar', tecla: 'pegar', edita: true },
   duplicar: { texto: 'Duplicar', icono: 'duplicar', tecla: 'duplicar', edita: true },
   borrar: { texto: 'Borrar', nombre: 'Borrar la selección', icono: 'borrar', tecla: 'borrar', edita: true },
+  'agrupar-encapsulados': { texto: 'Agrupar', nombre: 'Agrupar en encapsulados', textoMenu: 'Agrupar en encapsulados', icono: 'pieza', edita: true, palabras: 'unidades paquete encapsulado compuertas u1a referencias' },
   todo: { texto: 'Todo', nombre: 'Seleccionar todo', rotuloAccesible: 'Seleccionar todo', icono: 'todo', tecla: 'todo', palabras: 'seleccionar' },
   'girar-izq': { texto: 'Girar a la izquierda', nombre: 'Girar 90° a la izquierda', textoMenu: 'Girar 90° a la izquierda', icono: 'girarIzq', tecla: 'girar-izq', edita: true, palabras: 'rotar' },
   girar: { texto: 'Girar a la derecha', nombre: 'Girar 90° a la derecha', textoMenu: 'Girar 90° a la derecha', icono: 'girar', tecla: 'girar', edita: true, palabras: 'rotar' },
@@ -103,6 +104,7 @@ export const COMANDOS: Readonly<Record<IdComando, DefComandoCinta>> = {
   'mas-rapido': { texto: 'Más rápido', nombre: 'Tiempo más rápido', icono: 'masRapido', tecla: 'mas-rapido', palabras: 'velocidad' },
   corriente: { texto: 'Corriente', nombre: 'Mostrar u ocultar la corriente animada', icono: 'corriente', tecla: 'corriente', palabras: 'flechas corriente animada' },
   animaciones: { texto: 'Animaciones', nombre: 'Pausar o reanudar las animaciones', icono: 'animaciones', tecla: 'animaciones', palabras: 'movimiento pausa flechas rotor' },
+  'numeros-patilla': { texto: 'Números de patilla', nombre: 'Mostrar u ocultar los números de patilla de los circuitos integrados', icono: 'pieza', palabras: 'pines patillas dip encapsulado chip numeración' },
   sonido: { texto: 'Sonido', nombre: 'Silenciar o activar el sonido', icono: 'sonido', tecla: 'sonido', palabras: 'silencio volumen zumbador pitido' },
   'franja-osciloscopio': { texto: 'Osciloscopio', nombre: 'Pestaña Osciloscopio de la franja', icono: 'osciloscopio', palabras: 'franja instrumentos pantalla scope' },
   // Los dos botones con menú de Inicio. Instrumentos coloca uno; Analizar abre la ficha de cada análisis y los resultados.

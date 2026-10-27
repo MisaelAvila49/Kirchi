@@ -12,7 +12,7 @@ Armas el circuito, pulsas F5 y lo ves funcionar. Gratis, sin internet, sin cuent
 [![Descargar para Windows, macOS y Linux](https://img.shields.io/badge/Releases-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-22252A?style=for-the-badge&logo=github&logoColor=white)](../../releases/latest)
 
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.2.2-0E7C66.svg)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-2.0.0-0E7C66.svg)](CHANGELOG.md)
 ![Plataformas](https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
 
 <img src="docs/imagenes/portada.jpg" alt="Un 555 astable con las cuatro señales de su osciloscopio" width="100%">
@@ -54,9 +54,9 @@ Kirchi es un simulador de circuitos de escritorio para estudiar electrónica: di
 
 ## Qué incluye
 
-**Editor de esquema.** Rejilla de 2.5 mm con símbolos ANSI/IEEE, 58 piezas con modelo eléctrico en nueve categorías (pasivos, fuentes, semiconductores, integrados, digitales, interruptores, indicadores, electromecánicos e instrumentos) y cables que se enrutan solos sin atravesar piezas. Valores con unidad y series comerciales (`4k7`, `100n`), buscador de comandos con `Ctrl+K`, notas, etiquetas y deshacer.
+**Editor de esquema.** Rejilla de 2.5 mm con símbolos ANSI/IEEE, 102 piezas con modelo eléctrico en nueve categorías (pasivos, fuentes, semiconductores, integrados, digitales, interruptores, indicadores, electromecánicos e instrumentos), con sensores, motores a pasos, JFET, IGBT, optoacopladores, fuentes controladas y lógica MSI (decodificadores, multiplexores, sumador, comparador y contadores). Los chips de varias unidades se nombran U1A, U1B y llevan el número de cada patilla y cables que se enrutan solos sin atravesar piezas. Valores con unidad y series comerciales (`4k7`, `100n`), buscador de comandos con `Ctrl+K`, notas, etiquetas y deshacer.
 
-**Simulación en tiempo real.** Motor analógico y digital propio, con las mismas ecuaciones que ngspice. Ocho velocidades, de ×10 a ×0.001, avanzar y retroceder en el tiempo, potenciómetros e interruptores que se accionan mientras corre, y avisos cuando una pieza pasa sus límites.
+**Simulación en tiempo real.** Motor analógico y digital propio, con las mismas ecuaciones que ngspice. Ocho velocidades, de ×10 a ×0.001, avanzar y retroceder en el tiempo, perillas en vivo (potenciómetro, termistores, fotorresistencia, sensores) e interruptores que se accionan mientras corre, y avisos cuando una pieza pasa sus límites.
 
 **Instrumentos.** Osciloscopio de cuatro canales con disparo, cursores, medidas automáticas y modo X-Y. En pausa se cambian sus escalas sobre lo ya capturado. Multímetro, generador de funciones con amplitud pico a pico, pico o rms, fuente variable y medidores rápidos con pantalla de siete segmentos.
 
@@ -64,9 +64,21 @@ Kirchi es un simulador de circuitos de escritorio para estudiar electrónica: di
 
 **Para la entrega.** Exporta a PNG, SVG y PDF con fondo blanco o tema oscuro, solo la selección o un área, y anotaciones que no ensucian tu circuito. Graba la ventana en video MP4, con o sin micrófono.
 
-**Para aprender.** Tutorial «Aprende Kirchi» de cinco capítulos, trece plantillas listas para simular y seis calculadoras (divisor, LED, filtros, 555 astable y monoestable, amplificador) que muestran la ecuación con tus valores y generan el circuito.
+**Para aprender.** Tutorial «Aprende Kirchi» de cinco capítulos, quince plantillas listas para simular y seis calculadoras (divisor, LED, filtros, 555 astable y monoestable, amplificador) que muestran la ecuación con tus valores y generan el circuito.
+
+**Asistente (opcional).** Un asistente de IA como Claude puede armar, simular y medir circuitos en Kirchi por el protocolo MCP. Viene apagado y todo ocurre en tu equipo.
 
 La guía completa está en [docs/guia-de-uso.md](docs/guia-de-uso.md).
+
+## Conectar un asistente (opcional)
+
+Kirchi funciona sin conexión y el asistente viene apagado. Para usarlo:
+
+1. Abre Configuración › Asistente y activa el permiso.
+2. Pulsa «Copiar configuración del asistente» y pega el texto en la configuración de tu cliente MCP (Claude Desktop, Claude Code u otro). El estado de la pestaña dice «Listo. Escríbele al asistente desde tu cliente.»
+3. Pídele algo, por ejemplo «arma un divisor que dé 3.3 V desde 5 V y mide la salida».
+
+El asistente puede construir, simular, leer mediciones y exportar la imagen del circuito abierto, usar plantillas y calculadoras, guardar análisis y trazar por patilla, y trabajar con los archivos de Documentos\Kirchi\Asistente. Cada paso se deshace con Ctrl+Z. Con el instalador la configuración usa la ruta completa de Kirchi y con la Microsoft Store usa el alias `kirchi`.
 
 ## Instalación
 
@@ -76,10 +88,10 @@ También puedes bajar el instalador de la página de [Releases](../../releases/l
 
 | Sistema | Archivo | La primera vez |
 |---|---|---|
-| Windows | `Kirchi-x.y.z-instalador-x64.exe` | SmartScreen avisa de un editor desconocido: «Más información» y «Ejecutar de todos modos». |
-| Windows portátil | `Kirchi-x.y.z-portatil-x64.zip` | Se descomprime y se abre `Kirchi.exe`, sin instalar nada. |
-| macOS | `Kirchi-x.y.z-macos-universal.dmg` | Arrastra Kirchi a Aplicaciones. Si macOS no puede verificarla, abre Ajustes del Sistema › Privacidad y seguridad y pulsa «Abrir de todos modos». Si dice que está dañada, ejecuta `xattr -cr /Applications/Kirchi.app` en la Terminal. |
-| Linux | `Kirchi-x.y.z-linux-x86_64.AppImage` o `.deb` | La AppImage necesita permiso de ejecución (`chmod +x`). |
+| Windows | `Kirchi-x.y.z-Windows-instalador.exe` | SmartScreen avisa de un editor desconocido: «Más información» y «Ejecutar de todos modos». |
+| Windows portátil | `Kirchi-x.y.z-Windows-portable.zip` | Se descomprime y se abre `Kirchi.exe`, sin instalar nada. |
+| macOS | `Kirchi-x.y.z-macOS.dmg` | Arrastra Kirchi a Aplicaciones. Si macOS no puede verificarla, abre Ajustes del Sistema › Privacidad y seguridad y pulsa «Abrir de todos modos». Si dice que está dañada, ejecuta `xattr -cr /Applications/Kirchi.app` en la Terminal. |
+| Linux | `Kirchi-x.y.z-Linux.AppImage` o `Kirchi-x.y.z-Linux.deb` | La AppImage necesita permiso de ejecución (`chmod +x`). |
 
 Los circuitos se guardan en archivos `.kir`, que se abren con doble clic.
 

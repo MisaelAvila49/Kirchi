@@ -1,6 +1,6 @@
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { armarMazo, validarPeticion } from '../compartido/spice/mazo'
 import { localizarNgspice, motivoDeVersion, ServicioNgspice, type OpcionesServicio } from './servicioNgspice'
@@ -230,11 +230,26 @@ describe('escribirSpinit', () => {
       expect(escribirSpinit(join(base, 'job'), join(base, 'otro', 'bin', 'ngspice'), 'linux')).toBeNull()
       expect(escribirSpinit(join(base, 'job'), exe, 'linux')).toBe(join(base, 'job', 'spice'))
       const texto = readFileSync(join(base, 'job', 'spice', 'scripts', 'spinit'), 'utf8')
-      expect(texto).toContain(`codemodel ${join(base, 'ng', 'lib', 'ngspice', 'analog.cm').replace(/[\\]/g, '/')}`)
+      expect(texto).toContain(` codemodel '${join(base, 'ng', 'lib', 'ngspice')}/analog.cm'`)
       expect(texto).toContain('digital.cm')
     } finally {
       rmSync(base, { recursive: true, force: true })
     }
+  })
+})
+
+describe('lineaCodemodel', () => {
+  it('en Windows la ruta va relativa a bin, sin comillas, aunque la instalación tenga espacios y acentos', async () => {
+    const { lineaCodemodel } = await import('./servicioNgspice')
+    const tienda = 'C:\\Program Files\\WindowsApps\\MisaelSalAvilaLpez.Kirchi_1.2.2.0_x64__47p2gr07q41m4\\app\\resources\\herramientas\\ngspice\\Spice64\\lib\\ngspice'
+    expect(lineaCodemodel(tienda, 'analog.cm', 'win32')).toBe(' codemodel ../lib/ngspice/analog.cm')
+    expect(lineaCodemodel('C:\\Users\\Juan Pérez\\Kirchi\\lib\\ngspice', 'digital.cm', 'win32')).toBe(' codemodel ../lib/ngspice/digital.cm')
+  })
+  it('fuera de Windows va absoluta entre comillas simples y, con apóstrofo, por una variable entre comillas dobles', async () => {
+    const { lineaCodemodel } = await import('./servicioNgspice')
+    expect(lineaCodemodel('/Applications/Kirchi.app/Contents/Resources/herramientas/ngspice/lib/ngspice', 'analog.cm', 'darwin')).toBe(" codemodel '/Applications/Kirchi.app/Contents/Resources/herramientas/ngspice/lib/ngspice/analog.cm'")
+    expect(lineaCodemodel('/home/ana maría/kirchi/lib/ngspice', 'analog.cm', 'linux')).toBe(" codemodel '/home/ana maría/kirchi/lib/ngspice/analog.cm'")
+    expect(lineaCodemodel("/home/o'neil/lib/ngspice", 'analog.cm', 'linux')).toBe(' set kirchi_cm = "/home/o\'neil/lib/ngspice/analog.cm"\n codemodel $kirchi_cm')
   })
 })
 
@@ -256,7 +271,7 @@ describe('codificarSpinit y rutas en las dos distribuciones', () => {
         const dir = mkdtempSync(join(base, 'job-'))
         expect(escribirSpinit(dir, join(raiz, 'bin', 'ngspice_con.exe'), 'win32')).toBe(join(dir, 'spice'))
         const texto = readFileSync(join(dir, 'spice', 'scripts', 'spinit'), 'latin1')
-        expect(texto).toContain(`codemodel ${join(raiz, 'lib', 'ngspice', 'analog.cm').replace(/[\\]/g, '/')}`)
+        expect(texto).toContain(' codemodel ../lib/ngspice/analog.cm')
       }
     } finally {
       rmSync(base, { recursive: true, force: true })
@@ -345,4 +360,51 @@ fs.writeFileSync('salida.raw', ${JSON.stringify(RAW)})
     barrerSobrantes(base)
     expect(readdirSync(base).sort()).toEqual(['kirchi-ngspice-nuevo', 'otra-cosa'])
   })
+})
+
+// Con el ngspice real, instalado en una carpeta con espacio y acento (como la de la Tienda, `C:\Program Files\WindowsApps\…`):
+// una compuerta de XSPICE solo corre si el spinit cargó los modelos de código.
+const RAIZ_PROYECTO = join(import.meta.dirname, '../..')
+const NGSPICE_REAL = localizarNgspice({ empaquetado: false, carpetaHerramientas: join(RAIZ_PROYECTO, 'resources', 'herramientas'), appPath: RAIZ_PROYECTO })
+const HAY_NGSPICE = NGSPICE_REAL !== null && NGSPICE_REAL !== 'ngspice' && existsSync(join(dirname(dirname(NGSPICE_REAL)), 'lib', 'ngspice'))
+
+/** Copia a mano: `cpSync` de Node 24 tumba el proceso en Windows con un acento en la ruta de destino. */
+function copiarCarpeta(origen: string, destino: string): void {
+  mkdirSync(destino, { recursive: true })
+  for (const e of readdirSync(origen, { withFileTypes: true })) {
+    if (e.isDirectory()) copiarCarpeta(join(origen, e.name), join(destino, e.name))
+    else copyFileSync(join(origen, e.name), join(destino, e.name))
+  }
+}
+
+describe.skipIf(!HAY_NGSPICE)('ngspice real desde una carpeta con espacios', () => {
+  it('carga los modelos de código y simula una compuerta de XSPICE', async () => {
+    const base = mkdtempSync(join(tmpdir(), 'kirchi-ruta con espacio é-'))
+    try {
+      const origen = dirname(dirname(NGSPICE_REAL!))
+      const copia = join(base, 'Kirchi 1.2', 'ngspice')
+      for (const d of ['bin', 'lib']) copiarCarpeta(join(origen, d), join(copia, d))
+      mkdirSync(join(base, 'tmp con espacio'))
+      const s = new ServicioNgspice({ ejecutable: join(copia, 'bin', basename(NGSPICE_REAL!)), carpetaTemporal: join(base, 'tmp con espacio'), limiteMs: 60_000 })
+      const r = await s.ejecutar(1, {
+        netlist: {
+          nodes: 3,
+          digital_nets: 2,
+          elements: [
+            { type: 'V', a: 1, b: 0, wave: { kind: 'dc', v: 0 } },
+            { type: 'ADC', p: 1, n: 0, out: 0, in_low: 1.5, in_high: 3.5 },
+            { type: 'GATE', fn: 'not', inputs: [0], output: 1, rise_delay: 5e-9, fall_delay: 5e-9, z_como: 'x' },
+            { type: 'DAC', input: 1, out: 2, v_lo: 0, v_hi: 5, r_lo: 55, r_hi: 55, t_rise: 6.7e-9, t_fall: 6.7e-9 },
+            { type: 'R', a: 2, b: 0, ohms: 1e6 }
+          ]
+        },
+        analisis: { tipo: 'op' }
+      })
+      if (!r.ok) throw new Error(r.error)
+      const salida = r.graficos.flatMap((g) => g.vectores).find((v) => v.nombre === 'v(n2)')
+      expect(salida?.re[0]).toBeCloseTo(5, 2)
+    } finally {
+      rmSync(base, { recursive: true, force: true })
+    }
+  }, 90_000)
 })

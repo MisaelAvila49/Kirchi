@@ -6,6 +6,13 @@ export type MedidaAmplitud = 'pp' | 'pico' | 'rms'
 export const TITULO_MEDIDA: Record<MedidaAmplitud, string> = { pp: 'Amplitud pico a pico', pico: 'Amplitud pico', rms: 'Amplitud (rms)' }
 export const UNIDAD_MEDIDA: Record<MedidaAmplitud, string> = { pp: 'Vpp', pico: 'Vp', rms: 'Vrms' }
 
+/** El globo de cada medida: qué amplitud es. */
+export const AYUDA_MEDIDA: Record<MedidaAmplitud, string> = {
+  pp: 'Del valor más bajo al más alto de la señal, el doble del pico.',
+  pico: 'La señal va de offset − Vp a offset + Vp.',
+  rms: 'Valor eficaz de la parte alterna, sin contar el offset.'
+}
+
 /** Vrms entre Vp de una forma con valor medio cero, o null si el rms depende del ciclo, del retardo o de los pasos. */
 export function factorRms(forma: Forma): number | null {
   switch (forma) {

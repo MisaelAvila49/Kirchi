@@ -241,3 +241,11 @@ html:has(.ventana-graficas), body:has(.ventana-graficas) { height: auto; min-hei
 .hoja-seccion:first-child { border-top: 0; }
 .hoja-seccion-titulo { margin: 0 0 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-secundario); }
 .hoja-pie { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; padding: 10px 16px; border-top: 1px solid var(--bordes); }
+.an-elegir-lista { display: grid; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
+.an-elegir-boton { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: center; width: 100%; padding: 8px 10px; border: 1px solid var(--bordes); border-radius: 6px; background: var(--chip); color: var(--texto); font: inherit; text-align: left; cursor: pointer; }
+.an-elegir-boton:hover:not([aria-disabled='true']) { border-color: var(--seleccion); }
+.an-elegir-boton[aria-disabled='true'] { color: var(--texto-secundario); cursor: default; }
+.an-elegir-boton .icono { width: 22px; height: 22px; }
+.an-elegir-texto { display: grid; gap: 2px; min-width: 0; }
+.an-elegir-texto strong { font-size: 13px; font-weight: 650; }
+.an-elegir-texto span { color: var(--texto-secundario); font-size: 12px; }

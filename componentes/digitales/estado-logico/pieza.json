@@ -12,5 +12,11 @@
   ],
   "modelo": { "tipo": "estado-logico", "salida": "S", "prop": "estado", "familia": "familia", "alimentacion": "alimentacion" },
   "etiquetas": { "ref": { "x": 0, "y": -4 }, "valor": { "x": 0, "y": 4 } },
-  "rotulos": [{ "prop": "estado", "x": 0, "y": 0, "tam": 1.6, "alinear": "centro" }]
+  "rotulos": [{ "prop": "estado", "x": 0, "y": 0, "tam": 1.6, "alinear": "centro" }],
+  "datos": {
+    "equivalencias": { "falstad": "L", "proteus": "LOGICSTATE", "sinVerificar": ["proteus"] },
+    "valores": {
+      "*": { "virtual": true, "nota": "Entrada de lógica del simulador, sin pieza física (equivale a un interruptor a VCC o GND)." }
+    }
+  }
 }

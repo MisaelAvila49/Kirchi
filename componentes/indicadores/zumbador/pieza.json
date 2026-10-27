@@ -14,5 +14,20 @@
   ],
   "modelo": { "tipo": "zumbador", "a": "+", "b": "-", "voltaje": "voltaje", "potencia": 0.15, "umbral": 0.6 },
   "etiquetas": { "valor": { "x": 0, "y": 4 } },
-  "animacion": { "tipo": "sonido", "frecuencia": "frecuencia", "onda": "triangular" }
+  "animacion": { "tipo": "sonido", "frecuencia": "frecuencia", "onda": "triangular" },
+  "datos": {
+    "equivalencias": { "kicad": "Device:Buzzer", "proteus": "BUZZER", "sinVerificar": ["proteus"] },
+    "valores": {
+      "*": {
+        "presentaciones": [
+          { "encapsulado": "Zumbador-12mm", "patillas": { "+": "1", "-": "2" }, "huella": "Buzzer_Beeper:Buzzer_12x9.5RM7.6", "representativa": true }
+        ],
+        "pendiente": { "parte": "varía por fabricante", "hoja": "varía por fabricante", "lcsc": "varía por fabricante" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "KiCad 9: símbolo Device:Buzzer (1 es +, 2 es −) y huella Buzzer_12x9.5RM7.6 (pad 1 cuadrado, el positivo). Dos fuentes de la misma biblioteca, sin hoja. Representativa: zumbador activo de 12 mm"
+        }
+      }
+    }
+  }
 }

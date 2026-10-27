@@ -132,7 +132,7 @@ describe('doble clic en una pieza: referencia y valor', () => {
     expect(u.campos[2].opciones).toEqual(['5 V'])
     expect(u.campos[1].muestras).toBeUndefined()
     ed.editarValor('p1')
-    expect(campos(pedidos[1]).campos.map((c) => c.id)).toEqual(['ref', 'valor', 'prop:ley'])
+    expect(campos(pedidos[1]).campos.map((c) => c.id)).toEqual(['ref', 'valor', 'prop:ley', 'prop:junto'])
   })
 
   it('la tierra no rotula su referencia: el doble clic no abre nada', () => {

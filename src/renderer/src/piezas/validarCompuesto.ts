@@ -16,8 +16,18 @@ const CAMPOS: Record<string, { nodos: string[]; valores: string[]; opcionales?: 
   D: { nodos: ['a', 'b'], valores: [], extra: ['params'] },
   Q: { nodos: ['c', 'b', 'e'], valores: [], extra: ['params', 'pnp'] },
   OA: { nodos: ['mas', 'menos', 'sal', 'vmas', 'vmenos'], valores: [], extra: ['params'] },
-  T: { nodos: ['a1', 'b1', 'a2', 'b2'], valores: ['l1', 'n', 'k'] }
+  T: { nodos: ['a1', 'b1', 'a2', 'b2'], valores: ['l1', 'n', 'k'] },
+  M: { nodos: ['d', 'g', 's'], valores: [], extra: ['params', 'pmos'] },
+  J: { nodos: ['d', 'g', 's'], valores: [], extra: ['params', 'pjf'] },
+  E: { nodos: ['p', 'n', 'cp', 'cn'], valores: ['ganancia'] },
+  G: { nodos: ['p', 'n', 'cp', 'cn'], valores: ['gm'] },
+  H: { nodos: ['p', 'n', 'cp', 'cn'], valores: ['r'] },
+  F: { nodos: ['p', 'n', 'cp', 'cn'], valores: ['ganancia'] },
+  EXT: { nodos: ['a', 'b'], valores: ['k', 'c'], opcionales: ['r'], extra: ['modo', 'canal'] }
 }
+const CONTROLADAS = ['E', 'G', 'H', 'F']
+const TRANSISTORES = ['Q', 'M', 'J']
+const FAMILIA_DE: Record<string, 'bjt' | 'mosfet' | 'jfet' | 'ampop'> = { Q: 'bjt', M: 'mosfet', J: 'jfet', OA: 'ampop' }
 
 const PARAMETROS_DIODO = ['is', 'n', 'rs', 'bv', 'ibv', 'nbv', 'cjo', 'vj', 'm', 'tt', 'fc']
 
@@ -61,6 +71,19 @@ export function validarCompuesto(m: any, pines: string[], props: PropDef[], err:
   // Un nombre de valor se resuelve en TODAS las opciones del modelo (y no en alguna) o es una propiedad numérica de la pieza.
   const nombre = (campo: string, v: unknown) => {
     if (esNumero(v)) return
+    // Lineal en una propiedad numérica: mas + por × prop.
+    if (esObj(v)) {
+      for (const k of Object.keys(v)) {
+        if (['prop', 'por', 'mas'].includes(k)) continue
+        const parecida = nombreParecido(k, ['prop', 'por', 'mas'])
+        err(`${campo}.${k}`, `clave desconocida${parecida ? `, ¿quisiste decir «${parecida}»?` : ''}`)
+      }
+      for (const k of ['por', 'mas']) if (!esNumero(v[k])) err(`${campo}.${k}`, 'debe ser un número')
+      const q = props.find((p) => p.id === v.prop)
+      if (!q) err(`${campo}.prop`, `«${v.prop}» no es una propiedad de la pieza`)
+      else if (q.opciones || q.texto) err(`${campo}.prop`, `«${v.prop}» debe ser una propiedad numérica`)
+      return
+    }
     if (typeof v !== 'string' || v === '' || v === '-') return err(campo, 'debe ser un número o el nombre de un parámetro o de una propiedad')
     const n = v.startsWith('-') ? v.slice(1) : v
     if (claves.has(n)) {
@@ -87,10 +110,18 @@ export function validarCompuesto(m: any, pines: string[], props: PropDef[], err:
       if (!nodoExiste(e[n])) err(`${c}.${n}`, 'debe ser un pin de la pieza o una de las redes internas')
       else usados.add(e[n])
     }
-    if (new Set(def.nodos.map((n) => e[n])).size !== def.nodos.length && e.t !== 'Q' && e.t !== 'OA') err(c, 'sus dos nodos deben ser distintos')
+    if (CONTROLADAS.includes(e.t)) {
+      if (e.p === e.n || e.cp === e.cn) err(c, 'su salida y su control deben ser dos nodos distintos')
+    } else if (new Set(def.nodos.map((n) => e[n])).size !== def.nodos.length && !['Q', 'M', 'J', 'OA'].includes(e.t)) err(c, 'sus dos nodos deben ser distintos')
     for (const v of def.valores) nombre(`${c}.${v}`, e[v])
     for (const v of def.opcionales ?? []) if (e[v] !== undefined) nombre(`${c}.${v}`, e[v])
-    if (e.pnp !== undefined && typeof e.pnp !== 'boolean') err(`${c}.pnp`, 'debe ser verdadero o falso')
+    for (const polaridad of ['pnp', 'pmos', 'pjf']) if (e[polaridad] !== undefined && typeof e[polaridad] !== 'boolean') err(`${c}.${polaridad}`, 'debe ser verdadero o falso')
+    if (e.t === 'EXT') {
+      if (e.modo !== 'v' && e.modo !== 'i') err(`${c}.modo`, 'debe ser «v» o «i»')
+      const q = props.find((p) => p.id === e.canal)
+      if (!q) err(`${c}.canal`, 'no es una propiedad de la pieza')
+      else if (!q.enVivo) err(`${c}.canal`, 'debe ser una propiedad con perilla (enVivo)')
+    }
     if (def.extra?.includes('params')) {
       const params = e.params
       if (e.t !== 'D' && !esObj(params)) return err(`${c}.params`, 'debe ser un objeto con los parámetros')
@@ -101,7 +132,7 @@ export function validarCompuesto(m: any, pines: string[], props: PropDef[], err:
         if (e.t === 'D') {
           if (!PARAMETROS_DIODO.includes(p)) err(cc, `parámetro desconocido (los del diodo son ${PARAMETROS_DIODO.join(', ')})`)
         } else {
-          const familia = e.t === 'Q' ? 'bjt' : 'ampop'
+          const familia = FAMILIA_DE[e.t]
           if (!PARAMETROS[familia].nombres.includes(p)) err(cc, problemaDeParametro(familia, p, 1) ?? 'parámetro desconocido')
           else if (esNumero(x)) {
             const problema = problemaDeParametro(familia, p, x)
@@ -118,5 +149,7 @@ export function validarCompuesto(m: any, pines: string[], props: PropDef[], err:
   else {
     for (const c of ['mas', 'menos']) if (!nodoExiste(med[c])) err(`modelo.medida.${c}`, 'debe ser un pin de la pieza o una de las redes internas')
     if (!(Number.isInteger(med.i) && med.i >= 0 && med.i < m.elementos.length)) err('modelo.medida.i', 'debe ser el índice de uno de los elementos (desde 0)')
+    if (med.region !== undefined && !(Number.isInteger(med.region) && TRANSISTORES.includes(m.elementos[med.region]?.t))) err('modelo.medida.region', 'debe ser el índice de un transistor (Q, M o J)')
+    for (const k of Object.keys(med)) if (!['mas', 'menos', 'i', 'region'].includes(k)) err(`modelo.medida.${k}`, `clave desconocida${nombreParecido(k, ['mas', 'menos', 'i', 'region']) ? `, ¿quisiste decir «${nombreParecido(k, ['mas', 'menos', 'i', 'region'])}»?` : ''}`)
   }
 }

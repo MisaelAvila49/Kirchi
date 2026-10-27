@@ -6,7 +6,7 @@ import { compilarNetlist, type ElementoMotor, type NetlistMotor } from '../netli
 import { BRILLO_MINIMO, brilloDeLed, CORRIENTE_BRILLO_PLENO } from '../lienzo/capaSim'
 import { conEtiquetas, divisor } from '../prueba/circuitos'
 import { libreriaDePrueba } from '../prueba/libreria'
-import { CORRIENTE_SEGMENTO_ENCENDIDO, escalaDeVoltaje, leerResultados, medicionDeElemento, PASO_MAX, PASO_MIN, pasoDeSimulacion, textoDelDisplay } from './lectura'
+import { CORRIENTE_SEGMENTO_ENCENDIDO, escalaDeVoltaje, extraDeElemento, leerResultados, medicionDeElemento, PASO_MAX, PASO_MIN, pasoDeSimulacion, textoDelDisplay } from './lectura'
 import type { SimReading } from './protocol'
 
 const lib = libreriaDePrueba().piezas
@@ -52,7 +52,7 @@ describe('leerResultados con lecturas propias de cada modelo', () => {
   })
 
   it('un MOSFET, un amplificador, un motor, un fusible, un relé, un zener y un zumbador', () => {
-    expect(uno({ type: 'M', d: 1, g: 2, s: 3, pmos: false, model: {} }, 'mosfet', 0.05, 0, 2).extra).toEqual({ tipo: 'mosfet', region: 'saturación', vgs: 0.7 })
+    expect(uno({ type: 'M', d: 1, g: 2, s: 3, pmos: false, model: {} }, 'mosfet', 0.05, 0, 1).extra).toEqual({ tipo: 'mosfet', region: 'saturación', vgs: 0.7 })
     const oa = uno({ type: 'OA', p: 2, n: 3, out: 1, vp: 1, vn: 3, model: { rq: 1e4 } }, 'ampop', 0, 0, -1)
     expect(oa.extra).toEqual({ tipo: 'ampop', saturado: -1 })
     expect(oa.v).toBe(5)
@@ -164,7 +164,7 @@ describe('leerResultados', () => {
 
   it('sin netlist no hay piezas ni redes', () => {
     const { s } = divisorResuelto()
-    const l = leerResultados({ netlist: null, nodoDeRed: new Map(), piezaDeElemento: [], potenciometros: new Map(), tipoDeElemento: [], umbrales: new Map(), redDigital: new Map(), digitales: new Map(), temporizadores: new Map(), displays: new Map(), manejoDeRed: new Map(), instrumentos: sinInstrumentos(), puertos: [], potencias: [], compuestos: new Map(), sinModelo: ['X1'], errores: [], avisos: [] }, s)
+    const l = leerResultados({ netlist: null, nodoDeRed: new Map(), piezaDeElemento: [], potenciometros: new Map(), canalDe: new Map(), relojesAdc: new Map(), convertidores: new Map(), tipoDeElemento: [], umbrales: new Map(), redDigital: new Map(), digitales: new Map(), temporizadores: new Map(), displays: new Map(), manejoDeRed: new Map(), instrumentos: sinInstrumentos(), puertos: [], potencias: [], compuestos: new Map(), sinModelo: ['X1'], errores: [], avisos: [] }, s)
     expect(l.redes.size).toBe(0)
     expect(l.piezas.size).toBe(0)
   })
@@ -211,6 +211,52 @@ describe('leerResultados con potenciómetro', () => {
   it('una pieza que no es potenciómetro no lleva cursor', () => {
     const { r, s } = divisorResuelto()
     expect(leerResultados(r, s).piezas.get('p_r1')!.cursor).toBeUndefined()
+  })
+})
+
+describe('leerResultados con JFET, fuentes controladas y elementos del puente de valores', () => {
+  /** Un elemento solo con sus nodos 1, 2 y 3 a 5, 0.7 y 0 V. */
+  function uno(elemento: NetlistMotor['elements'][number], i: number, estado = 0, aux = 0) {
+    const r = { netlist: { nodes: 4, elements: [elemento] }, nodoDeRed: new Map(), piezaDeElemento: ['p'], potenciometros: new Map(), tipoDeElemento: ['x'], umbrales: new Map(), sinModelo: [], errores: [], avisos: [] } as unknown as Parameters<typeof leerResultados>[0]
+    const s: SimReading = { time: 0, ratio: 1, capacity: 1, seq: 0, consistente: true, voltages: new Float64Array([0, 5, 0.7, 0]), currents: new Float64Array([i]), aux: new Float64Array([aux]), estado: new Float64Array([estado]), niveles: new Float64Array(0), medidas: new Float64Array(0) }
+    return leerResultados(r, s).piezas.get('p')!
+  }
+
+  it('un JFET da Vds, Id y potencia, y aparte su región y Vgs con la misma tabla que el MOSFET', () => {
+    const j = (estado: number) => uno({ type: 'J', d: 1, g: 2, s: 3, pjf: false, model: {} }, 4e-3, estado)
+    expect(j(1)).toEqual({ v: 5, i: 4e-3, p: 5 * 4e-3, extra: { tipo: 'jfet', region: 'saturación', vgs: 0.7 } })
+    expect(j(0).extra).toMatchObject({ region: 'corte' })
+    expect(j(2).extra).toMatchObject({ region: 'lineal' })
+  })
+
+  it('las fuentes controladas dan el voltaje y la corriente de su salida, y absorben menos si entregan', () => {
+    expect(uno({ type: 'E', p: 1, n: 3, cp: 2, cn: 3, ganancia: 2 }, -1e-3)).toEqual({ v: 5, i: -1e-3, p: -5e-3 })
+    expect(uno({ type: 'G', p: 1, n: 3, cp: 2, cn: 3, gm: 1e-3 }, 2e-3)).toEqual({ v: 5, i: 2e-3, p: 10e-3 })
+    expect(uno({ type: 'H', p: 1, n: 2, cp: 3, cn: 3, r: 100 }, 1e-3).v).toBeCloseTo(4.3, 12)
+    expect(uno({ type: 'F', p: 1, n: 3, cp: 2, cn: 3, ganancia: 10 }, 3e-3)).toEqual({ v: 5, i: 3e-3, p: 15e-3 })
+  })
+
+  it('el termistor, la fotorresistencia, la fuente externa y la PWL dan voltaje, corriente y potencia entre sus extremos', () => {
+    const lectura = { v: 5, i: 1e-3, p: 5e-3 }
+    expect(uno({ type: 'TERM', a: 1, b: 3, tipo: 'ntc', r25: 1e4, beta: 3950, delta: 1, tau: 10, canal: 0, tmax: 150 }, 1e-3)).toEqual({ ...lectura, extra: { tipo: 'termistor', temperatura: 0 } })
+    expect(uno({ type: 'LDR', a: 1, b: 3, r10: 1e4, gamma: 0.6, roscuro: 1e6, tau_sube: 0.02, tau_baja: 0.05, canal: 0 }, 1e-3)).toEqual({ ...lectura, extra: { tipo: 'ldr', r: 0 } })
+    expect(uno({ type: 'EXT', a: 1, b: 3, modo: 'v', canal: 0, k: 1, c: 0 }, 1e-3)).toEqual(lectura)
+    expect(uno({ type: 'V', a: 1, b: 3, wave: { kind: 'pwl', puntos: [[0, 0], [1, 5]] } }, 1e-3)).toEqual(lectura)
+  })
+
+  it('el motor a pasos da el voltaje y la corriente de su primer devanado', () => {
+    const m = uno({ type: 'PASOS', nodos: [1, 3, 2, 3], r: 10, l: 0.01, km: 0.1, dientes: 50, td: 1e-3, j: 1e-5, bm: 1e-4 }, 0.2)
+    expect(m.v).toBe(5)
+    expect(m.i).toBe(0.2)
+    expect(m.p).toBeCloseTo(1, 12)
+  })
+
+  it('el motor a pasos da su velocidad, el ángulo del eje de salida y los pasos completos del rotor', () => {
+    const e: ElementoMotor = { type: 'PASOS', nodos: [1, 3, 2, 3, 3, 3], unipolar: true, r: 50, l: 0.03, km: 0.005, dientes: 8, td: 0, j: 2e-7, bm: 3e-5, reduccion: 64 }
+    // Un paso completo del rotor son π / 16 rad; el eje de salida recorre eso entre 64.
+    const x = extraDeElemento(e, undefined, { v: 0, i: 0 }, () => 0, 2 * Math.PI / 64, (Math.PI / 16) * 3 / 64)
+    expect(x).toMatchObject({ tipo: 'motor', angulo: (Math.PI / 16) * 3 / 64 })
+    expect(x).toMatchObject({ rpm: expect.closeTo(60 / 64, 9), pasos: expect.closeTo(3, 9) })
   })
 })
 

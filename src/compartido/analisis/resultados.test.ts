@@ -92,3 +92,14 @@ describe('trazas por omisión: sin rieles de alimentación', () => {
     expect(r.avisos.join(' ')).toMatch(/ocho/)
   })
 })
+
+describe('etiquetas de las trazas', () => {
+  it('una red llamada V(Salida) no se envuelve otra vez', () => {
+    const g = graficoDc([0, 1], [3, 4])
+    const config = { tipo: 'dc' as const, fuente: 'v1', desde: 0, hasta: 1, paso: 1 }
+    const con = (red: string) => mapearResultados(doc(config), [g], { ...nombres, redes: new Map([[1, red]]) }).corridas[0].series[0].etiqueta
+    expect(con('V(Salida)')).toBe('V(Salida)')
+    expect(con('Entrada')).toBe('V(Entrada)')
+    expect(con('Vout')).toBe('V(Vout)')
+  })
+})

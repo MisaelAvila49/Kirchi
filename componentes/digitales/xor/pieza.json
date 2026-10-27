@@ -2,6 +2,7 @@
   "id": "xor",
   "nombre": { "es": "Compuerta XOR", "en": "XOR gate" },
   "categoria": "digitales",
+  "grupo": "Compuertas",
   "prefijo": "U",
   "buscar": ["u", "xor", "o exclusiva", "compuerta", "7486"],
   "pines": [
@@ -9,10 +10,85 @@
     { "id": "B", "nombre": "B", "x": -6, "y": 2 },
     { "id": "Y", "nombre": "Y", "x": 6, "y": 0 }
   ],
+  "entradas": { "max": 8 },
   "props": [
+    { "id": "entradas", "nombre": "Entradas", "defecto": "2", "opciones": ["2", "3", "4", "5", "6", "7", "8"] },
     { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS", "CD4000B"] },
     { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
   ],
   "modelo": { "tipo": "compuerta", "funcion": "xor", "entradas": ["A", "B"], "salida": "Y", "familia": "familia", "alimentacion": "alimentacion" },
-  "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } }
+  "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } },
+  "datos": {
+    "por": ["familia", "entradas"],
+    "equivalencias": { "ltspice": "Digital\\xor", "falstad": "154", "sinVerificar": ["ltspice"] },
+    "valores": {
+      "74HC|2": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC86N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc86.pdf",
+        "equivalencias": { "kicad": "74xx:74HC86" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "Y": "3" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "Y": "3" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "4", "B": "5", "Y": "6" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "9", "B": "10", "Y": "8" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "12", "B": "13", "Y": "11" } }
+            ],
+            "parte": "SN74HC86N",
+            "lcsc": { "numero": "C2903", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC86, pinout p. 3; KiCad 74xx:74HC86" }
+      },
+      "74LS|2": {
+        "fabricante": "Texas Instruments",
+        "equivalencias": { "kicad": "74xx:74LS86" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "Y": "3" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "Y": "3" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "4", "B": "5", "Y": "6" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "9", "B": "10", "Y": "8" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "12", "B": "13", "Y": "11" } }
+            ]
+          }
+        ],
+        "pendiente": {
+          "parte": "la hoja de TI del 74LS86 no se pudo bajar (404)",
+          "hoja": "la hoja de TI del 74LS86 no se pudo bajar (404)",
+          "lcsc": "no se halló un número LCSC de esta parte"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS86; TI SN74HC86 (misma función)" }
+      },
+      "CD4000B|2": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4070BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4070b.pdf",
+        "equivalencias": { "kicad": "4xxx:4070" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "Y": "3" },
+            "alimentacion": { "VDD": "14", "VSS": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "Y": "3" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "5", "B": "6", "Y": "4" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "8", "B": "9", "Y": "10" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "12", "B": "13", "Y": "11" } }
+            ],
+            "parte": "CD4070BE"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4070B/CD4077B, Pinouts p. 1 (texto); KiCad 4xxx:4070" }
+      }
+    }
+  }
 }

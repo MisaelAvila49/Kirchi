@@ -7,8 +7,20 @@ use crate::devices::{self, Alloc, Ctx, Device, Event, Hist, Mode, Reading, Tol, 
 use crate::digital::Nivel;
 use crate::error::EngineError;
 use crate::mna::{LinearSolver, Stamp};
-use crate::netlist::{Element, Netlist, Wave, PASO_RANGO};
+use crate::canales::Canales;
+use crate::netlist::{CanalDef, Element, FormaCanal, LectorDef, Netlist, Wave, PASO_RANGO};
 use crate::sonda::{EstadoSonda, Sonda};
+
+/// Una muestra pedida con `pedir_muestra`: el lector (como se numeró en la isla), el instante pedido y el valor leído.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct MuestraLocal {
+    pub lector: usize,
+    pub t: f64,
+    pub v: f64,
+}
+
+/// Una muestra cuyo instante coincide con un cambio de canal se toma un instante después, ya con el valor nuevo (múltiplos de `hmin`).
+const ASTILLA_MUESTRA: f64 = 4.0;
 
 /// Lo que mide una sonda dentro de una isla, con los nodos y los elementos numerados como en la isla.
 #[derive(Clone, Copy, Debug)]
@@ -107,7 +119,9 @@ pub fn incognitas(net: &Netlist) -> usize {
     let mut a = Alloc::new(net.nodes.max(1));
     for (k, e) in net.elements.iter().enumerate() {
         if !e.es_digital() {
-            devices::build(e, k).bind(&mut a);
+            if let Ok(mut d) = devices::build(e, k) {
+                d.bind(&mut a);
+            }
         }
     }
     a.n
@@ -195,6 +209,8 @@ pub struct EstadoTransient {
     /// Los dispositivos con estado propio (None: el que lo lleva todo en `st`, como una resistencia).
     devs: Vec<Option<Box<dyn Device>>>,
     sondas: Vec<EstadoSonda>,
+    canales: Canales,
+    programadas: Vec<(f64, usize)>,
 }
 
 impl EstadoTransient {
@@ -220,12 +236,20 @@ impl EstadoTransient {
             + self.devs.len() * size_of::<Option<Box<dyn Device>>>()
             + self.devs.iter().flatten().map(|d| size_of_val(&**d) + d.bytes_heap()).sum::<usize>()
             + self.sondas.len() * size_of::<EstadoSonda>()
+            + self.canales.bytes()
+            + self.programadas.len() * size_of::<(f64, usize)>()
     }
 }
 
 pub struct Transient {
     elements: Vec<Element>,
     nodes: usize,
+    /// Los canales de valor que lee esta isla (una isla que no lee ninguno tiene la estructura vacía y no paga nada).
+    canales: Canales,
+    /// Los lectores de la isla, sus muestras programadas (instante pedido y lector) y las ya tomadas.
+    lectores: Vec<LectorDef>,
+    programadas: Vec<(f64, usize)>,
+    listas: Vec<MuestraLocal>,
     devs: Vec<Box<dyn Device>>,
     /// Incógnitas del sistema: nodos externos (sin tierra) y luego las internas de cada dispositivo.
     n: usize,
@@ -369,7 +393,7 @@ impl Transient {
             return Err(EngineError::Invalid(format!("el paso de tiempo debe estar entre {:e} s y {:e} s", PASO_RANGO.0, PASO_RANGO.1)));
         }
         let mut alloc = Alloc::new(net.nodes);
-        let mut devs: Vec<Box<dyn Device>> = net.elements.iter().enumerate().map(|(k, e)| devices::build(e, k)).collect();
+        let mut devs: Vec<Box<dyn Device>> = net.elements.iter().enumerate().map(|(k, e)| devices::build(e, k)).collect::<Result<_, _>>()?;
         // Las casillas de estado de cada dispositivo (las reparte `bind` en orden), para reponer uno quemado.
         let mut estados_de = Vec::with_capacity(devs.len());
         for (k, d) in devs.iter_mut().enumerate() {
@@ -396,6 +420,8 @@ impl Transient {
         let con_accept = (0..devs.len()).filter(|&k| devs[k].usa_accept()).collect();
         let con_estado = (0..devs.len()).filter(|&k| devs[k].tiene_estado()).collect();
         let ne = net.elements.len();
+        let usados: Vec<usize> = net.elements.iter().flat_map(Element::canales_usados).collect();
+        let canales = Canales::nuevo(&net.canales, &usados);
         let mut term_inicio = Vec::with_capacity(ne + 1);
         let mut term_nodo = Vec::new();
         for e in &net.elements {
@@ -406,6 +432,10 @@ impl Transient {
         term_inicio.push(term_nodo.len());
         Ok(Self {
             nodes: net.nodes,
+            canales,
+            lectores: net.lectores,
+            programadas: Vec::new(),
+            listas: Vec::new(),
             elements: net.elements,
             devs,
             n,
@@ -524,6 +554,8 @@ impl Transient {
             por_iniciar: self.por_iniciar.clone(),
             devs: self.devs.iter().map(|d| (!d.sin_estado_propio()).then(|| d.clonar())).collect(),
             sondas: self.sondas.iter().map(|s| s.sonda.estado()).collect(),
+            canales: self.canales.clone(),
+            programadas: self.programadas.clone(),
         }
     }
 
@@ -563,6 +595,9 @@ impl Transient {
         self.pot_ult.clone_from(&e.pot_ult);
         self.pot_int.clone_from(&e.pot_int);
         self.por_iniciar.clone_from(&e.por_iniciar);
+        self.canales.clone_from(&e.canales);
+        self.programadas.clone_from(&e.programadas);
+        self.listas.clear();
         for (d, g) in self.devs.iter_mut().zip(&e.devs) {
             if let Some(g) = g {
                 *d = g.clonar();
@@ -590,7 +625,7 @@ impl Transient {
     /// Como `advance_to`, pero se detiene tras el primer paso en que un puente de entrada cambió de nivel. Devuelve los pasos dados y si hubo cruce. No reinicia la cuenta de iteraciones perdidas: lo hace `Mixto` una vez por llamada.
     pub fn advance_hasta_cruce(&mut self, t_end: f64, max_steps: u32) -> Result<(u32, bool), EngineError> {
         let mut steps = 0;
-        while self.t + self.hmin < t_end && steps < max_steps {
+        while self.t + self.hmin < self.meta(t_end) && steps < max_steps {
             // Una isla sin dinámica (resistencias, LED, fuentes continuas, puentes) no cambia entre eventos: salta a la meta en
             // cuanto no hay una rampa en curso ni una discontinuidad pendiente.
             if self.estatico && !self.first && !self.at_break && self.next_break() == f64::INFINITY {
@@ -601,7 +636,7 @@ impl Transient {
                 break;
             }
             self.hubo_cruce = false;
-            self.step_until(t_end)?;
+            self.step_until(self.meta(t_end))?;
             steps += 1;
             if self.hubo_cruce {
                 return Ok((steps, true));
@@ -623,9 +658,14 @@ impl Transient {
     /// El puente de salida `k` pasa a `n` ahora (`inmediato`: en el arranque, sin rampa). Es una discontinuidad: el paso
     /// siguiente empieza con Euler y corto. false si el elemento no es un puente de salida.
     pub fn fijar_nivel(&mut self, k: usize, n: Nivel, inmediato: bool) -> bool {
+        self.fijar_nivel_bit(k, 0, n, inmediato)
+    }
+
+    /// Como `fijar_nivel` para un elemento que lee varias redes (el convertidor multiplicador): `bit` es la posición de la red en sus entradas.
+    pub fn fijar_nivel_bit(&mut self, k: usize, bit: usize, n: Nivel, inmediato: bool) -> bool {
         let t = self.t;
         let Some(d) = self.devs.get_mut(k) else { return false };
-        if !d.fijar_nivel(t, n, inmediato) {
+        if !d.fijar_nivel_bit(t, bit, n, inmediato) {
             return false;
         }
         self.factored = None;
@@ -634,6 +674,11 @@ impl Transient {
             self.save_delta = self.save_delta.max(self.delta);
         }
         true
+    }
+
+    /// Cuántas veces dejó un bit sin nivel definido el elemento `k` (0 si no lleva esa cuenta).
+    pub fn indefinidos(&self, k: usize) -> u64 {
+        self.devs.get(k).map_or(0, |d| d.indefinidos())
     }
 
     /// El paso más corto que da el motor (una milmillonésima del máximo).
@@ -991,6 +1036,7 @@ impl Transient {
                 h: self.delta,
                 gmin: GMIN,
                 src: self.src,
+                canales: &self.canales,
             };
             self.devs[index].load(&mut c);
             let [s0, s1, s2, s3] = &mut self.st;
@@ -1034,7 +1080,7 @@ impl Transient {
         if index >= self.devs.len() {
             return Err(EngineError::Invalid(format!("elemento {index}: fuera de rango")));
         }
-        Netlist { nodes: self.nodes, digital_nets: 0, elements: vec![e.clone()], sondas: Vec::new() }.validate().map_err(|err| match err {
+        Netlist { nodes: self.nodes, digital_nets: 0, elements: vec![e.clone()], sondas: Vec::new(), canales: vec![CanalDef { inicial: 0.0, forma: FormaCanal::Escalon }; self.canales.total()], lectores: Vec::new(), tablas: Vec::new() }.validate().map_err(|err| match err {
             EngineError::Invalid(m) => EngineError::Invalid(m.replacen("elemento 0", &format!("elemento {index}"), 1)),
             otro => otro,
         })?;
@@ -1209,15 +1255,149 @@ impl Transient {
         self.iter_perdidas = 0;
         self.agotado = false;
         let mut steps = 0;
-        while self.t + self.hmin < t_end && steps < max_steps {
-            self.step_until(t_end)?;
+        while self.t + self.hmin < self.meta(t_end) && steps < max_steps {
+            self.step_until(self.meta(t_end))?;
             steps += 1;
         }
         Ok(steps)
     }
 
+    /// Margen con que se comparan instantes (medio paso mínimo).
+    fn eps(&self) -> f64 {
+        0.5 * self.hmin
+    }
+
     fn next_break(&self) -> f64 {
-        self.con_quiebres.iter().map(|&k| self.devs[k].next_break(self.t)).fold(f64::INFINITY, f64::min)
+        let mut m = self.con_quiebres.iter().map(|&k| self.devs[k].next_break(self.t)).fold(f64::INFINITY, f64::min);
+        if !self.canales.vacio() {
+            m = m.min(self.canales.proximo(self.t, self.eps()));
+        }
+        if !self.programadas.is_empty() {
+            let eps = self.eps();
+            for &(ts, _) in &self.programadas {
+                let e = self.instante_de_muestra(ts);
+                if e > self.t + eps {
+                    m = m.min(e);
+                }
+            }
+        }
+        m
+    }
+
+    /// Cuándo se toma la muestra pedida para `ts`: en `ts`, o un instante después si un canal cambia justo en `ts` (así lee el valor nuevo).
+    fn instante_de_muestra(&self, ts: f64) -> f64 {
+        if self.canales.hay_cambio_en(ts, self.eps()) { ts + ASTILLA_MUESTRA * self.hmin } else { ts }
+    }
+
+    /// Hasta dónde llega una llamada que pidió `t_end`: una muestra pedida en `t_end` con un cambio de canal en el mismo instante necesita un paso más.
+    fn meta(&self, t_end: f64) -> f64 {
+        if self.programadas.is_empty() {
+            return t_end;
+        }
+        let eps = self.eps();
+        self.programadas.iter().filter(|&&(ts, _)| ts <= t_end + eps).fold(t_end, |m, &(ts, _)| m.max(self.instante_de_muestra(ts)))
+    }
+
+    /// Lo que mide el lector `l` con el último paso aceptado.
+    fn leer_lector(&self, l: usize) -> f64 {
+        match self.lectores[l] {
+            LectorDef::V { p, n } => self.voltage(p) - self.voltage(n),
+            LectorDef::I { elemento } => self.readings[elemento].i,
+        }
+    }
+
+    fn capturar_muestras(&mut self) {
+        let eps = self.eps();
+        let mut k = 0;
+        while k < self.programadas.len() {
+            let (ts, l) = self.programadas[k];
+            if self.t + eps >= self.instante_de_muestra(ts) {
+                let v = self.leer_lector(l);
+                self.listas.push(MuestraLocal { lector: l, t: ts, v });
+                self.programadas.remove(k);
+            } else {
+                k += 1;
+            }
+        }
+    }
+
+    /// Encola el cambio de un canal a `v` en `t`. Un `t` anterior al tiempo de la isla se aplica en el tiempo de la isla (y
+    /// devuelve true: llegó tarde). Un canal que la isla no lee no hace nada.
+    pub fn poner_valor(&mut self, canal: usize, t: f64, v: f64) -> Result<bool, EngineError> {
+        if !self.canales.tiene(canal) {
+            return Ok(false);
+        }
+        let eps = self.eps();
+        self.canales.compactar(self.t, eps);
+        // Un cambio a menos de un paso mínimo se aplica ya: un quiebre tan pegado no se puede alcanzar.
+        let te = if t <= self.t + self.hmin { self.t } else { t };
+        self.canales.poner(canal, te, v, self.t)?;
+        // Un cambio de este instante es una discontinuidad: el paso siguiente es de Euler y no se salta aunque la isla esté quieta.
+        if te <= self.t + eps {
+            self.at_break = true;
+            self.save_delta = self.save_delta.max(self.delta);
+        }
+        Ok(t < self.t - eps)
+    }
+
+    /// Pasa a ser el valor vigente todo cambio hasta el tiempo de la isla (libera lugar en las colas).
+    pub fn compactar_canales(&mut self) {
+        let eps = self.eps();
+        self.canales.compactar(self.t, eps);
+    }
+
+    /// La cola de cambios del canal no admite otro.
+    pub fn canal_lleno(&self, canal: usize) -> bool {
+        self.canales.lleno(canal)
+    }
+
+    /// La isla lee el canal.
+    pub fn lee_canal(&self, canal: usize) -> bool {
+        self.canales.tiene(canal)
+    }
+
+    /// El valor vigente del canal en el tiempo de la isla (NaN si no lo lee).
+    pub fn valor_canal(&self, canal: usize) -> f64 {
+        self.canales.valor(canal, self.t, self.t)
+    }
+
+    /// El próximo cambio de los canales que lee después de su tiempo; infinito si no hay (o si no lee ninguno).
+    pub fn proximo_cambio_canal(&self) -> f64 {
+        if self.canales.vacio() { f64::INFINITY } else { self.canales.proximo(self.t, self.eps()) }
+    }
+
+    /// Programa la lectura del lector `lector` en `t`: el paso cae exacto ahí y la muestra es de un paso aceptado. Si `t` ya
+    /// pasó se responde con la lectura vigente y el tiempo de la isla.
+    pub fn pedir_muestra(&mut self, lector: usize, t: f64) -> Result<(), EngineError> {
+        if lector >= self.lectores.len() {
+            return Err(EngineError::Invalid(format!("lector {lector} fuera de rango")));
+        }
+        let eps = self.eps();
+        if t < self.t - eps {
+            let v = self.leer_lector(lector);
+            self.listas.push(MuestraLocal { lector, t: self.t, v });
+        } else if t <= self.t + self.hmin && !self.canales.hay_cambio_en(t, eps) {
+            let v = self.leer_lector(lector);
+            self.listas.push(MuestraLocal { lector, t, v });
+        } else {
+            self.programadas.push((t, lector));
+        }
+        Ok(())
+    }
+
+    /// Pasa a `out` las muestras ya tomadas.
+    pub fn tomar_muestras(&mut self, out: &mut Vec<MuestraLocal>) {
+        out.append(&mut self.listas);
+    }
+
+    /// Cuántas muestras esperan su instante.
+    pub fn muestras_programadas(&self) -> usize {
+        self.programadas.len()
+    }
+
+    /// La lectura del lector con el último paso aceptado, sin programar nada.
+    pub fn leer_ahora(&self, lector: usize) -> Option<f64> {
+        (lector < self.lectores.len()).then(|| self.leer_lector(lector))
     }
 
     /// Un paso aceptado que no pasa de `stop`. Los intentos fallidos o con demasiado error se repiten más cortos.
@@ -1242,9 +1422,10 @@ impl Transient {
                 planeado = Some(delta);
                 delta = stop - self.t;
                 en_quiebre = false;
-            } else if stop - (self.t + delta) < RESTO_MIN * delta {
+            } else if stop - (self.t + delta) < RESTO_MIN * delta && !(en_quiebre && brk < stop) {
                 // Un paso que quedaría a una astilla de `stop` (el redondeo de sumar cientos de pasos iguales) se estira
                 // hasta él: si no, el último paso de la llamada mide 1e-13 s y ahí Newton no converge (ver `RESTO_MIN`).
+                // No cruza un quiebre: el que está antes de `stop` (la muestra tras un cambio de canal) acaba el paso.
                 delta = stop - self.t;
             }
             match self.attempt(delta) {
@@ -1475,6 +1656,13 @@ impl Transient {
             self.pot_int[q] += 0.5 * (self.pot_ult[q] + p) * delta;
             self.pot_ult[q] = p;
         }
+        if !self.canales.vacio() {
+            let eps = self.eps();
+            self.canales.compactar(self.t, eps);
+        }
+        if !self.programadas.is_empty() {
+            self.capturar_muestras();
+        }
         for i in 0..self.con_estado.len() {
             let k = self.con_estado[i];
             if let Some((nivel, t)) = self.devs[k].tomar_estado() {
@@ -1560,7 +1748,7 @@ impl Transient {
                 {
                     let [s0, s1, s2, _] = &mut self.st;
                     let m: &mut dyn Stamp = self.solver.as_mut();
-                    let mut c = Ctx { x: &self.x, m, rhs: &mut self.rhs, s0, s1, s2, mode, order: self.order, ag0, ag1, xfact, t, h, gmin: GMIN, src: self.src };
+                    let mut c = Ctx { x: &self.x, m, rhs: &mut self.rhs, s0, s1, s2, mode, order: self.order, ag0, ag1, xfact, t, h, gmin: GMIN, src: self.src, canales: &self.canales };
                     for &k in &self.fijos {
                         self.devs[k].load(&mut c);
                     }
@@ -1574,7 +1762,7 @@ impl Transient {
                 let mut descarte = Descarte;
                 let m: &mut dyn Stamp = if cached { &mut descarte } else { self.solver.as_mut() };
                 let [s0, s1, s2, _] = &mut self.st;
-                let mut c = Ctx { x: &self.x, m, rhs: &mut self.rhs, s0, s1, s2, mode, order: self.order, ag0, ag1, xfact, t, h, gmin: GMIN, src: self.src };
+                let mut c = Ctx { x: &self.x, m, rhs: &mut self.rhs, s0, s1, s2, mode, order: self.order, ag0, ag1, xfact, t, h, gmin: GMIN, src: self.src, canales: &self.canales };
                 // Con la base lista, solo los que no son fijos; sin ella (una isla lineal ya factorizada que nunca la armó), todos.
                 let todos = !self.base_lista;
                 let cuantos = if todos { self.devs.len() } else { self.variables.len() };

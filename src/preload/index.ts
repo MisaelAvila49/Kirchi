@@ -1,8 +1,9 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
-import { CANAL_GUARDAR_AJUSTES, leerArgumentos, type Ajustes, type ApiKirchi } from '../compartido/ajustes'
+import { CANAL_ABRIR_ENLACE, CANAL_GUARDAR_AJUSTES, leerArgumentos, type Ajustes, type ApiKirchi } from '../compartido/ajustes'
 import { CANALES, type ApiArchivos, type ResultadoAbrir } from '../compartido/archivos'
 import { ARG_SOLO_GRAFICAS, CANALES_GRAFICAS as GR, validarDatosGraficas, validarPedidoAcoplar, validarPedidoExportar, type ApiGraficas } from '../compartido/graficas'
 import { ARG_SOLO_OSC, CANALES_OSC as OS, validarComandoOsc, validarDatosOsc, type ApiOsciloscopio } from '../compartido/ventanaOsc'
+import { CANALES_ASISTENTE as AS, validarEstado, type ApiAsistente, type EstadoAsistente } from '../compartido/asistente'
 import { CANAL_AL_MINIMIZAR_GRABACION, CANALES_GRABACION as GB, type ApiGrabacion } from '../compartido/grabacion'
 import { CANALES_NGSPICE as NG, type ApiNgspice } from '../compartido/ngspice'
 import { CANALES_PLANTILLAS as PL, type ApiPlantillas } from '../compartido/plantillas'
@@ -54,7 +55,13 @@ const archivos: ApiArchivos = {
     }
     ipcRenderer.on(CANALES.abrirExterno, oyente)
     return () => ipcRenderer.removeListener(CANALES.abrirExterno, oyente)
-  }
+  },
+  alCambioEnDisco: (f) => {
+    const oyente = (_e: unknown, nombre: unknown) => f(typeof nombre === 'string' ? nombre.slice(0, 255) : '')
+    ipcRenderer.on(CANALES.cambioEnDisco, oyente)
+    return () => ipcRenderer.removeListener(CANALES.cambioEnDisco, oyente)
+  },
+  recargar: () => invocar(CANALES.recargar)
 }
 
 const plantillas: ApiPlantillas = {
@@ -143,6 +150,28 @@ const grabacion: ApiGrabacion = {
   }
 }
 
+// El asistente: el estado que revisa el proceso principal y las peticiones del puente. Una petición solo se entrega con su forma
+// correcta; la ventana contesta por `responder`, y el proceso principal comprueba de quién viene.
+const asistente: ApiAsistente = {
+  estado: async () => validarEstado(await invocar(AS.estado)) ?? { activo: false, conectado: null },
+  alEstado: (f) => escuchar<EstadoAsistente>(AS.alEstado, validarEstado, f),
+  activar: async (activo) => validarEstado(await invocar(AS.activar, activo === true)) ?? { activo: false, conectado: null },
+  cambiarCarpeta: async () => {
+    const r = await invocar<unknown>(AS.cambiarCarpeta)
+    return typeof r === 'string' && r.length > 0 ? r : null
+  },
+  restablecerCarpeta: () => invocar(AS.restablecerCarpeta),
+  desconectar: () => invocar(AS.desconectar),
+  textoConfiguracion: async () => String(await invocar(AS.textoConfiguracion)),
+  alPeticion: (f) =>
+    escuchar(
+      AS.peticion,
+      (x) => (typeof x === 'object' && x !== null && Number.isSafeInteger((x as { id?: unknown }).id) && typeof (x as { tipo?: unknown }).tipo === 'string' ? (x as { id: number; tipo: string; datos: unknown }) : null),
+      f
+    ),
+  responder: (id, respuesta) => ipcRenderer.send(AS.respuesta, id, respuesta)
+}
+
 // Las ventanas aparte solo muestran datos: el proceso principal las abre con `ARG_SOLO_GRAFICAS` o `ARG_SOLO_OSC` y no se les expone ngspice, archivos ni plantillas.
 const soloGraficas = process.argv.includes(ARG_SOLO_GRAFICAS) || process.argv.includes(ARG_SOLO_OSC)
 
@@ -151,12 +180,14 @@ const api: ApiKirchi = apiParaVentana(soloGraficas, {
   pruebas,
   guardarAjustes: (parche) => ipcRenderer.invoke(CANAL_GUARDAR_AJUSTES, parche) as Promise<Ajustes>,
   leerAjustes: () => invocar(CANALES.leerAjustes),
+  abrirEnlace: (url) => invocar<boolean>(CANAL_ABRIR_ENLACE, url),
   archivos,
   plantillas,
   ngspice,
   graficas,
   osciloscopio,
   grabacion,
+  asistente,
   // Por `send`: la orden no espera respuesta. Se revisa aquí y otra vez en el proceso principal, que descarta lo que no
   // esté en su lista.
   ventana: (orden) => {

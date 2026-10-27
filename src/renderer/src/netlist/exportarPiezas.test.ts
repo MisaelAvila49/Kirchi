@@ -12,7 +12,8 @@ import { compilarNetlist } from './netlist'
 // además se prueba cada opción de cada propiedad de lista (modelos, familias, formas de onda).
 
 const lib = libreriaDePrueba().piezas
-const LINEA_SEGURA = /^[a-z0-9_ .+\-*/()[\]{}=,%:^"<>!#@$]*$/
+// El «?» es el condicional de ngspice (la fotorresistencia elige su constante de tiempo con él).
+const LINEA_SEGURA = /^[a-z0-9_ .+\-*/()[\]{}=,%:^"<>!#@$?]*$/
 const DIRECTIVAS = /^\.(model|subckt|ends|param)\b/
 
 function armar(tipo: string, props: Record<string, string>, ref = 'U1'): Parte[] {
@@ -38,11 +39,11 @@ function revisar(cuerpo: string): void {
   }
 }
 
-describe('el exportador cubre las 58 piezas de la librería', () => {
+describe('el exportador cubre las 102 piezas de la librería y sus compuertas de más entradas', () => {
   const tipos = [...lib.keys()].sort()
 
-  it('la librería tiene las 58 piezas', () => {
-    expect(tipos).toHaveLength(58)
+  it('la librería tiene las 102 piezas', () => {
+    expect(tipos.filter((t) => !lib.get(t)!.oculta)).toHaveLength(102)
   })
 
   it.each(tipos)('%s', (tipo) => {

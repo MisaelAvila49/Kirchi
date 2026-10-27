@@ -84,3 +84,20 @@ describe('trazas elegidas y gráfica de un análisis', () => {
     expect(r).toEqual({ ok: true, valor: { id: 'a', nombre: 'x', config: { tipo: 'op' } } })
   })
 })
+
+describe('barrido de CA: puntos e frecuencias incluidas', () => {
+  const ac = { tipo: 'ac', barrido: 'dec', puntos: 10_000, desde: 1, hasta: 1e6, fuente: 'v1', magnitud: 1 }
+  it('admite 10,000 puntos por década (60,001 en total) y 10,000 puntos lineales', () => {
+    expect(ok(ac).tipo).toBe('ac')
+    expect(ok({ ...ac, barrido: 'lin' }).tipo).toBe('ac')
+  })
+  it('las frecuencias incluidas se guardan ordenadas y sin repetir', () => {
+    expect(ok({ ...ac, puntos: 20, incluir: [120, 60, 60] })).toMatchObject({ incluir: [60, 120] })
+    expect(ok({ ...ac, puntos: 20, incluir: [] })).not.toHaveProperty('incluir')
+  })
+  it('rechaza las que están fuera del barrido, no son número o pasan de 16', () => {
+    expect(error({ ...ac, puntos: 20, incluir: [0.5] })).toMatch(/fuera del barrido/)
+    expect(error({ ...ac, puntos: 20, incluir: ['60'] })).toMatch(/Hz/)
+    expect(error({ ...ac, puntos: 20, incluir: Array.from({ length: 17 }, (_, i) => 10 + i) })).toMatch(/hasta 16/)
+  })
+})

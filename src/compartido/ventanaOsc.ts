@@ -73,7 +73,7 @@ export interface DatosOsc {
   aviso: string | null
   notaAjuste: string | null
   /** Los cursores a la vista; la ventana los mueve y los devuelve con una orden. */
-  cursores: { canal: string; t: [number, number] | null; v: [number, number] | null } | null
+  cursores: { canal: string; t: [number, number] | null; v: [number, number] | null; xy?: [{ x: number; y: number }, { x: number; y: number }] | null } | null
   /** La pantalla en vivo; ausente si no cambió desde el último envío. */
   pantalla?: PantallaOsc | null
   /** La pantalla congelada: ausente si no cambió, null si se reanudó. */
@@ -149,7 +149,9 @@ const validarCursores = (c: unknown): c is DatosOsc['cursores'] => {
   if (c === null) return true
   if (!esObjeto(c) || !esTexto(c.canal, 2)) return false
   const par = (x: unknown) => x === null || (Array.isArray(x) && x.length === 2 && x.every(esNum))
-  return par(c.t) && par(c.v)
+  const punto = (x: unknown) => esObjeto(x) && esNum(x.x) && esNum(x.y)
+  const puntos = c.xy === undefined || c.xy === null || (Array.isArray(c.xy) && c.xy.length === 2 && c.xy.every(punto))
+  return par(c.t) && par(c.v) && puntos
 }
 
 /** Revisa lo que llega por el IPC. Devuelve el objeto limpio o null. */

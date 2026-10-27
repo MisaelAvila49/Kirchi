@@ -1,0 +1,76 @@
+{
+  "id": "xnor",
+  "nombre": { "es": "Compuerta XNOR", "en": "XNOR gate" },
+  "categoria": "digitales",
+  "grupo": "Compuertas",
+  "prefijo": "U",
+  "buscar": ["u", "xnor", "nxor", "o exclusiva negada", "compuerta", "4077"],
+  "pines": [
+    { "id": "A", "nombre": "A", "x": -6, "y": -2 },
+    { "id": "B", "nombre": "B", "x": -6, "y": 2 },
+    { "id": "Y", "nombre": "Y", "x": 6, "y": 0 }
+  ],
+  "entradas": { "max": 8 },
+  "props": [
+    { "id": "entradas", "nombre": "Entradas", "defecto": "2", "opciones": ["2", "3", "4", "5", "6", "7", "8"] },
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS", "CD4000B"] },
+    { "id": "alimentacion", "nombre": "Alimentación", "defecto": "5 V", "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"] }
+  ],
+  "modelo": { "tipo": "compuerta", "funcion": "xnor", "entradas": ["A", "B"], "salida": "Y", "familia": "familia", "alimentacion": "alimentacion" },
+  "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } },
+  "datos": {
+    "por": ["familia", "entradas"],
+    "valores": {
+      "74HC|2": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD74HC7266E",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd74hc7266.pdf",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "Y": "3" },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "Y": "3" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "5", "B": "6", "Y": "4" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "8", "B": "9", "Y": "10" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "12", "B": "13", "Y": "11" } }
+            ],
+            "parte": "CD74HC7266E"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC7266, pinout (texto); TI SN74HC266 (mismo orden de patillas, salida de drenador abierto)" }
+      },
+      "CD4000B|2": {
+        "fabricante": "Texas Instruments",
+        "parte": "CD4077BE",
+        "hoja": "https://www.ti.com/lit/ds/symlink/cd4070b.pdf",
+        "equivalencias": { "kicad": "4xxx:4077" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": { "A": "1", "B": "2", "Y": "3" },
+            "alimentacion": { "VDD": "14", "VSS": "7" },
+            "unidades": [
+              { "nombre": "Compuerta 1", "patillas": { "A": "1", "B": "2", "Y": "3" } },
+              { "nombre": "Compuerta 2", "patillas": { "A": "5", "B": "6", "Y": "4" } },
+              { "nombre": "Compuerta 3", "patillas": { "A": "8", "B": "9", "Y": "10" } },
+              { "nombre": "Compuerta 4", "patillas": { "A": "12", "B": "13", "Y": "11" } }
+            ],
+            "parte": "CD4077BE"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4070B/CD4077B, Pinouts p. 1 (texto); KiCad 4xxx:4077" }
+      },
+      "74LS|2": {
+        "fabricante": "Texas Instruments",
+        "pendiente": {
+          "patillas": "74LS266 (colector abierto): una hoja de TI escaneada y KiCad 9 sin símbolo; las patillas del 74HC266/74HC7266 son 1A 1, 1B 2, 1Y 3, 2Y 4, 2A 5, 2B 6, 3A 8, 3B 9, 3Y 10, 4Y 11, 4A 12, 4B 13 y falta confirmarlas en el 74LS266"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC266 y CD74HC7266 (texto); SN74LS266 solo como imagen, sin segunda fuente legible" }
+      }
+    }
+  }
+}

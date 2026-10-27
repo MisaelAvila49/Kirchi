@@ -27,7 +27,7 @@ interface Props {
   excedidas?: ReadonlyMap<Id, string>
   /** El archivo abierto, para su tarjeta: nombre y si tiene cambios sin guardar o es de solo lectura. */
   archivo: { nombre: string; sinGuardar: boolean; soloLectura: boolean }
-  /** Secciones plegadas («piezas», «redes», «alimentaciones», «cat:<categoría>»): se recuerdan en los ajustes. */
+  /** Secciones plegadas («piezas», «paquetes», «redes», «alimentaciones», «cat:<categoría>»): se recuerdan en los ajustes. */
   plegado: readonly string[]
   onPlegado(plegado: string[]): void
 }
@@ -236,6 +236,30 @@ export default function PanelProyecto(props: Props) {
           </Show>
         </div>
       </section>
+      <Show when={base().paquetes.length > 0}>
+        <section class="categoria" aria-labelledby="proyecto-paquetes">
+          <h3 id="proyecto-paquetes" class="categoria-titulo">
+            <button type="button" class="categoria-plegar" aria-expanded={abierta('paquetes')} aria-controls="proyecto-paquetes-lista" onClick={() => alternar('paquetes')}>
+              <Flecha />
+              Encapsulados
+            </button>
+            <span class="cifra pastilla">{base().paquetes.length}</span>
+          </h3>
+          <div id="proyecto-paquetes-lista">
+            <Show when={abierta('paquetes')}>
+              <div class="lista" role="group" tabindex="-1" aria-labelledby="proyecto-paquetes">
+                <For each={base().paquetes}>
+                  {(q) => (
+                    <Fila valor={`${q.chip} (${q.unidades})`} onClick={() => props.onPieza(q.pieza)}>
+                      {q.paquete}
+                    </Fila>
+                  )}
+                </For>
+              </div>
+            </Show>
+          </div>
+        </section>
+      </Show>
       <section class="categoria" aria-labelledby="proyecto-redes">
         <h3 id="proyecto-redes" class="categoria-titulo">
           <button type="button" class="categoria-plegar" aria-expanded={abierta('redes')} aria-controls="proyecto-redes-lista" onClick={() => alternar('redes')}>

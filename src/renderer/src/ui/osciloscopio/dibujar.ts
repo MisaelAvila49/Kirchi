@@ -6,9 +6,10 @@ import { tokensDeTema } from '../../lienzo/paleta'
 import { CIFRAS_COLUMNA, type PantallaSab } from '../../sim/protocoloInstrumentos'
 import { colorDeCanal, coloresDeTema, TONO_CANAL } from '../colores'
 import { lecturaCursores, type CualCursor } from './cursores'
+import { conversorXY, lecturaCursoresXY } from './xy'
 import type { LecturaOsc } from './lectura'
 import { escalaDeTexto } from '../../../../compartido/grafica/aspecto'
-import { marcasDeCero, marcoDePantalla, rotulosHorizontal, rotulosMarcas, rotulosTiempo, rotulosVoltaje, type Marco, type OpcionesMarco } from './marco'
+import { marcaHorizontalXY, marcasDeCero, marcoDePantalla, rotulosHorizontal, rotulosMarcas, rotulosTiempo, rotulosVoltaje, type Marco, type OpcionesMarco } from './marco'
 import { conAlfa } from '../exportar/color'
 
 /** Lo que se usa del contexto de Canvas2D (las pruebas lo reemplazan por uno que anota). */
@@ -47,6 +48,8 @@ export interface CursoresPantalla {
   canal: CanalOMatematico
   t: readonly [number, number] | null
   v: readonly [number, number] | null
+  /** En la pantalla X-Y los cursores son dos puntos de la curva, en voltios de los dos canales; `t` y `v` van vacíos. */
+  xy?: readonly [{ x: number; y: number }, { x: number; y: number }] | null
 }
 
 /** Las letras de la pantalla: la pila de los títulos y las letras, la de las cifras y el tamaño base en px. */
@@ -289,7 +292,41 @@ function dibujarXY(ctx: Lienzo2D, p: PantallaSab, a: AjustesOsciloscopio, [cx, c
     }
   }
   ctx.stroke()
+  if (o.cursores?.xy) cursoresXY(ctx, o.cursores.xy, a, W, H, c, o)
   ctx.restore()
+  if (o.cursores?.xy && o.ejes) lecturaDeCursores(ctx, o.cursores, p, a, W, c, o.dpr, o.detalleCursores === true)
+}
+
+/** Los dos cursores de la pantalla X-Y: una cruz discontinua y un cuadro sobre cada punto, en el color del canal vertical. */
+function cursoresXY(ctx: Lienzo2D, q: NonNullable<CursoresPantalla['xy']>, a: AjustesOsciloscopio, W: number, H: number, c: ColoresPantalla, o: OpcionesDibujo): void {
+  const conv = conversorXY(a, { x: 0, y: 0, w: W, h: H })
+  const d = o.dpr
+  const cy = canalesXY(a)![1]
+  ctx.strokeStyle = c.canal[cy]
+  for (const i of [0, 1] as const) {
+    const [x, y] = conv(q[i].x, q[i].y)
+    const grueso = !!o.resaltado && (o.resaltado.endsWith('1') ? 0 : 1) === i
+    ctx.setLineDash(grueso ? [] : [3 * d, 3 * d])
+    ctx.lineWidth = grueso ? Math.max(2, 2.5 * d) : d
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, H)
+    ctx.moveTo(0, y)
+    ctx.lineTo(W, y)
+    ctx.stroke()
+    ctx.setLineDash([])
+    ctx.fillStyle = c.fondo
+    ctx.fillRect(x - 5 * d, y - 5 * d, 10 * d, 10 * d)
+    ctx.lineWidth = d
+    ctx.beginPath()
+    ctx.rect(x - 4 * d, y - 4 * d, 8 * d, 8 * d)
+    ctx.stroke()
+    ctx.fillStyle = c.canalTexto[cy]
+    ctx.font = FUENTE_CIFRAS(d)
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'bottom'
+    ctx.fillText(String(i + 1), x + 7 * d, y - 4 * d)
+  }
 }
 
 /** Las trazas encendidas y los cursores dentro de un rectángulo de `W` por `H`; da la altura del último punto de cada traza. */
@@ -413,7 +450,7 @@ const PESO_CSS: Readonly<Record<PesoTexto, number>> = { normal: 400, medio: 500,
 function lecturaDeCursores(ctx: Lienzo2D, cur: CursoresPantalla, p: PantallaSab, a: AjustesOsciloscopio, W: number, c: ColoresPantalla, dpr: number, detalle: boolean): void {
   const l = lecturaCursores(cur)
   // Compacto: solo las diferencias. Con el detalle, también 1/Δt y los dos valores de cada cursor.
-  const lineas = [l.dt && `Δt ${l.dt}`, detalle && l.inv && `1/Δt ${l.inv}`, l.dv && `ΔV ${l.dv}`, ...(detalle ? [l.t1 && `t1 ${l.t1}`, l.t2 && `t2 ${l.t2}`, l.v1 && `V1 ${l.v1}`, l.v2 && `V2 ${l.v2}`] : [])].filter((x): x is string => !!x)
+  const lineas = cur.xy ? lecturaCursoresXY(cur, a).slice(detalle ? 0 : 2) : [l.dt && `Δt ${l.dt}`, detalle && l.inv && `1/Δt ${l.inv}`, l.dv && `ΔV ${l.dv}`, ...(detalle ? [l.t1 && `t1 ${l.t1}`, l.t2 && `t2 ${l.t2}`, l.v1 && `V1 ${l.v1}`, l.v2 && `V2 ${l.v2}`] : [])].filter((x): x is string => !!x)
   if (!lineas.length) return
   ctx.font = FUENTE_CIFRAS(dpr)
   const ancho = Math.max(...lineas.map((x) => ctx.measureText(x).width)) + 12 * dpr
@@ -606,6 +643,23 @@ function dibujarEjes(ctx: Lienzo2D, m: Marco, a: AjustesOsciloscopio, p: Pantall
     ctx.fillStyle = c.fondo
     ctx.textAlign = 'center'
     ctx.fillText(k.canal, x1 - 9 * d, y)
+  }
+  // En X-Y, la marca de 0 V del canal horizontal: una banderita sobre el borde de la retícula, con la punta hacia ella.
+  const mh = marcaHorizontalXY(m, a)
+  if (mh) {
+    const s = mh.abajo ? -1 : 1
+    ctx.fillStyle = c.canalTexto[mh.canal]
+    ctx.beginPath()
+    ctx.moveTo(mh.x, mh.y)
+    ctx.lineTo(mh.x - 7 * d, mh.y + s * 6 * d)
+    ctx.lineTo(mh.x - 7 * d, mh.y + s * 15 * d)
+    ctx.lineTo(mh.x + 7 * d, mh.y + s * 15 * d)
+    ctx.lineTo(mh.x + 7 * d, mh.y + s * 6 * d)
+    ctx.closePath()
+    ctx.fill()
+    ctx.fillStyle = c.fondo
+    ctx.textAlign = 'center'
+    ctx.fillText(mh.canal, mh.x, mh.y + s * 10.5 * d)
   }
   // La letra de cada traza a la derecha, a la altura de su último punto (la identidad no depende solo del color).
   ctx.font = FUENTE_TITULO(d, 650)

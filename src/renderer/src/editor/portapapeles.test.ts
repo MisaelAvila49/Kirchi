@@ -34,12 +34,27 @@ describe('las sondas viajan con su instrumento', () => {
     expect(f.sondas![0]).toMatchObject({ tipo: 'osciloscopio', instrumento: 'p_o', entrada: 'A', x: 0 - f.origen.x, y: -6 - f.origen.y })
   })
 
-  it('sin el cable que toca, o sin su instrumento, la sonda se queda', () => {
+  it('sin el cable que toca la sonda se queda; con el cable pero sin su instrumento viaja para unirse al original', () => {
     const d = divisorConOsciloscopio()
-    const s = sel(['p_o'])
-    expect(copiar(d, s, lib)!.sondas ?? []).toEqual([])
-    // El cable sin el osciloscopio: la sonda de un instrumento ausente tampoco va.
-    expect(copiar(d, sel(['p_r1'], ['c_a']), lib)!.sondas ?? []).toEqual([])
+    expect(copiar(d, sel(['p_o']), lib)!.sondas ?? []).toEqual([])
+    expect(copiar(d, sel(['p_r1'], ['c_a']), lib)!.sondas).toHaveLength(1)
+  })
+
+  it('pegar el cable sin el osciloscopio une la sonda al original si su canal está libre', () => {
+    const d = divisorConOsciloscopio()
+    delete d.sondas!.s_1
+    const f = copiar({ ...d, sondas: { s_1: { id: 's_1', tipo: 'osciloscopio', x: 0, y: -6, instrumento: 'p_o', entrada: 'A' } } }, sel(['p_r1'], ['c_a']), lib)!
+    const r = pegar(d, lib, f, { x: 100, y: 100 }, idSecuencial())
+    expect(r.sinCanal).toBe(0)
+    expect(Object.values(aplicar(d, r.cmd).sondas ?? {})).toMatchObject([{ instrumento: 'p_o', entrada: 'A' }])
+  })
+
+  it('pegar el cable sin el osciloscopio descarta la sonda y la cuenta si su canal ya está en uso', () => {
+    const d = divisorConOsciloscopio()
+    const f = copiar(d, sel(['p_r1'], ['c_a']), lib)!
+    const r = pegar(d, lib, f, { x: 100, y: 100 }, idSecuencial())
+    expect(r.sinCanal).toBe(1)
+    expect(Object.keys(aplicar(d, r.cmd).sondas ?? {})).toEqual(['s_1'])
   })
 
   it('pegar crea la sonda nueva sobre el instrumento nuevo, en el cable nuevo y la deja seleccionada', () => {

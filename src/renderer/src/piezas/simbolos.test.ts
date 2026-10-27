@@ -31,12 +31,13 @@ describe('reglas de todas las piezas', () => {
     expect(dentro(def.etiquetas.valor.x, def.etiquetas.valor.y, c), 'valor').toBe(false)
   })
 
-  it.each(piezas.map((d) => [d.id, d] as const))('%s: el buscador la encuentra por su nombre y por cada término de «buscar»', (_, def) => {
+  it.each(piezas.filter((d) => !d.oculta).map((d) => [d.id, d] as const))('%s: el buscador la encuentra por su nombre y por cada término de «buscar»', (_, def) => {
     expect(buscar(def.nombre.es, lib.piezas)[0]?.def.id).toBe(def.id)
     for (const t of def.buscar) expect(buscar(t, lib.piezas).map((r) => r.def.id), t).toContain(def.id)
   })
 
   it.each(piezas.map((d) => [d.id, d] as const))('%s: sus propiedades numéricas usan unidades del SI', (_, def) => {
-    for (const p of def.props) if (!p.opciones) expect(['Ω', 'F', 'H', 'V', 'A', 'W', 'Hz', 's', undefined], p.id).toContain(p.unidad)
+    // °C, lx y N·m son las unidades de las perillas en vivo (temperatura, luz y carga).
+    for (const p of def.props) if (!p.opciones) expect(['Ω', 'F', 'H', 'V', 'A', 'W', 'Hz', 's', '°C', 'lx', 'N·m', undefined], p.id).toContain(p.unidad)
   })
 })

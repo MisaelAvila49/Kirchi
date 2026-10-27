@@ -1,0 +1,25 @@
+* Compuertas de varias entradas 74HC: NAND de tres y XNOR de tres con tres fuentes de pulso
+.include digital.lib
+VA a 0 PULSE(0 5 0 1p 1p 249.999n 500n)
+VB b 0 PULSE(0 5 0 1p 1p 499.999n 1u)
+VC c 0 PULSE(0 5 0 1p 1p 999.999n 2u)
+AIN [a b c] [da db dc] adc_hc5
+AU1 [da db dc] dn nand_hc5
+AX1 [da db] dp xor_1ps
+AU2 [dp dc] dx xnor_hc5
+AS1 [dn] [o1] dac_hc5
+AS2 [dx] [o2] dac_hc5
+RO1 o1 y1 55
+RO2 o2 y2 55
+R1 y1 0 1k
+R2 y2 0 1k
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7 xtrtol=7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 1n 4u 0 0.1n uic
+wrdata salida.txt v(y1) v(y2)
+eprint da db dc dn dx > eventos.txt
+.endc
+.end

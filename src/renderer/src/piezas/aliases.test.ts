@@ -19,8 +19,9 @@ describe('alias del buscador', () => {
 
   it('«u» (la letra de referencia) devuelve las compuertas, los biestables, el contador, el decodificador y los circuitos integrados, y nada más', () => {
     const r = ids('u')
+    // El UJT entra por su id y el motor unipolar por su nombre, que empiezan con u (sus letras de referencia son Q y M).
     expect(new Set(r)).toEqual(
-      new Set(['and', 'nand', 'or', 'nor', 'xor', 'not', 'biestable-d', 'biestable-jk', 'contador', 'decodificador-7seg', 'amp-op', 'comparador', 'regulador-ajustable', 'regulador-negativo', 'regulador-positivo', 'temporizador-555', 'uln2003'])
+      new Set(['and', 'nand', 'or', 'nor', 'xor', 'xnor', 'not', 'not-schmitt', 'buffer-3-estados', 'biestable-d', 'biestable-jk', 'contador', 'decodificador-7seg', 'amp-op', 'ina128', 'lm386', 'lm4040', 'tl431', 'comparador', 'regulador-ajustable', 'regulador-negativo', 'regulador-positivo', 'temporizador-555', 'uln2003', 'decodificador-138', 'decodificador-139', 'decodificador-7447', 'decodificador-4028', 'multiplexor-151', 'multiplexor-153', 'multiplexor-157', 'codificador-148', 'sumador-283', 'comparador-magnitud-85', 'bufer-244', 'transceptor-245', 'contador-161', 'contador-163', 'contador-190', 'contador-193', 'contador-4017', 'ujt', 'motor-pasos-unipolar'])
     )
   })
 
