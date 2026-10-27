@@ -77,8 +77,8 @@ describe('configuración de electron-builder.yml', () => {
     expect(nombre('deb')).toBe('Kirchi-${version}-Linux.${ext}')
     expect(nombre('appx')).toBe('Kirchi-${version}-tienda-${arch}.${ext}')
   })
-  it('la versión de package.json es la de la versión 2.0.0', () => {
-    expect(JSON.parse(readFileSync(join(raiz, 'package.json'), 'utf8')).version).toBe('2.0.0')
+  it('la versión de package.json es la de la versión 2.0.1', () => {
+    expect(JSON.parse(readFileSync(join(raiz, 'package.json'), 'utf8')).version).toBe('2.0.1')
   })
 })
 

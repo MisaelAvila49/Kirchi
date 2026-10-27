@@ -47,7 +47,7 @@ echo "== spctl (informativo) =="
 spctl --assess --type execute --verbose=4 "$APP" 2>&1 || echo '(esperado: una firma ad hoc no pasa Gatekeeper; el usuario la autoriza a mano)'
 
 echo "== dmg =="
-DMG="$(ls dist/Kirchi-*-macos-*.dmg | head -n 1)"
+DMG="$(ls dist/Kirchi-*-macOS.dmg | head -n 1)"
 MONTAJE="$(mktemp -d)"
 hdiutil attach "$DMG" -mountpoint "$MONTAJE" -nobrowse -readonly -quiet
 trap 'hdiutil detach "$MONTAJE" -quiet || true' EXIT

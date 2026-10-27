@@ -1,5 +1,13 @@
 # Historial de cambios
 
+## 2.0.1
+
+El instalador de macOS vuelve a publicarse junto con los de Windows y Linux.
+
+### Arreglos
+
+- El instalador de macOS (dmg universal con firma ad hoc) se publica en el Release junto con los de Windows y Linux.
+
 ## 2.0.0
 
 Un asistente de IA opcional, 102 piezas con sus datos físicos, perillas en vivo, circuitos integrados de varias unidades y de lógica MSI, y los análisis de la Microsoft Store funcionando de nuevo.

@@ -12,7 +12,7 @@ Armas el circuito, pulsas F5 y lo ves funcionar. Gratis, sin internet, sin cuent
 [![Descargar para Windows, macOS y Linux](https://img.shields.io/badge/Releases-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-22252A?style=for-the-badge&logo=github&logoColor=white)](../../releases/latest)
 
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-2.0.0-0E7C66.svg)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-2.0.1-0E7C66.svg)](CHANGELOG.md)
 ![Plataformas](https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
 
 <img src="docs/imagenes/portada.jpg" alt="Un 555 astable con las cuatro señales de su osciloscopio" width="100%">
