@@ -119,6 +119,8 @@ function obstaculosFijos(doc: Documento, lib: Map<string, PiezaDef>, con: Conexi
 export interface OpcionesChips {
   redes: ReadonlySet<number> | null
   desplazos?: Desplazos
+  /** Cajas que cambian con la lectura (banderas, pantallas de medidores, cifras de instrumentos): un chip no las cubre. */
+  estorbos?: readonly Caja[]
 }
 
 /** Chip con el voltaje de cada red simulada de dos conexiones o más, salvo la tierra. Va sobre el tramo horizontal más
@@ -127,8 +129,10 @@ export interface OpcionesChips {
 export function chipsDeVoltaje(doc: Documento, lib: Map<string, PiezaDef>, con: Conexiones, l: Lectura, textos: readonly Texto[] = SIN_TEXTOS, opciones: OpcionesChips = { redes: null }): Texto[] {
   const { fijos, lineas, pines } = obstaculosFijos(doc, lib, con, textos)
   // Los chips ya puestos también estorban: lo que cambia con cada lectura va aparte de lo cacheado.
-  const puestos = new Cubetas(con.redes.length, CELDA, 0, fijos.zonaDensa)
+  const estorbos = opciones.estorbos ?? []
+  const puestos = new Cubetas(con.redes.length + estorbos.length, CELDA, 0, fijos.zonaDensa)
   puestos.indexar()
+  for (const c of estorbos) puestos.agregar(c.minX, c.minY, c.maxX, c.maxY)
   // Los candidatos de la red en curso (a lo más cuatro) como números; solo el elegido se vuelve un `Texto`.
   const xs = [0, 0, 0, 0], ys = [0, 0, 0, 0]
   const als: Texto['alinear'][] = ['centro', 'centro', 'centro', 'centro']

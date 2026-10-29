@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
-import { documento, nuevoNucleo, pieza, texto } from '../prueba/ayudaEdicion'
+import { aplicarOk, documento, nuevoNucleo, pieza, texto } from '../prueba/ayudaEdicion'
 import { validarOrden } from './ordenes'
 
 const puestas = () => {
@@ -49,6 +49,41 @@ describe('órdenes de unidades', () => {
     const r = vacio.aplicar({ orden: 'agrupar' })
     expect(r.ok && r.avisos.join(' ')).toContain('No hay piezas sueltas')
     expect(vacio.historial.puedeRehacer).toBe(false)
+  })
+
+  it('colocar con unidad pide esa letra y con paquete toma la libre de ese encapsulado', () => {
+    const n = nuevoNucleo()
+    aplicarOk(n, { orden: 'colocar', tipo: 'nand', unidad: 'C', en: { x: 0, y: 0 } })
+    aplicarOk(n, { orden: 'colocar', tipo: 'nand', paquete: 'U1', en: { x: 40, y: 0 } })
+    aplicarOk(n, { orden: 'colocar', tipo: 'nand', paquete: 'U1', unidad: 'D', en: { x: 80, y: 0 } })
+    aplicarOk(n, { orden: 'colocar', tipo: 'nand', paquete: 'IC7', en: { x: 120, y: 0 } })
+    expect(Object.values(n.doc.piezas).map((p) => p.ref).sort()).toEqual(['IC7A', 'U1A', 'U1C', 'U1D'])
+  })
+
+  it('colocar rechaza unidad ocupada, inexistente, sin unidades y chip de otro tipo, con su motivo', () => {
+    const n = puestas()
+    const motivo = (o: object) => {
+      const r = n.aplicar({ orden: 'colocar', en: { x: 0, y: 40 }, ...o } as never)
+      return r.ok ? '' : r.motivo
+    }
+    expect(motivo({ tipo: 'nand', paquete: 'U1', unidad: 'A' })).toContain('ya está en uso por U1A')
+    expect(motivo({ tipo: 'nand', paquete: 'U1', unidad: 'Z' })).toContain('no tiene la unidad «Z»')
+    expect(motivo({ tipo: 'nor', paquete: 'U1' })).toContain('es de otro tipo')
+    expect(motivo({ tipo: 'resistencia', paquete: 'U9' })).toContain('no tiene unidades')
+    expect(motivo({ tipo: 'nand', paquete: 'U1', ref: 'X1' })).toContain('«ref»')
+    expect(motivo({ tipo: 'nand', paquete: 'U 1' })).toContain('espacios')
+  })
+
+  it('colocar con paquete lleno dice que no quedan unidades', () => {
+    const n = nuevoNucleo()
+    for (let i = 0; i < 4; i++) aplicarOk(n, { orden: 'colocar', tipo: 'nand', paquete: 'U1', en: { x: i * 40, y: 0 } })
+    const r = n.aplicar({ orden: 'colocar', tipo: 'nand', paquete: 'U1', en: { x: 0, y: 40 } })
+    expect(r).toMatchObject({ ok: false, motivo: expect.stringContaining('no tiene unidades libres') })
+  })
+
+  it('el validador deja pasar paquete y unidad en colocar', () => {
+    expect(validarOrden({ orden: 'colocar', tipo: 'nand', paquete: 'U1', unidad: 'B' }).ok).toBe(true)
+    expect(validarOrden({ orden: 'colocar', tipo: 'nand', unidad: 2 }).ok).toBe(false)
   })
 
   it('un lote con colocar y unidad queda en un solo paso', () => {

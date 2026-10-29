@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
 import { escribirKir, leerKir } from '../../archivo/kir'
-import { calcularConexiones, clavePin } from '../../conexiones/conexiones'
-import { avisosDeMultimetros } from '../../netlist/multimetros'
+import { calcularConexiones } from '../../conexiones/conexiones'
 import { compilarNetlist } from '../../netlist/netlist'
+import { avisosDeMultimetros } from '../../netlist/multimetros'
 import { libreriaDePrueba } from '../../prueba/libreria'
 import { arranqueDeCapitulo } from './arranques'
 import { CAPITULOS } from './capitulos'
-import { circuitoCerrado, medidorConSonda, medidorEnSerie, piezasDe, tierraEnLaFuente } from './condiciones'
+import { circuitoCerrado, medidorConSonda, piezasDe, tierraEnLaFuente } from './condiciones'
 import type { CtxTutorial } from './tipos'
 
 const lib = libreriaDePrueba().piezas
@@ -16,10 +16,13 @@ const ctxDe = (id: string): CtxTutorial => {
   return { doc, con: calcularConexiones(doc, lib), lib, fase: 'detenida', centro: { x: 0, y: 0 } }
 }
 
-describe('circuitos de arranque de los capítulos 2 a 5', () => {
-  it('cada capítulo con arranque tiene el suyo y el capítulo 1 no', () => {
-    expect(CAPITULOS.filter((c) => c.arranque).map((c) => c.id)).toEqual(['medir', 'senales', 'archivo', 'trucos'])
+describe('circuitos de arranque: cada capítulo se puede hacer solo', () => {
+  it('Conoce Kirchi y Medir traen el suyo; Tu primer circuito y Analizar parten de un lienzo vacío', () => {
+    expect(CAPITULOS.filter((c) => c.arranque).map((c) => c.id)).toEqual(['conoce', 'medir-senales'])
+    expect(CAPITULOS.filter((c) => c.documentoNuevo).map((c) => c.id)).toEqual(['circuito', 'analizar'])
     for (const c of CAPITULOS) expect(arranqueDeCapitulo(c.id) !== undefined, c.id).toBe(!!c.arranque)
+    // Ningún capítulo necesita lo que dejó otro: cada uno trae su circuito o empieza vacío.
+    for (const c of CAPITULOS) expect(!!c.arranque || !!c.documentoNuevo, c.id).toBe(true)
   })
 
   it('se escriben y se leen como un .kir sin perder nada ni dar avisos', () => {
@@ -42,47 +45,25 @@ describe('circuitos de arranque de los capítulos 2 a 5', () => {
       expect(r.errores, c.id).toEqual([])
       expect(r.avisos, c.id).toEqual([])
       expect(r.netlist, c.id).not.toBeNull()
-      // Ni un multímetro conectado al revés de lo que mide: el tutorial no arranca con un aviso en el inspector.
       expect(avisosDeMultimetros(ctx.doc, lib, ctx.con), c.id).toEqual([])
     }
   })
 
-  it('el capítulo 2 arranca con el circuito cerrado y su tierra, y con nada medido todavía', () => {
-    const ctx = ctxDe('medir')
-    expect(circuitoCerrado(ctx)).toBe(true)
-    expect(tierraEnLaFuente(ctx)).toBe(true)
-    expect(piezasDe(ctx, 'multimetro')).toEqual([])
-    expect(CAPITULOS[1].pasos[0].hecho(ctx)).toBe(false)
-  })
-
-  it('el capítulo 3 arranca con un multímetro de voltaje con sonda y otro en serie en A DC', () => {
-    const ctx = ctxDe('senales')
-    const [m1, m2] = [ctx.doc.piezas.m1, ctx.doc.piezas.m2]
-    expect(medidorConSonda(ctx)?.id).toBe('m1')
-    expect(medidorEnSerie(ctx, m1)).toBe(false)
-    expect(medidorEnSerie(ctx, m2)).toBe(true)
-    expect(m2.props.modo).toBe('A DC')
-    expect(circuitoCerrado(ctx)).toBe(false)
-  })
-
-  it('los capítulos 4 y 5 arrancan con el circuito del 3 terminado y sus pasos de entrada por hacer', () => {
-    for (const id of ['archivo', 'trucos']) {
+  it('el circuito de arranque es la fuente, la resistencia de 1 kΩ, el LED girado y la tierra, ya cerrado, sin instrumentos', () => {
+    for (const id of ['conoce', 'medir-senales']) {
       const ctx = ctxDe(id)
-      const g = piezasDe(ctx, 'generador')[0]
-      expect(g.props).toMatchObject({ forma: 'Cuadrada', frecuencia: '1' })
-      expect(piezasDe(ctx, 'fuente-dc')).toEqual([])
-      expect(CAPITULOS.find((c) => c.id === 'senales')!.pasos.filter((p) => !['simular', 'tiempo', 'disparo', 'cursores'].includes(p.id)).every((p) => p.hecho(ctx)), id).toBe(true)
-      expect(ctx.con.redDePin.get(clavePin('xsc', 'A'))).toBeDefined()
-      expect(ctx.con.redDePin.get(clavePin('xsc', 'B'))).toBeDefined()
+      expect(circuitoCerrado(ctx), id).toBe(true)
+      expect(tierraEnLaFuente(ctx), id).toBe(true)
+      expect(piezasDe(ctx, 'multimetro'), id).toEqual([])
+      expect(piezasDe(ctx, 'osciloscopio'), id).toEqual([])
+      expect(medidorConSonda(ctx), id).toBeUndefined()
+      expect(ctx.doc.sondas ?? {}, id).toEqual({})
     }
   })
 
-  it('el capítulo 5 trae la nota para mover con Alt, dentro de la rejilla de 2.5 mm', () => {
-    const doc = arranqueDeCapitulo('trucos')!
-    const n = Object.values(doc.notas)
-    expect(n).toHaveLength(1)
-    expect(n[0].x % 2 === 0).toBe(true)
-    expect(n[0].y % 2 === 0).toBe(true)
-    expect(Object.keys(arranqueDeCapitulo('archivo')!.notas)).toEqual([])
+  it('Medir arranca con sus tres primeros pasos por hacer', () => {
+    const ctx = ctxDe('medir-senales')
+    const cap = CAPITULOS.find((c) => c.id === 'medir-senales')!
+    for (const id of ['medidor-rapido', 'multimetro', 'sonda']) expect(cap.pasos.find((p) => p.id === id)!.hecho(ctx), id).toBe(false)
   })
 })

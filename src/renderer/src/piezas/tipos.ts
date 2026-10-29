@@ -127,7 +127,7 @@ export type ElementoCompuesto =
   | { t: 'Q'; c: string; b: string; e: string; pnp?: boolean; params: Record<string, ValorCompuesto> }
   /** Transformador: dos devanados acoplados con el punto en `a1` y `a2`; `l1` es la inductancia del primario, `n` la relación Np/Ns (L2 = L1 / n²) y `k` el acoplamiento. */
   | { t: 'T'; a1: string; b1: string; a2: string; b2: string; l1: ValorCompuesto; n: ValorCompuesto; k: ValorCompuesto }
-  | { t: 'OA'; mas: string; menos: string; sal: string; vmas: string; vmenos: string; params: Record<string, ValorCompuesto> }
+  | { t: 'OA'; mas: string; menos: string; sal: string; vmas: string; vmenos: string; params: Record<string, ValorCompuesto>; euler?: boolean }
   | { t: 'M'; d: string; g: string; s: string; pmos?: boolean; params: Record<string, ValorCompuesto> }
   | { t: 'J'; d: string; g: string; s: string; pjf?: boolean; params: Record<string, ValorCompuesto> }
   /** Fuentes controladas entre `p` y `n` por el voltaje (`E`, `G`) o la corriente (`H`, `F`) de `cp` y `cn`. */
@@ -195,6 +195,8 @@ export type ModeloDef =
       modelos?: Record<string, ParametrosSpice>
       internas?: string[]
       opcionales?: string[]
+      /** Grupos de pines opcionales (los de un canal) que, si todos quedan al aire, se quitan con los elementos que cuelgan de ellos por las redes internas: un canal sin usar solo llevaría fugas por los pines que comparte. */
+      podar?: string[][]
       /** Los pines de los que sale el voltaje de la pieza y el elemento (índice de `elementos`) cuya corriente es la de la pieza; `region` es el índice del transistor (Q, M o J) cuya región se muestra. */
       medida: { mas: string; menos: string; i: number; region?: number }
       elementos: ElementoCompuesto[]
@@ -312,6 +314,18 @@ export type AnimacionDef =
   /** Luces sueltas de una pieza compuesta: cada una brilla con la corriente del diodo `elemento` (índice de `modelo.elementos`)
    * en el punto (`x`, `y`) del símbolo, con el color de LED `color`. */
   | { tipo: 'luces'; luces: { elemento: number; x: number; y: number; color: string }[] }
+  /** Zonas de clic de un interruptor DIP (una por posición) o de un teclado (una por tecla, en el orden de sus contactos), en
+   * unidades del símbolo. `tecla` es el carácter del teclado de la computadora que la acciona. */
+  | { tipo: 'zonas'; zonas: ZonaDeClic[] }
+
+/** Un rectángulo del símbolo que se acciona con un clic (esquina superior izquierda y tamaño). */
+export interface ZonaDeClic {
+  x: number
+  y: number
+  ancho: number
+  alto: number
+  tecla?: string
+}
 
 /** Las capas que pide cada animación, en el orden de sus estados (reposo antes que operado). */
 export function capasDeAnimacion(a: AnimacionDef | undefined): readonly string[] {

@@ -9,7 +9,7 @@ import { ACCESO_RAPIDO, FIJOS, PESTAÑAS, pestañaDe } from '../cinta/modelo'
  * Los pasos señalan botones por `data-comando` y por la pestaña que los trae. Este examen lee el código de los capítulos y comprueba que cada botón existe en su pestaña.
  */
 const carpeta = join(import.meta.dirname)
-const capitulos = readdirSync(carpeta).filter((f) => /^capitulo\d\.ts$/.test(f))
+const capitulos = readdirSync(carpeta).filter((f) => /^(capitulo\d|pasos)\.ts$/.test(f))
 const TITULO = new Set<string>([...ACCESO_RAPIDO, ...FIJOS])
 
 interface Mencion { archivo: string; id: string; pestana?: string; grupo?: string }
@@ -54,7 +54,7 @@ describe('objetivos de los pasos del tutorial en la cinta', () => {
     expect(TITULO.has('simular')).toBe(true)
     expect(TITULO.has('detener')).toBe(true)
     expect(pestañaDe('simular')).toBe('inicio')
-    for (const f of ['capitulo1.ts', 'capitulo2.ts', 'capitulo3.ts']) {
+    for (const f of ['capitulo2.ts', 'capitulo3.ts']) {
       const src = readFileSync(join(carpeta, f), 'utf8')
       expect(src, f).toContain("'inicio', GRUPO_SIMULAR")
       expect(src, f).not.toMatch(/control\(\s*(?:SIMULAR|DETENER)\s*\)/)

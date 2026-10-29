@@ -287,6 +287,9 @@ export class Lienzo {
     return this.escena?.caja ?? null
   }
 
+  /** Avisa cuando la persona mueve o acerca la vista con el ratón (la rueda y el arrastre), no cuando la cámara cambia por otra causa. */
+  alGestoDeVista: ((gesto: 'zoom' | 'desplazar') => void) | null = null
+
   alCambiarCamara(fn: (c: Camera) => void): () => void {
     this.oyentesCamara.add(fn)
     return () => this.oyentesCamara.delete(fn)
@@ -588,6 +591,7 @@ export class Lienzo {
       }
       if (paneando) {
         this.ponerCamara(pan(this.cam, e.clientX - ux, e.clientY - uy))
+        if (e.clientX !== ux || e.clientY !== uy) this.alGestoDeVista?.('desplazar')
         ux = e.clientX
         uy = e.clientY
         return
@@ -628,6 +632,7 @@ export class Lienzo {
         const k = e.ctrlKey ? 0.01 : 0.0015
         const r = c.getBoundingClientRect()
         this.ponerCamara(zoomAt(this.cam, e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * k)))
+        this.alGestoDeVista?.('zoom')
       },
       { passive: false }
     )

@@ -2,6 +2,7 @@
   "id": "conmutador",
   "nombre": { "es": "Conmutador SPDT", "en": "SPDT switch" },
   "categoria": "interruptores",
+  "grupo": "Individuales",
   "prefijo": "S",
   "buscar": ["conmutador", "spdt", "palanca", "dos posiciones", "selector", "switch", "sw"],
   "pines": [
@@ -30,7 +31,7 @@
           "fecha": "2026-10-26",
           "fuente": "KiCad 9: símbolo Switch:SW_SPDT (2 es el común, 1 y 3 los tiros) y huella SW_Slide_SPDT_Straight_CK_OS102011MS2Q (nombre de la parte de C&K). Las dos fuentes son de la misma biblioteca: la hoja de C&K no se pudo bajar. Representativa"
         },
-        "nota": "En un deslizable de tres patillas el común es la del centro."
+        "nota": "En un deslizable de tres pines el común es la del centro."
       }
     }
   }

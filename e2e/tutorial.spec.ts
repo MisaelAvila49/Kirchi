@@ -2,7 +2,7 @@ import { expect, test, type ElectronApplication, type Page } from '@playwright/t
 import { fallasGraves } from './axe'
 import { carpetaNueva, lanzar } from './lanzar'
 
-/** «Aprende Kirchi», capítulo 1 sobre Electron: cada paso se cumple con la acción real, el avance queda en settings.json y se retoma, y axe no marca fallas graves en los dos temas. Requiere ventana. */
+/** «Aprende Kirchi», capítulo 2 (Tu primer circuito) sobre Electron: cada paso se cumple con la acción real, el avance queda en settings.json y se retoma, y axe no marca fallas graves en los dos temas. Requiere ventana. */
 test.describe.configure({ mode: 'serial' })
 
 async function abrir(datos: string): Promise<{ app: ElectronApplication; page: Page }> {
@@ -10,13 +10,15 @@ async function abrir(datos: string): Promise<{ app: ElectronApplication; page: P
   const page = await app.firstWindow()
   await page.waitForFunction(() => (window as any).__kirchi?.ready === true)
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].maximize())
-  await page.waitForTimeout(600)
+  await page.waitForFunction(() => window.innerWidth >= screen.availWidth - 24)
   return { app, page }
 }
 
 const sonda = (page: Page, metodo: string, ...args: unknown[]): Promise<any> => page.evaluate(([m, a]) => (window as any).__kirchi[m](...a), [metodo, args] as [string, unknown[]])
 const cabecera = (page: Page) => page.locator('.tutorial-cap').first().textContent()
 const cumplido = async (page: Page) => /Cumplido/.test((await cabecera(page)) ?? '')
+/** El estado del capítulo «Tu primer circuito» en el selector (el segundo de la lista). */
+const estadoDeCircuito = (page: Page) => page.locator('li', { has: page.locator('[data-capitulo="circuito"]') }).locator('.tutorial-estado')
 const centroDelFoco = async (page: Page) => {
   const r = (await page.locator('.tutorial-foco-marco').first().boundingBox())!
   return { x: r.x + r.width / 2, y: r.y + r.height / 2 }
@@ -58,7 +60,7 @@ async function unir(page: Page, a: [number, number], b: [number, number]) {
   await page.mouse.click(B.x, B.y)
 }
 
-test('el capítulo 1 se cumple paso a paso con acciones reales y el avance se guarda', async () => {
+test('el capítulo 2 se cumple paso a paso con acciones reales y el avance se guarda', async () => {
   const datos = carpetaNueva()
   const { app, page } = await abrir(datos)
 
@@ -66,9 +68,9 @@ test('el capítulo 1 se cumple paso a paso con acciones reales y el avance se gu
   await page.getByRole('tab', { name: 'Ayuda' }).click()
   await page.locator('[data-comando="aprender"]:visible').click()
   await expect(page.locator('.tutorial-selector')).toBeVisible()
-  await page.locator('[data-capitulo="primer-circuito"]').click()
+  await page.locator('[data-capitulo="circuito"]').click()
   await expect(page.locator('.tutorial-globo')).toBeVisible()
-  await expect(page.locator('.tutorial-cap').first()).toHaveText(/Paso 1 de 9/)
+  await expect(page.locator('.tutorial-cap').first()).toHaveText(/Paso 1 de 19/)
 
   // Esc conserva su significado: no cierra el tutorial.
   await page.keyboard.press('Escape')
@@ -130,17 +132,29 @@ test('el capítulo 1 se cumple paso a paso con acciones reales y el avance se gu
   await expect.poll(() => cumplido(page)).toBe(true)
   await siguiente(page)
 
-  // Paso 9: Mayús+F5 y Terminar.
+  // Paso 9: V muestra los voltajes con la simulación en marcha.
+  await page.locator('canvas.lienzo-gl').focus()
+  await page.keyboard.press('v')
+  await expect.poll(() => cumplido(page)).toBe(true)
+  await siguiente(page)
+
+  // Paso 10: Mayús+F5 detiene la vista previa.
   await page.locator('canvas.lienzo-gl').focus()
   await page.keyboard.press('Shift+F5')
   await expect.poll(() => cumplido(page)).toBe(true)
-  await siguiente(page, 'Terminar')
+  await siguiente(page)
+
+  // Pasos 11 a 19 (nota, terminal VCC, etiquetas y simulación): se saltan (los comprueba el capítulo 2 de tutorial-capitulos) y el último termina el capítulo.
+  for (let n = 11; n <= 19; n++) {
+    await expect(page.locator('.tutorial-cap').first()).toHaveText(new RegExp(`Paso ${n} de 19`))
+    await page.locator('.tutorial-globo').getByRole('button', { name: 'Saltar paso' }).click()
+  }
   await expect(page.locator('.tutorial-globo')).toHaveCount(0)
 
   // El selector marca el capítulo como hecho y ofrece repetirlo.
   await page.locator('[data-comando="aprender"]:visible').click()
-  await expect(page.locator('.tutorial-estado').first()).toHaveText(/Hecho/)
-  await expect(page.locator('[data-capitulo="primer-circuito"]')).toHaveText('Repetir')
+  await expect(estadoDeCircuito(page)).toHaveText(/Hecho/)
+  await expect(page.locator('[data-capitulo="circuito"]')).toHaveText('Repetir')
   await app.close()
 })
 
@@ -149,7 +163,7 @@ test('salir a la mitad guarda el paso y el selector lo retoma', async () => {
   let { app, page } = await abrir(datos)
   await page.getByRole('tab', { name: 'Ayuda' }).click()
   await page.locator('[data-comando="aprender"]:visible').click()
-  await page.locator('[data-capitulo="primer-circuito"]').click()
+  await page.locator('[data-capitulo="circuito"]').click()
   await page.locator('.tutorial-globo').getByRole('button', { name: 'Saltar paso' }).click()
   await page.locator('.tutorial-globo').getByRole('button', { name: 'Saltar paso' }).click()
   await page.locator('.tutorial-globo').getByRole('button', { name: 'Salir' }).click()
@@ -160,13 +174,13 @@ test('salir a la mitad guarda el paso y el selector lo retoma', async () => {
   ;({ app, page } = await abrir(datos))
   await page.getByRole('tab', { name: 'Ayuda' }).click()
   await page.locator('[data-comando="aprender"]:visible').click()
-  await expect(page.locator('.tutorial-estado').first()).toHaveText('En curso: 2 de 9')
-  await page.locator('[data-capitulo="primer-circuito"]').click()
+  await expect(estadoDeCircuito(page)).toHaveText('En curso: 2 de 19')
+  await page.locator('[data-capitulo="circuito"]').click()
   // El lienzo abre vacío y el paso 3 espera piezas: el diálogo «Retomar» lo avisa y, con el circuito propio, el capítulo vuelve al
-  // primer paso que el lienzo no cumple (el 1). El avance guardado ya se comprobó arriba (2 de 9).
-  await expect(page.getByRole('dialog', { name: 'Retomar el capítulo 1' })).toContainText('desde el paso 1')
+  // primer paso que el lienzo no cumple (el 1). El avance guardado ya se comprobó arriba (2 de 19).
+  await expect(page.getByRole('dialog', { name: 'Retomar el capítulo 2' })).toContainText('desde el paso 1')
   await page.getByRole('button', { name: 'Seguir con mi circuito' }).click()
-  await expect(page.locator('.tutorial-cap').first()).toHaveText(/Paso 1 de 9/)
+  await expect(page.locator('.tutorial-cap').first()).toHaveText(/Paso 1 de 19/)
   await app.close()
 })
 

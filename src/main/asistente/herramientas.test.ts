@@ -451,3 +451,95 @@ describe('piezas nuevas con el asistente', () => {
     hj.cerrar()
   })
 })
+
+describe('chips con varias unidades con el asistente', () => {
+  const colocarNand = (extra: object = {}, k = 0) => ({ orden: 'colocar', tipo: 'nand', en: { x: k * 40, y: 0 }, ...extra })
+
+  it('el catálogo dice cuántas unidades tiene y el número de patilla de cada una', async () => {
+    const nand = json(await h.llamar('catalogo_piezas', { filtro: 'nand' })).find((p: { id: string }) => p.id === 'nand')
+    expect(nand.unidades).toMatchObject({ n: 4, nombres: ['A', 'B', 'C', 'D'], compartidos: [] })
+    expect(nand.unidades.patillas.B).toEqual({ A: '4', B: '5', Y: '6' })
+    const resistencia = json(await h.llamar('catalogo_piezas', { filtro: 'resistencia' })).find((p: { id: string }) => p.id === 'resistencia')
+    expect(resistencia.unidades).toBeUndefined()
+  })
+
+  it('cuatro 74HC00 quedan en U1A a U1D, una quinta abre U2A, y leer_circuito da paquetes y patillas', async () => {
+    const hu = new Herramientas(deps({ carpetaPorOmision: join(base, 'Unidades') }))
+    await hu.llamar('crear_circuito', { nombre: 'u' })
+    for (let k = 0; k < 5; k++) expect((await hu.llamar('colocar', { circuito: 'u', tipo: 'nand', en: { x: k * 40, y: 0 } })).isError).toBeUndefined()
+    const c = json(await hu.llamar('leer_circuito', { circuito: 'u' }))
+    expect(c.piezas.map((p: { ref: string }) => p.ref)).toEqual(['U1A', 'U1B', 'U1C', 'U1D', 'U2A'])
+    expect(c.piezas[1]).toMatchObject({ paquete: 'U1', unidad: 'B', numeros: { A: '4', B: '5', Y: '6' } })
+    expect(c.piezas[1].props?.paquete).toBeUndefined()
+    expect(c.paquetes).toEqual([
+      { paquete: 'U1', tipo: 'nand', unidades: { A: 'U1A', B: 'U1B', C: 'U1C', D: 'U1D' }, libres: [], compartidas: {} },
+      { paquete: 'U2', tipo: 'nand', unidades: { A: 'U2A' }, libres: ['B', 'C', 'D'], compartidas: {} }
+    ])
+    // La referencia con la unidad sirve para conectar.
+    expect((await hu.llamar('conectar', { circuito: 'u', desde: 'U1B.Y', hasta: 'U2A.A' })).isError).toBeUndefined()
+    const d = json(await hu.llamar('datos_pieza', { circuito: 'u', ref: 'U1B' }))
+    expect(d).toMatchObject({ paquete: 'U1', unidad: 'B', numerosDeUnidad: { A: '4', B: '5', Y: '6' } })
+    hu.cerrar()
+  })
+
+  it('colocar con paquete y unidad elige la letra, y una unidad ocupada o un chip de otro tipo se dicen en español', async () => {
+    const hu = new Herramientas(deps({ carpetaPorOmision: join(base, 'Unidades2') }))
+    await hu.llamar('crear_circuito', { nombre: 'u' })
+    expect((await hu.llamar('colocar', { circuito: 'u', tipo: 'nand', paquete: 'U1', unidad: 'C', en: { x: 0, y: 0 } })).isError).toBeUndefined()
+    const ocupada = await hu.llamar('colocar', { circuito: 'u', tipo: 'nand', paquete: 'U1', unidad: 'C', en: { x: 40, y: 0 } })
+    expect(ocupada.isError).toBe(true)
+    expect(texto(ocupada)).toContain('ya está en uso por U1C')
+    const otro = await hu.llamar('colocar', { circuito: 'u', tipo: 'nor', paquete: 'U1', en: { x: 40, y: 0 } })
+    expect(texto(otro)).toContain('es de otro tipo')
+    const noEsta = await hu.llamar('colocar', { circuito: 'u', tipo: 'nand', unidad: 'H', en: { x: 40, y: 0 } })
+    expect(texto(noEsta)).toContain('no tiene la unidad «H»')
+    hu.cerrar()
+  })
+
+  it('cambiar_unidad y agrupar_encapsulados, solos y dentro de aplicar_lote', async () => {
+    const hu = new Herramientas(deps({ carpetaPorOmision: join(base, 'Unidades3') }))
+    await hu.llamar('crear_circuito', { nombre: 'u' })
+    // «ref» las deja sueltas (sin paquete): compuertas de un circuito viejo.
+    const sueltas = [0, 1, 2].map((k) => colocarNand({ ref: `X${k + 1}` }, k))
+    expect((await hu.llamar('aplicar_lote', { circuito: 'u', ordenes: sueltas })).isError).toBeUndefined()
+    const g = await hu.llamar('agrupar_encapsulados', { circuito: 'u' })
+    expect(g.isError, texto(g)).toBeUndefined()
+    expect(texto(g)).toMatch(/X1 → U1A, X2 → U1B, X3 → U1C/)
+    const c = await hu.llamar('cambiar_unidad', { circuito: 'u', ref: 'U1C', unidad: 'D' })
+    expect(c.isError, texto(c)).toBeUndefined()
+    expect(json(await hu.llamar('leer_circuito', { circuito: 'u' })).paquetes[0]).toMatchObject({ unidades: { A: 'U1A', B: 'U1B', D: 'U1D' }, libres: ['C'] })
+    expect(texto(await hu.llamar('cambiar_unidad', { circuito: 'u', ref: 'U1D', unidad: 'A' }))).toContain('en uso por U1A')
+    const lote = await hu.llamar('aplicar_lote', { circuito: 'u', ordenes: [{ orden: 'unidad', ref: 'U1D', unidad: 'C' }, { orden: 'agrupar' }] })
+    expect(lote.isError, texto(lote)).toBeUndefined()
+    const descripciones = HERRAMIENTAS.filter((t) => ['colocar', 'catalogo_piezas', 'cambiar_unidad'].includes(t.nombre)).map((t) => t.descripcion).join(' ')
+    expect(descripciones).toContain('cerca una de otra')
+    hu.cerrar()
+  })
+
+  it('con el circuito en la ventana, colocar con unidad, cambiar_unidad y agrupar_encapsulados van allí como órdenes', async () => {
+    const pedidos: unknown[] = []
+    const fake = { pedir: async (_t: string, d: unknown) => (pedidos.push(d), { ok: true as const, datos: { ok: true, creados: {}, avisos: [] } }) }
+    const hv = new Herramientas(deps({ ventana: async () => ({ ok: true, cliente: fake as never }) }))
+    await hv.llamar('colocar', { tipo: 'nand', paquete: 'U1', unidad: 'B', en: { x: 0, y: 0 } })
+    await hv.llamar('cambiar_unidad', { ref: 'U1B', unidad: 'C' })
+    await hv.llamar('agrupar_encapsulados', {})
+    expect(pedidos).toEqual([
+      { orden: { orden: 'colocar', tipo: 'nand', paquete: 'U1', unidad: 'B', en: { x: 0, y: 0 } } },
+      { orden: { orden: 'unidad', ref: 'U1B', unidad: 'C' } },
+      { orden: { orden: 'agrupar' } }
+    ])
+    hv.cerrar()
+  })
+
+  it('un amplificador doble muestra las patillas de alimentación que comparten sus unidades', async () => {
+    const hu = new Herramientas(deps({ carpetaPorOmision: join(base, 'Unidades4') }))
+    await hu.llamar('crear_circuito', { nombre: 'u' })
+    for (let k = 0; k < 2; k++) await hu.llamar('colocar', { circuito: 'u', tipo: 'amp-op', props: { modelo: 'LM358' }, en: { x: k * 40, y: 0 } })
+    const c = json(await hu.llamar('leer_circuito', { circuito: 'u' }))
+    expect(c.paquetes).toHaveLength(1)
+    const [pq] = c.paquetes
+    expect(Object.keys(pq.compartidas).length).toBeGreaterThan(0)
+    for (const comp of Object.values(pq.compartidas) as { piezas: string[] }[]) expect(comp.piezas).toEqual(['U1A', 'U1B'])
+    hu.cerrar()
+  })
+})

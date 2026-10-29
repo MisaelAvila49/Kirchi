@@ -225,6 +225,18 @@ pub fn integrate(c: &mut Ctx, cap: f64, q: usize) -> (f64, f64) {
     (c.ag0 * cap, ccap - c.ag0 * c.s0[q])
 }
 
+/// `integrate` con Euler hacia atrás también en los pasos de orden 2: el trapecio deja al final del paso el doble de la corriente
+/// media de una carga que se vacía entera en un solo paso, y esa corriente de más empuja los nodos fuera de sus rieles.
+pub fn integrate_euler(c: &mut Ctx, cap: f64, q: usize) -> (f64, f64) {
+    if c.order == 1 {
+        return integrate(c, cap, q);
+    }
+    let ag0 = 1.0 / c.h;
+    let ccap = ag0 * (c.s0[q] - c.s1[q]);
+    c.s0[q + 1] = ccap;
+    (ag0 * cap, ccap - ag0 * c.s0[q])
+}
+
 /// En la primera iteración del primer paso, la carga del instante 0 es la que se acaba de calcular.
 #[inline]
 pub fn init_charge(c: &mut Ctx, q: usize) {
@@ -551,6 +563,10 @@ pub trait Device: DeviceClone {
     fn indefinidos(&self) -> u64 {
         0
     }
+    /// Cuántas veces un bit se quedó sin nivel definido más de un microsegundo (no un flanco pasando por la zona entre umbrales).
+    fn indefinidos_persistentes(&self) -> u64 {
+        0
+    }
     /// Vuelve a su estado inicial (un fusible nuevo); false si no aplica.
     fn reset(&mut self) -> bool {
         false
@@ -599,10 +615,10 @@ fn construir(e: &Element, idx: usize) -> Box<dyn Device> {
         Element::V { a, b, wave } => Box::new(basic::VSource::new(*a, *b, wave.clone())),
         Element::I { a, b, amps } => Box::new(basic::ISource::new(*a, *b, *amps)),
         Element::D { a, b, model } => Box::new(diode::Diode::new(*a, *b, model.clone())),
-        Element::Q { c, b, e, pnp, model } => Box::new(bjt::Bjt::new(*c, *b, *e, *pnp, model.clone())),
+        Element::Q { c, b, e, pnp, model, euler } => Box::new(bjt::Bjt::new(*c, *b, *e, *pnp, model.clone(), *euler)),
         Element::J { d, g, s, pjf, model } => Box::new(jfet::Jfet::new(*d, *g, *s, *pjf, model.clone())),
         Element::M { d, g, s, pmos, model } => Box::new(mos1::Mos1::new(*d, *g, *s, *pmos, model.clone())),
-        Element::OA { p, n, out, vp, vn, model } => Box::new(opamp::Opamp::new(*p, *n, *out, *vp, *vn, model.clone())),
+        Element::OA { p, n, out, vp, vn, model, euler } => Box::new(opamp::Opamp::new(*p, *n, *out, *vp, *vn, model.clone(), *euler)),
         Element::Xfmr { a1, b1, a2, b2, l1, l2, k } => Box::new(acople::Acople::new(*a1, *b1, *a2, *b2, *l1, *l2, *k)),
         Element::Lamp { a, b, rfrio, k, pnom, tau } => Box::new(lamp::Lamp::new(idx, *a, *b, *rfrio, *k, *pnom, *tau)),
         Element::Motor { a, b, r, l, ke, j, bm } => Box::new(motor::Motor::new(*a, *b, *r, *l, *ke, *j, *bm)),

@@ -1,6 +1,6 @@
 import { nombreParecido, PARAMETROS, problemaDeParametro } from '../netlist/rangos'
 import { leerCiclo, leerPosicion, leerValor } from '../valores/valores'
-import { MAX_TEXTO_LARGO, MAX_TEXTO_PROP, type AnimacionDef, type LimitesDef, type ModeloDef, type PiezaDef, type PinDef, type PropDef, type Rotulo } from './tipos'
+import { MAX_TEXTO_LARGO, MAX_TEXTO_PROP, type AnimacionDef, type ZonaDeClic, type LimitesDef, type ModeloDef, type PiezaDef, type PinDef, type PropDef, type Rotulo } from './tipos'
 import { CLAVES_COMPUESTO, validarCompuesto } from './validarCompuesto'
 import { LEYES_POT } from '../valores/leyPot'
 import { validarDatos } from './validarDatos'
@@ -70,7 +70,8 @@ const CLAVES_ANIMACION: Record<AnimacionDef['tipo'], string[]> = {
   contacto: ['tipo', 'manda'],
   cursor: ['tipo', 'prop', 'desde', 'hasta', 'codo'],
   sonido: ['tipo', 'frecuencia', 'onda'],
-  luces: ['tipo', 'luces']
+  luces: ['tipo', 'luces'],
+  zonas: ['tipo', 'zonas']
 }
 /** El modelo que admite cada animación. */
 const MODELO_DE_ANIMACION: Record<AnimacionDef['tipo'], readonly string[]> = {
@@ -81,7 +82,8 @@ const MODELO_DE_ANIMACION: Record<AnimacionDef['tipo'], readonly string[]> = {
   contacto: ['rele'],
   cursor: ['pot'],
   sonido: ['zumbador'],
-  luces: ['compuesto']
+  luces: ['compuesto'],
+  zonas: ['interruptores', 'teclado']
 }
 /** Lo más rápido que se dibuja un giro (vueltas por segundo de pantalla): más se vería falso por el efecto estroboscópico. */
 export const VUELTAS_MAX = 10
@@ -150,6 +152,27 @@ function validarAnimacion(a: any, modelo: any, props: PropDef[], linea: number |
         salida.push({ elemento: l.elemento, x: l.x, y: l.y, color: l.color })
       })
       return { tipo: 'luces', luces: salida }
+    }
+    case 'zonas': {
+      // Una zona por contacto: las posiciones del DIP, o las teclas por filas del teclado.
+      const contactos = modelo?.tipo === 'interruptores' && Array.isArray(modelo.contactos) ? modelo.contactos.length : modelo?.tipo === 'teclado' && Array.isArray(modelo.filas) && Array.isArray(modelo.columnas) ? modelo.filas.length * modelo.columnas.length : 0
+      if (!Array.isArray(a.zonas) || a.zonas.length !== contactos) return void e('.zonas', `debe tener una zona por contacto (${contactos})`)
+      const zonas: ZonaDeClic[] = []
+      const usadas = new Set<string>()
+      a.zonas.forEach((z: any, k: number) => {
+        const c = `.zonas[${k}]`
+        if (z === null || typeof z !== 'object' || Array.isArray(z)) return void e(c, 'debe ser un objeto')
+        for (const clave of Object.keys(z)) if (!['x', 'y', 'ancho', 'alto', 'tecla'].includes(clave)) e(`${c}.${clave}`, 'clave desconocida: van x, y, ancho, alto y tecla')
+        for (const eje of ['x', 'y']) if (typeof z[eje] !== 'number' || !Number.isFinite(z[eje])) e(`${c}.${eje}`, 'debe ser un número en unidades del símbolo')
+        for (const eje of ['ancho', 'alto']) if (!(typeof z[eje] === 'number' && z[eje] > 0)) e(`${c}.${eje}`, 'debe ser un número mayor que cero')
+        if (z.tecla !== undefined) {
+          if (!(typeof z.tecla === 'string' && [...z.tecla].length === 1)) e(`${c}.tecla`, 'debe ser un solo carácter')
+          else if (usadas.has(z.tecla)) e(`${c}.tecla`, `«${z.tecla}» ya es la tecla de otra zona`)
+          usadas.add(z.tecla)
+        }
+        zonas.push({ x: z.x, y: z.y, ancho: z.ancho, alto: z.alto, ...(z.tecla !== undefined ? { tecla: z.tecla } : {}) })
+      })
+      return { tipo: 'zonas', zonas }
     }
   }
 }

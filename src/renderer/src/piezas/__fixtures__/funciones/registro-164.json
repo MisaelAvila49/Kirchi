@@ -1,0 +1,46 @@
+{
+ "fuente": [
+  {
+   "familia": "74HC",
+   "documento": "TI SN54HC164, SN74HC164, SCLS115G",
+   "revision": "sep 2015",
+   "paginas": "14",
+   "tabla": "Table 1. Function Table"
+  },
+  {
+   "familia": "74LS",
+   "documento": "TI SN54/74LS164 (TTL Devices)",
+   "revision": "mar 1988",
+   "paginas": "1 (PDF; 2-515)",
+   "tabla": "FUNCTION TABLE (misma que la del HC)"
+  }
+ ],
+ "simbolos": {
+  "r": "flanco de subida de CLK",
+  "X": "no importa",
+  "Q0": "nivel previo a las condiciones indicadas",
+  "QAn, QGn": "nivel de QA o QG antes del último flanco: desplaza un bit"
+ },
+ "columnas": [
+  "CLR",
+  "CLK",
+  "A",
+  "B"
+ ],
+ "salidas": [
+  "QA",
+  "QB",
+  "QH"
+ ],
+ "filas": [
+  "0 X X X > 0 0 0",
+  "1 0 X X > Q0 Q0 Q0",
+  "1 r 1 1 > 1 QAn QGn",
+  "1 r 0 X > 0 QAn QGn",
+  "1 r X 0 > 0 QAn QGn"
+ ],
+ "notas": [
+  "Las columnas de salida son QA, QB y QH; la hoja escribe 'QA QB ... QH'. Cada Q de QB a QH toma el valor previo de la etapa anterior (QAn a QGn).",
+  "SCLS115G p. 14: 'Data at A and B can be changed while CLK is high or low, provided that the minimum set-up time requirements are met'. QH se descarta en cada flanco."
+ ]
+}

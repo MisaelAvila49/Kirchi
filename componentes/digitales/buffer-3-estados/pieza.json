@@ -68,7 +68,7 @@
         "parte": "CD4503BE",
         "hoja": "https://www.ti.com/lit/ds/symlink/cd4503b.pdf",
         "pendiente": {
-          "patillas": "el CD4503B es un búfer séxtuple con dos entradas de deshabilitación compartidas (patillas 1 y 15) y activas en alto; no encaja con un OE propio activo en bajo. Entradas D1 a D6 en 2, 4, 6, 10, 12 y 14; salidas Q1 a Q6 en 3, 5, 7, 9, 11 y 13; DISABLE A 1 (búferes 1 a 4), DISABLE B 15 (búferes 5 y 6); VDD 16, VSS 8 (TI CD4503B, diagrama funcional, una fuente)",
+          "patillas": "el CD4503B es un búfer séxtuple con dos entradas de deshabilitación compartidas (pines 1 y 15) y activas en alto; no encaja con un OE propio activo en bajo. Entradas D1 a D6 en 2, 4, 6, 10, 12 y 14; salidas Q1 a Q6 en 3, 5, 7, 9, 11 y 13; DISABLE A 1 (búferes 1 a 4), DISABLE B 15 (búferes 5 y 6); VDD 16, VSS 8 (TI CD4503B, diagrama funcional, una fuente)",
           "lcsc": "no se halló un número LCSC de esta parte"
         },
         "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4503B, diagrama funcional p. 1 (imagen); sin segunda fuente y con lógica distinta del modelo" }

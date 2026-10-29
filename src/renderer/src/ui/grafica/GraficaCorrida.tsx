@@ -299,7 +299,7 @@ export default function GraficaCorrida(props: Props) {
               onCerrar={cerrarAspecto}
             />
           </Show>
-          <div class="gr-cuerpo">
+          <div class="gr-cuerpo" data-lectura={lectura().length > 0 ? '' : undefined}>
             <div class="gr-principal">
               <div class="gr-marco" data-paneles={aspecto().informe ? m().paneles.length : 1}>
                 <GraficaCanvas
@@ -328,17 +328,17 @@ export default function GraficaCorrida(props: Props) {
                   )}
                 </For>
               </ul>
-              <Show when={lectura().length > 0}>
-                <div class="gr-lectura-caja">
-                  <div class="gr-lectura cifra" role="status" aria-label="Valores bajo los cursores">
-                    <For each={lectura()}>{(l) => <div>{l}</div>}</For>
-                  </div>
-                  <button type="button" class="boton" aria-expanded={detalleCursores()} onClick={() => setDetalleCursores((d) => !d)}>
-                    {detalleCursores() ? 'Ocultar detalles' : 'Ver detalles'}
-                  </button>
-                </div>
-              </Show>
             </div>
+            <Show when={lectura().length > 0}>
+              <div class="gr-lectura-caja">
+                <div class="gr-lectura cifra" role="status" aria-label="Valores bajo los cursores">
+                  <For each={lectura()}>{(l) => <div>{l}</div>}</For>
+                </div>
+                <button type="button" class="boton" aria-expanded={detalleCursores()} onClick={() => setDetalleCursores((d) => !d)}>
+                  {detalleCursores() ? 'Ocultar detalles' : 'Ver detalles'}
+                </button>
+              </div>
+            </Show>
             <div class="gr-lado">
               <Show when={sinEditar()}>
                 <p class="deriv">En esta ventana el aspecto vale mientras esté abierta; para guardarlo con el análisis, cámbialo en la ventana principal.</p>

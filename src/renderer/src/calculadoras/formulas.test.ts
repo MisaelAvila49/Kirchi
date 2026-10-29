@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { amplificador, astable555, type Calculo, divisor, filtroRC, led, monoestable555, potenciaNominal, vfLed, VT } from './formulas'
+import { amplificador, astable555, type Calculo, derivador, divisor, filtroRC, instrumentacion, integrador, led, monoestable555, potenciaNominal, sumador, vfLed, VT } from './formulas'
 import { redondeoDe } from './redondeo'
 
 const E12 = redondeoDe('E12')
@@ -282,5 +282,138 @@ describe('amplificador', () => {
     expect(error(amplificador({ ...base, vs: 0 }))).toMatch(/fuente/)
     expect(error(amplificador({ ...base, vin: -1 }))).toMatch(/negativa/)
     expect(ok(amplificador({ ...base, g: 0.5 })).gReal).toBeCloseTo(-0.5, 9)
+  })
+})
+
+describe('integrador', () => {
+  const base = { rin: 1000, fu: 1000, vin: 0.5, f: 1000, vs: 15, modelo: LM741 }
+  it('sin Rf: C = 1 / (2π · Rin · fu) y la salida es Vin · fu / f', () => {
+    const r = ok(integrador(base))
+    expect(r.c).toBeCloseTo(159.155e-9, 12)
+    expect(r.gSenal).toBeCloseTo(1, 9)
+    expect(r.vpico).toBeCloseTo(0.5, 9)
+    expect(r.tau).toBeCloseTo(159.155e-6, 9)
+    expect(r.avisos.some((a) => /Sin Rf/.test(a))).toBe(true)
+    // A una décima de la frecuencia la ganancia sube diez veces.
+    expect(ok(integrador({ ...base, f: 100 })).gSenal).toBeCloseTo(10, 9)
+  })
+  it('con E12 el capacitor comercial mueve la ganancia 1 a 1.061 kHz', () => {
+    const r = ok(integrador(base, E12))
+    expect(r.cc).toBeCloseTo(150e-9, 15)
+    expect(r.fuReal).toBeCloseTo(1 / (2 * Math.PI * 1000 * 150e-9), 6)
+    expect(r.gSenal).toBeCloseTo(1.061, 3)
+  })
+  it('con Rf en paralelo: fp = 1 / (2π · Rf · C) y la ganancia a la frecuencia de la señal baja con √(1 + (f / fp)²)', () => {
+    const r = ok(integrador({ ...base, gdc: 10 }))
+    expect(r.rfc).toBeCloseTo(10000, 6)
+    expect(r.fp).toBeCloseTo(1 / (2 * Math.PI * 10000 * r.cc), 9)
+    expect(r.fp).toBeCloseTo(100, 0)
+    expect(r.gSenal).toBeCloseTo(10 / Math.sqrt(1 + (1000 / r.fp!) ** 2), 9)
+    expect(r.gSenal).toBeCloseTo(0.995, 3)
+  })
+  it('avisa si la señal está cerca de fp, si recorta y marca la entrada máxima', () => {
+    expect(ok(integrador({ ...base, gdc: 10, f: 200 })).avisos.some((a) => /amplifica en vez de integrar/.test(a))).toBe(true)
+    const r = ok(integrador({ ...base, vin: 20 }))
+    expect(r.satura).toBe(true)
+    expect(r.vinMax).toBeCloseTo(14, 9)
+    expect(r.avisos[0]).toMatch(/se recorta/)
+  })
+  it('casos borde', () => {
+    expect(error(integrador({ ...base, rin: 0 }))).toMatch(/Rin/)
+    expect(error(integrador({ ...base, fu: 0 }))).toMatch(/ganancia 1/)
+    expect(error(integrador({ ...base, f: 0 }))).toMatch(/frecuencia de la señal/)
+    expect(error(integrador({ ...base, gdc: 0.5 }))).toMatch(/1 o más/)
+    expect(error(integrador({ ...base, vin: -1 }))).toMatch(/negativa/)
+  })
+})
+
+describe('derivador', () => {
+  const base = { cap: 100e-9, fu: 1000, vin: 0.5, f: 1000, vs: 15, modelo: LM741 }
+  it('Rf = 1 / (2π · fu · C) y la salida es Vin · f / fu', () => {
+    const r = ok(derivador(base))
+    expect(r.rf).toBeCloseTo(1591.549, 2)
+    expect(r.gSenal).toBeCloseTo(1, 9)
+    expect(ok(derivador({ ...base, f: 100 })).gSenal).toBeCloseTo(0.1, 9)
+    expect(r.avisos.some((a) => /Sin Rs/.test(a))).toBe(true)
+  })
+  it('con E12 sale Rf de 1.5 k y la ganancia 1 en 1.061 kHz', () => {
+    const r = ok(derivador(base, E12))
+    expect(r.rfc).toBe(1500)
+    expect(r.fuReal).toBeCloseTo(1061.03, 1)
+    expect(r.gSenal).toBeCloseTo(0.9425, 3)
+  })
+  it('con Rs: fs = 1 / (2π · Rs · C), ganancia en alta Rf / Rs y la ganancia a la señal baja con √(1 + (f / fs)²)', () => {
+    const r = ok(derivador({ ...base, rs: 150 }, E12))
+    expect(r.fs).toBeCloseTo(10610.3, 0)
+    expect(r.gAlta).toBeCloseTo(10, 9)
+    expect(r.gSenal).toBeCloseTo(0.9383, 3)
+    expect(ok(derivador({ ...base, rs: 150, f: 20e3 }, E12)).avisos.some((a) => /deja de derivar/.test(a))).toBe(true)
+  })
+  it('recorta y avisa, y casos borde', () => {
+    const r = ok(derivador({ ...base, vin: 20 }))
+    expect(r.satura).toBe(true)
+    expect(r.vinMax).toBeCloseTo(14, 9)
+    expect(error(derivador({ ...base, cap: 0 }))).toMatch(/capacitancia/)
+    expect(error(derivador({ ...base, fu: -1 }))).toMatch(/ganancia 1/)
+  })
+})
+
+describe('sumador', () => {
+  const base = { rf: 10e3, g: [1, 2], v: [1, 0.5], vs: 15, modelo: LM741 }
+  it('Ri = Rf / Gi y la salida es −Σ (Rf / Ri) · Vi', () => {
+    const r = ok(sumador(base))
+    expect(r.ri).toEqual([10000, 5000])
+    expect(r.vout).toBeCloseTo(-2, 9)
+    expect(r.ancho).toBeCloseTo(1e6 / 4, 3)
+  })
+  it('con E12 la entrada de ganancia 2 usa 4.7 k y da 2.128', () => {
+    const r = ok(sumador(base, E12))
+    expect(r.ric).toEqual([10000, 4700])
+    expect(r.gReal[1]).toBeCloseTo(10000 / 4700, 9)
+    expect(r.vout).toBeCloseTo(-(1 + (10000 / 4700) * 0.5), 9)
+  })
+  it('acepta señales negativas, de 2 a 4 entradas, y recorta con la fuente corta', () => {
+    expect(ok(sumador({ ...base, v: [1, -3] })).vout).toBeCloseTo(5, 9)
+    const cuatro = ok(sumador({ rf: 10e3, g: [1, 1, 1, 1], v: [1, 2, 3, 4], vs: 15, modelo: LM741 }))
+    expect(cuatro.vout).toBeCloseTo(-10, 9)
+    expect(cuatro.escala).toBeCloseTo(1.4, 9)
+    const r = ok(sumador({ ...base, v: [5, 5], vs: 5 }))
+    expect(r.satura).toBe(true)
+    expect(r.avisos[0]).toMatch(/se recorta/)
+    expect(error(sumador({ ...base, g: [1] }))).toMatch(/2 a 4/)
+    expect(error(sumador({ ...base, g: [1, 0] }))).toMatch(/ganancia/)
+    expect(error(sumador({ ...base, rf: 0 }))).toMatch(/Rf/)
+  })
+})
+
+describe('amplificador de instrumentación', () => {
+  const base = { g: 10, r: 10e3, rd: 10e3, vd: 0.01, vcm: 1, vs: 15, modelo: LM741 }
+  it('Rg = 2R / (G − 1) y G = 1 + 2R / Rg', () => {
+    const r = ok(instrumentacion(base))
+    expect(r.rg).toBeCloseTo(2222.22, 1)
+    expect(r.gReal).toBeCloseTo(10, 9)
+    expect(r.vout).toBeCloseTo(0.1, 9)
+    expect(r.vu1).toBeCloseTo(1.05, 9)
+    expect(r.vu2).toBeCloseTo(0.95, 9)
+  })
+  it('con E12 Rg es 2.2 k y la ganancia 10.09', () => {
+    const r = ok(instrumentacion(base, E12))
+    expect(r.rgc).toBe(2200)
+    expect(r.gReal).toBeCloseTo(1 + 20000 / 2200, 9)
+    // La señal diferencial máxima la fija el más estrecho de los tres límites: la salida, con 14 V.
+    expect(r.vdMax).toBeCloseTo(14 / r.gReal, 9)
+  })
+  it('un modo común grande recorta una etapa de entrada aunque la salida quepa', () => {
+    const r = ok(instrumentacion({ ...base, vcm: 13.8, vd: 0.1 }))
+    expect(r.vout).toBeCloseTo(1, 9)
+    expect(r.satura).toBe(true)
+    expect(r.avisos[0]).toMatch(/amplificador de entrada/)
+    expect(r.vdMax).toBeCloseTo((2 * (14 - 13.8)) / 10, 9)
+  })
+  it('casos borde: ganancia 1 o menor, resistencias y fuente no positivas', () => {
+    expect(error(instrumentacion({ ...base, g: 1 }))).toMatch(/mayor que 1/)
+    expect(error(instrumentacion({ ...base, g: 0 }))).toMatch(/ganancia/)
+    expect(error(instrumentacion({ ...base, r: 0 }))).toMatch(/R debe/)
+    expect(error(instrumentacion({ ...base, vs: 0 }))).toMatch(/fuente/)
   })
 })

@@ -2,16 +2,21 @@ import { createEffect, createMemo, createSignal, For, on, onCleanup, onMount, Sh
 import type { Punto } from '../../doc/tipos'
 import type { Caja } from '../../piezas/tipos'
 import { colocarGlobo, rectDeFoco, type Rect } from './colocacion'
-import { debeEncuadrar, zonaFueraDeVista } from './encuadre'
+import { debeEncuadrar, sobresaleDelPanel, zonaFueraDeVista } from './encuadre'
 import { trazoVelo, unirFocos } from './velo'
 import type { ControlTutorial } from './control'
 import { avanzaSolo, reservaBarra } from './automatico'
+import IconoCinta from '../cinta/IconoCinta'
+import { TRAZOS, type NombreIcono } from '../cinta/trazos'
 import GestoIcono from './GestoIcono'
+import { pasoSobreDialogo } from './sobreDialogo'
 import { partirTexto, textoLlano } from './texto'
 import type { CtxTutorial, Objetivo } from './tipos'
 
 /** Cuánto espera un paso cumplido antes de pasar solo al siguiente (con la barra de avance a la vista). */
 export const ESPERA_AUTOMATICA_MS = 2400
+/** Hasta cuántos pasos se dibuja un punto por paso; con más, una barra de avance. */
+const PUNTOS_MAX = 10
 const AIRE_FOCO = 4
 const ANCHO_GLOBO = 320
 /** Cada cuánto se vuelve a medir el objetivo por si la cinta, un panel o la ventana cambiaron de lugar sin avisar. */
@@ -43,11 +48,38 @@ interface Props {
 const igualRect = (a: Rect | null, b: Rect | null): boolean =>
   a === b || (!!a && !!b && Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) < 0.5 && Math.abs(a.w - b.w) < 0.5 && Math.abs(a.h - b.h) < 0.5)
 
-/** Primer elemento del selector que tiene tamaño (en la cinta hay un botón por pestaña y solo el de la pestaña a la vista se ve). */
-function rectDeControl(selector: string): Rect | null {
+/** El panel con desplazamiento que contiene a `el` (el más cercano), si lo hay. */
+function panelConDesplazamiento(el: HTMLElement): HTMLElement | null {
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const o = getComputedStyle(p).overflowY
+    if ((o === 'auto' || o === 'scroll') && p.scrollHeight > p.clientHeight) return p
+  }
+  return null
+}
+
+const rectDeElemento = (el: HTMLElement): Rect => {
+  const r = el.getBoundingClientRect()
+  return { x: r.left, y: r.top, w: r.width, h: r.height }
+}
+
+/**
+ * Primer elemento del selector que tiene tamaño (en la cinta hay un botón por pestaña y solo el de la pestaña a la vista se ve).
+ * Si vive en un panel con desplazamiento y queda fuera, el panel se desplaza una vez (`desplazados`) para mostrarlo y el
+ * rectángulo se recorta a lo que el panel deja ver, así el marco no cae sobre lo de al lado.
+ */
+function rectDeControl(selector: string, desplazados?: WeakSet<Element>): Rect | null {
   for (const el of document.querySelectorAll<HTMLElement>(selector)) {
-    const r = el.getBoundingClientRect()
-    if (r.width > 0 && r.height > 0) return { x: r.left, y: r.top, w: r.width, h: r.height }
+    let r = rectDeElemento(el)
+    if (r.w <= 0 || r.h <= 0) continue
+    const panel = panelConDesplazamiento(el)
+    if (!panel) return r
+    const c = rectDeElemento(panel)
+    if (desplazados && !desplazados.has(el) && sobresaleDelPanel(r, c)) {
+      desplazados.add(el)
+      el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' })
+      r = rectDeElemento(el)
+    }
+    return intersecar(r, c)
   }
   return null
 }
@@ -84,7 +116,9 @@ export default function Tutorial(props: Props) {
   })
 
   // Cada cambio del editor, de la simulación o de la cámara se revisa contra la condición del paso.
+  // También con el repaso periódico: algunas condiciones se leen de la pantalla (el botón Cursores de la gráfica) y no avisan.
   createEffect(() => {
+    repaso()
     if (estado()) props.control.evaluar(props.ctx())
   })
 
@@ -93,11 +127,15 @@ export default function Tutorial(props: Props) {
     return e ? e.capitulo.pasos[e.paso] : null
   }
 
+  // Cada paso desplaza su panel una sola vez: después el lector manda y el marco solo sigue a la zona.
+  let desplazados = new WeakSet<Element>()
+  createEffect(on(() => (estado() ? `${estado()!.capitulo.id}:${estado()!.paso}` : null), () => (desplazados = new WeakSet<Element>())))
+
   /** Un objetivo, ya en la ventana (null si no está a la vista). */
   const rectDe = (o: Objetivo): Rect | null => {
     if (o.tipo === 'control') {
       // Un botón de una pestaña de la cinta que no está a la vista se señala con su pestaña.
-      return rectDeControl(o.selector) ?? (o.respaldo ? rectDeControl(o.respaldo) : null) ?? (o.pestana ? rectDeControl(`#cinta-pestana-${o.pestana}`) : null)
+      return rectDeControl(o.selector, desplazados) ?? (o.respaldo ? rectDeControl(o.respaldo) : null) ?? (o.pestana ? rectDeControl(`#cinta-pestana-${o.pestana}`) : null)
     }
     if (o.tipo === 'zona') {
       const a = props.aPantalla({ x: o.caja.minX, y: o.caja.minY })
@@ -146,7 +184,24 @@ export default function Tutorial(props: Props) {
     const e = estado()
     return e ? `${e.capitulo.id}:${e.paso}` : null
   })
-  const sitio = createMemo(() => colocarGlobo({ objetivo: foco(), globo: medida(), ventana: ventana(), preferido: paso()?.lado }))
+  // El editor de valores, el buscador y la barra de formato del texto se dibujan sobre el globo: se mide dónde están para que el globo se aparte.
+  const estorbos = createMemo<Rect[]>(
+    () => {
+      repaso()
+      const out: Rect[] = []
+      for (const el of document.querySelectorAll<HTMLElement>('.en-linea, .buscador, .barra-formato')) {
+        const r = el.getBoundingClientRect()
+        if (r.width > 0 && r.height > 0) out.push({ x: r.left, y: r.top, w: r.width, h: r.height })
+      }
+      return out
+    },
+    [],
+    { equals: (a, b) => a.length === b.length && a.every((r, i) => igualRect(r, b[i])) }
+  )
+  const sitio = createMemo(() => {
+    const lado = paso()?.lado
+    return colocarGlobo({ objetivo: foco(), globo: medida(), ventana: ventana(), preferido: typeof lado === 'function' ? lado(props.ctx()) : lado, evitar: estorbos() })
+  })
 
   // Un paso cumplido pasa solo al siguiente tras una espera con barra de avance. Se detiene mientras el globo tiene el ratón
   // encima o el foco dentro, y se reanuda al soltarlo; Configuración puede apagarlo (entonces se pulsa Siguiente).
@@ -212,17 +267,38 @@ export default function Tutorial(props: Props) {
     return !!p && !props.oculto && !estado()?.cumplido && (p.fueraDeSombra?.(props.ctx()) ?? false)
   })
 
+  /** Un paso «Mira» solo se lee: no hay acción que comprobar y se avanza con «Siguiente». */
+  const esMira = () => paso()?.tipo === 'mira'
   const ultimo = () => {
     const e = estado()
     return !!e && e.paso === e.capitulo.pasos.length - 1
   }
+
+  /** El texto de un paso (o su pista) con sus marcas dibujadas: código, iconos, gestos y teclas vigentes. */
+  const Partes = (p: { texto: string }) => (
+    <For each={partirTexto(p.texto, props.teclaDe)}>
+      {(parte) => (parte.tipo === 'texto' ? parte.texto : parte.tipo === 'codigo' ? <code class="tutorial-codigo">{parte.texto}</code> : parte.tipo === 'icono' ? (
+          <span class="tutorial-icono">
+            <Show when={Object.hasOwn(TRAZOS, parte.id)}>
+              <IconoCinta nombre={parte.id as NombreIcono} />
+            </Show>
+            {parte.texto}
+          </span>
+        ) : parte.tipo === 'gesto' ? (
+          <span class="tutorial-gesto">
+            <GestoIcono id={parte.id} />
+            {parte.texto}
+          </span>
+        ) : parte.tecla ? <kbd>{parte.tecla}</kbd> : <b>{props.nombreDe(parte.id)}</b>)}
+    </For>
+  )
 
   return (
     <Show when={estado() && !props.oculto ? estado() : null}>
       {(e) => (
         <>
           <Show when={velo()}>
-            <svg class="tutorial-velo" classList={{ cumplido: e().cumplido }} width={ventana().w} height={ventana().h} aria-hidden="true">
+            <svg class="tutorial-velo" classList={{ cumplido: e().cumplido, 'sobre-dialogo': pasoSobreDialogo(estado()) }} width={ventana().w} height={ventana().h} aria-hidden="true">
               <path class="tutorial-velo-relleno" fill-rule="evenodd" d={velo()} />
               <For each={unirFocos(focos())}>
                 {(f) => <rect class="tutorial-foco-marco" x={f.x} y={f.y} width={f.w} height={f.h} rx={Math.min(8, f.w / 2, f.h / 2)} />}
@@ -238,7 +314,7 @@ export default function Tutorial(props: Props) {
               onCleanup(() => ro.disconnect())
             }}
             class="tutorial-globo"
-            classList={{ cumplido: e().cumplido }}
+            classList={{ cumplido: e().cumplido, 'sobre-dialogo': pasoSobreDialogo(estado()) }}
             data-lado={sitio().lado}
             aria-label={`Aprende Kirchi, capítulo ${e().capitulo.numero}`}
             style={{ left: `${sitio().x}px`, top: `${sitio().y}px`, width: `${ANCHO_GLOBO}px`, '--flecha': `${sitio().flecha}px` }}
@@ -249,33 +325,37 @@ export default function Tutorial(props: Props) {
           >
             <div class="tutorial-tope">
               <span class="tutorial-cap">
-                {e().cumplido ? `Paso ${e().paso + 1} de ${e().capitulo.pasos.length} · Cumplido` : `Capítulo ${e().capitulo.numero} · Paso ${e().paso + 1} de ${e().capitulo.pasos.length}`}
+                {e().cumplido ? `Paso ${e().paso + 1} de ${e().capitulo.pasos.length} · Cumplido` : `Capítulo ${e().capitulo.numero} · ${esMira() ? 'Mira' : 'Haz'} · Paso ${e().paso + 1} de ${e().capitulo.pasos.length}`}
               </span>
-              <span class="tutorial-puntos" aria-hidden="true">
-                <For each={e().capitulo.pasos}>
-                  {(_, i) => <i classList={{ h: i() < e().paso, a: i() === e().paso && !e().cumplido, ok: i() === e().paso && e().cumplido }} />}
-                </For>
-              </span>
+              <Show
+                when={e().capitulo.pasos.length <= PUNTOS_MAX}
+                fallback={
+                  <span class="tutorial-progreso" aria-hidden="true">
+                    <b style={{ width: `${Math.round(((e().paso + (e().cumplido ? 1 : 0)) / e().capitulo.pasos.length) * 100)}%` }} />
+                  </span>
+                }
+              >
+                <span class="tutorial-puntos" aria-hidden="true">
+                  <For each={e().capitulo.pasos}>
+                    {(_, i) => <i classList={{ h: i() < e().paso, a: i() === e().paso && !e().cumplido, ok: i() === e().paso && e().cumplido }} />}
+                  </For>
+                </span>
+              </Show>
             </div>
             <Show
               when={e().cumplido}
               fallback={
                 <>
                   <p class="tutorial-texto">
-                    <For each={partirTexto(paso()!.texto, props.teclaDe)}>
-                      {(parte) => (parte.tipo === 'texto' ? parte.texto : parte.tipo === 'gesto' ? (
-                          <span class="tutorial-gesto">
-                            <GestoIcono id={parte.id} />
-                            {parte.texto}
-                          </span>
-                        ) : parte.tecla ? <kbd>{parte.tecla}</kbd> : <b>{props.nombreDe(parte.id)}</b>)}
-                    </For>
+                    <Partes texto={paso()!.texto} />
                   </p>
                   <Show when={fuera()}>
                     <p class="tutorial-pista tutorial-fuera">Colócalo sobre la sombra, con el mismo giro.</p>
                   </Show>
                   <Show when={paso()!.pista}>
-                    <p class="tutorial-pista">{paso()!.pista}</p>
+                    <p class="tutorial-pista">
+                      <Partes texto={paso()!.pista!} />
+                    </p>
                   </Show>
                 </>
               }
@@ -312,10 +392,10 @@ export default function Tutorial(props: Props) {
                 <button
                   type="button"
                   class="boton tutorial-accion"
-                  classList={{ principal: e().cumplido }}
+                  classList={{ principal: e().cumplido || esMira() }}
                   onClick={() => (e().cumplido ? props.control.siguiente() : props.control.saltar(), props.alAccion())}
                 >
-                  {e().cumplido ? (ultimo() ? 'Terminar' : 'Siguiente') : 'Saltar paso'}
+                  {e().cumplido || esMira() ? (ultimo() ? 'Terminar' : 'Siguiente') : 'Saltar paso'}
                 </button>
               </div>
             </div>

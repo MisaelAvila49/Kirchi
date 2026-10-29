@@ -38,27 +38,27 @@ test.afterAll(async () => {
 /** El tema se cambia desde la propia pestaña Apariencia: el botón de la cinta queda bajo el velo del diálogo. */
 async function ponerTema(tema: 'claro' | 'oscuro'): Promise<void> {
   await pestaña('Apariencia').click()
-  await page.getByRole('radio', { name: new RegExp('^' + tema, 'i') }).check()
+  await page.getByRole('tabpanel').getByText(tema === 'claro' ? 'Claro' : 'Oscuro', { exact: true }).click()
   await expect(page.locator('html')).toHaveAttribute('data-tema', tema)
 }
 
 const pestaña = (nombre: string) => page.getByRole('tablist', { name: 'Secciones de Configuración' }).getByRole('tab', { name: nombre, exact: true })
 
-test('las cinco pestañas se recorren con flechas, Inicio y Fin', async () => {
+test('las cinco pestañas (en columna) se recorren con flechas arriba y abajo, Inicio y Fin', async () => {
   await expect(page.getByRole('tablist', { name: 'Secciones de Configuración' }).getByRole('tab')).toHaveText(PESTAÑAS)
   await pestaña('General').focus()
   for (const siguiente of PESTAÑAS.slice(1)) {
-    await page.keyboard.press('ArrowRight')
+    await page.keyboard.press('ArrowDown')
     await expect(pestaña(siguiente)).toHaveAttribute('aria-selected', 'true')
     await expect(pestaña(siguiente)).toBeFocused()
   }
-  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('ArrowDown')
   await expect(pestaña('General')).toBeFocused()
   await page.keyboard.press('End')
   await expect(pestaña('Atajos')).toBeFocused()
   await page.keyboard.press('Home')
   await expect(pestaña('General')).toBeFocused()
-  await page.keyboard.press('ArrowLeft')
+  await page.keyboard.press('ArrowUp')
   await expect(pestaña('Atajos')).toHaveAttribute('aria-selected', 'true')
 })
 

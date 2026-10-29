@@ -461,22 +461,35 @@ function tramoMinimo(w: Extract<ElementoMotor, { type: 'V' }>['wave']): number {
  * 250 Hz y 50 con tope de 20 µs desde ahí (un rectificador a 60 Hz con 50 se alejaba 2.5 % de la cota fina), la mitad del
  * tramo más corto de sus flancos y 500 por pantalla de osciloscopio; nunca menos de 10 ns. */
 export function pasoDeVistaPrevia(n: NetlistMotor, bases: readonly number[] = []): number {
-  let h = PASO_VISTA
-  for (const e of n.elements) {
-    if (e.type !== 'V' || e.wave.kind === 'dc') continue
-    // Una onda por tramos no tiene frecuencia: solo cuentan sus esquinas.
-    if (e.wave.kind === 'pwl') {
-      h = Math.min(h, PASO_POR_TRAMO * tramoMinimo(e.wave))
-      continue
-    }
-    const f = e.wave.freq
-    // Hasta 250 Hz, 200 pasos por periodo (el rectificador a 60 Hz con 50 se alejaba 2.5 % de la cota fina); de ahí en adelante,
-    // los 50 de siempre con tope de 20 µs, así que nunca es más fino que `pasoDeSimulacion`.
-    h = Math.min(h, Math.max(1 / (PASOS_POR_PERIODO_FINO * f), Math.min(1 / (PASOS_POR_PERIODO * f), PASO_MAX)), PASO_POR_TRAMO * tramoMinimo(e.wave))
-  }
-  for (const b of bases) h = Math.min(h, (DIVISIONES_H * b) / PASOS_POR_PANTALLA)
-  return Math.max(PASO_MIN, h)
+  const t = topesDeVistaPrevia(n, bases)
+  return t.fuentes.reduce((h, [, hk]) => Math.min(h, hk), t.libre)
 }
+
+/** El paso de `pasoDeVistaPrevia` repartido por isla: `libre` (20 pasos por cuadro y las pantallas del osciloscopio) vale en
+ * todas, y el de cada fuente periódica (índice de elemento y paso) solo en la isla de la fuente (`Simulator.topes_de_paso`). */
+export function topesDeVistaPrevia(n: NetlistMotor, bases: readonly number[] = []): { libre: number; fuentes: [number, number][] } {
+  let libre = PASO_VISTA
+  for (const b of bases) libre = Math.min(libre, (DIVISIONES_H * b) / PASOS_POR_PANTALLA)
+  libre = Math.max(PASO_MIN, libre)
+  const fuentes: [number, number][] = []
+  n.elements.forEach((e, k) => {
+    if (e.type !== 'V' || e.wave.kind === 'dc') return
+    let h: number
+    // Una onda por tramos no tiene frecuencia: solo cuentan sus esquinas.
+    if (e.wave.kind === 'pwl') h = PASO_POR_TRAMO * tramoMinimo(e.wave)
+    else {
+      const f = e.wave.freq
+      // Hasta 250 Hz, 200 pasos por periodo (el rectificador a 60 Hz con 50 se alejaba 2.5 % de la cota fina); de ahí en adelante,
+      // los 50 de siempre con tope de 20 µs, así que nunca es más fino que `pasoDeSimulacion`.
+      h = Math.min(Math.max(1 / (PASOS_POR_PERIODO_FINO * f), Math.min(1 / (PASOS_POR_PERIODO * f), PASO_MAX)), PASO_POR_TRAMO * tramoMinimo(e.wave))
+    }
+    if (h < libre) fuentes.push([k, Math.max(PASO_MIN, h)])
+  })
+  return { libre, fuentes }
+}
+
+/** Los topes en el arreglo plano que pide `Simulator.topes_de_paso` (elemento y paso, uno tras otro). */
+export const topesPlanos = (t: { fuentes: [number, number][] }): Float64Array => Float64Array.from(t.fuentes.flat())
 
 /** Las bases de tiempo de los osciloscopios con algún canal encendido (las que acotan el paso). */
 export function basesDeTiempo(r: ResultadoNetlist): number[] {

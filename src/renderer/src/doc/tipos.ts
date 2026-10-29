@@ -14,8 +14,8 @@ export type Rotacion = 0 | 90 | 180 | 270
 export type LugarTexto = 'arriba' | 'arriba-derecha' | 'derecha' | 'abajo-derecha' | 'abajo' | 'abajo-izquierda' | 'izquierda' | 'arriba-izquierda'
 /** Un lugar alrededor del cuerpo o, movido con Alt, el centro del texto en unidades del símbolo (antes de girar). */
 export type PosicionTexto = { lugar: LugarTexto } | { x: number; y: number }
-/** Los textos de una pieza que se mueven: su referencia y su valor (el voltaje de un terminal). */
-export type CualTexto = 'ref' | 'valor'
+/** Los textos de una pieza que se mueven: su referencia, su valor (el voltaje de un terminal) y, en las piezas que se ajustan, el ajuste. */
+export type CualTexto = 'ref' | 'valor' | 'ajuste'
 
 export interface Pieza {
   id: Id

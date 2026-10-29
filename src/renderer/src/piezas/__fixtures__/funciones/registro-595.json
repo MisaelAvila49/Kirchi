@@ -1,0 +1,45 @@
+{
+ "fuente": [
+  {
+   "familia": "74HC",
+   "documento": "TI SN54HC595, SN74HC595, SCLS041J",
+   "revision": "oct 2021",
+   "paginas": "12",
+   "tabla": "Table 8-1. Function Table"
+  },
+  {
+   "familia": "74LS",
+   "documento": "TI SN54LS595, SN54LS596, SN74LS595, SN74LS596, SDLS006",
+   "revision": "mar 1988",
+   "paginas": "1 (descripción)",
+   "tabla": "la hoja no trae tabla; el texto de la p. 1 dice lo mismo (nombres SRCK, RCK, G)"
+  }
+ ],
+ "simbolos": {
+  "r": "flanco de subida",
+  "X": "no importa"
+ },
+ "columnas": [
+  "SER",
+  "SRCLK",
+  "SRCLR",
+  "RCLK",
+  "OE"
+ ],
+ "salidas": [
+  "funcion"
+ ],
+ "filas": [
+  "X X X X 1 > salidas QA a QH desactivadas (alta impedancia)",
+  "X X X X 0 > salidas QA a QH activadas",
+  "X X 0 X X > el registro de desplazamiento se borra",
+  "0 r 1 X X > la primera etapa va a bajo; las demás toman el dato de la anterior",
+  "1 r 1 X X > la primera etapa va a alto; las demás toman el dato de la anterior",
+  "X X X r X > el dato del registro de desplazamiento pasa al registro de almacenamiento"
+ ],
+ "notas": [
+  "SCLS041J p. 6, nota 1: con los dos relojes unidos 'the shift register is one clock pulse ahead of the storage register'.",
+  "SRCLR actúa solo sobre el registro de desplazamiento; el de almacenamiento sigue igual hasta el siguiente RCLK (p. 7, Fig. 6-1: SRCLR bajo con RCLK sube y las salidas se borran).",
+  "QH' es la salida serie del registro de desplazamiento (no pasa por OE)."
+ ]
+}

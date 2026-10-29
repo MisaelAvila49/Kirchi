@@ -69,6 +69,66 @@ describe('modo sin ventana', () => {
     expect(c.muestras).toHaveLength(50)
   })
 
+  it('una lectura corta de la TL431 y de la LM4040 da su referencia, con o sin muestras', () => {
+    // El paso de 250 µs es mucho más largo que el lazo interno: el trapecio lo dejaba oscilar y a 10 ms daba 2.818 V.
+    const tl: Parte[] = [
+      { tipo: 'fuente-dc', ref: 'V1', props: { voltaje: '12' }, pines: { '+': 'vcc', '-': '0' } },
+      { tipo: 'resistencia', ref: 'R1', props: { valor: '1k' }, pines: { '1': 'vcc', '2': 'k' } },
+      { tipo: 'tl431', ref: 'U1', props: {}, pines: { K: 'k', A: '0', REF: 'k' } },
+      { tipo: 'capacitor', ref: 'C1', props: { valor: '1u' }, pines: { '1': 'k', '2': '0' } }
+    ]
+    const lm: Parte[] = [tl[0], tl[1], { tipo: 'lm4040', ref: 'U1', props: { modelo: '2.5 V' }, pines: { K: 'k', A: '0' } }]
+    for (const [partes, vref] of [[tl.slice(0, 3), 2.495], [tl, 2.495], [lm, 2.5]] as const) {
+      for (const hasta of [0.001, 0.01]) {
+        s.abrirDocumento(conEtiquetas(lib, [...partes]))
+        s.simular({ hasta })
+        const sin = s.leer().redes.k
+        s.abrirDocumento(conEtiquetas(lib, [...partes]))
+        const con = s.simular({ hasta, muestrear: [{ t: hasta / 2, traza: 'k' }] })
+        expect(cerca(sin, vref, 2e-3), `${hasta} s: ${sin} V`).toBe(true)
+        expect(Math.abs(s.leer().redes.k - sin), `${hasta} s con muestras`).toBeLessThan(1e-3)
+        expect(con.muestras![0].v).toBeCloseTo(sin, 2)
+      }
+    }
+  })
+
+  it('la salida del comparador no pasa de su riel al conmutar', () => {
+    // Su carga almacenada se vaciaba en un solo paso: con el trapecio la salida a 5 V llegaba a 6.96 V.
+    const partes: Parte[] = [
+      { tipo: 'fuente-dc', ref: 'V1', props: { voltaje: '5' }, pines: { '+': 'vcc', '-': '0' } },
+      { tipo: 'generador', ref: 'XFG1', props: { frecuencia: '1k', amplitud: '2', desplazamiento: '2.5' }, pines: { '+': 'mas', COM: '0' } },
+      { tipo: 'resistencia', ref: 'R2', props: { valor: '10k' }, pines: { '1': 'vcc', '2': 'menos' } },
+      { tipo: 'resistencia', ref: 'R3', props: { valor: '10k' }, pines: { '1': 'menos', '2': '0' } },
+      { tipo: 'resistencia', ref: 'R4', props: { valor: '10k' }, pines: { '1': 'vcc', '2': 'out' } },
+      { tipo: 'comparador', ref: 'U1', props: {}, pines: { '+': 'mas', '-': 'menos', OUT: 'out', 'V+': 'vcc', 'V-': '0' } },
+      { tipo: 'osciloscopio', ref: 'XSC1', props: {}, pines: { A: 'out', B: '0', C: '0', D: '0' } }
+    ]
+    s.abrirDocumento(conEtiquetas(lib, partes))
+    s.simular({ hasta: 0.01 })
+    const c = s.leer().osciloscopios[0].canales[0]
+    expect(c.max!).toBeLessThan(5)
+    expect(c.min!).toBeGreaterThan(-0.05)
+    expect(cerca(c.frecuencia!, 1000, 1e-3)).toBe(true)
+  })
+
+  it('la frecuencia del resumen del osciloscopio deja fuera el arranque del LM386', () => {
+    // El nivel medio se mueve mientras carga el capacitor de salida: con el arranque dentro la cuenta perdía ciclos.
+    const partes: Parte[] = [
+      { tipo: 'fuente-dc', ref: 'V1', props: { voltaje: '9' }, pines: { '+': 'vs', '-': '0' } },
+      { tipo: 'generador', ref: 'XFG1', props: { frecuencia: '1k', amplitud: '0.2' }, pines: { '+': 'in', COM: '0' } },
+      { tipo: 'lm386', ref: 'U1', props: {}, pines: { 'IN+': 'in', 'IN-': '0', GAIN1: 'g1', GAIN8: 'g8', VS: 'vs', GND: '0', OUT: 'out', BYP: 'byp' } },
+      { tipo: 'capacitor-electrolitico', ref: 'C2', props: { valor: '250u' }, pines: { '+': 'out', '-': 'bocina' } },
+      { tipo: 'resistencia', ref: 'RL', props: { valor: '8' }, pines: { '1': 'bocina', '2': '0' } },
+      { tipo: 'osciloscopio', ref: 'XSC1', props: {}, pines: { A: 'out', B: 'bocina', C: '0', D: '0' } }
+    ]
+    // Tras el capacitor de salida, con todo lo corrido, medía 883.7 Hz a 10 ms y 991.1 Hz a 20 ms.
+    for (const [hasta, tolerancia] of [[0.01, 5e-3], [0.02, 1e-3]]) {
+      s.abrirDocumento(conEtiquetas(lib, partes))
+      s.simular({ hasta })
+      for (const c of s.leer().osciloscopios[0].canales.slice(0, 2)) expect(cerca(c.frecuencia!, 1000, tolerancia), `${hasta} s, ${c.canal}: ${c.frecuencia} Hz`).toBe(true)
+    }
+  })
+
   it('abrir, editar y guardar devuelve bytes que leerKir abre con el mismo documento', () => {
     const original = escribirKir(plantilla('divisor-de-voltaje'), 'prueba')
     s.abrir(original)
@@ -218,5 +278,21 @@ describe('región de los transistores en la lectura', () => {
   it('un NPN con poca base está en activa y con mucha, en saturación, con los nombres de la tabla común', () => {
     expect(region('1M')).toBe('activa')
     expect(region('10k')).toBe('saturación')
+  })
+})
+
+describe('chips con unidades en la sesión sin ventana', () => {
+  it('cuatro compuertas quedan en U1A a U1D, una unidad pedida se respeta, una ocupada se rechaza y agrupar renombra las sueltas', () => {
+    const t = new SesionSinVentana({ lib, version: 'prueba' })
+    t.crear()
+    for (let k = 0; k < 4; k++) expect(t.aplicar({ orden: 'colocar', tipo: 'nand', en: { x: k * 40, y: 0 } }).ok).toBe(true)
+    expect(Object.values(t.doc.piezas).map((p) => p.ref).sort()).toEqual(['U1A', 'U1B', 'U1C', 'U1D'])
+    expect(t.aplicar({ orden: 'colocar', tipo: 'nand', paquete: 'U1', unidad: 'B', en: { x: 0, y: 40 } })).toMatchObject({ ok: false, motivo: expect.stringContaining('ya está en uso por U1B') })
+    expect(t.aplicar({ orden: 'colocar', tipo: 'nand', unidad: 'C', en: { x: 0, y: 40 } }).ok).toBe(true)
+    expect(Object.values(t.doc.piezas).map((p) => p.ref)).toContain('U2C')
+    t.crear()
+    for (const ref of ['X1', 'X2']) expect(t.aplicar({ orden: 'colocar', tipo: 'nand', ref, en: { x: ref === 'X1' ? 0 : 40, y: 0 } }).ok).toBe(true)
+    const r = t.aplicar({ orden: 'agrupar' })
+    expect(r.ok && r.avisos.join(' ')).toContain('X1 → U1A, X2 → U1B')
   })
 })

@@ -9,5 +9,5 @@
   "fin": 0.3,
   "hmax": 2e-5,
   "tolerancia_t": 2e-5,
-  "columnas": { "i(v1)": { "corriente": 0 }, "v(th)": { "aux": 1 } }
+  "columnas": { "i(v1)": { "corriente": 0 }, "v(pw)": { "aux": 1 } }
 }

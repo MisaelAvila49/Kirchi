@@ -121,7 +121,8 @@ test('tamaño de la interfaz: el ajuste, las teclas del menú y la cinta mueven 
   expect(await factor(app)).toBe(1)
   await page.keyboard.press('Control+,')
   await page.getByRole('tab', { name: 'Apariencia' }).click()
-  await page.getByRole('radio', { name: '125 %' }).check()
+  await page.locator('.cfg-seg label').filter({ hasText: '125 %' }).click()
+  await expect(page.getByRole('radio', { name: '125 %' })).toBeChecked()
   await expect.poll(() => factor(app)).toBeCloseTo(1.25)
   await expect.poll(() => ajustesEnDisco(datos).tamañoInterfaz).toBe(125)
   // La tecla Ctrl++ del menú va al paso siguiente y Configuración muestra el vigente.
@@ -130,7 +131,6 @@ test('tamaño de la interfaz: el ajuste, las teclas del menú y la cinta mueven 
     Menu.getApplicationMenu()!.getMenuItemById('acercar')!.click(undefined, w, w.webContents)
   })
   await expect.poll(() => factor(app)).toBeCloseTo(1.5)
-  await expect(page.locator('#nota-tamaño-interfaz')).toContainText('150 %')
   await expect(page.getByRole('radio', { name: '150 %' })).toBeChecked()
   await page.keyboard.press('Escape')
   await app.close()

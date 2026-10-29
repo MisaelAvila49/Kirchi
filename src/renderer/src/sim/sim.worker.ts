@@ -1,7 +1,7 @@
 import init, { Simulator } from './pkg/kirchi_engine.js'
 import { avanzarSinColgarse, mensajeDeAtasco, PresupuestoDeIteraciones, VigilanteDeProgreso } from './atasco'
 import { BUDGET_MS, PresupuestoDeLote } from './lote'
-import { MAX_ELEMENTS, MAX_NODES, MAX_REDES_DIGITALES, VENTANA_PROMEDIO_MS, writeSim, type FromWorker, type PromedioSim, type ToWorker } from './protocol'
+import { MAX_ELEMENTS, MAX_NODES, MAX_REDES_DIGITALES, VENTANA_PROMEDIO_MS, writeSim, type FromWorker, type PromedioSim, type TopesDePaso, type ToWorker } from './protocol'
 import { InstrumentosEnWorker } from './instrumentosWorker'
 import { crearVistas } from './protocoloInstrumentos'
 
@@ -28,6 +28,9 @@ let lastWall = 0
 let ratio = 1
 let capacity = 0
 let idCarga = 0
+/** El paso máximo por isla vigente: `set_max_step` iguala todas las islas y se vuelven a poner. */
+let topes: TopesDePaso | null = null
+const ponerTopes = (s: Simulator, t: TopesDePaso) => s.topes_de_paso(t.libre, Float64Array.from(t.fuentes.flat()))
 /** Paso máximo vigente (el de la carga o el último cambio de frecuencia en caliente). */
 let hMax = 0
 let timer: ReturnType<typeof setTimeout> | undefined
@@ -122,6 +125,8 @@ function publicar(forzar = false, cerrar = false) {
   }
   const bus = sim.take_conflictos()
   if (bus.length > 0) ctx.postMessage({ type: 'conflictos', id: idCarga, redes: Array.from(bus) })
+  const indefinidos = sim.take_indefinidos()
+  if (indefinidos.length > 0) ctx.postMessage({ type: 'indefinidos', id: idCarga, elementos: Array.from(indefinidos) })
   // Los instrumentos después: sus lecturas usan la memoria del WASM y el búfer de arriba ya se escribió.
   if (instrumentos) for (const c of instrumentos.publicar(ahora, forzar)) ctx.postMessage({ type: 'rango', id: idCarga, multimetro: c.multimetro, rango: c.rango })
 }
@@ -266,6 +271,8 @@ ctx.onmessage = async (e) => {
       sim = null
       instrumentos = null
       const fresh = new Simulator(m.netlist, m.h)
+      topes = m.topes ?? null
+      if (topes) ponerTopes(fresh, topes)
       const nodes = fresh.node_count()
       const elements = fresh.element_count()
       const redes = fresh.digital_count()
@@ -366,6 +373,14 @@ ctx.onmessage = async (e) => {
         rechazar(-1, err)
       }
     }
+    if (m.topes) topes = m.topes
+    if (topes && (m.topes || h !== undefined)) {
+      try {
+        ponerTopes(sim, topes)
+      } catch (err) {
+        rechazar(-1, err)
+      }
+    }
     // Lo que se promediaba antes del cambio ya no es lo que se ve: hasta el siguiente intervalo se lee el último paso.
     promedioInvalido = true
     calcularYa()
@@ -449,7 +464,7 @@ ctx.onmessage = async (e) => {
   } else if (m.type === 'captura-fina') {
     let registro = null
     try {
-      registro = sim ? (instrumentos?.capturaFina(m.osciloscopio, m.hasta) ?? null) : null
+      registro = sim ? (instrumentos?.capturaFina(m.osciloscopio, m.hasta, hMax) ?? null) : null
     } catch (err) {
       fail(err)
     }

@@ -1,0 +1,202 @@
+{
+ "fuente": {
+  "familias": [
+   "74HC",
+   "74LS"
+  ],
+  "documentos": [
+   {
+    "familia": "74HC",
+    "documento": "TI SN54HC165, SN74HC165, SCLS116H",
+    "revision": "dic 2015",
+    "pagina": 12,
+    "figura": "Figure 4, 'Typical Shift, Load, and Inhibit Sequence'"
+   },
+   {
+    "familia": "74LS",
+    "documento": "TI SN54165, SN54LS165A, SN74165, SN74LS165A, SDLS062D",
+    "revision": "feb 2002",
+    "pagina": 4,
+    "figura": "'typical shift, load, and inhibit sequences' (mismo estímulo y mismas salidas que la del HC)"
+   }
+  ],
+  "lectura": "Los tiempos salen de medir la figura sobre una rejilla de un período de reloj. Error de lectura estimado: 0.1 período. Los datos se bajaron en 1.5 en vez de 1.3 (en la figura caen casi junto con la subida de SH/LD) para respetar el tiempo de retención."
+ },
+ "escala": "t en períodos de reloj. El reloj sube en cada entero de 'subidas' y baja en 'bajadas'. Elegir el período mayor que 10 veces el retardo máximo de la hoja.",
+ "relojes": [
+  {
+   "senal": "CLK",
+   "inicial": 0,
+   "bajadas": [
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5,
+    6.5,
+    7.5,
+    8.5,
+    9.5,
+    10.5,
+    11.5
+   ],
+   "subidas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ]
+  }
+ ],
+ "inicial": {
+  "SH/LD": 1,
+  "CLK INH": 1,
+  "SER": 0,
+  "A": 0,
+  "B": 0,
+  "C": 0,
+  "D": 0,
+  "E": 0,
+  "F": 0,
+  "G": 0,
+  "H": 0
+ },
+ "pasos": [
+  {
+   "t": 0.5,
+   "entradas": {
+    "A": 1,
+    "C": 1,
+    "E": 1,
+    "G": 1,
+    "H": 1
+   }
+  },
+  {
+   "t": 0.75,
+   "entradas": {
+    "SH/LD": 0
+   }
+  },
+  {
+   "t": 1.25,
+   "entradas": {
+    "SH/LD": 1
+   }
+  },
+  {
+   "t": 1.5,
+   "entradas": {
+    "A": 0,
+    "C": 0,
+    "E": 0,
+    "G": 0,
+    "H": 0
+   }
+  },
+  {
+   "t": 3.25,
+   "entradas": {
+    "CLK INH": 0
+   }
+  }
+ ],
+ "salidas_codificadas": "QH y QHN (complemento de QH, pin 7); 'registro' = A a H cargados como cadena 'A B C D E F G H'",
+ "muestras": [
+  {
+   "t": 1.0,
+   "salidas": {
+    "QH": 1,
+    "QHN": 0,
+    "registro": "10101011"
+   },
+   "origen": "figura: 'Load' asíncrono (QH sube con SH/LD bajo, sin reloj)"
+  },
+  {
+   "t": 3.75,
+   "salidas": {
+    "QH": 1,
+    "QHN": 0
+   },
+   "origen": "figura: 'Inhibit' (CLK INH alto en los flancos 1 a 3)"
+  },
+  {
+   "t": 4.25,
+   "salidas": {
+    "QH": 1,
+    "QHN": 0
+   },
+   "origen": "figura: primera cuenta de 'Serial Shift' (QH toma G)"
+  },
+  {
+   "t": 5.25,
+   "salidas": {
+    "QH": 0,
+    "QHN": 1
+   },
+   "origen": "figura: QH baja (toma F)"
+  },
+  {
+   "t": 6.25,
+   "salidas": {
+    "QH": 1,
+    "QHN": 0
+   },
+   "origen": "figura: QH sube (toma E)"
+  },
+  {
+   "t": 7.25,
+   "salidas": {
+    "QH": 0,
+    "QHN": 1
+   },
+   "origen": "figura: QH baja (toma D)"
+  },
+  {
+   "t": 8.25,
+   "salidas": {
+    "QH": 1,
+    "QHN": 0
+   },
+   "origen": "figura: QH sube (toma C)"
+  },
+  {
+   "t": 9.25,
+   "salidas": {
+    "QH": 0,
+    "QHN": 1
+   },
+   "origen": "figura: QH baja (toma B)"
+  },
+  {
+   "t": 10.25,
+   "salidas": {
+    "QH": 1,
+    "QHN": 0
+   },
+   "origen": "figura: QH sube (toma A)"
+  },
+  {
+   "t": 11.25,
+   "salidas": {
+    "QH": 0,
+    "QHN": 1
+   },
+   "origen": "figura: QH baja (toma SER, que es 0)"
+  }
+ ],
+ "notas": [
+  "Discrepancia a confirmar: en la figura CLK INH baja en el mismo flanco 3 del reloj. La tabla de función de la hoja (SCLS116H p. 13) exige CLK INH bajo antes del flanco para desplazar, de modo que el flanco 3 no desplaza; se bajó INH en 3.25 y la primera cuenta es el flanco 4. Las ocho cuentas del dibujo (7 cambios de QH) cuadran con eso.",
+  "Antes de la carga las salidas son desconocidas en la figura (líneas punteadas).",
+  "SH/LD sube en 1.25 con el reloj en alto (flanco 1 a 1.5) y SER vale 0 todo el tiempo."
+ ]
+}

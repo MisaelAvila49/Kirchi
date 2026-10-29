@@ -925,6 +925,9 @@ pub enum Element {
         pnp: bool,
         #[serde(default)]
         model: BjtModel,
+        /// Sus cargas con Euler hacia atrás en todo paso (la salida de un comparador, que conmuta dentro de un paso largo).
+        #[serde(default)]
+        euler: bool,
     },
     /// MOSFET: drenador, compuerta y fuente (el sustrato va unido a la fuente); `pmos` invierte las polaridades.
     M {
@@ -945,6 +948,9 @@ pub enum Element {
         vn: usize,
         #[serde(default)]
         model: OpampModel,
+        /// Su nodo interno con Euler hacia atrás en todo paso (un lazo interno mucho más rápido que cualquier paso).
+        #[serde(default)]
+        euler: bool,
     },
     /// JFET: drenador, compuerta y fuente; `pjf` es el de canal P.
     J {
@@ -2084,7 +2090,7 @@ mod tests {
     fn lee_un_transistor_con_sus_parametros_y_los_de_omision() {
         let n = Netlist::from_json(r#"{"nodes":4,"elements":[{"type":"Q","c":1,"b":2,"e":0,"pnp":true,"model":{"is":1.4e-14,"bf":255.9,"vaf":74.03}}]}"#).unwrap();
         match &n.elements[0] {
-            Element::Q { c: 1, b: 2, e: 0, pnp: true, model } => {
+            Element::Q { c: 1, b: 2, e: 0, pnp: true, model, .. } => {
                 assert_eq!((model.is, model.bf, model.vaf, model.br, model.mje), (1.4e-14, 255.9, 74.03, 1.0, 0.33));
             }
             otro => panic!("{otro:?}"),

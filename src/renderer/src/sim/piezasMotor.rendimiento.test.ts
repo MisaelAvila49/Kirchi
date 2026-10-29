@@ -6,7 +6,7 @@ import { calcularConexiones } from '../conexiones/conexiones'
 import { compilarNetlist } from '../netlist/netlist'
 import { conEtiquetas, type Parte } from '../prueba/circuitos'
 import { libreriaDePrueba } from '../prueba/libreria'
-import { pasoDeVistaPrevia } from './lectura'
+import { pasoDeVistaPrevia, topesDeVistaPrevia, topesPlanos } from './lectura'
 import { BUDGET_MS, PresupuestoDeLote } from './lote'
 import init, { Simulator } from './pkg/kirchi_engine.js'
 
@@ -90,7 +90,10 @@ function capacidad(partes: Parte[]): number {
   const { net } = compilar(partes)
   let mejor = 0
   for (let k = 0; k < 5; k++) {
+    // Como el worker: cada isla con su paso.
     const sim = new Simulator(JSON.stringify(net), pasoDeVistaPrevia(net))
+    const topes = topesDeVistaPrevia(net)
+    sim.topes_de_paso(topes.libre, topesPlanos(topes))
     correr(sim, 5)
     mejor = Math.max(mejor, correr(sim, 40))
     sim.free()
@@ -99,16 +102,15 @@ function capacidad(partes: Parte[]): number {
 }
 
 describe('piezas con motor: capacidad en WASM', () => {
-  // Con el paso de la vista previa. El circuito 1 y el 28BYJ-48 NO llegan a 1 (`it.fails`: el umbral no se mueve y la prueba se
-  // pondrá en rojo el día que lleguen). Causa medida: el JFET con una fuente de 1 kHz fija el paso en 20 µs para todo el circuito
-  // y los tres canales sin usar del ULN2003 son 33 de sus 90 incógnitas.
-  it.fails('555, NTC, LM35, comparador, optoacoplador y JFET corre más rápido que el tiempo real', () => {
+  // Con el paso de la vista previa por isla: la fuente de 1 kHz del JFET fija 20 µs solo en su isla, y los canales sin usar del ULN2003
+  // no entran a la netlist.
+  it('555, NTC, LM35, comparador, optoacoplador y JFET corre más rápido que el tiempo real', () => {
     const c = capacidad([...CIRCUITO_1])
     console.log(`555, NTC, LM35, comparador, optoacoplador y JFET: capacidad ${(100 * c).toFixed(0)} %`)
     expect(c).toBeGreaterThan(1)
   })
 
-  it.fails('28BYJ-48 con ULN2003 a 500 pasos/s corre más rápido que el tiempo real', () => {
+  it('28BYJ-48 con ULN2003 a 500 pasos/s corre más rápido que el tiempo real', () => {
     const c = capacidad([...CIRCUITO_UNIPOLAR])
     console.log(`28BYJ-48 con ULN2003 a 500 pasos/s: capacidad ${(100 * c).toFixed(0)} %`)
     expect(c).toBeGreaterThan(1)

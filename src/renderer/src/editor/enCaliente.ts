@@ -2,7 +2,7 @@ import { CAMPO_VOLTAJE } from '../netlist/alimentaciones'
 import type { PiezaDef } from '../piezas/tipos'
 
 /** Lo que dice un campo que no se edita mientras corre la vista previa. */
-export const MENSAJE_SOLO_EN_CALIENTE = 'Mientras corre la vista previa solo cambian los valores de fuentes y resistencias: detenla para cambiar este.'
+export const MENSAJE_SOLO_EN_CALIENTE = 'Este ajuste no cambia mientras corre la vista previa: detenla para cambiarlo.'
 
 /** Propiedades que cambian sin detener la vista previa: valor de resistencia, potenciómetro y fuente (voltaje, corriente,
  * amplitud, frecuencia, ciclo), voltaje de riel y toda perilla en vivo (`enVivo`). El cursor del potenciómetro tiene su control. */

@@ -1,11 +1,11 @@
 import type { Conexiones } from '../conexiones/conexiones'
 import type { Cable, Documento, Pieza } from '../doc/tipos'
 import { cajaEnMundo, pinesEnMundo, transformar } from '../piezas/transformar'
-import type { AnimacionDef, PiezaDef } from '../piezas/tipos'
+import type { AnimacionDef, Caja, PiezaDef } from '../piezas/tipos'
 import { paraTexto, type ExtraMedicion, type Lectura, type LecturaDigital } from '../sim/lectura'
 import { corrienteDelTramo, lecturaDeMedidor, tramoEn, type LecturaAc } from '../sim/medidor'
 import { hayMedidores, medidoresDe } from '../doc/sondas'
-import { dibujarPantallaDeMedidor } from './medidores'
+import { dibujarPantallaDeMedidor, pantallaDeMedidor } from './medidores'
 import { cajaTexto, valores } from './apartar'
 import { EscritorTrazos, EscritorTriangulos } from './buffers'
 import { resistenciaDeTermistor } from './ajusteEnPieza'
@@ -467,14 +467,22 @@ export function construirCapaSim(doc: Documento, lib: Map<string, PiezaDef>, con
   }
   // La cifra de los multímetros, la fuente variable y los canales del osciloscopio.
   if (instrumentos) marcas.push(...textosDeInstrumentos(t, doc, lib, paraTexto(l), instrumentos, paleta))
+  const deSondas = extra.banderas?.size ? textosDeSondas(doc, con, l, extra.banderas, extra.histeresis) : []
+  // Los chips esquivan lo que se mide: banderas y cifras de sondas, pantallas de medidores rápidos y cifras de instrumentos.
+  const estorbos: Caja[] = []
+  if (chips) {
+    if (extra.banderas) for (const b of extra.banderas.values()) estorbos.push(b.caja)
+    if (hayMedidores(doc)) for (const m of medidoresDe(doc)) estorbos.push(pantallaDeMedidor(m).caja)
+    for (const x of marcas) estorbos.push(cajaTexto(x, 0))
+    for (const x of deSondas) estorbos.push(cajaTexto(x, 0))
+  }
   // Los chips son cifras: leen lo estable; los cables de arriba siguen al último paso.
-  const delVoltaje = chips ? chipsDeVoltaje(doc, lib, con, paraTexto(l), textos, chips) : []
+  const delVoltaje = chips ? chipsDeVoltaje(doc, lib, con, paraTexto(l), textos, estorbos.length ? { ...chips, estorbos } : chips) : []
   // El porcentaje de cada potenciómetro simulado va junto a su cursor, esquivando lo demás (chips incluidos).
   const delPot = porcentajesDePot(doc, lib, new Set(l.piezas.keys()), textos, delVoltaje)
-  // La resistencia en vivo de termistores y fotorresistencias, tras lo fijo de su valor (que la escena dejó con `vivo`).
+  // La resistencia en vivo de termistores y fotorresistencias, tras lo fijo de su ajuste (que la escena dejó con `vivo`).
   const deVivo = resistenciasEnVivo(doc, lib, textos, media)
   const deJunto = textosJuntoAPiezas(doc, lib, junto, textos, [...delVoltaje, ...delPot, ...deVivo])
-  const deSondas = extra.banderas?.size ? textosDeSondas(doc, con, l, extra.banderas, extra.histeresis) : []
   // Los medidores rápidos: la pantalla de siete segmentos con su lectura, encima de la que dejó la escena.
   const deMedidores: Texto[] = []
   if (hayMedidores(doc)) {

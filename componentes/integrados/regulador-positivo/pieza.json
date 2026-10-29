@@ -2,6 +2,7 @@
   "id": "regulador-positivo",
   "nombre": { "es": "Regulador fijo positivo", "en": "Fixed positive regulator" },
   "categoria": "integrados",
+  "grupo": "Reguladores y referencias",
   "prefijo": "U",
   "buscar": ["u", "regulador", "regulator", "7805", "7812", "78xx", "lm7805", "l7805", "voltaje fijo", "lm7809", "lm7815", "9 v", "15 v"],
   "pines": [

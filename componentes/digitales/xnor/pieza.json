@@ -40,7 +40,7 @@
           }
         ],
         "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
-        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC7266, pinout (texto); TI SN74HC266 (mismo orden de patillas, salida de drenador abierto)" }
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC7266, pinout (texto); TI SN74HC266 (mismo orden de pines, salida de drenador abierto)" }
       },
       "CD4000B|2": {
         "fabricante": "Texas Instruments",
@@ -67,7 +67,7 @@
       "74LS|2": {
         "fabricante": "Texas Instruments",
         "pendiente": {
-          "patillas": "74LS266 (colector abierto): una hoja de TI escaneada y KiCad 9 sin símbolo; las patillas del 74HC266/74HC7266 son 1A 1, 1B 2, 1Y 3, 2Y 4, 2A 5, 2B 6, 3A 8, 3B 9, 3Y 10, 4Y 11, 4A 12, 4B 13 y falta confirmarlas en el 74LS266"
+          "patillas": "74LS266 (colector abierto): una hoja de TI escaneada y KiCad 9 sin símbolo; los pines del 74HC266/74HC7266 son 1A 1, 1B 2, 1Y 3, 2Y 4, 2A 5, 2B 6, 3A 8, 3B 9, 3Y 10, 4Y 11, 4A 12, 4B 13 y falta confirmarlas en el 74LS266"
         },
         "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC266 y CD74HC7266 (texto); SN74LS266 solo como imagen, sin segunda fuente legible" }
       }

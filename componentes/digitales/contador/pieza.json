@@ -54,7 +54,7 @@
         ],
         "pendiente": {
           "lcsc": "no se halló un número LCSC de esta parte",
-          "patillas": "El pin CO (acarreo) no existe en este integrado: CD74HC390E no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+          "patillas": "El pin CO (acarreo) no existe en este integrado: CD74HC390E no tiene salida de acarreo según su hoja y KiCad; el pin queda sin número físico"
         },
         "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC390 (SCHS185E), pinout p. 3 (texto); KiCad 74xx:74LS390 (misma función)" }
       },
@@ -77,7 +77,7 @@
           }
         ],
         "pendiente": {
-          "patillas": "El pin CO (acarreo) no existe en este integrado: SN74HC393N no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+          "patillas": "El pin CO (acarreo) no existe en este integrado: SN74HC393N no tiene salida de acarreo según su hoja y KiCad; el pin queda sin número físico"
         },
         "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC393 (SCHS186F), fig. p. 3 (imagen); KiCad 74xx:74LS393 (misma función)" }
       },
@@ -102,7 +102,7 @@
         ],
         "pendiente": {
           "lcsc": "no se halló un número LCSC de esta parte",
-          "patillas": "El pin CO (acarreo) no existe en este integrado: SN74LS390N no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+          "patillas": "El pin CO (acarreo) no existe en este integrado: SN74LS390N no tiene salida de acarreo según su hoja y KiCad; el pin queda sin número físico"
         },
         "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS390; TI CD74HC390 (misma función)" }
       },
@@ -126,7 +126,7 @@
         ],
         "pendiente": {
           "lcsc": "no se halló un número LCSC de esta parte",
-          "patillas": "El pin CO (acarreo) no existe en este integrado: SN74LS393N no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+          "patillas": "El pin CO (acarreo) no existe en este integrado: SN74LS393N no tiene salida de acarreo según su hoja y KiCad; el pin queda sin número físico"
         },
         "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 74xx:74LS393; TI CD74HC393 (misma función)" }
       },
@@ -154,7 +154,7 @@
           }
         ],
         "pendiente": {
-          "patillas": "El pin CO (acarreo) no existe en este integrado: CD4518BE no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+          "patillas": "El pin CO (acarreo) no existe en este integrado: CD4518BE no tiene salida de acarreo según su hoja y KiCad; el pin queda sin número físico"
         },
         "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4518B/CD4520B, diagrama funcional p. 1 (imagen); KiCad 4xxx:4518" }
       },
@@ -182,7 +182,7 @@
           }
         ],
         "pendiente": {
-          "patillas": "El pin CO (acarreo) no existe en este integrado: CD4520BE no tiene salida de acarreo según su hoja y KiCad; el pin queda sin patilla física"
+          "patillas": "El pin CO (acarreo) no existe en este integrado: CD4520BE no tiene salida de acarreo según su hoja y KiCad; el pin queda sin número físico"
         },
         "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4518B/CD4520B, diagrama funcional p. 1 (imagen); KiCad 4xxx:4520" }
       }

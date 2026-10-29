@@ -41,7 +41,7 @@ describe('conectar', () => {
 
   it('rechaza una patilla inexistente y una pieza que no está', () => {
     const n = nuevoNucleo(dosEnFila())
-    expect(conectar(n, 'R1.9', 'R2.1')).toEqual({ ok: false, motivo: 'R1 no tiene la patilla «9».' })
+    expect(conectar(n, 'R1.9', 'R2.1')).toEqual({ ok: false, motivo: 'R1 no tiene el pin «9».' })
     expect(conectar(n, 'R7.1', 'R2.1')).toEqual({ ok: false, motivo: 'No hay ninguna pieza con la referencia «R7».' })
     expect(conectar(n, 'R1.1', 'GND')).toEqual({ ok: false, motivo: 'No hay ninguna red llamada «GND».' })
   })

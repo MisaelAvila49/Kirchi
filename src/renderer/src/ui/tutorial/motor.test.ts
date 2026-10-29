@@ -8,7 +8,7 @@ const ctx = (extra: Partial<CtxTutorial> = {}): CtxTutorial => ({
 
 /** Un capítulo de tres pasos que se cumplen según la fase de la simulación. */
 const cap: CapituloDef = {
-  id: 'prueba', numero: 9, titulo: 'Prueba', resumen: '', minutos: 1, tono: 'azul', totalPasos: 3, zona: { minX: 0, minY: 0, maxX: 1, maxY: 1 },
+  id: 'prueba', numero: 9, titulo: 'Prueba', resumen: '', descripcion: '', minutos: 1, tono: 'azul', totalPasos: 3, zona: { minX: 0, minY: 0, maxX: 1, maxY: 1 },
   pasos: [
     { id: 'a', resumen: 'a', texto: 'a', cumplido: 'a', objetivo: () => ({ tipo: 'ninguno' }), hecho: (c) => c.fase === 'corriendo' },
     { id: 'b', resumen: 'b', texto: 'b', cumplido: 'b', objetivo: () => ({ tipo: 'ninguno' }), hecho: (c) => c.fase === 'pausada' },
@@ -128,7 +128,7 @@ describe('MotorTutorial', () => {
 
 describe('MotorTutorial: eventos de la aplicación', () => {
   const capEv: CapituloDef = {
-    id: 'ev', numero: 9, titulo: 'Eventos', resumen: '', minutos: 1, tono: 'azul', totalPasos: 2, zona: { minX: 0, minY: 0, maxX: 1, maxY: 1 },
+    id: 'ev', numero: 9, titulo: 'Eventos', resumen: '', descripcion: '', minutos: 1, tono: 'azul', totalPasos: 2, zona: { minX: 0, minY: 0, maxX: 1, maxY: 1 },
     pasos: [
       { id: 'g', resumen: 'g', texto: 'g', cumplido: 'g', objetivo: () => ({ tipo: 'ninguno' }), hecho: (c) => !!c.eventos?.has('guardado') },
       { id: 'h', resumen: 'h', texto: 'h', cumplido: 'h', objetivo: () => ({ tipo: 'ninguno' }), hecho: (c) => !!c.eventos?.has('guardado') }

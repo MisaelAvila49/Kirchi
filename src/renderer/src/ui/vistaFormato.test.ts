@@ -67,6 +67,20 @@ describe('estado de los controles de formato', () => {
     expect(posicionBarraFormato({ minX: 780, minY: 200, maxX: 900, maxY: 240 }, 200, 34, area).left).toBe(596)
   })
 
+  it('la barra toma la primera posición que no tapa una pieza y, si todas tapan, la que tapa menos', () => {
+    const area = { minX: 0, minY: 0, maxX: 800, maxY: 600 }
+    const texto = { minX: 300, minY: 200, maxX: 340, maxY: 260 }
+    const arriba = { minX: 250, minY: 150, maxX: 450, maxY: 190 }
+    expect(posicionBarraFormato(texto, 200, 34, area, 8, [arriba])).toMatchObject({ abajo: true, top: 268 })
+    const abajo = { minX: 250, minY: 268, maxX: 450, maxY: 302 }
+    const p = posicionBarraFormato(texto, 200, 34, area, 8, [arriba, abajo])
+    expect(p.left).toBe(348)
+    expect(p.top).toBe(213)
+    const cerca = { minX: 0, minY: 0, maxX: 800, maxY: 600 }
+    const todo = posicionBarraFormato(texto, 200, 34, area, 8, [cerca])
+    expect(todo.left + 200).toBeLessThanOrEqual(796)
+  })
+
   it('la barra siempre queda dentro del lienzo, también con el texto fuera o más alto que él', () => {
     const area = { minX: 0, minY: 40, maxX: 800, maxY: 600 }
     for (const c of [

@@ -40,8 +40,21 @@ export interface Categoria {
   grupos?: GrupoCatalogo[]
 }
 
-/** El orden de los grupos de la Librería; uno que no está aquí va después, por nombre. */
-export const GRUPOS_EN_ORDEN: readonly string[] = ['Compuertas', 'Biestables y contadores', 'Decodificadores y multiplexores', 'Registros y búferes', 'Aritmética']
+/** El orden de los grupos de la Librería, categoría por categoría (sus nombres no se repiten entre categorías); uno que no está aquí va después, por nombre. */
+export const GRUPOS_EN_ORDEN: readonly string[] = [
+  // Pasivos
+  'Resistencias', 'Sensores resistivos', 'Capacitores e inductores', 'Fusible y cristal',
+  // Fuentes
+  'Independientes', 'Controladas', 'Alimentación y tierra',
+  // Semiconductores
+  'Diodos y LED', 'Bipolares y UJT', 'Efecto de campo e IGBT', 'Tiristores',
+  // Interruptores
+  'Individuales', 'Bancos y teclados',
+  // Digitales
+  'Compuertas', 'Biestables y contadores', 'Decodificadores y multiplexores', 'Registros y búferes', 'Aritmética',
+  // Circuitos integrados
+  'Amplificadores y comparadores', 'Reguladores y referencias', 'Conversión y temporización', 'Sensores de temperatura', 'Interfaz y aislamiento'
+]
 const rangoGrupo = (nombre: string) => {
   const i = GRUPOS_EN_ORDEN.indexOf(nombre)
   return i < 0 ? GRUPOS_EN_ORDEN.length : i
@@ -84,6 +97,8 @@ export function catalogo(lib: Map<string, PiezaDef>, filtro = ''): Categoria[] {
   }
   // Con filtro la lista es la de resultados por puntaje: los grupos no se usan.
   if (!filtro.trim()) for (const c of porId.values()) agrupar(c)
+  // Con filtro, la categoría de la mejor coincidencia va primero (el orden de `entradas` es el del puntaje).
+  if (filtro.trim()) return [...porId.values()]
   return [...porId.values()].sort((a, b) => rangoCategoria(a.id) - rangoCategoria(b.id) || a.nombre.localeCompare(b.nombre, 'es'))
 }
 

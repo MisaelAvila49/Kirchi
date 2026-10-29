@@ -2,6 +2,7 @@
   "id": "led",
   "nombre": { "es": "LED", "en": "LED" },
   "categoria": "semiconductores",
+  "grupo": "Diodos y LED",
   "prefijo": "D",
   "buscar": ["led", "luz", "diodo emisor"],
   "pines": [

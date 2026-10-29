@@ -98,7 +98,7 @@
         ],
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "TI SN74HC138 (SCLS107G, oct 2021), p. 3, figura de patillas y tabla Pin Functions; Diodes 74HC138 (DS35488 Rev. 3-2), tabla Pin Descriptions, mismas 16 patillas; KiCad 74xx:74HC138 (9.0.0)"
+          "fuente": "TI SN74HC138 (SCLS107G, oct 2021), p. 3, figura de pines y tabla Pin Functions; Diodes 74HC138 (DS35488 Rev. 3-2), tabla Pin Descriptions, mismas 16 pines; KiCad 74xx:74HC138 (9.0.0)"
         }
       },
       "74LS": {

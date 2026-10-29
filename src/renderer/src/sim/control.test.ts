@@ -131,6 +131,8 @@ class MotorDePrueba implements MotorSimulacion {
     if (this.velocidad > 0) s.advance_to(s.time() + 1e-3, 1_000_000)
     const bus = s.take_conflictos()
     if (bus.length > 0) this.oyenteConflictos?.(Array.from(bus))
+    const sinNivel = s.take_indefinidos()
+    if (sinNivel.length > 0) this.oyenteIndefinidos?.(Array.from(sinNivel))
     // Cada lectura son 250 ms de reloj para el multímetro.
     if (this.inst) for (const c of this.inst.publicar((this.reloj += 250), true)) this.oyenteRango?.(c.multimetro, c.rango)
     const n = s.element_count()
@@ -249,6 +251,11 @@ class MotorDePrueba implements MotorSimulacion {
   alConflictos(f: (redes: number[]) => void) {
     this.oyenteConflictos = f
     return () => (this.oyenteConflictos = null)
+  }
+  private oyenteIndefinidos: ((elementos: number[]) => void) | null = null
+  alIndefinidos(f: (elementos: number[]) => void) {
+    this.oyenteIndefinidos = f
+    return () => (this.oyenteIndefinidos = null)
   }
   private oyenteCruces: ((c: CrucesSim) => void) | null = null
   alCruces(f: (c: CrucesSim) => void) {
@@ -458,8 +465,8 @@ describe('ControlSimulacion', () => {
   })
 
   it('un foco que se funde por sobrevoltaje lo explica el Registro y un clic lo repone', async () => {
-    // 24 V sobre un foco de 12 V y 5 W: el filamento se asienta en el doble de su potencia nominal y se funde (límite del motor:
-    // `THETA_FUNDE` = 2; comportamiento provisional).
+    // 24 V sobre un foco de 12 V y 5 W: el filamento llegaría a casi tres veces su potencia nominal y se funde al doble
+    // (`THETA_FUNDE` del motor).
     const d = conEtiquetas(lib, [
       { tipo: 'fuente-dc', ref: 'V1', props: { voltaje: '24' }, pines: { '+': 'a', '-': '0' } },
       { tipo: 'foco', ref: 'LP1', props: { voltaje: '12', potencia: '5' }, pines: { '1': 'a', '2': '0' } }
@@ -818,6 +825,28 @@ describe('vista previa con piezas digitales', () => {
     for (let k = 0; k < 3; k++) c.leer()
     const avisos = registro.filter(([, t]) => /Conflicto en el bus/.test(t))
     expect(avisos).toEqual([['aviso', 'Conflicto en el bus: dos salidas manejan la red bus a niveles distintos.']])
+  })
+
+  it('un DAC0808 con una entrada entre los umbrales lo dice en el Registro una vez, con el nombre de la pieza', async () => {
+    const bits = ['medio', '0', '0', '0', '0', '0', '0', '0']
+    const pines = { ...Object.fromEntries(bits.map((b, k) => [`A${k + 1}`, b])), IO: 'io', GND: '0', VEE: 'vee', VCC: 'vcc', 'VREF+': 'refp', 'VREF-': 'refn', COMP: 'comp' }
+    const v = (ref: string, voltaje: string, red: string) => ({ tipo: 'fuente-dc', ref, props: { voltaje }, pines: { '+': red, '-': '0' } })
+    const r = (ref: string, valor: string, a: string, b: string) => ({ tipo: 'resistencia', ref, props: { valor }, pines: { '1': a, '2': b } })
+    const { c, registro } = armar(conEtiquetas(lib, [v('V1', '5', 'vcc'), v('V2', '-15', 'vee'), v('V3', '10', 'vref'), v('V4', '1.4', 'medio'), r('R14', '5k', 'refp', 'vref'), r('R15', '5k', 'refn', '0'), r('RL', '1k', 'io', '0'), { tipo: 'dac0808', ref: 'U2', pines }]))
+    expect(await c.iniciar()).toBe(true)
+    for (let k = 0; k < 5; k++) c.leer()
+    const avisos = registro.filter(([, t]) => /sin nivel definido/.test(t))
+    expect(avisos).toEqual([['aviso', 'U2 tiene una entrada digital sin nivel definido (al aire, en alta impedancia o entre los umbrales): conserva el último código.']])
+  })
+
+  it('un DAC0808 con sus entradas bien definidas no avisa nada', async () => {
+    const pines = { ...Object.fromEntries(Array.from({ length: 8 }, (_, k) => [`A${k + 1}`, k === 0 ? 'alto' : '0'])), IO: 'io', GND: '0', VEE: 'vee', VCC: 'vcc', 'VREF+': 'refp', 'VREF-': 'refn', COMP: 'comp' }
+    const v = (ref: string, voltaje: string, red: string) => ({ tipo: 'fuente-dc', ref, props: { voltaje }, pines: { '+': red, '-': '0' } })
+    const r = (ref: string, valor: string, a: string, b: string) => ({ tipo: 'resistencia', ref, props: { valor }, pines: { '1': a, '2': b } })
+    const { c, registro } = armar(conEtiquetas(lib, [v('V1', '5', 'vcc'), v('V2', '-15', 'vee'), v('V3', '10', 'vref'), v('V4', '5', 'alto'), r('R14', '5k', 'refp', 'vref'), r('R15', '5k', 'refn', '0'), r('RL', '1k', 'io', '0'), { tipo: 'dac0808', ref: 'U2', pines }]))
+    expect(await c.iniciar()).toBe(true)
+    for (let k = 0; k < 5; k++) c.leer()
+    expect(registro.filter(([, t]) => /sin nivel definido/.test(t))).toEqual([])
   })
 
   it('una red que conmuta se ve igual leída una vez o en cada cuadro', async () => {
@@ -1814,5 +1843,36 @@ describe('perilla en vivo hacia el motor', () => {
     expect(mensajeDelMotor('matriz singular: revisa nodos sin camino a tierra o fuentes de voltaje en paralelo (elemento 4)', pieza)).toBe(
       'La vista previa se detuvo: el circuito no tiene solución cerca de E1; cambia su ganancia o agrega una resistencia en el lazo.'
     )
+  })
+})
+
+describe('DIP y teclado hacia el motor', () => {
+  const montar = (tipo: string, pines: Record<string, string>, props: Record<string, string> = {}) => {
+    const d = conEtiquetas(lib, [
+      { tipo: 'fuente-dc', ref: 'V1', props: { voltaje: '5' }, pines: { '+': 'a', '-': '0' } },
+      { tipo, ref: 'X1', props, pines }
+    ])
+    const x = armar(d, lib)
+    return { ...x, id: Object.keys(d.piezas).find((k) => d.piezas[k].ref === 'X1')! }
+  }
+  const dip = (n: number) => Object.fromEntries(Array.from({ length: 2 * n }, (_, k) => [String(k + 1), k === 0 ? 'a' : `n${k}`]))
+  const teclado = Object.fromEntries([...['F1', 'F2', 'F3', 'F4'].map((p) => [p, 'a']), ...['C1', 'C2', 'C3', 'C4'].map((p) => [p, `c${p}`])])
+
+  it('la palanca de un DIP escribe su canal y no rearma la netlist', async () => {
+    const { c, motores, id } = montar('interruptor-dip-8', dip(8), { estado: '00100000' })
+    await c.iniciar()
+    expect(c.moverPerilla(id, 'estado:4', 1)).toBe(true)
+    expect(c.moverPerilla(id, 'estado:2', 0)).toBe(true)
+    expect(motores[0].perillas.map((p) => [p.canal, p.valor])).toEqual([[4, 1], [2, 0]])
+    expect(motores[0].cambios).toHaveLength(0)
+    expect(c.moverPerilla(id, 'estado:8', 1)).toBe(false)
+  })
+
+  it('la tecla de un teclado escribe su canal por fila y columna', async () => {
+    const { c, motores, id } = montar('teclado-4x4', teclado)
+    await c.iniciar()
+    expect(c.moverPerilla(id, 'tecla:14', 1)).toBe(true)
+    expect(motores[0].perillas.map((p) => [p.canal, p.valor])).toEqual([[14, 1]])
+    expect(motores[0].cambios).toHaveLength(0)
   })
 })

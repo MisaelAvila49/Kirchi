@@ -167,6 +167,44 @@ describe('un texto de pieza bajo el puntero', () => {
     expect((pedidos[1] as PedidoCampos).foco).toBe(1)
   })
 
+  it('el ajuste de un potenciómetro es otro recuadro: se arrastra solo y no mueve al valor', () => {
+    const d = documentoVacio()
+    d.piezas.rv = P('rv', 'potenciometro', 'RV1', 0, 0, { valor: '10k', posicion: '25 %' })
+    const { ed } = abrir(d)
+    const [ref, valor, ajuste] = etiquetasSinChoques(ed.doc, lib).get('rv')!
+    expect([ref.texto, valor.texto, ajuste.texto]).toEqual(['RV1', '10 kΩ', '2.5 kΩ | 7.5 kΩ'])
+    const c = centro(ed, 'rv', 2)
+    ed.abajo(c)
+    expect(ed.estado().texto).toEqual({ pieza: 'rv', cual: 'ajuste' })
+    ed.mover({ x: c.x + 3, y: c.y + 12 }, { alt: true })
+    ed.arriba({ x: c.x + 3, y: c.y + 12 })
+    expect(ed.doc.piezas.rv.textos).toEqual({ ajuste: { x: c.x + 3, y: c.y + 12 } })
+    expect(centro(ed, 'rv', 2)).toEqual({ x: c.x + 3, y: c.y + 12 })
+    // Los otros dos no se movieron a mano y el arrastre es un solo paso de deshacer.
+    expect(ed.doc.piezas.rv.textos).not.toHaveProperty('valor')
+    ed.deshacer()
+    expect(ed.doc.piezas.rv).not.toHaveProperty('textos')
+  })
+
+  it('con Nada el recuadro del ajuste no existe, y «Restablecer posición de los textos» también lo devuelve a su lugar', () => {
+    const d = documentoVacio()
+    d.piezas.rv = P('rv', 'potenciometro', 'RV1', 0, 0, { valor: '10k', junto: 'Nada' })
+    const { ed } = abrir(d)
+    expect(etiquetasSinChoques(ed.doc, lib).get('rv')!.map((t) => t.texto)).toEqual(['RV1', '10 kΩ'])
+    ed.cargar({ ...d, piezas: { rv: { ...d.piezas.rv, props: { valor: '10k' }, textos: { ajuste: { lugar: 'arriba' } } } } })
+    ed.seleccionar(seleccionDe('piezas', 'rv'))
+    expect(ed.puedeRestablecerTextos()).toBe(true)
+  })
+
+  it('el doble clic en el ajuste abre el diálogo de la pieza con el foco en «Mostrar»', () => {
+    const d = documentoVacio()
+    d.piezas.rv = P('rv', 'potenciometro', 'RV1', 0, 0, { valor: '10k' })
+    const { ed, pedidos } = abrir(d)
+    ed.dobleClic(centro(ed, 'rv', 2))
+    const campos = (pedidos[0] as PedidoCampos).campos
+    expect(campos[(pedidos[0] as PedidoCampos).foco!].id).toBe('prop:junto')
+  })
+
   it('el clic derecho sobre él abre el menú de su pieza', () => {
     const { ed } = abrir()
     expect(ed.objetivoMenu(centro(ed, 'r1', 1))).toMatchObject({ tipo: 'pieza', id: 'r1' })

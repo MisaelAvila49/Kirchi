@@ -103,7 +103,7 @@ describe('interruptor o botón seleccionado', () => {
 
 describe('avisos de edición bloqueada', () => {
   it('el aviso de edición bloqueada no lleva guiones largos', () => {
-    expect(MENSAJE_DETENER_PARA_EDITAR).toBe('Detén la vista previa para editar.')
+    expect(MENSAJE_DETENER_PARA_EDITAR).toBe('Detén la vista previa para modificar piezas y cables. Los valores sí se ajustan mientras corre.')
   })
 
   it('el inspector no lleva párrafo de edición bloqueada: lo que no se edita se ve deshabilitado', async () => {

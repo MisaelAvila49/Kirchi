@@ -2,6 +2,7 @@
   "id": "diodo",
   "nombre": { "es": "Diodo", "en": "Diode" },
   "categoria": "semiconductores",
+  "grupo": "Diodos y LED",
   "prefijo": "D",
   "buscar": ["d", "diodo", "diode", "1n4148", "1n4007", "1n5819", "schottky", "rectificador", "1n4001"],
   "pines": [
@@ -87,7 +88,7 @@
         ],
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Vishay 1N4148 (doc. 81857 rev. 1.6), DO-35 (DO-204AH); Las hojas de diodo no numeran patillas: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D"
+          "fuente": "Vishay 1N4148 (doc. 81857 rev. 1.6), DO-35 (DO-204AH); Las hojas de diodo no numeran pines: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D"
         },
         "nota": "LCSC C258182 es el 1N4148 de onsemi en DO-35"
       },
@@ -106,7 +107,7 @@
         ],
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Diodes Inc. 1N4001-1N4007 (ds28002 jul 2024), DO-41; Las hojas de diodo no numeran patillas: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D"
+          "fuente": "Diodes Inc. 1N4001-1N4007 (ds28002 jul 2024), DO-41; Las hojas de diodo no numeran pines: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D"
         },
         "nota": "LCSC C106903 es el 1N4007 de ST (Semtech) en DO-41"
       },
@@ -125,7 +126,7 @@
         ],
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Vishay 1N5817/18/19 (doc. 88525), DO-41 (DO-204AL); Las hojas de diodo no numeran patillas: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D"
+          "fuente": "Vishay 1N5817/18/19 (doc. 88525), DO-41 (DO-204AL); Las hojas de diodo no numeran pines: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D"
         },
         "nota": "LCSC C145202 es el 1N5819-E3/54 de Vishay"
       },

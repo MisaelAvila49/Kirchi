@@ -1,0 +1,278 @@
+{
+  "id": "teclado-4x3",
+  "nombre": {
+    "es": "Teclado matricial 4x3",
+    "en": "4x3 matrix keypad"
+  },
+  "categoria": "interruptores",
+  "grupo": "Bancos y teclados",
+  "prefijo": "KP",
+  "buscar": [
+    "kp",
+    "teclado",
+    "keypad",
+    "teclado matricial",
+    "matriz de teclas",
+    "4x3",
+    "membrana"
+  ],
+  "pines": [
+    {
+      "id": "F1",
+      "nombre": "F1 (fila 1)",
+      "x": -10,
+      "y": -6
+    },
+    {
+      "id": "F2",
+      "nombre": "F2 (fila 2)",
+      "x": -10,
+      "y": -2
+    },
+    {
+      "id": "F3",
+      "nombre": "F3 (fila 3)",
+      "x": -10,
+      "y": 2
+    },
+    {
+      "id": "F4",
+      "nombre": "F4 (fila 4)",
+      "x": -10,
+      "y": 6
+    },
+    {
+      "id": "C1",
+      "nombre": "C1 (columna 1)",
+      "x": -4,
+      "y": 12
+    },
+    {
+      "id": "C2",
+      "nombre": "C2 (columna 2)",
+      "x": 0,
+      "y": 12
+    },
+    {
+      "id": "C3",
+      "nombre": "C3 (columna 3)",
+      "x": 4,
+      "y": 12
+    }
+  ],
+  "props": [],
+  "modelo": {
+    "tipo": "teclado",
+    "filas": [
+      "F1",
+      "F2",
+      "F3",
+      "F4"
+    ],
+    "columnas": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "r_on": 100,
+    "r_off": 100000000
+  },
+  "animacion": {
+    "tipo": "zonas",
+    "zonas": [
+      {
+        "x": -6,
+        "y": -8,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "1"
+      },
+      {
+        "x": -2,
+        "y": -8,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "2"
+      },
+      {
+        "x": 2,
+        "y": -8,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "3"
+      },
+      {
+        "x": -6,
+        "y": -4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "4"
+      },
+      {
+        "x": -2,
+        "y": -4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "5"
+      },
+      {
+        "x": 2,
+        "y": -4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "6"
+      },
+      {
+        "x": -6,
+        "y": 0,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "7"
+      },
+      {
+        "x": -2,
+        "y": 0,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "8"
+      },
+      {
+        "x": 2,
+        "y": 0,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "9"
+      },
+      {
+        "x": -6,
+        "y": 4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "*"
+      },
+      {
+        "x": -2,
+        "y": 4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "0"
+      },
+      {
+        "x": 2,
+        "y": 4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "#"
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -11
+    },
+    "valor": {
+      "x": 0,
+      "y": 15
+    }
+  },
+  "rotulos": [
+    {
+      "texto": "1",
+      "x": -4,
+      "y": -6,
+      "tam": 1.8
+    },
+    {
+      "texto": "2",
+      "x": 0,
+      "y": -6,
+      "tam": 1.8
+    },
+    {
+      "texto": "3",
+      "x": 4,
+      "y": -6,
+      "tam": 1.8
+    },
+    {
+      "texto": "4",
+      "x": -4,
+      "y": -2,
+      "tam": 1.8
+    },
+    {
+      "texto": "5",
+      "x": 0,
+      "y": -2,
+      "tam": 1.8
+    },
+    {
+      "texto": "6",
+      "x": 4,
+      "y": -2,
+      "tam": 1.8
+    },
+    {
+      "texto": "7",
+      "x": -4,
+      "y": 2,
+      "tam": 1.8
+    },
+    {
+      "texto": "8",
+      "x": 0,
+      "y": 2,
+      "tam": 1.8
+    },
+    {
+      "texto": "9",
+      "x": 4,
+      "y": 2,
+      "tam": 1.8
+    },
+    {
+      "texto": "*",
+      "x": -4,
+      "y": 6,
+      "tam": 1.8
+    },
+    {
+      "texto": "0",
+      "x": 0,
+      "y": 6,
+      "tam": 1.8
+    },
+    {
+      "texto": "#",
+      "x": 4,
+      "y": 6,
+      "tam": 1.8
+    }
+  ],
+  "fuentes": {
+    "*": "Fichas de teclados de membrana (APEM AC3561 y kits genéricos): aislamiento de 100 MΩ a 100 V. La resistencia de contacto de 100 Ω es un valor típico de kits que las fichas no confirman (entre menos de 100 Ω y 500 Ω) y el orden de los pines del conector queda por verificar."
+  },
+  "datos": {
+    "valores": {
+      "*": {
+        "fabricante": "Genérico de kit (sin fabricante)",
+        "parte": "Teclado de membrana 4x3 de 7 hilos",
+        "aproximada": "La resistencia de contacto de 100 Ω es un valor típico de kits sin hoja del fabricante (las fichas dan entre menos de 100 Ω y 500 Ω) y el orden de los pines del conector no está verificado.",
+        "presentaciones": [
+          {
+            "encapsulado": "Conector-teclado-7",
+            "patillas": {},
+            "huella": "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical",
+            "representativa": true
+          }
+        ],
+        "pendiente": { "patillas": "Sin fuente del orden de los 7 pines", "hoja": "Sin hoja", "parte": "Sin número de parte", "lcsc": "No se buscó" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Solo la huella PinHeader_1x07_P2.54mm_Vertical de KiCad 9.0.0 (7 pads); el conector de 7 pines del 4x3 no se verificó con ninguna ficha"
+        }
+      }
+    }
+  }
+}

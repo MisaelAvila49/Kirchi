@@ -1,0 +1,62 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "cl_pF": 50,
+   "documento": "TI SN74HC164 (SCLS115G)",
+   "paginas": "8 a 11",
+   "caminos": [
+    {
+     "de": "CLK",
+     "a": "Q",
+     "tPLH": {
+      "tip": 23,
+      "max": 35
+     },
+     "tPHL": {
+      "tip": 23,
+      "max": 35
+     }
+    },
+    {
+     "de": "CLR",
+     "a": "Q",
+     "tPHL": {
+      "tip": 28,
+      "max": 41
+     }
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS164 (TTL Devices, mar 1988)",
+   "paginas": "5 del PDF (2-519)",
+   "caminos": [
+    {
+     "de": "CLK",
+     "a": "Q",
+     "tPLH": {
+      "tip": 17,
+      "max": 27
+     },
+     "tPHL": {
+      "tip": 21,
+      "max": 32
+     }
+    },
+    {
+     "de": "CLR",
+     "a": "Q",
+     "tPHL": {
+      "tip": 24,
+      "max": 36
+     }
+    }
+   ]
+  }
+ }
+}

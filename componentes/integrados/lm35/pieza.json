@@ -2,6 +2,7 @@
   "id": "lm35",
   "nombre": { "es": "Sensor LM35", "en": "LM35 sensor" },
   "categoria": "integrados",
+  "grupo": "Sensores de temperatura",
   "prefijo": "U",
   "buscar": ["lm35", "sensor de temperatura", "temperature sensor", "lm35dz", "termometro"],
   "pines": [
@@ -18,7 +19,7 @@
       "defecto": "25",
       "enVivo": { "magnitud": "temperatura", "min": 0, "max": 100, "paso": 5, "pasoFino": 1 }
     },
-    { "id": "junto", "nombre": "Mostrar", "defecto": "Ajuste", "opciones": ["Nada", "Ajuste"], "omitir": true }
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Como en Configuración", "opciones": ["Como en Configuración", "Ajuste", "Nada"], "omitir": true }
   ],
   "modelo": {
     "tipo": "compuesto",
@@ -68,7 +69,7 @@
         ],
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "TI LM35 (SNIS159H, dic 2017) p. 3, LP (TO-92) vista inferior: +VS 1, VOUT 2, GND 3; Sensor_Temperature:LM35-LP de KiCad 9 (+VS 1, VOUT 2, GND 3, huella TO-92_Inline). LCSC C181511 es LM35DZ/LFT1 (patillas formadas)"
+          "fuente": "TI LM35 (SNIS159H, dic 2017) p. 3, LP (TO-92) vista inferior: +VS 1, VOUT 2, GND 3; Sensor_Temperature:LM35-LP de KiCad 9 (+VS 1, VOUT 2, GND 3, huella TO-92_Inline). LCSC C181511 es LM35DZ/LFT1 (pines formados)"
         }
       }
     }

@@ -31,7 +31,7 @@ import { esRechazo, type Estado, type Plan, type Rechazo } from './plan'
 import type { Resultado } from './resultado'
 
 export const MENSAJE_SOLO_LECTURA = 'Este circuito es de una versión más nueva de Kirchi y se abrió en solo lectura: se puede ver y exportar, pero no cambiar.'
-export const MENSAJE_SIMULANDO = 'Mientras corre la vista previa el circuito no se edita: detenla para cambiarlo.'
+export const MENSAJE_SIMULANDO = 'Mientras corre la vista previa no se modifican piezas ni cables: detenla para hacerlo. Los valores sí se ajustan.'
 
 export type ResultadoCmd =
   | { ok: true; cmd: Comando; creados: Partial<Record<ColeccionDoc, Id[]>>; avisos: string[] }

@@ -115,7 +115,7 @@
         ],
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "TI SN5446A/47A/48, SN54LS47/LS48/LS49 (SDLS111, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS47 (9.0.0; su patilla 4 se rotula BI)"
+          "fuente": "TI SN5446A/47A/48, SN54LS47/LS48/LS49 (SDLS111, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74LS47 (9.0.0; su pin 4 se rotula BI)"
         },
         "nota": "La hoja da solo tiempos máximos de 100 ns para las salidas y ningún típico."
       }

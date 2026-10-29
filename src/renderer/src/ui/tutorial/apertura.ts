@@ -14,13 +14,16 @@ export interface Apertura {
 export function aperturaDelPaso(p: Pick<PasoDef, 'abre'>): Apertura | null {
   switch (p.abre) {
     case 'libreria':
-      return { parche: { panel: 'libreria', lateral: true }, franja: null }
+    case 'plantillas':
+    case 'calculadoras':
+      return { parche: { panel: p.abre, lateral: true }, franja: null }
     case 'inspector':
     case 'mediciones':
     case 'proyecto':
     case 'analisis':
       return { parche: { inspector: true, panelDerecho: p.abre }, franja: null }
     case 'osciloscopio':
+    case 'graficas':
       return { parche: {}, franja: p.abre }
     default:
       return null

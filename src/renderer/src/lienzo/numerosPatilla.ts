@@ -5,7 +5,10 @@ import type { PiezaDef, Rotulo } from '../piezas/tipos'
 import { rotuloDePieza, type Texto } from './etiquetas'
 
 /** Alto de la letra de los números de patilla, en mm. */
-export const TAM_NUMERO_PATILLA = 1
+export const TAM_NUMERO_PATILLA = 1.4
+
+/** Con 1 mm la letra medía 3.8 px al 100 % y el mínimo general (6 px) la ocultaba hasta el 160 %: el botón no mostraba nada. */
+export const MINIMO_PX_NUMERO_PATILLA = 4
 
 const lista = (v: string | string[]): string => (Array.isArray(v) ? v.join(',') : v)
 
@@ -46,7 +49,7 @@ export function textosNumerosPatilla(p: Pieza, def: PiezaDef): Texto[] {
     const r: Rotulo = horizontal
       ? { texto, x: q.x - Math.sign(dx || 1), y: q.y - 0.9, tam: TAM_NUMERO_PATILLA, alinear: 'centro', fuente: 'mono', tinta: 'valor' }
       : { texto, x: q.x + 0.6, y: q.y - Math.sign(dy || 1) * 0.9, tam: TAM_NUMERO_PATILLA, alinear: 'izq', fuente: 'mono', tinta: 'valor' }
-    out.push(rotuloDePieza(p, def, r))
+    out.push({ ...rotuloDePieza(p, def, r), minimoPx: MINIMO_PX_NUMERO_PATILLA })
   }
   return out
 }

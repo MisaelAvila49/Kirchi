@@ -1,6 +1,7 @@
 import { partirClavePin, type Conexiones } from '../conexiones/conexiones'
 import { nombresDeRedes, ordenRef } from '../conexiones/listaDeRedes'
 import { MM_POR_UNIDAD, type Documento, type Pieza, type Sonda } from '../doc/tipos'
+import { PROPS_DE_DOCUMENTO, patillasDeUnidad, paqueteDe, unidadesDe } from '../doc/paquetes'
 import { propDelBuscador } from '../editor/colocar'
 import { avisosDelCircuito } from '../conexiones/avisos'
 import type { PiezaDef } from '../piezas/tipos'
@@ -20,6 +21,10 @@ export interface PiezaDescrita {
   espejo?: true
   /** Patilla a nombre de la red, o «sin conectar». */
   patillas: Record<string, string>
+  /** Chips con unidades: el encapsulado (U1) y la unidad (A) de la pieza, y el número de patilla de cada pin en ese encapsulado. */
+  paquete?: string
+  unidad?: string
+  numeros?: Record<string, string>
   /** Trae encapsulado, patillas y LCSC (una pieza virtual no); se leen con `datos_pieza`. */
   datos?: true
 }
@@ -27,6 +32,8 @@ export interface PiezaDescrita {
 export interface CircuitoDescrito {
   piezas: PiezaDescrita[]
   redes: { nombre: string; patillas: string[] }[]
+  /** Solo si hay chips con unidades: sus unidades puestas y libres, y las patillas que comparten (se unen solas, no se cablean). */
+  paquetes?: { paquete: string; tipo: string; unidades: Record<string, string>; libres: string[]; compartidas: Record<string, { patilla: string; piezas: string[] }> }[]
   instrumentos: { ref: string; tipo: string; ajustes: Record<string, string>; entradas: Record<string, string> }[]
   sondas: { tipo: string; ref?: string; red: string; instrumento?: string; entrada?: string; magnitud?: string; modo?: string }[]
   analisis: { nombre: string; tipo: string }[]
@@ -49,11 +56,13 @@ const tieneDatosFisicos = (def: PiezaDef, p: Pieza): boolean => {
 
 function describirPieza(p: Pieza, def: PiezaDef | undefined, redDe: (pin: string) => string): PiezaDescrita {
   const props: Record<string, string> = {}
-  for (const [k, v] of Object.entries(p.props).sort(([a], [b]) => a.localeCompare(b, 'es'))) if (v !== def?.props.find((d) => d.id === k)?.defecto) props[k] = v
+  for (const [k, v] of Object.entries(p.props).sort(([a], [b]) => a.localeCompare(b, 'es'))) if (!(PROPS_DE_DOCUMENTO as readonly string[]).includes(k) && v !== def?.props.find((d) => d.id === k)?.defecto) props[k] = v
   const principal = def ? propDelBuscador(def) : undefined
   const valor = principal ? (p.props[principal.id] ?? principal.defecto) : undefined
   const patillas: Record<string, string> = {}
   for (const pin of def?.pines ?? []) patillas[pin.id] = redDe(pin.id)
+  const pq = paqueteDe(p)
+  const numeros = pq && def ? patillasDeUnidad(def, p.props, pq.unidad) : null
   return {
     ref: p.ref,
     tipo: p.tipo,
@@ -65,8 +74,35 @@ function describirPieza(p: Pieza, def: PiezaDef | undefined, redDe: (pin: string
     rot: p.rot,
     ...(p.espejo ? { espejo: true as const } : {}),
     patillas,
+    ...(pq ? { paquete: pq.paquete, unidad: pq.unidad } : {}),
+    ...(numeros ? { numeros } : {}),
     ...(def && tieneDatosFisicos(def, p) ? { datos: true as const } : {})
   }
+}
+
+/** Cada encapsulado con las unidades puestas, las libres y las patillas compartidas: así el asistente sabe dónde cabe otra y qué no cablear. */
+function describirPaquetes(piezas: Pieza[], lib: Map<string, PiezaDef>): NonNullable<CircuitoDescrito['paquetes']> {
+  const por = new Map<string, Pieza[]>()
+  for (const p of piezas) {
+    const pq = paqueteDe(p)
+    if (pq) por.set(pq.paquete, [...(por.get(pq.paquete) ?? []), p])
+  }
+  const salida: NonNullable<CircuitoDescrito['paquetes']> = []
+  for (const [paquete, ps] of por) {
+    const def = lib.get(ps[0].tipo)
+    const u = def ? unidadesDe(def, ps[0].props) : null
+    if (!def || !u) continue
+    const compartidas: Record<string, { patilla: string; piezas: string[] }> = {}
+    for (const pin of u.compartidos) compartidas[pin] = { patilla: patillasDeUnidad(def, ps[0].props, ps[0].props.unidad)?.[pin] ?? '', piezas: ps.map((p) => p.ref) }
+    salida.push({
+      paquete,
+      tipo: def.id,
+      unidades: Object.fromEntries(ps.map((p) => [p.props.unidad, p.ref]).sort(([a], [b]) => a.localeCompare(b))),
+      libres: u.nombres.filter((n) => !ps.some((p) => p.props.unidad === n)),
+      compartidas
+    })
+  }
+  return salida
 }
 
 /** La vista del circuito que lee un asistente: piezas con sus redes, redes, instrumentos, sondas, análisis y avisos.
@@ -94,6 +130,7 @@ export function describir(doc: Documento, lib: Map<string, PiezaDef>, con: Conex
     redes.push({ nombre, patillas })
   }
 
+  const paquetes = describirPaquetes(piezas, lib)
   const sondasDe = Object.values(doc.sondas ?? {}).sort((a, b) => a.id.localeCompare(b.id))
   const redDeSonda = (s: Sonda): string => {
     const r = con.redDeSonda.get(s.id)
@@ -127,6 +164,7 @@ export function describir(doc: Documento, lib: Map<string, PiezaDef>, con: Conex
   return {
     piezas: descritas,
     redes,
+    ...(paquetes.length ? { paquetes } : {}),
     instrumentos,
     sondas,
     analisis: Object.values(doc.analisis ?? {}).sort((a, b) => a.id.localeCompare(b.id)).map((a) => ({ nombre: a.nombre, tipo: a.config.tipo })),

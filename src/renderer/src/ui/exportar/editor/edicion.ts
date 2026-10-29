@@ -154,6 +154,9 @@ export const cambiarAspecto = (e: EstadoEditor, p: Partial<AspectoGrafica>): Est
 export const cambiarAdornos = (e: EstadoEditor, p: Partial<Adornos>): EstadoEditor => ({ ...e, adornos: { ...e.adornos, ...p } })
 export const cambiarRango = (e: EstadoEditor, rango: RangoExportar | null): EstadoEditor => ({ ...e, rango })
 
+/** El estado con que se dibuja la figura: al elegir un tramo se ve todo el eje, para poder ampliarlo y no solo achicarlo. */
+export const estadoParaDibujar = (e: EstadoEditor, eligiendoTramo: boolean): EstadoEditor => (eligiendoTramo && e.rango ? cambiarRango(e, null) : e)
+
 /**
  * Paso entre las cifras del eje horizontal para el tramo `dom`, en el prefijo con que se escriben (null sin marcas lineales). El osciloscopio usa diez divisiones; una gráfica, marcas bonitas.
  */

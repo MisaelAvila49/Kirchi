@@ -64,3 +64,16 @@ describe('tono de cada categoría de la Librería', () => {
     })
   })
 })
+
+describe('grupos de la Librería real', () => {
+  it('cada categoría con grupos los trae en el orden fijo y ninguno tiene una sola pieza; Electromecánicos, Indicadores e Instrumentos quedan planas', () => {
+    const cats = new Map(catalogo(lib).map((c) => [c.id, c]))
+    for (const id of ['electromecanicos', 'indicadores', 'instrumentos']) expect(cats.get(id)!.grupos, id).toBeUndefined()
+    expect([...cats.keys()].filter((id) => cats.get(id)!.grupos)).toEqual(['pasivos', 'fuentes', 'semiconductores', 'interruptores', 'digitales', 'integrados'])
+    expect(cats.get('pasivos')!.grupos!.map((g) => g.nombre)).toEqual(['Resistencias', 'Sensores resistivos', 'Capacitores e inductores', 'Fusible y cristal'])
+    expect(cats.get('integrados')!.grupos!.map((g) => g.nombre)).toEqual(['Amplificadores y comparadores', 'Reguladores y referencias', 'Conversión y temporización', 'Sensores de temperatura', 'Interfaz y aislamiento'])
+    for (const c of cats.values()) for (const g of c.grupos ?? []) expect(g.piezas.length, g.id).toBeGreaterThan(1)
+    // Solo digitales tiene piezas sueltas arriba (el estado lógico).
+    expect(cats.get('pasivos')!.sueltas).toEqual([])
+  })
+})

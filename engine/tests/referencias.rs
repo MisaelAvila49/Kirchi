@@ -1155,6 +1155,45 @@ fn msi_contador_4017_hc() {
     revisar("msi_contador_4017_hc");
 }
 
+// Registros de desplazamiento 74164, 74165 y 74595 con entradas, cargas y borrados al azar contra la síntesis de ngspice.
+#[test]
+fn msi_registro_164_hc() {
+    revisar("msi_registro_164_hc");
+}
+
+#[test]
+fn msi_registro_164_ls() {
+    revisar("msi_registro_164_ls");
+}
+
+// El 74165 carga por nivel y se inhibe con CLK INH; su reloj efectivo es CLK o CLK INH.
+#[test]
+fn msi_registro_165_hc() {
+    revisar("msi_registro_165_hc");
+}
+
+#[test]
+fn msi_registro_165_ls() {
+    revisar("msi_registro_165_ls");
+}
+
+// El 74595 con dos relojes, almacenamiento aparte y salidas de tres estados por OE.
+#[test]
+fn msi_registro_595_hc() {
+    revisar("msi_registro_595_hc");
+}
+
+#[test]
+fn msi_registro_595_ls() {
+    revisar("msi_registro_595_ls");
+}
+
+// El 74595 con SRCLK y RCLK en la misma red: el almacén queda un pulso detrás del desplazamiento, como en la hoja.
+#[test]
+fn msi_registro_595_unidos_hc() {
+    revisar("msi_registro_595_unidos_hc");
+}
+
 // Modelos comerciales agregados a transistores, diodo, amplificadores, comparador y reguladores, con los circuitos de la librería exportados a JSON.
 #[test]
 fn bjt_bc337() {
@@ -1239,4 +1278,22 @@ fn comp_lm339_pulso() {
 #[test]
 fn comp_lm339_seno() {
     revisar("comp_lm339_seno");
+}
+
+// El DAC0808 en corriente (figura 1 de la hoja): veinte códigos contra la B de ngspice con el seguidor de VREF- y los dac_bridge por bit.
+#[test]
+fn dac0808_corriente() {
+    revisar("dac0808_corriente");
+}
+
+// Cuatro palancas de un interruptor DIP (INTC) que cambian en instantes exactos, contra una resistencia variable de ngspice.
+#[test]
+fn dip_palancas() {
+    revisar("dip_palancas");
+}
+
+// Un teclado de 2 × 2 con dos filas a distinto voltaje: las teclas (INTC) se pulsan y se sueltan en instantes exactos, contra una resistencia variable de ngspice.
+#[test]
+fn teclado_matriz() {
+    revisar("teclado_matriz");
 }

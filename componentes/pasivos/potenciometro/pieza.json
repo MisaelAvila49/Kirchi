@@ -2,6 +2,7 @@
   "id": "potenciometro",
   "nombre": { "es": "Potenciómetro", "en": "Potentiometer" },
   "categoria": "pasivos",
+  "grupo": "Resistencias",
   "prefijo": "RV",
   "buscar": ["pot", "potenciometro", "potenciómetro", "potentiometer", "trimpot", "resistenciavariable"],
   "pines": [
@@ -13,7 +14,7 @@
     { "id": "valor", "nombre": "Valor", "unidad": "Ω", "defecto": "10k", "serie": "elegida", "comunes": ["1k", "5k", "10k", "50k", "100k"] },
     { "id": "posicion", "nombre": "Posición del cursor", "defecto": "50 %", "opciones": ["0 %", "10 %", "25 %", "50 %", "75 %", "90 %", "100 %"] },
     { "id": "ley", "nombre": "Ley de variación", "defecto": "lineal", "opciones": ["lineal", "logarítmica", "antilogarítmica"], "omitir": true },
-    { "id": "junto", "nombre": "Mostrar", "defecto": "Ajuste", "opciones": ["Nada", "Ajuste", "Resistencia", "Ambos"], "omitir": true }
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Como en Configuración", "opciones": ["Como en Configuración", "Ajuste", "Valores", "Ambos", "Nada"], "omitir": true }
   ],
   "modelo": { "tipo": "pot", "a": "1", "b": "2", "c": "3", "prop": "valor", "posicion": "posicion", "ley": "ley" },
   "fuentes": {
@@ -38,9 +39,9 @@
         "pendiente": { "lcsc": "depende del valor" },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Bourns 3386 (hoja pública, vista superior: 1 CCW, 2 WIPER, 3 CW); KiCad 9 Device:R_Potentiometer (1, 2 cursor, 3). Pines de Kirchi: 1 y 2 extremos, 3 cursor, por eso 2 va a la patilla 3 y 3 a la patilla 2. Representativa: un trimmer de 10 kΩ de laboratorio; un potenciómetro de panel cambia de huella"
+          "fuente": "Bourns 3386 (hoja pública, vista superior: 1 CCW, 2 WIPER, 3 CW); KiCad 9 Device:R_Potentiometer (1, 2 cursor, 3). Pines de Kirchi: 1 y 2 extremos, 3 cursor, por eso 2 va al pin 3 y 3 al pin 2. Representativa: un trimmer de 10 kΩ de laboratorio; un potenciómetro de panel cambia de huella"
         },
-        "nota": "El valor de la parte (103 es 10 kΩ) cambia con el código de resistencia; el patillaje es el mismo."
+        "nota": "El valor de la parte (103 es 10 kΩ) cambia con el código de resistencia; la numeración de pines es la misma."
       }
     }
   },

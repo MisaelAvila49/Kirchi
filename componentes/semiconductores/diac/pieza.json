@@ -5,6 +5,7 @@
     "en": "Diac"
   },
   "categoria": "semiconductores",
+  "grupo": "Tiristores",
   "prefijo": "D",
   "buscar": [
     "d",

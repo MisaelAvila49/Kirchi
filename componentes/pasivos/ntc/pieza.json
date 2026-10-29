@@ -2,6 +2,7 @@
   "id": "ntc",
   "nombre": { "es": "Termistor NTC", "en": "NTC thermistor" },
   "categoria": "pasivos",
+  "grupo": "Sensores resistivos",
   "prefijo": "TH",
   "buscar": ["ntc", "termistor", "thermistor", "th", "temperatura", "resistencia ntc", "ntcle100", "limitador de arranque"],
   "pines": [
@@ -9,7 +10,7 @@
     { "id": "2", "nombre": "2", "x": 4, "y": 0 }
   ],
   "props": [
-    { "id": "modelo", "nombre": "Modelo", "defecto": "10 kΩ", "opciones": ["10 kΩ", "100 kΩ", "Arranque 5 Ω"] },
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "10 kΩ", "opciones": ["10 kΩ", "100 kΩ", "Arranque 5 Ω"] },
     {
       "id": "temperatura",
       "nombre": "Temperatura",
@@ -17,7 +18,7 @@
       "defecto": "25",
       "enVivo": { "magnitud": "temperatura", "min": -40, "max": 125, "paso": 5, "pasoFino": 1 }
     },
-    { "id": "junto", "nombre": "Mostrar", "defecto": "Ambos", "opciones": ["Nada", "Ajuste", "Resistencia", "Ambos"], "omitir": true }
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Como en Configuración", "opciones": ["Como en Configuración", "Ajuste", "Valores", "Ambos", "Nada"], "omitir": true }
   ],
   "modelo": {
     "tipo": "termistor",
@@ -70,7 +71,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Vishay NTCLE100E3 (documento 29049, revisión 07-May-2025): p. 1, R25 10 000 Ω y B25/85 = 3977 K ± 0.75 %; p. 1, componente de dos alambres de cobre estañado sin polaridad; p. 10, tabla R/T. Segunda fuente de patillas: Device:Thermistor_NTC de KiCad 9 (pines 1 y 2, pasivos y simétricos)"
+          "fuente": "Vishay NTCLE100E3 (documento 29049, revisión 07-May-2025): p. 1, R25 10 000 Ω y B25/85 = 3977 K ± 0.75 %; p. 1, componente de dos alambres de cobre estañado sin polaridad; p. 10, tabla R/T. Segunda fuente de pines: Device:Thermistor_NTC de KiCad 9 (pines 1 y 2, pasivos y simétricos)"
         },
         "nota": "El «B 3950» de los kits baratos (B25/50, sin fabricante) no tiene hoja localizable; se usa este 10 kΩ de Vishay (B25/85 = 3977 K, otra definición de B, misma familia de valores)."
       },
@@ -87,7 +88,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Vishay NTCLE100E3 (29049, 07-May-2025): p. 1, R25 100 000 Ω y B25/85 = 4190 K ± 1.5 %; p. 12, tabla R/T. Patillas: Device:Thermistor_NTC de KiCad 9"
+          "fuente": "Vishay NTCLE100E3 (29049, 07-May-2025): p. 1, R25 100 000 Ω y B25/85 = 4190 K ± 1.5 %; p. 12, tabla R/T. Pines: Device:Thermistor_NTC de KiCad 9"
         }
       },
       "Arranque 5 Ω": {
@@ -104,7 +105,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Thinking SCK (rev. 2012.08) tabla «Electrical Characteristics»: SCK08053, R25 5 Ω, Imax 3 A, RImax 0.261 Ω, Pmax 2.3 W, disipación ≈16 mW/°C, constante térmica ≈38 s, -40 a +170 °C; la revisión 2008.03 da los mismos números de R25, Imax y RImax. Patillas: dos alambres, sin polaridad (Device:Thermistor_NTC de KiCad 9)"
+          "fuente": "Thinking SCK (rev. 2012.08) tabla «Electrical Characteristics»: SCK08053, R25 5 Ω, Imax 3 A, RImax 0.261 Ω, Pmax 2.3 W, disipación ≈16 mW/°C, constante térmica ≈38 s, -40 a +170 °C; la revisión 2008.03 da los mismos números de R25, Imax y RImax. Pines: dos alambres, sin polaridad (Device:Thermistor_NTC de KiCad 9)"
         }
       }
     }

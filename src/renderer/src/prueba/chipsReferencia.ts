@@ -136,6 +136,7 @@ export function chipsDeVoltajeReferencia(doc: Documento, lib: Map<string, PiezaD
   const { fijos, lineas, pines } = obstaculosFijos(doc, lib, con, textos)
   // Los chips ya puestos también estorban: lo que cambia con cada lectura va aparte de lo cacheado.
   const puestos = new Obstaculos()
+  for (const c of opciones.estorbos ?? []) puestos.agregar(c)
   const libre = (t: Texto) => {
     const c = cajaTexto(t)
     return !fijos.toca(c) && !puestos.toca(c)

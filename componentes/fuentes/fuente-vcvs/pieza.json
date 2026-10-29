@@ -5,6 +5,7 @@
     "en": "Controlled voltage source (voltage-controlled)"
   },
   "categoria": "fuentes",
+  "grupo": "Controladas",
   "prefijo": "E",
   "buscar": [
     "e",

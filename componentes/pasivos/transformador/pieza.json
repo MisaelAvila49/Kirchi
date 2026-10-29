@@ -2,6 +2,7 @@
   "id": "transformador",
   "nombre": { "es": "Transformador", "en": "Transformer" },
   "categoria": "pasivos",
+  "grupo": "Capacitores e inductores",
   "prefijo": "T",
   "buscar": ["t", "transformador", "transformer", "bobinas acopladas", "inductancias acopladas", "reductor", "elevador", "aislamiento"],
   "pines": [

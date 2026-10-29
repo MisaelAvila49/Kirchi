@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatoCompleto, formatoConCambio, formatoMinimo, leerFormato, leerPx, leerTam, mmAPx, pxAMm, PX_MAX, PX_MIN, nombreContorno, NOMBRE_TINTA, SERIE_TAM, siguienteTam, textoTam } from './formato'
+import { formatoCompleto, formatoConCambio, formatoMinimo, leerFormato, leerPt, leerTam, mmAPt, ptAMm, PT_MAX, PT_MIN, textoPt, nombreContorno, NOMBRE_TINTA, SERIE_TAM, siguienteTam, textoTam } from './formato'
 
 describe('formato de notas y etiquetas', () => {
   it('sin formato: Mona Sans en notas, Geist Mono en etiquetas, 2 mm, tinta y a la izquierda', () => {
@@ -86,9 +86,9 @@ describe('formato de notas y etiquetas', () => {
       formato: { fuente: 'serif', tam: 7, subrayado: true, tinta: 'verde', alinear: 'der' },
       avisos: []
     })
-    expect(leerFormato({ tam: 40 }, 'nota', 'de la nota').avisos).toEqual(['Se descartó el tamaño 40 mm de la nota: el máximo es 20 mm.'])
+    expect(leerFormato({ tam: 40 }, 'nota', 'de la nota').avisos).toEqual(['Se descartó el tamaño 113.4 pt de la nota: el máximo es 56.7 pt.'])
     expect(leerFormato({ tam: 0.5, negrita: false, cursiva: 'sí' }, 'nota', 'de la nota').avisos).toEqual([
-      'Se descartó el tamaño 0.5 mm de la nota: el mínimo es 1 mm.',
+      'Se descartó el tamaño 1.4 pt de la nota: el mínimo es 2.8 pt.',
       'Se descartó «negrita» de la nota: solo admite true.',
       'Se descartó «cursiva» de la nota: solo admite true.'
     ])
@@ -97,27 +97,35 @@ describe('formato de notas y etiquetas', () => {
   })
 })
 
-describe('tamaño en px (8 a 48, de 1 en 1)', () => {
-  it('el rango y la conversión: 8 px es el tamaño por omisión y no se guarda', () => {
-    expect([PX_MIN, PX_MAX]).toEqual([8, 48])
-    expect(pxAMm(8)).toBe(2)
-    expect(mmAPx(2)).toBe(8)
-    expect(pxAMm(48)).toBe(12.7)
-    expect(formatoConCambio(undefined, { tam: pxAMm(8) }, 'nota')).toBeUndefined()
-    expect(formatoConCambio(undefined, { tam: pxAMm(12) }, 'etiqueta')).toEqual({ tam: 3.2 })
+describe('tamaño en pt (el documento guarda mm)', () => {
+  it('la conversión es exacta: 72 pt son 25.4 mm y el tamaño por omisión se ve como 5.7 pt', () => {
+    expect(ptAMm(72)).toBeCloseTo(25.4, 1)
+    expect(mmAPt(25.4)).toBe(72)
+    expect(mmAPt(2)).toBe(5.7)
+    expect(textoPt(2)).toBe('5.7 pt')
+    expect(textoPt(3.5)).toBe('9.9 pt')
+    expect([PT_MIN, PT_MAX]).toEqual([2.8, 56.7])
   })
 
-  it('cada px entero se distingue y regresa a sí mismo', () => {
-    for (let px = PX_MIN; px <= PX_MAX; px++) expect(mmAPx(pxAMm(px))).toBe(px)
+  it('escribir el tamaño por omisión no deja nada guardado y otro tamaño se guarda en mm', () => {
+    expect(formatoConCambio(undefined, { tam: ptAMm(5.7) }, 'nota')).toBeUndefined()
+    expect(formatoConCambio(undefined, { tam: ptAMm(10) }, 'etiqueta')).toEqual({ tam: 3.5 })
   })
 
-  it('el campo acepta enteros de 8 a 48, con o sin «px», y rechaza lo demás', () => {
-    expect(leerPx('16')).toEqual({ px: 16 })
-    expect(leerPx(' 24 px ')).toEqual({ px: 24 })
-    for (const mal of ['7', '49', '12.5', 'a', '']) expect('error' in leerPx(mal)).toBe(true)
+  it('ida y vuelta: cada tamaño guardado (décimas de mm) regresa a sí mismo', () => {
+    for (let d = 10; d <= 200; d++) {
+      const mm = d / 10
+      expect(ptAMm(mmAPt(mm))).toBe(mm)
+    }
   })
 
-  it('un .kir sin px no cambia: el formato guarda solo mm', () => {
+  it('el campo acepta números con un decimal, con o sin «pt», y rechaza lo demás', () => {
+    expect(leerPt('12')).toEqual({ pt: 12 })
+    expect(leerPt(' 9.5 pt ')).toEqual({ pt: 9.5 })
+    for (const mal of ['2.7', '57', '9,5', 'a', '', '9.55']) expect('error' in leerPt(mal)).toBe(true)
+  })
+
+  it('un .kir no cambia: el formato guarda solo mm', () => {
     expect(leerFormato({ tam: 3.5, negrita: true }, 'nota', 'de la nota').formato).toEqual({ tam: 3.5, negrita: true })
   })
 })

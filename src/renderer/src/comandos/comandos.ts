@@ -104,7 +104,7 @@ export const COMANDOS: Readonly<Record<IdComando, DefComandoCinta>> = {
   'mas-rapido': { texto: 'Más rápido', nombre: 'Tiempo más rápido', icono: 'masRapido', tecla: 'mas-rapido', palabras: 'velocidad' },
   corriente: { texto: 'Corriente', nombre: 'Mostrar u ocultar la corriente animada', icono: 'corriente', tecla: 'corriente', palabras: 'flechas corriente animada' },
   animaciones: { texto: 'Animaciones', nombre: 'Pausar o reanudar las animaciones', icono: 'animaciones', tecla: 'animaciones', palabras: 'movimiento pausa flechas rotor' },
-  'numeros-patilla': { texto: 'Números de patilla', nombre: 'Mostrar u ocultar los números de patilla de los circuitos integrados', icono: 'pieza', palabras: 'pines patillas dip encapsulado chip numeración' },
+  'numeros-patilla': { texto: 'Números de pin', nombre: 'Mostrar u ocultar los números de pin de los circuitos integrados', icono: 'pieza', palabras: 'pines patillas pin dip encapsulado chip numeración' },
   sonido: { texto: 'Sonido', nombre: 'Silenciar o activar el sonido', icono: 'sonido', tecla: 'sonido', palabras: 'silencio volumen zumbador pitido' },
   'franja-osciloscopio': { texto: 'Osciloscopio', nombre: 'Pestaña Osciloscopio de la franja', icono: 'osciloscopio', palabras: 'franja instrumentos pantalla scope' },
   // Los dos botones con menú de Inicio. Instrumentos coloca uno; Analizar abre la ficha de cada análisis y los resultados.

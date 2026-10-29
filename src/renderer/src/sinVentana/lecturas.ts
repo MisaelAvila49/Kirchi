@@ -15,11 +15,13 @@ export interface CanalResumen {
   canal: string
   /** Por qué no hay señal: entrada a tierra, al aire o sin sonda. */
   sinSenal?: 'tierra' | 'al aire'
+  /** De todo lo simulado. */
   min?: number
   max?: number
+  /** Media, valor eficaz y frecuencia: de los periodos completos de la segunda mitad de lo simulado, sin el arranque. */
   media?: number
   rms?: number
-  /** Hz por cruces; null si la ventana no abarca un ciclo. */
+  /** Hz por cruces; null si la segunda mitad no abarca un ciclo. */
   frecuencia?: number | null
   /** Hasta `muestras` valores repartidos en la ventana. */
   muestras?: number[]
@@ -69,17 +71,24 @@ function ventanaDe(sim: Simulator, k: number, t0: number, t1: number): Float64Ar
 }
 
 function resumenDeCanal(sim: Simulator, k: number, t: number, muestras: number): Omit<CanalResumen, 'canal'> {
-  const desde = Math.max(0, sim.sonda_cubre(k))
-  const w = ventanaDe(sim, k, Number.isFinite(desde) ? desde : 0, t)
+  const cubre = sim.sonda_cubre(k)
+  const desde = Math.max(0, Number.isFinite(cubre) ? cubre : 0)
+  const w = ventanaDe(sim, k, desde, t)
   const dur = Number.isFinite(w[12]) ? w[12] : w[1] - w[0]
   if (!(dur > 0)) return {}
-  const media = w[2] / dur
-  const { frecuencia } = eficazDeVentana(w)
+  // Con el arranque dentro, un nivel medio que se mueve deja ciclos sin cruzar y la frecuencia sale baja (859 Hz por 1 kHz).
+  const e = ventanaDe(sim, k, desde + 0.5 * (t - desde), t)
+  const [periodos, p0, p1, ivP, iv2P] = [e[6], e[7], e[8], e[9], e[10]]
+  const de = Number.isFinite(e[12]) ? e[12] : e[1] - e[0]
+  const conPeriodos = periodos >= 1 && p1 > p0
+  const media = conPeriodos ? ivP / (p1 - p0) : de > 0 ? e[2] / de : w[2] / dur
+  const cuadrado = conPeriodos ? iv2P / (p1 - p0) : de > 0 ? e[3] / de : w[3] / dur
+  const { frecuencia } = eficazDeVentana(e)
   const r: Omit<CanalResumen, 'canal'> = {
     min: redondear(w[4]),
     max: redondear(w[5]),
     media: redondear(media),
-    rms: redondear(Math.sqrt(Math.max(0, w[3] / dur))),
+    rms: redondear(Math.sqrt(Math.max(0, cuadrado))),
     frecuencia: Number.isFinite(frecuencia) ? redondear(frecuencia) : null
   }
   if (muestras > 0) {

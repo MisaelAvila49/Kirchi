@@ -1,0 +1,176 @@
+{
+  "id": "interruptor-dip-4",
+  "nombre": {
+    "es": "Interruptor DIP de 4 posiciones",
+    "en": "4-position DIP switch"
+  },
+  "categoria": "interruptores",
+  "grupo": "Bancos y teclados",
+  "prefijo": "SW",
+  "buscar": [
+    "sw",
+    "dip",
+    "interruptor dip",
+    "dip switch",
+    "dip 4",
+    "4 posiciones",
+    "palancas",
+    "deslizable"
+  ],
+  "pines": [
+    {
+      "id": "1",
+      "nombre": "1 (posición 1, lado A)",
+      "x": -8,
+      "y": -4
+    },
+    {
+      "id": "2",
+      "nombre": "2 (posición 2, lado A)",
+      "x": -8,
+      "y": -2
+    },
+    {
+      "id": "3",
+      "nombre": "3 (posición 3, lado A)",
+      "x": -8,
+      "y": 0
+    },
+    {
+      "id": "4",
+      "nombre": "4 (posición 4, lado A)",
+      "x": -8,
+      "y": 2
+    },
+    {
+      "id": "8",
+      "nombre": "8 (posición 1, lado B)",
+      "x": 8,
+      "y": -4
+    },
+    {
+      "id": "7",
+      "nombre": "7 (posición 2, lado B)",
+      "x": 8,
+      "y": -2
+    },
+    {
+      "id": "6",
+      "nombre": "6 (posición 3, lado B)",
+      "x": 8,
+      "y": 0
+    },
+    {
+      "id": "5",
+      "nombre": "5 (posición 4, lado B)",
+      "x": 8,
+      "y": 2
+    }
+  ],
+  "props": [
+    {
+      "id": "estado",
+      "nombre": "Estado",
+      "texto": true,
+      "defecto": "0000",
+      "ayuda": "Un 1 por cada palanca cerrada (hacia ON), de la 1 a la 4"
+    }
+  ],
+  "modelo": {
+    "tipo": "interruptores",
+    "contactos": [
+      [
+        "1",
+        "8"
+      ],
+      [
+        "2",
+        "7"
+      ],
+      [
+        "3",
+        "6"
+      ],
+      [
+        "4",
+        "5"
+      ]
+    ],
+    "estado": "estado",
+    "r_on": 0.05,
+    "r_off": 1000000000
+  },
+  "animacion": {
+    "tipo": "zonas",
+    "zonas": [
+      {
+        "x": -3,
+        "y": -5,
+        "ancho": 6,
+        "alto": 2
+      },
+      {
+        "x": -3,
+        "y": -3,
+        "ancho": 6,
+        "alto": 2
+      },
+      {
+        "x": -3,
+        "y": -1,
+        "ancho": 6,
+        "alto": 2
+      },
+      {
+        "x": -3,
+        "y": 1,
+        "ancho": 6,
+        "alto": 2
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -11
+    },
+    "valor": {
+      "x": 0,
+      "y": 7
+    }
+  },
+  "rotulos": [
+    {
+      "texto": "ON",
+      "x": 0,
+      "y": -7.8,
+      "tam": 1.4
+    }
+  ],
+  "fuentes": {
+    "*": "CTS serie 206 (copia de terceros de la hoja y ficha de Future Electronics): resistencia de contacto inicial de 50 mΩ y aislamiento mínimo de 1,000 MΩ; el pareado del pin k con el 9 − k sale del símbolo y la huella de KiCad 9.0.0."
+  },
+  "datos": {
+    "equivalencias": { "kicad": "Switch:SW_DIP_x04" },
+    "valores": {
+      "*": {
+        "fabricante": "CTS",
+        "parte": "206-4",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-SW-8",
+            "patillas": { "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" },
+            "huella": "Button_Switch_THT:SW_DIP_SPSTx04_Slide_9.78x12.34mm_W7.62mm_P2.54mm",
+            "representativa": true
+          }
+        ],
+        "pendiente": {
+          "hoja": "Igual que la de 8 posiciones; el 206-4 no se consultó por separado, se supone de la misma serie",
+          "patillas": "Pareado k con 9-k del símbolo Switch:SW_DIP_x04 y la huella de KiCad 9.0.0 (pads 1 a 4 en una columna y 8 a 5 en la otra); sin segunda fuente",
+          "lcsc": "No se buscó número LCSC de 4 posiciones"
+        },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "Huella y símbolo de KiCad 9.0.0; cifras eléctricas de la serie 206 como en la fila de 8 posiciones" }
+      }
+    }
+  }
+}

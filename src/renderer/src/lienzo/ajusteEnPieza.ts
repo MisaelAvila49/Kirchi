@@ -1,3 +1,4 @@
+import type { TextoAjuste } from '../../../compartido/ajustes'
 import type { Pieza } from '../doc/tipos'
 import { tramoMinimoPot } from '../netlist/netlist'
 import type { ModeloDef, ParametrosSpice, PiezaDef } from '../piezas/tipos'
@@ -6,19 +7,30 @@ import { leerEnVivo } from '../valores/enVivo'
 import { fraccionConLey } from '../valores/leyPot'
 import { formatearValor, leerValor } from '../valores/valores'
 
-/** Id de la propiedad de lista que elige qué se escribe junto al valor de una pieza que se mueve: Nada, Ajuste, Resistencia o Ambos. */
+/** Id de la propiedad de lista que elige qué dice el recuadro del ajuste de una pieza que se mueve: lo de Configuración, el ajuste, los valores, ambos o nada. */
 export const PROP_JUNTO = 'junto'
-/** Entre el valor, el ajuste y la resistencia de la misma línea. */
+/** Entre el ajuste y la resistencia de la misma línea. */
 export const SEPARADOR_AJUSTE = ' · '
+/** La opción por omisión de cada pieza: lo que diga Configuración. */
+export const JUNTO_GENERAL = 'Como en Configuración'
 
-type Junto = 'Nada' | 'Ajuste' | 'Resistencia' | 'Ambos'
+type Junto = TextoAjuste
 
-/** Qué pidió el lector para esta pieza; null si la pieza no tiene la opción (se dibuja como siempre). */
+// El ajuste general de Configuración; la interfaz lo fija al abrir y al cambiarlo (como la serie comercial).
+let general: TextoAjuste = 'Valores'
+export const ponerTextoAjuste = (v: TextoAjuste): void => void (general = v)
+
+/** Qué dice el recuadro del ajuste de esta pieza: lo que pidió el lector o, con «Como en Configuración», el ajuste general;
+ * una pieza sin resistencia que ver (LM35, TMP36) dice su ajuste cuando se piden los valores. null si la pieza no tiene la opción.
+ * «Resistencia» es como se guardaba antes la opción «Valores». */
 export function juntoDe(p: Pieza, def: PiezaDef): Junto | null {
   const d = def.props.find((q) => q.id === PROP_JUNTO)
   if (!d?.opciones) return null
-  const v = p.props[PROP_JUNTO] ?? d.defecto
-  return (d.opciones.includes(v) ? v : d.defecto) as Junto
+  let v = p.props[PROP_JUNTO] ?? d.defecto
+  if (v === 'Resistencia') v = 'Valores'
+  if (!d.opciones.includes(v)) v = d.defecto
+  const elegido = v === JUNTO_GENERAL ? general : (v as Junto)
+  return !d.opciones.includes('Valores') && (elegido === 'Valores' || elegido === 'Ambos') ? 'Ajuste' : elegido
 }
 
 const K_CERO = 273.15, T_REF = 298.15
@@ -65,13 +77,13 @@ export function resistenciaEnVivo(p: Pieza, def: PiezaDef, valor: number): strin
   return null
 }
 
-/** Lo que va junto al valor según la opción elegida, con el documento: el ajuste («30 %», «25 °C») y la resistencia («3 kΩ | 7 kΩ»,
+/** Lo que dice el recuadro del ajuste según la opción elegida, con el documento: el ajuste («30 %», «25 °C») y la resistencia («3 kΩ | 7 kΩ»,
  * «10 kΩ»). El potenciómetro reparte su total por la ley y con el mismo tramo mínimo que el motor. */
 export function partesDeAjuste(p: Pieza, def: PiezaDef): { ajuste: string | null; resistencia: string | null } {
   const junto = juntoDe(p, def)
   const sinNada = { ajuste: null, resistencia: null }
   if (junto === null || junto === 'Nada') return sinNada
-  const conAjuste = junto === 'Ajuste' || junto === 'Ambos', conRes = junto === 'Resistencia' || junto === 'Ambos'
+  const conAjuste = junto === 'Ajuste' || junto === 'Ambos', conRes = junto === 'Valores' || junto === 'Ambos'
   const m = def.modelo
   if (m?.tipo === 'pot') {
     const pos = posicionDeProp(p.props[m.posicion] ?? def.props.find((d) => d.id === m.posicion)?.defecto)
@@ -94,7 +106,20 @@ export function partesDeAjuste(p: Pieza, def: PiezaDef): { ajuste: string | null
   return { ajuste: conAjuste ? formatearValor(v, d.unidad ?? '') : null, resistencia: conRes ? resistenciaEnVivo(p, def, v) : null }
 }
 
-/** Las partes del valor de una pieza con resistencia en vivo (termistor, fotorresistencia) cuando el lector pidió verla:
+/** Lo que dice el recuadro del ajuste (el ajuste, la resistencia o ambos con su separador); null si no dice nada. */
+export function textoDeAjuste(p: Pieza, def: PiezaDef): string | null {
+  const { ajuste, resistencia } = partesDeAjuste(p, def)
+  const partes = [ajuste, resistencia].filter((x): x is string => x !== null && x !== '')
+  return partes.length ? partes.join(SEPARADOR_AJUSTE) : null
+}
+
+/** El recuadro del ajuste pide el ajuste mismo (el porcentaje del cursor) y no solo los valores. */
+export function pideAjuste(p: Pieza, def: PiezaDef): boolean {
+  const j = juntoDe(p, def)
+  return j === 'Ajuste' || j === 'Ambos'
+}
+
+/** Las partes del recuadro del ajuste de una pieza con resistencia en vivo (termistor, fotorresistencia) cuando el lector pidió verla:
  * lo que no cambia con el motor (con su separador) y la resistencia del documento, por si la lectura aún no llega. */
 export function partesVivas(p: Pieza, def: PiezaDef): { fijo: string; respaldo: string } | null {
   const t = def.modelo?.tipo

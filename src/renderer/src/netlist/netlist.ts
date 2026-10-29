@@ -7,7 +7,7 @@ import type { ExtrasDiodo, ModeloDef, PiezaDef } from '../piezas/tipos'
 import { UnionFind } from '../conexiones/unionFind'
 import { PASO_MIN, PASOS_MINIMOS } from '../sim/lectura'
 import { problemaDeSpice } from '../doc/spice'
-import { elementoDelMotor, gruposDeCompuesto, gruposDeElemento, nodosDe as nodosDeElementoCompuesto, propiedadesDeCompuesto, resolverValor } from './compuesto'
+import { elementoDelMotor, elementosPodados, gruposDeCompuesto, gruposDeElemento, nodosDe as nodosDeElementoCompuesto, propiedadesDeCompuesto, resolverValor } from './compuesto'
 import { fraccionConLey } from '../valores/leyPot'
 import { errorDeRango, PARAMETROS } from './rangos'
 import { formatearMedida, formatearValor, leerCiclo, leerPosicion, leerValor } from '../valores/valores'
@@ -1120,10 +1120,24 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
         const v = leerPropiedad(q, d, mq.prop, null)
         return v.ok && v.valor > 0 ? [v.valor] : []
       })
+    /** El voltaje de una red unida a tierra por una fuente de continua (con su signo); undefined si no es el caso. */
+    const voltajeFijoDeRed = (a: number): number | undefined => {
+      for (const q of piezas) {
+        const d = lib.get(q.tipo)
+        const mq = d?.modelo
+        if (!d || mq?.tipo !== 'V') continue
+        const [x, y] = [con.redDePin.get(clavePin(q.id, mq.a)), con.redDePin.get(clavePin(q.id, mq.b))]
+        if (tierraDoc === undefined || !((x === a && y === tierraDoc) || (x === tierraDoc && y === a))) continue
+        const v = leerPropiedad(q, d, mq.prop, null)
+        if (v.ok) return x === a ? v.valor : -v.valor
+      }
+      return undefined
+    }
     const r = armarAdc0804(m, {
       ...comun,
       resistenciasEntre: (a, b) => valoresEntre('R', a, b),
       capacitoresATierra: (a) => (tierraDoc === undefined ? [] : valoresEntre('C', a, tierraDoc)),
+      voltajeFijo: (a) => voltajeFijoDeRed(a),
       // Algo más que la R de CLK R y la C a tierra toca la red de CLK IN.
       relojExterno: (rIn) =>
         (con.redes.find((x) => x.id === rIn)?.pines ?? []).some((clave) => {
@@ -1322,12 +1336,14 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     const redDe = new Map<string, number>(ids.map((id, k) => [id, redes[k]]))
     for (const interna of m.internas ?? []) redDe.set(interna, nuevaInterna())
     const dicho = new Set<string>()
+    const podados = elementosPodados(m, (pin) => (con.redes[redDe.get(pin)!]?.pines.length ?? 0) <= 1)
     const c = { elementos: m.elementos.map(() => -1), i: -1, mas: redDe.get(m.medida.mas)!, menos: redDe.get(m.medida.menos)!, ...(m.medida.region !== undefined ? { region: m.medida.region } : {}) }
     compuestos.set(p.id, c)
     m.elementos.forEach((e, k) => {
       // Un elemento de dos terminales con los dos en la misma red (la punta lógica sobre su pinza +, la entrada del LM386 a tierra)
       // no hace nada y el motor lo rechaza: se omite y su casilla queda en -1.
       if ((e.t === 'R' || e.t === 'C' || e.t === 'L' || e.t === 'D' || e.t === 'I') && redDe.get(e.a) === redDe.get(e.b)) return
+      if (podados.has(k)) return
       const terminales = nodosDeElementoCompuesto(e).map((n) => {
         const red = redDe.get(n)!
         if (!ids.includes(n)) return { red, etiqueta: '', mudo: true as const }
@@ -1360,7 +1376,8 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
     const interna = (red: number) => ({ red, etiqueta: '', mudo: true as const })
     pendientes.push({ pieza: p, terminales: [t(menos, 1), t(mas, 0), interna(salidaAmp), t(vmas, 3), t(vmenos, 4)], tipo: 'comparador', grupos: [{ pines: [0, 1], tierra: false }, { pines: [3, 4], tierra: false }, { pines: [2], tierra: true }], el: ([pp, nn, out, vp, vn]) => ({ type: 'OA', p: pp, n: nn, out, vp, vn, model }) })
     pendientes.push({ pieza: p, terminales: [interna(salidaAmp), interna(base)], tipo: 'comparador', grupos: [{ pines: [0, 1], tierra: false }], el: ([a, b]) => ({ type: 'R', a, b, ohms: x.rbase }) })
-    pendientes.push({ pieza: p, terminales: [t(sal, 2), interna(base), t(vmenos, 4)], tipo: 'comparador', grupos: [{ pines: [0, 1, 2], tierra: false }], el: ([c, b, e]) => ({ type: 'Q', c, b, e, pnp: false, model: q }) })
+    // Su carga almacenada se vacía dentro de un solo paso de la vista previa: con el trapecio la salida saltaba sobre el riel.
+    pendientes.push({ pieza: p, terminales: [t(sal, 2), interna(base), t(vmenos, 4)], tipo: 'comparador', grupos: [{ pines: [0, 1, 2], tierra: false }], el: ([c, b, e]) => ({ type: 'Q', c, b, e, pnp: false, model: q, euler: true }) })
   }
 
   /** Lo que el armado de un instrumento (`netlist/instrumentos.ts`) necesita de esta netlist. */

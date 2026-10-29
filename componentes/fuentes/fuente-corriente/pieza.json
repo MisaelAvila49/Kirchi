@@ -2,6 +2,7 @@
   "id": "fuente-corriente",
   "nombre": { "es": "Fuente de corriente", "en": "Current source" },
   "categoria": "fuentes",
+  "grupo": "Independientes",
   "prefijo": "I",
   "buscar": ["i", "corriente", "current", "fuente de corriente"],
   "pines": [

@@ -1,0 +1,287 @@
+{
+ "fuente": {
+  "familias": [
+   "74HC",
+   "74LS"
+  ],
+  "documentos": [
+   {
+    "familia": "74HC",
+    "documento": "TI SN54HC595, SN74HC595, SCLS041J",
+    "revision": "oct 2021",
+    "pagina": 7,
+    "figura": "Figure 6-1, 'Timing Diagram'"
+   },
+   {
+    "familia": "74LS",
+    "documento": "TI SN54LS595, SN54LS596, SN74LS595, SN74LS596, SDLS006",
+    "revision": "mar 1988",
+    "pagina": "ninguna",
+    "figura": "La hoja del LS595 no trae diagrama de tiempos; se usa el del HC595 (mismo registro de desplazamiento y de almacenamiento con dos relojes, mismas funciones)."
+   }
+  ],
+  "lectura": "Los tiempos salen de medir la figura sobre una rejilla de un período de SRCLK. Error de lectura estimado: 0.1 período. SRCLR baja en la figura casi sobre el flanco 14 de SRCLK; se desplazó a 14.25 y sube en 15.25 (la figura lo sube en 15.0, coincide con la bajada de RCLK). La figura marca como alta impedancia el tramo con OE alto."
+ },
+ "escala": "t en períodos de SRCLK. SRCLK y RCLK llevan cada uno su lista de subidas y bajadas. Elegir el período mayor que 10 veces el retardo máximo de la hoja.",
+ "relojes": [
+  {
+   "senal": "SRCLK",
+   "inicial": 0,
+   "bajadas": [
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5,
+    6.5,
+    7.5,
+    8.5,
+    9.5,
+    10.5,
+    11.5,
+    12.5,
+    13.5,
+    14.5,
+    15.5
+   ],
+   "subidas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+   ]
+  },
+  {
+   "senal": "RCLK",
+   "inicial": 0,
+   "bajadas": [
+    2.0,
+    3.0,
+    4.0,
+    5.0,
+    6.0,
+    7.0,
+    8.0,
+    9.0,
+    10.0,
+    12.0,
+    15.0
+   ],
+   "subidas": [
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5,
+    6.5,
+    7.5,
+    8.5,
+    9.5,
+    11.5,
+    14.5
+   ]
+  }
+ ],
+ "inicial": {
+  "SER": 0,
+  "SRCLR": 0,
+  "OE": 0
+ },
+ "pasos": [
+  {
+   "t": 0.5,
+   "entradas": {
+    "SER": 1,
+    "SRCLR": 1
+   }
+  },
+  {
+   "t": 1.5,
+   "entradas": {
+    "SER": 0
+   }
+  },
+  {
+   "t": 10.0,
+   "entradas": {
+    "OE": 1
+   }
+  },
+  {
+   "t": 10.5,
+   "entradas": {
+    "SER": 1
+   }
+  },
+  {
+   "t": 11.5,
+   "entradas": {
+    "SER": 0
+   }
+  },
+  {
+   "t": 12.0,
+   "entradas": {
+    "OE": 0
+   }
+  },
+  {
+   "t": 14.25,
+   "entradas": {
+    "SRCLR": 0
+   }
+  },
+  {
+   "t": 15.25,
+   "entradas": {
+    "SRCLR": 1
+   }
+  }
+ ],
+ "salidas_codificadas": "Q = cadena 'QA QB QC QD QE QF QG QH' del registro de almacenamiento (ocho 0 o 1); QH' = salida serie; Z = true si QA a QH están en alta impedancia",
+ "muestras": [
+  {
+   "t": 2.0,
+   "salidas": {
+    "Q": "10000000",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: QA alto tras el primer RCLK (1.5)"
+  },
+  {
+   "t": 3.0,
+   "salidas": {
+    "Q": "01000000",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: QB alto"
+  },
+  {
+   "t": 4.0,
+   "salidas": {
+    "Q": "00100000",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: QC alto"
+  },
+  {
+   "t": 5.0,
+   "salidas": {
+    "Q": "00010000",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: QD alto"
+  },
+  {
+   "t": 6.0,
+   "salidas": {
+    "Q": "00001000",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: QE alto"
+  },
+  {
+   "t": 7.0,
+   "salidas": {
+    "Q": "00000100",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: QF alto"
+  },
+  {
+   "t": 8.25,
+   "salidas": {
+    "Q": "00000010",
+    "QH'": 1,
+    "Z": false
+   },
+   "origen": "figura: QG alto y QH' sube con el octavo flanco de SRCLK"
+  },
+  {
+   "t": 8.75,
+   "salidas": {
+    "Q": "00000001",
+    "QH'": 1,
+    "Z": false
+   },
+   "origen": "figura: QH alto"
+  },
+  {
+   "t": 9.25,
+   "salidas": {
+    "Q": "00000001",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: QH' baja con el noveno flanco de SRCLK"
+  },
+  {
+   "t": 9.75,
+   "salidas": {
+    "Q": "00000000",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: RCLK 9.5 almacena ceros"
+  },
+  {
+   "t": 11.0,
+   "salidas": {
+    "QH'": 0,
+    "Z": true
+   },
+   "origen": "figura: OE alto, QA a QH rayadas (3 estados)"
+  },
+  {
+   "t": 12.25,
+   "salidas": {
+    "Q": "10000000",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: OE baja y QA ya estaba en alto desde el RCLK de 11.5"
+  },
+  {
+   "t": 13.25,
+   "salidas": {
+    "Q": "10000000",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: QA sigue alto"
+  },
+  {
+   "t": 15.5,
+   "salidas": {
+    "Q": "00000000",
+    "QH'": 0,
+    "Z": false
+   },
+   "origen": "figura: SRCLR bajo borra el registro de desplazamiento y el RCLK de 14.5 almacena ceros"
+  }
+ ],
+ "notas": [
+  "El dato 1 entra por SER con el flanco de SRCLK en 1.0 (SER alto de 0.5 a 1.5), sube la salida QA con el primer RCLK y recorre QA a QH, un RCLK por cuenta.",
+  "El segundo 1 (SER alto de 10.5 a 11.5, flanco 11) se almacena en 11.5 mientras OE está alto; la salida aparece al bajar OE.",
+  "Antes del primer RCLK las salidas Q son desconocidas en la figura (líneas punteadas) y no se muestrean."
+ ]
+}

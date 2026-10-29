@@ -8,9 +8,9 @@ import type { CrucesSim, MotorSimulacion } from './client'
 import { armarReparto, type Reparto } from '../conexiones/corrientes'
 import { limitesDelCircuito, VigiaDeAvisos, VigiaDeReinicio, type LimitePieza } from './avisos'
 import { VigiaDeQuemado } from './quemado'
-import { MAX_ELEMENTS, MAX_NODES, MAX_REDES_DIGITALES, type CambioEnCaliente, type EventoFundido, type SimReading } from './protocol'
+import { MAX_ELEMENTS, MAX_NODES, MAX_REDES_DIGITALES, type CambioEnCaliente, type EventoFundido, type SimReading, type TopesDePaso } from './protocol'
 import { textoEnVivo } from '../valores/enVivo'
-import { basesDeTiempo, escalaDeVoltaje, leerResultados, PASO_VISTA, pasoDeSimulacion, pasoDeVistaPrevia, type Lectura, type MedicionPieza } from './lectura'
+import { basesDeTiempo, escalaDeVoltaje, leerResultados, PASO_VISTA, pasoDeSimulacion, pasoDeVistaPrevia, topesDeVistaPrevia, type Lectura, type MedicionPieza } from './lectura'
 import { Histeresis } from '../ui/histeresis'
 import { VigiaDeSobrecorriente } from './sobrecorriente'
 import { ajustesMultimetro, estructuraMultimetro, MODOS_MULTIMETRO, RANGO_CONTINUIDAD } from '../instrumentos/ajustes'
@@ -261,6 +261,8 @@ export class ControlSimulacion {
   /** Los instrumentos que corren (su orden en la memoria compartida) y lo último que se le mandó al worker. */
   private instrumentos: InstrumentosCargados | null = null
   private configEnviada = ''
+  /** Los topes de paso por isla que tiene el motor (en JSON, para mandar solo los que cambian). */
+  private topesEnviados = ''
   /** El último aviso de tope del óhmetro detenido (no se repite en cada edición). */
   private ultimoLimiteOhmios: string | null = null
   /** El ancho que pidió el panel de cada osciloscopio (0 con su pestaña cerrada): se manda otra vez al cargar cada vista previa. */
@@ -292,6 +294,9 @@ export class ControlSimulacion {
   private _avance: AvanceSim | null = null
   private quitarCruces: (() => void) | null = null
   private quitarConflictos: (() => void) | null = null
+  private quitarIndefinidos: (() => void) | null = null
+  /** Los convertidores D/A de los que el Registro ya dijo que tienen entradas sin nivel, para decirlo una vez por vista previa. */
+  private indefinidosDichos = new Set<number>()
   /** Las redes digitales cuyo conflicto de bus ya se dijo en esta vista previa (una vez cada una). */
   private conflictosDichos = new Set<number>()
   private quitarPerdidos: (() => void) | null = null
@@ -464,10 +469,13 @@ export class ControlSimulacion {
         this.quitarRango = this.motor.alRango((k, rango) => this.cambioDeRango(k, rango))
         this.quitarCruces = this.motor.alCruces((c) => this.d.cruces?.(c, (k) => this.resultado?.piezaDeElemento[k]))
         this.quitarConflictos = this.motor.alConflictos?.((redes) => this.conflictosDeBus(redes)) ?? null
+        this.quitarIndefinidos = this.motor.alIndefinidos?.((elementos) => this.entradasIndefinidas(elementos)) ?? null
         this.quitarPerdidos = this.motor.alEstadosPerdidos((perdidos, guardados) => this.estadosPerdidos(perdidos, guardados))
       }
       this.hMotor = pasoDeVistaPrevia(r.netlist!, basesDeTiempo(r))
       this.pasoDeLaBase = this.hMotor < pasoDeVistaPrevia(r.netlist!) ? this.hMotor : null
+      const topes = topesDeVistaPrevia(r.netlist!, basesDeTiempo(r))
+      this.topesEnviados = JSON.stringify(topes)
       this.enCaliente.clear()
       this.pasoAntes.clear()
       const ci = configDeInstrumentos(r.instrumentos)
@@ -478,7 +486,7 @@ export class ControlSimulacion {
       // La memoria de las corrientes por terminal (del tamaño de la netlist) y las potencias que integran los avisos.
       this.reparto = null
       // La velocidad con que empieza va con la carga: una que queda en pausa no corre unos milisegundos a 1× antes de la pausa.
-      const carga = await this.motor.load(r.netlist!, this.hMotor, hay ? ci.config : undefined, { casillas: r.puertos.length, corrientes: this.corrientesActivas, potencias: r.potencias, velocidad: this.quedarPausada ? 0 : this.velocidad, sinTope: !this.quedarPausada && this.sinTope })
+      const carga = await this.motor.load(r.netlist!, this.hMotor, hay ? ci.config : undefined, { casillas: r.puertos.length, corrientes: this.corrientesActivas, potencias: r.potencias, velocidad: this.quedarPausada ? 0 : this.velocidad, sinTope: !this.quedarPausada && this.sinTope, topes })
       if (mia === this.carga && !this.lazoDicho) this.lazo = this.lazoDe(r, carga.lazo)
     } catch (e) {
       if (mia !== this.carga) return false
@@ -529,6 +537,16 @@ export class ControlSimulacion {
       const doc = [...r.redDigital].find(([, d]) => d === digital)?.[0]
       const nombre = doc === undefined ? undefined : this.d.circuito().con.redes.find((x) => x.id === doc)?.nombre
       this.d.registrar(`Conflicto en el bus: dos salidas manejan la red ${nombre ?? digital} a niveles distintos.`, 'aviso')
+    }
+  }
+
+  /** Un convertidor D/A lleva más de un microsegundo con una entrada sin nivel (al aire, en alta impedancia o entre los umbrales): conserva el último código y el Registro lo dice una vez. */
+  private entradasIndefinidas(elementos: number[]): void {
+    for (const k of elementos) {
+      if (this.indefinidosDichos.has(k)) continue
+      this.indefinidosDichos.add(k)
+      const pieza = this.piezaDeElemento(k)
+      if (pieza) this.d.registrar(`${pieza.ref} tiene una entrada digital sin nivel definido (al aire, en alta impedancia o entre los umbrales): conserva el último código.`, 'aviso')
     }
   }
 
@@ -857,6 +875,9 @@ export class ControlSimulacion {
     this.quitarConflictos?.()
     this.quitarConflictos = null
     this.conflictosDichos.clear()
+    this.quitarIndefinidos?.()
+    this.quitarIndefinidos = null
+    this.indefinidosDichos.clear()
     this.quitarPerdidos?.()
     this.quitarPerdidos = null
     this.fijarRetrocesos(0)
@@ -940,15 +961,20 @@ export class ControlSimulacion {
           const hNuevo = pasoDeVistaPrevia(r.netlist, basesDeTiempo(r))
           const h = hNuevo !== this.hMotor ? hNuevo : undefined
           this.pasoDeLaBase = hNuevo < pasoDeVistaPrevia(r.netlist) ? hNuevo : null
+          // Los topes por isla van con cada paso nuevo (`set_max_step` los iguala) y cuando cambia el de una fuente que no es la más rápida.
+          const topesNuevos: TopesDePaso = topesDeVistaPrevia(r.netlist, basesDeTiempo(r))
+          const textoTopes = JSON.stringify(topesNuevos)
+          const topes = h !== undefined || textoTopes !== this.topesEnviados ? topesNuevos : undefined
+          this.topesEnviados = textoTopes
           const ci = configDeInstrumentos(r.instrumentos)
           const texto = JSON.stringify(ci.config)
           const otraConfig = texto !== this.configEnviada
-          if (cambios.length === 0 && h === undefined && !otraConfig) continue
+          if (cambios.length === 0 && h === undefined && !topes && !otraConfig) continue
           const hAntes = this.hMotor
           if (h !== undefined) this.hMotor = h
-          const seq = this.motor!.setValues(cambios, h)
+          const seq = this.motor!.setValues(cambios, h, topes)
           // Editar el circuito en caliente invalida lo guardado: el motor lo descarta.
-          if (cambios.length > 0 || h !== undefined) this.fijarRetrocesos(0)
+          if (cambios.length > 0 || h !== undefined || topes) this.fijarRetrocesos(0)
           if (seq > 0) {
             for (const c of cambios) {
               const lista = this.enCaliente.get(c.indice) ?? [{ seq: 0, elemento: previo!.elements[c.indice] }]

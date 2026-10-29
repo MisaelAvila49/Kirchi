@@ -22,7 +22,7 @@ const CSS = cssDeCaras([CARA, { ...CARA, estilo: 'italic', url: '/i.woff2' }, { 
 function documentoRico(): Documento {
   const d = documentoVacio()
   const tipos = [...lib.values()].filter((d) => !d.oculta).map((d) => d.id)
-  expect(tipos).toHaveLength(102)
+  expect(tipos).toHaveLength(111)
   tipos.forEach((tipo, i) => {
     const p: Pieza = { id: `p${i}`, tipo, ref: `X${i + 1}`, x: (i % 7) * 30, y: Math.floor(i / 7) * 30, rot: ([0, 90, 180, 270] as const)[i % 4], espejo: i % 5 === 0, props: {} }
     d.piezas[p.id] = p

@@ -668,6 +668,11 @@ export class Editor {
     return true
   }
 
+  /** El reparto de textos guardado ya no vale: cambió algo que no es el documento (el texto del ajuste de Configuración). */
+  invalidarTextos(): void {
+    this.colocados = null
+  }
+
   /** Texto de pieza cuya caja contiene `p`, con la posición de la escena; null si no hay. Los textos se reparten una vez
    * por documento y se guardan hasta el siguiente cambio. */
   textoEn(p: Punto): { pieza: Id; cual: CualTexto; texto: Texto } | null {
@@ -1889,7 +1894,7 @@ export class Editor {
       this.choque = null
       return
     }
-    const l = lugarParaPegar(this.doc, this.lib, f.piezas, f.cables, this.cursor, this.indice, 0)
+    const l = lugarParaPegar(this.doc, this.lib, f.piezas, f.cables, this.cursor, this.indice, 0, f)
     this.choque = l.libre ? null : { con: 'plantilla', col: 'piezas', ref: 'otro elemento' }
   }
 
@@ -2255,14 +2260,15 @@ export class Editor {
     const iSpice = familia ? campos.length : -1
     if (familia) campos.push({ id: 'spice', titulo: 'Personalizado', inicial: textoSpiceDe(p, def), personalizado: { familia, base: textoBaseSpice(p, def) } })
     const iValor = campos.findIndex((c) => c.id === 'valor')
+    const iJunto = campos.findIndex((c) => c.id === 'prop:junto')
     this.ganchos.editarTexto({
       tipo: 'pieza',
       en: { x: p.x, y: p.y },
       ...(modeloDe(def) ? { encabezado: nombreConModelo(def, p.props[propModelo(def)!.id]) } : {}),
       nombre: def.nombre.es,
       campos,
-      // Con doble clic sobre la referencia, el foco va a ella; si no, al valor (o a la referencia si no hay valor).
-      foco: enfocar === 'ref' || iValor < 0 ? 0 : iValor,
+      // Con doble clic sobre la referencia, el foco va a ella; sobre el ajuste, a «Mostrar»; si no, al valor (o a la referencia si no hay valor).
+      foco: enfocar === 'ref' || (iValor < 0 && iJunto < 0) ? 0 : enfocar === 'ajuste' && iJunto >= 0 ? iJunto : iValor < 0 ? 0 : iValor,
       revisar: (vals) => {
         const actual = this.doc.piezas[id] ?? p
         const ref: RevisionCampo = {}
@@ -2683,6 +2689,19 @@ export class Editor {
     return this.cambiarPerilla(id, m.posicion, textoPosicion(porcentaje), gesto)
   }
 
+  /** Mueve la palanca `k` de un interruptor DIP (0 abierta, 1 cerrada), también con la vista previa corriendo. Cada llamada es un
+   * paso de deshacer. Devuelve false si la pieza no es un DIP, la palanca no existe o el archivo es de solo lectura. */
+  cambiarPalanca(id: Id, k: number, cerrada: boolean): boolean {
+    const p = this.doc.piezas[id]
+    const def = p ? this.lib.get(p.tipo) : undefined
+    const m = def?.modelo
+    if (!p || m?.tipo !== 'interruptores' || !Number.isInteger(k) || k < 0 || k >= m.contactos.length) return false
+    const actual = p.props[m.estado] ?? def!.props.find((d) => d.id === m.estado)?.defecto ?? ''
+    const bits = Array.from({ length: m.contactos.length }, (_, j) => (actual[j] === '1' ? '1' : '0'))
+    bits[k] = cerrada ? '1' : '0'
+    return this.cambiarPerilla(id, m.estado, bits.join(''), `palanca${++this.nPot}`)
+  }
+
   /** Mueve una perilla (la posición de un potenciómetro o una propiedad `enVivo`) con o sin vista previa, directo al historial
    * porque `ejecutar` rechaza todo mientras se simula. Un mismo `gesto` es un paso; sin él, los cambios de la misma perilla
    * dentro de 800 ms también. Devuelve false si no es una perilla, el texto no vale o el archivo es de solo lectura. */
@@ -2692,11 +2711,13 @@ export class Editor {
     const m = def?.modelo
     const prop = def?.props.find((d) => d.id === propId)
     const esPot = m?.tipo === 'pot' && propId === m.posicion
-    if (!p || !def || !prop || (!esPot && !prop.enVivo)) return false
+    // Las palancas de un interruptor DIP son una cadena de 0 y 1: cada clic reescribe la cadena entera.
+    const esDip = m?.tipo === 'interruptores' && propId === m.estado
+    if (!p || !def || !prop || (!esPot && !esDip && !prop.enVivo)) return false
     if (this.soloLectura) return this.editable()
     if (this.gestoEnCurso) return false
     let nuevo = texto
-    if (!esPot) {
+    if (!esPot && !esDip) {
       const l = leerEnVivo(prop, texto)
       if ('error' in l) return false
       nuevo = textoEnVivo(prop, l.valor)
@@ -2713,7 +2734,7 @@ export class Editor {
       grupo = s && s.clave === clave && t - s.t <= ESPERA_FLECHAS_MS && this.historial.grupoEnCurso === s.grupo ? s.grupo : `${prefijo}-${++this.nPot}`
       this.perillaSeguida = { clave, grupo, t }
     }
-    const etiqueta = esPot ? 'posición del cursor' : prop.nombre.toLowerCase()
+    const etiqueta = esPot ? 'posición del cursor' : esDip ? 'palanca' : prop.nombre.toLowerCase()
     const abre = this.historial.grupoEnCurso !== grupo
     const pasos = abre || this.perillaUltima?.grupo !== grupo ? 1 : this.perillaUltima.pasos + 1
     this.historial.ejecutar({ ...modificar(etiqueta, 'piezas', p, { ...p, props: { ...p.props, [propId]: nuevo } }), grupo })
@@ -3298,7 +3319,7 @@ export class Editor {
   /** Pega en `en` o unos pasos en diagonal si se encimaría. Sin hueco: si solo quedan piezas encimadas pega en el último
    * intento y sacude; si cruzarían cables, no pega. */
   private pegarFragmento(f: Fragmento, en: Punto, exacto = false): boolean {
-    const lugar = lugarParaPegar(this.doc, this.lib, f.piezas, f.cables, en, this.indice, exacto ? 0 : undefined)
+    const lugar = lugarParaPegar(this.doc, this.lib, f.piezas, f.cables, en, this.indice, exacto ? 0 : undefined, f)
     // Una plantilla se coloca donde está el fantasma o no se coloca: no se corre sola.
     if (exacto && !lugar.libre) {
       this.ganchos.registrar('No se colocó la plantilla: no hay lugar libre ahí.')

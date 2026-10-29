@@ -5,6 +5,7 @@
     "en": "IGBT transistor"
   },
   "categoria": "semiconductores",
+  "grupo": "Efecto de campo e IGBT",
   "prefijo": "Q",
   "buscar": [
     "igbt",

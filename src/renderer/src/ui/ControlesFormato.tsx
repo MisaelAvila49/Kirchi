@@ -1,5 +1,5 @@
 import { createEffect, createSignal, For, on, Show } from 'solid-js'
-import { ALINEACIONES, CONTORNOS, FUENTES, leerPx, leerTam, mmAPx, pxAMm, NOMBRE_ALINEACION, NOMBRE_CONTORNO, nombreContorno, NOMBRE_FUENTE, NOMBRE_TINTA, SERIE_TAM, textoTam, TINTAS, type Alineacion, type Contorno } from '../doc/formato'
+import { ALINEACIONES, CONTORNOS, FUENTES, leerPt, mmAPt, ptAMm, NOMBRE_ALINEACION, NOMBRE_CONTORNO, nombreContorno, NOMBRE_FUENTE, NOMBRE_TINTA, SERIE_TAM, textoPt, TINTAS, type Alineacion, type Contorno } from '../doc/formato'
 import { IconoAlinear } from './iconos'
 import type { OrdenFormato, VistaFormato } from './vistaFormato'
 
@@ -12,8 +12,6 @@ interface Props {
   teclas?(id: string): string | undefined
   /** Pasa el foco al lienzo (la barra lo usa tras elegir con el puntero en una lista). */
   alCanvas?(): void
-  /** Solo el tamaño en px (la ficha de texto del inspector); sin él, también el de mm. */
-  soloPx?: boolean
   /** Qué se está formateando (los ids seleccionados): al cambiar, el campo de tamaño descarta lo que se estaba escribiendo. */
   clave?: string
 }
@@ -21,71 +19,28 @@ interface Props {
 const pulsado = (v: boolean | 'mixto') => (v === 'mixto' ? 'mixed' : v ? 'true' : 'false')
 const conAtajo = (nombre: string, t?: string) => (t ? `${nombre} (${t})` : nombre)
 
-/** Campo de tamaño en mm: Enter o salir aplica, Esc regresa; con varios distintos queda vacío con la marca «varios». */
-function CampoTam(props: { valor: number | 'varios'; clave?: string; onAplicar(mm: number): void }) {
-  const mostrado = () => (props.valor === 'varios' ? '' : String(props.valor))
+/** Campo de tamaño en pt (2.8 a 56.7): el documento guarda mm. Enter o salir aplica, Esc regresa. */
+export function CampoPt(props: { valor: number | 'varios'; clave?: string; onAplicar(pt: number): void; id?: string }) {
+  const id = props.id ?? 'formato-pt'
+  const mostrado = () => (props.valor === 'varios' ? '' : String(mmAPt(props.valor)))
   const [texto, setTexto] = createSignal(mostrado())
   const [error, setError] = createSignal<string | null>(null)
   createEffect(on(() => [props.valor, props.clave], () => (setTexto(mostrado()), setError(null)), { defer: true }))
   const aplicar = () => {
     if (texto() === mostrado()) return setError(null)
-    const r = leerTam(texto())
+    const r = leerPt(texto())
     if ('error' in r) return setError(r.error)
     setError(null)
-    props.onAplicar(r.tam)
+    props.onAplicar(r.pt)
   }
   return (
     <div class="fld fld-campo">
-      <label for="formato-tam">Tamaño (mm)</label>
-      <input
-        id="formato-tam"
-        class="campo cifra"
-        value={texto()}
-        placeholder={props.valor === 'varios' ? 'varios' : undefined}
-        aria-invalid={error() ? 'true' : undefined}
-        aria-describedby="formato-tam-ayuda"
-        onInput={(e) => setTexto(e.currentTarget.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault()
-            aplicar()
-          } else if (e.key === 'Escape') {
-            e.preventDefault()
-            setTexto(mostrado())
-            setError(null)
-          }
-        }}
-        onBlur={aplicar}
-      />
-      <p id="formato-tam-ayuda" class={error() ? 'campo-error' : 'campo-ayuda'} aria-live="polite">
-        {error() ?? 'mm, de 1 a 20'}
-      </p>
-    </div>
-  )
-}
-
-/** Campo de tamaño en px (8 a 48, de 1 en 1): el mismo tamaño que el de mm, a otra escala. Enter o salir aplica, Esc regresa. */
-export function CampoPx(props: { valor: number | 'varios'; clave?: string; onAplicar(px: number): void; id?: string }) {
-  const id = props.id ?? 'formato-px'
-  const mostrado = () => (props.valor === 'varios' ? '' : String(mmAPx(props.valor)))
-  const [texto, setTexto] = createSignal(mostrado())
-  const [error, setError] = createSignal<string | null>(null)
-  createEffect(on(() => [props.valor, props.clave], () => (setTexto(mostrado()), setError(null)), { defer: true }))
-  const aplicar = () => {
-    if (texto() === mostrado()) return setError(null)
-    const r = leerPx(texto())
-    if ('error' in r) return setError(r.error)
-    setError(null)
-    props.onAplicar(r.px)
-  }
-  return (
-    <div class="fld fld-campo">
-      <label for={id}>Tamaño (px)</label>
+      <label for={id}>Tamaño (pt)</label>
       <input
         id={id}
         class="campo cifra"
         type="text"
-        inputmode="numeric"
+        inputmode="decimal"
         value={texto()}
         placeholder={props.valor === 'varios' ? 'varios' : undefined}
         aria-invalid={error() ? 'true' : undefined}
@@ -104,7 +59,7 @@ export function CampoPx(props: { valor: number | 'varios'; clave?: string; onApl
         onBlur={aplicar}
       />
       <p id={`${id}-ayuda`} class={error() ? 'campo-error' : 'campo-ayuda'} aria-live="polite">
-        {error() ?? 'px, de 8 a 48'}
+        {error() ?? 'pt, de 2.8 a 56.7'}
       </p>
     </div>
   )
@@ -238,7 +193,7 @@ export default function ControlesFormato(props: Props) {
                 varios
               </option>
             </Show>
-            <For each={opcionesTam()}>{(mm) => <option value={String(mm)}>{textoTam(mm)}</option>}</For>
+            <For each={opcionesTam()}>{(mm) => <option value={String(mm)}>{textoPt(mm)}</option>}</For>
           </select>
           {estilos}
           {alineacion}
@@ -251,10 +206,7 @@ export default function ControlesFormato(props: Props) {
         <span class="secundario">Fuente</span>
         {fuente}
       </div>
-      <CampoPx valor={props.vista.tam} clave={props.clave} onAplicar={(px) => props.onOrden({ tipo: 'parche', parche: { tam: pxAMm(px) } })} />
-      <Show when={!props.soloPx}>
-        <CampoTam valor={props.vista.tam} clave={props.clave} onAplicar={(tam) => props.onOrden({ tipo: 'parche', parche: { tam } })} />
-      </Show>
+      <CampoPt valor={props.vista.tam} clave={props.clave} onAplicar={(pt) => props.onOrden({ tipo: 'parche', parche: { tam: ptAMm(pt) } })} />
       <div class="fld">
         <span class="secundario">Estilo</span>
         {estilos}

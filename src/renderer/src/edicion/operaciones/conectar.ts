@@ -54,7 +54,7 @@ export function resolverExtremo(est: Estado, texto: string): Extremo | { motivo:
     if ('motivo' in pat) return pat
     const i = est.con.redDePin.get(clavePin(pat.pieza.id, pat.pin))
     const red = i === undefined ? undefined : est.con.redes.find((r) => r.id === i)
-    return red ? { texto, red, patilla: pat, puntos: [pat.punto] } : { motivo: `La patilla ${t} no está en ninguna red.` }
+    return red ? { texto, red, patilla: pat, puntos: [pat.punto] } : { motivo: `El pin ${t} no está en ninguna red.` }
   }
   const k = t.toLowerCase()
   const red = est.con.redes.find((r) => r.nombre === t) ?? est.con.redes.find((r) => r.nombre?.toLowerCase() === k)

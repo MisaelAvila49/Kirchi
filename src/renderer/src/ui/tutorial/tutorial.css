@@ -28,6 +28,8 @@
 .tutorial-puntos i.ok { width: 18px; border-radius: 4px; background: var(--texto-verde); }
 .tutorial-texto { margin: 4px 0 10px; }
 .tutorial-texto kbd { margin: 0 1px; font-size: 11px; }
+/* Lo que se escribe tal cual en el buscador: recuadro aparte, con el espacio visible, para que no se lea pegado al icono del gesto. */
+.tutorial-codigo { display: inline-block; margin: 0 3px; padding: 1px 6px; border-radius: 4px; background: var(--gris-tenue); font-family: var(--fuente-cifras); font-size: 12px; font-weight: 600; white-space: pre; }
 .tutorial-pista { margin: -4px 0 10px; color: var(--texto-secundario); font-size: 12px; }
 .tutorial-pista.tutorial-fuera { color: var(--trazo); font-weight: 600; }
 .tutorial-listo { display: inline-flex; align-items: center; gap: 6px; color: var(--texto-verde); font-weight: 700; }
@@ -49,6 +51,7 @@
 .tutorial-numero { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--t-suave, var(--gris-suave)); color: var(--t-texto, var(--gris-texto)); font-weight: 700; font-size: 15px; }
 .tutorial-capitulo-texto h3 { margin: 0; font-size: 14px; }
 .tutorial-meta { margin: 0; color: var(--texto-secundario); font-size: 12px; }
+.tutorial-descripcion { margin: 2px 0 0; font-size: 12px; }
 .tutorial-estado { display: inline-flex; margin: 2px 0 0; color: var(--texto-secundario); font-size: 12px; }
 .tutorial-estado[data-estado='hecho'] { color: var(--texto-verde); font-weight: 700; }
 .tutorial-estado[data-estado='curso'] { color: var(--seleccion); font-weight: 700; }
@@ -78,3 +81,15 @@
 /* Icono de gesto dentro del texto: del tamaño de la letra y sobre su línea base, sin abrir el interlineado. */
 .tutorial-gesto { display: inline; line-height: inherit; }
 .tutorial-gesto-icono { display: inline-block; width: 1em; height: 1em; vertical-align: middle; margin: -0.15em 0.2em 0 0; }
+
+/* Icono de la interfaz dentro del texto (`{icono:id|Nombre}`): el mismo trazo de la cinta y de los paneles, con su nombre al lado. */
+.tutorial-icono { display: inline; font-weight: 600; white-space: nowrap; }
+.tutorial-icono .icono { display: inline-block; width: 1em; height: 1em; vertical-align: middle; margin: -0.15em 0.25em 0 0; color: var(--seleccion); stroke-width: 1.7; }
+
+/* Con muchos pasos, una barra en vez de un punto por paso. */
+.tutorial-progreso { flex: none; width: 96px; height: 4px; border-radius: 4px; background: var(--gris-tenue); overflow: hidden; }
+.tutorial-progreso b { display: block; height: 100%; background: var(--seleccion); }
+
+/* Sobre un diálogo (la figura que se exporta): por encima de su velo (50) y de los menús (40). */
+.tutorial-velo.sobre-dialogo { z-index: 60; }
+.tutorial-globo.sobre-dialogo { z-index: 61; }

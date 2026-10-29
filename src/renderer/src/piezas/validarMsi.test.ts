@@ -85,7 +85,7 @@ describe('modelo lut', () => {
       tipo: 'lut', familia: 'familia', alimentacion: 'alimentacion', comunes: ['DIR'], rebanadas: [{ A: 'A1' }],
       tabla: { columnas: ['DIR', 'A'], salidas: ['A'], filas: ['0 X > A', '1 X > 0'] }, bidireccionales: ['A'], retardos
     }
-    expect(errores(pieza('tr', ['DIR', 'A1'], modelo))).toContain('modelo.tabla la salida A depende de la entrada A de su propia patilla')
+    expect(errores(pieza('tr', ['DIR', 'A1'], modelo))).toContain('modelo.tabla la salida A depende de la entrada A de su propio pin')
   })
 
   it('un generador sustituye a la tabla, y los dos juntos no valen', () => {

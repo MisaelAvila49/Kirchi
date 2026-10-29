@@ -11,7 +11,7 @@ import type { LectorMotor } from '../../../compartido/netlistMotor'
 import type { Resultado } from '../edicion/resultado'
 import { compilarNetlist, type ResultadoNetlist } from '../netlist/netlist'
 import type { PiezaDef } from '../piezas/tipos'
-import { basesDeTiempo, pasoDeVistaPrevia } from '../sim/lectura'
+import { basesDeTiempo, pasoDeVistaPrevia, topesDeVistaPrevia, topesPlanos } from '../sim/lectura'
 import { MAX_ELEMENTS, MAX_NODES, MAX_REDES_DIGITALES } from '../sim/protocol'
 import { armarAnalisis, type ArmadoAnalisis, type EntradaAnalisis } from '../edicion/analisisDoc'
 import type { ResultadoEjecucion } from '../analisis/ejecucion'
@@ -308,6 +308,11 @@ export class SesionSinVentana {
             ? `La vista previa admite hasta ${MAX_REDES_DIGITALES} redes digitales y este circuito tiene ${digitales}.`
             : `La vista previa admite hasta ${MAX_ELEMENTS} piezas simuladas y este circuito tiene ${elementos}.`
       )
+    }
+    // Sin un paso pedido, cada isla con el suyo, como en la vista previa.
+    if (paso === undefined) {
+      const t = topesDeVistaPrevia(r.netlist, basesDeTiempo(r))
+      sim.topes_de_paso(t.libre, topesPlanos(t))
     }
     this.sim = sim
     this.paso = h

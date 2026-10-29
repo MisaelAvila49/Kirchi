@@ -10,6 +10,7 @@ describe('Ctrl+K encuentra las calculadoras', () => {
     expect(buscarCalculadoras('filtro')[0].id).toBe('filtro')
     expect(buscarCalculadoras('astable')[0].id).toBe('astable')
     expect(buscarCalculadoras('inversor')[0].id).toBe('amplificador')
+    for (const palabra of ['integrador', 'derivador', 'instrumentacion', 'sumador']) expect(buscarCalculadoras(palabra)[0].id, palabra).toBe('amplificador')
     expect(buscarCalculadoras('pasa banda')[0].id).toBe('filtro')
     expect(buscarCalculadoras('rechaza banda')[0].id).toBe('filtro')
     expect(buscarCalculadoras('doble')[0].id).toBe('filtro')

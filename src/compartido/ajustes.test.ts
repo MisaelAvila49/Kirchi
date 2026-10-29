@@ -12,6 +12,7 @@ describe('ajustes', () => {
       lienzoSincronizado: true,
       tamañoInterfaz: 100,
       serieComercial: 'E12',
+      textoAjuste: 'Valores',
       altoFranja: null,
       simulacion: { corriente: false, animaciones: true, sonido: true, volumen: 50, velocidadFlechas: 1, quemar: false },
       tutorial: { ofertaVista: false, avanzarSolo: true, avance: {} },
@@ -121,6 +122,16 @@ describe('ajustes', () => {
     expect(normalizarAjustes(viejos).serieComercial).toBe('E12')
   })
 
+  it('el texto del ajuste: Valores por omisión; solo Ajuste, Valores, Ambos y Nada valen y lo demás toma lo de antes', () => {
+    expect(ajustesPorOmision().textoAjuste).toBe('Valores')
+    expect(normalizarAjustes({ textoAjuste: 'Ambos' }).textoAjuste).toBe('Ambos')
+    expect(normalizarAjustes({ textoAjuste: 'Nada' }).textoAjuste).toBe('Nada')
+    expect(normalizarAjustes({ textoAjuste: 'Todo' }).textoAjuste).toBe('Valores')
+    expect(aplicarParche({ ...ajustesPorOmision(), textoAjuste: 'Ajuste' }, { textoAjuste: 3 }).textoAjuste).toBe('Ajuste')
+    const { textoAjuste: _sin, ...viejos } = ajustesPorOmision()
+    expect(normalizarAjustes(viejos).textoAjuste).toBe('Valores')
+  })
+
   it('el dibujo del lienzo sincronizado: un booleano, encendido por omisión; lo que no lo es toma lo de antes', () => {
     expect(normalizarAjustes({ lienzoSincronizado: false }).lienzoSincronizado).toBe(false)
     expect(normalizarAjustes({ lienzoSincronizado: 'no' }).lienzoSincronizado).toBe(true)
@@ -142,10 +153,13 @@ describe('ajustes', () => {
   })
 
   it('el tutorial: la oferta y el avance por capítulo; lo inválido se descarta y un parche conserva lo que no trae', () => {
-    const a = normalizarAjustes({ tutorial: { ofertaVista: true, avance: { 'primer-circuito': { paso: 3, hecho: false }, 'Mal id': { paso: 1, hecho: true }, medir: { paso: 1.5, hecho: true }, senales: { paso: 100, hecho: true }, archivo: { paso: -1, hecho: true }, trucos: { paso: 2, hecho: 'sí' } } } })
-    expect(a.tutorial).toEqual({ ofertaVista: true, avanzarSolo: true, avance: { 'primer-circuito': { paso: 3, hecho: false }, senales: { paso: 99, hecho: true }, trucos: { paso: 2, hecho: false } } })
+    // El avance de los cinco capítulos de antes se descarta sin error: sus pasos ya no son los mismos.
+    const antes = normalizarAjustes({ tutorial: { ofertaVista: true, avance: { 'primer-circuito': { paso: 9, hecho: true }, medir: { paso: 4, hecho: true }, senales: { paso: 8, hecho: true }, archivo: { paso: 4, hecho: true }, trucos: { paso: 2, hecho: false } } } })
+    expect(antes.tutorial).toEqual({ ofertaVista: true, avanzarSolo: true, avance: {} })
+    const a = normalizarAjustes({ tutorial: { ofertaVista: true, avance: { circuito: { paso: 3, hecho: false }, 'Mal id': { paso: 1, hecho: true }, 'medir-senales': { paso: 1.5, hecho: true }, analizar: { paso: 100, hecho: true }, conoce: { paso: -1, hecho: true } } } })
+    expect(a.tutorial).toEqual({ ofertaVista: true, avanzarSolo: true, avance: { circuito: { paso: 3, hecho: false }, analizar: { paso: 99, hecho: true } } })
     expect(aplicarParche(a, { tutorial: { ofertaVista: false } }).tutorial).toEqual({ ofertaVista: false, avanzarSolo: true, avance: a.tutorial.avance })
-    expect(aplicarParche(a, { tutorial: { avance: { medir: { paso: 0, hecho: true } } } }).tutorial).toEqual({ ofertaVista: true, avanzarSolo: true, avance: { medir: { paso: 0, hecho: true } } })
+    expect(aplicarParche(a, { tutorial: { avance: { analizar: { paso: 0, hecho: true } } } }).tutorial).toEqual({ ofertaVista: true, avanzarSolo: true, avance: { analizar: { paso: 0, hecho: true } } })
     expect(aplicarParche(a, { tema: 'oscuro' }).tutorial).toEqual(a.tutorial)
     expect(normalizarAjustes({ tutorial: 'x' }).tutorial).toEqual({ ofertaVista: false, avanzarSolo: true, avance: {} })
     expect(normalizarAjustes({ tutorial: { avanzarSolo: false } }).tutorial.avanzarSolo).toBe(false)
@@ -155,8 +169,8 @@ describe('ajustes', () => {
   it('el avance de ids desconocidos no cuenta contra el tope de capítulos', () => {
     const avance: Record<string, unknown> = {}
     for (let i = 0; i < 20; i++) avance[`falso-${i}`] = { paso: 1, hecho: true }
-    avance.medir = { paso: 2, hecho: false }
-    expect(normalizarAjustes({ tutorial: { avance } }).tutorial.avance).toEqual({ medir: { paso: 2, hecho: false } })
+    avance.analizar = { paso: 2, hecho: false }
+    expect(normalizarAjustes({ tutorial: { avance } }).tutorial.avance).toEqual({ analizar: { paso: 2, hecho: false } })
   })
 
   it('los atajos guardados: ids válidos, hasta cuatro teclas de texto sin repetir; un parche los reemplaza', () => {

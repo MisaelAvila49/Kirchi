@@ -1,3 +1,4 @@
+import { patillasDeUnidad, unidadesDe } from '../doc/paquetes'
 import { ENCAPSULADOS } from '../piezas/encapsulados'
 import type { Equivalencias, PiezaDef, PropDef } from '../piezas/tipos'
 import { filaDe } from '../piezas/validarDatos'
@@ -11,6 +12,9 @@ export interface EntradaDeCatalogo {
   propiedades: { id: string; nombre: string; unidad?: string; defecto: string; opciones?: string[]; perilla?: { min: number; max: number; unidad: string; escala: 'lineal' | 'log' } }[]
   /** Compuertas: de cuántas entradas puede ser (la propiedad «entradas» de `colocar`). */
   entradas?: { min: number; max: number }
+  /** Chips con varias unidades en un encapsulado (compuertas, amplificadores): cuántas, y el número de patilla de cada pin por unidad,
+   * con los pines compartidos (V+, V-) en cada una. `colocar` acepta `paquete` y `unidad`. */
+  unidades?: { n: number; nombres: string[]; compartidos: string[]; patillas: Record<string, Record<string, string>> }
   /** La pieza trae encapsulado, patillas y LCSC: se leen con `datos_pieza`. */
   datos?: true
 }
@@ -27,10 +31,17 @@ const propiedad = (p: PropDef) => ({
 
 /** Los tipos de pieza que se pueden colocar, por categoría y nombre, con lo que una orden necesita saber: el id, las
  * patillas para conectar y las propiedades con su unidad. Las variantes de más entradas de una compuerta no salen aparte. */
+function unidadesDeCatalogo(d: PiezaDef): EntradaDeCatalogo['unidades'] {
+  const u = unidadesDe(d, {})
+  if (!u) return undefined
+  return { n: u.nombres.length, nombres: u.nombres, compartidos: u.compartidos, patillas: Object.fromEntries(u.nombres.map((n) => [n, patillasDeUnidad(d, {}, n) ?? {}])) }
+}
+
 export function catalogo(lib: Map<string, PiezaDef>): EntradaDeCatalogo[] {
   const salida: EntradaDeCatalogo[] = []
   for (const d of lib.values()) {
     if (d.oculta) continue
+    const unidades = unidadesDeCatalogo(d)
     salida.push({
       id: d.id,
       nombre: d.nombre.es,
@@ -39,6 +50,7 @@ export function catalogo(lib: Map<string, PiezaDef>): EntradaDeCatalogo[] {
       patillas: d.pines.map((p) => ({ id: p.id, nombre: p.nombre })),
       propiedades: d.props.filter((p) => !p.ajuste).map(propiedad),
       ...(d.entradas ? { entradas: { min: 2, max: d.entradas.max } } : {}),
+      ...(unidades ? { unidades } : {}),
       ...(d.datos ? { datos: true as const } : {})
     })
   }
@@ -89,7 +101,7 @@ export function datosDePieza(def: PiezaDef, props: Record<string, string> = {}, 
       if (partes[i] !== undefined) p[id] = partes[i]
     })
   }
-  if (!def.datos) return { motivo: `«${def.id}» aún no tiene datos físicos (encapsulado, patillas, LCSC).` }
+  if (!def.datos) return { motivo: `«${def.id}» aún no tiene datos físicos (encapsulado, pines, LCSC).` }
   const f = filaDe(def, p)
   if (!f) {
     const por = def.datos.por === undefined ? [] : Array.isArray(def.datos.por) ? def.datos.por : [def.datos.por]

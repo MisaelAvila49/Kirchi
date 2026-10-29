@@ -1,3 +1,4 @@
+import { recordarEstado, recuperarEstado } from './memoria'
 import { createEffect, createMemo, createSignal, For, on, Show, type JSX } from 'solid-js'
 import { ESCALAS_PNG, type FormatoFigura, type OpcionesFigura } from '../../../../../compartido/ajustes'
 import { escribirAnotaciones, type Anotaciones } from '../../../../../compartido/grafica/anotaciones'
@@ -5,12 +6,12 @@ import type { AspectoGrafica, AspectoTraza } from '../../../../../compartido/gra
 import { formatearSI } from '../../../valores/valores'
 import Dialogo from '../../Dialogo'
 import { IconoDeshacer, IconoRehacer } from '../../iconos'
-import { BloqueRejilla, type TrazaVista } from '../../grafica/AspectoPanel'
+import { ControlRejilla, ControlTema, GrosorEjes, GrosorRejilla, GrosorTrazas, SeccionTextos, SubdivisionesEjes, type TrazaVista } from '../../grafica/AspectoPanel'
 import { decimalesPorOmision } from '../../../../../compartido/grafica/ejes'
-import { deValor } from '../../grafica/vista'
+import { aPixel, deValor } from '../../grafica/vista'
 import type { FiguraCaptura } from '../../osciloscopio/figura'
 import Bloque from '../Bloque'
-import { CamposDeAdornos, CamposDeArchivo, CamposDeFondo, CampoFormato, ChipsDatos, type DatoExportable } from '../campos'
+import { CamposDeAdornos, CamposDeArchivo, CamposDeFondo, CamposDeLetra, CampoFormato, ChipsDatos, type DatoExportable } from '../campos'
 import { NOMBRE_FORMATO_FIGURA } from '../modelo'
 import { aplicarPreajuste, preajusteDe, type TipoFigura } from '../preajustes'
 import { rangoEfectivo, type RangoExportar } from '../rango'
@@ -33,11 +34,13 @@ import {
   editarFlecha,
   moverNota,
   TOPE_DE,
+  estadoParaDibujar,
   type EstadoEditor
 } from './edicion'
 import { cerrarGesto, confirmar, crearHistorial, deshacer, puedeDeshacer, puedeRehacer, rehacer, type Historial } from './historial'
 import { IconoEtiqueta, IconoFlecha, IconoRango, IconoSeleccionar, IconoTexto } from './iconosEditor'
 import { listaDeObjetos, type Seleccion } from './objetos'
+import { avisarFigura, propagar, sumarAlGrupo, todosLosElegidos } from './multiple'
 import PanelPropiedades, { type Aplicar } from './PanelPropiedades'
 import VistaEditor, { type Herramienta } from './VistaEditor'
 
@@ -71,6 +74,8 @@ export interface PropsEditor {
   onGuardar?(a: Anotaciones): string | null
   onCerrar(): void
   ocupado?: boolean
+  /** Identidad de los datos exportados: con la misma, al reabrir queda todo lo ajustado; con otra, parte de `inicial`. */
+  identidad?: string
 }
 
 const HERRAMIENTAS: readonly { id: Herramienta; nombre: string; tecla: string; icono: () => JSX.Element; ayuda: string }[] = [
@@ -88,17 +93,30 @@ const esCampo = (t: EventTarget | null) => t instanceof HTMLInputElement ? t.typ
  * Editor de la figura que se exporta. Lo que se ve es lo que se escribe: el archivo sale de la misma función de dibujo.
  */
 export default function EditorFigura(props: PropsEditor) {
-  const [h, setH] = createSignal<Historial<EstadoEditor>>(crearHistorial(props.inicial))
+  const [h, setH] = createSignal<Historial<EstadoEditor>>(crearHistorial(recuperarEstado(props.tipo, props.identidad) ?? props.inicial))
   const estado = () => h().presente
+  // Cada cambio se recuerda con su fuente de datos: cerrar y reabrir no deshace lo ajustado.
+  createEffect(() => recordarEstado(props.tipo, props.identidad, estado()))
   const [sel, setSel] = createSignal<Seleccion | null>(null)
+  /** Los que se suman al principal con Mayús o Ctrl y clic (siempre de su mismo tipo): lo que se cambie vale para todos. */
+  const [extras, setExtras] = createSignal<readonly Seleccion[]>([])
   const [ancla, setAncla] = createSignal<[number, number] | null>(null)
   const [herramienta, setHerramienta] = createSignal<Herramienta>('seleccionar')
   const [enfocarTexto, setEnfocarTexto] = createSignal(0)
   const [aviso, setAviso] = createSignal('')
 
   const aplicar: Aplicar = (f, clave) => setH((x) => confirmar(x, f(x.presente), clave ?? null))
+  /** Como `aplicar`, y lo que la edición cambia en el objeto principal pasa también a los demás elegidos. */
+  const aplicarGrupo: Aplicar = (f, clave, forzar) => {
+    const antes = estado()
+    const despues = f(antes)
+    const r = propagar(antes, despues, sel(), extras(), props.claveDeTraza, forzar)
+    if (r !== despues) avisarFigura('cambio-multiple')
+    setH((x) => confirmar(x, r, clave ?? null))
+  }
   const cerrar = () => setH((x) => cerrarGesto(x))
-  const figura = createMemo(() => props.figura(estado()))
+  // Con la herramienta de tramo se ve todo el eje, o el tramo recordado impediría elegir fuera de él.
+  const figura = createMemo(() => props.figura(estadoParaDibujar(estado(), herramienta() === 'rango')))
   const geo = createMemo(() => figura().geometria?.() ?? null)
   const items = createMemo(() => (geo() ? listaDeObjetos(geo()!, estado().anot) : []))
   const trazas = createMemo(() => props.trazas(estado()))
@@ -111,12 +129,24 @@ export default function EditorFigura(props: PropsEditor) {
   createEffect(() => {
     const s = sel()
     if (s && !items().some((i) => i.sel.tipo === s.tipo && i.sel.id === s.id)) setSel(null)
+    const e = extras()
+    const quedan = e.filter((x) => items().some((i) => i.sel.tipo === x.tipo && i.sel.id === x.id))
+    if (quedan.length !== e.length) setExtras(quedan)
   })
   createEffect(on(() => props.opciones.formato, () => setHerramienta('seleccionar'), { defer: true }))
 
   const elegir = (s: Seleccion | null, a?: [number, number]) => {
     setSel(s)
+    setExtras([])
     setAncla(a ?? null)
+  }
+  /** Mayús o Ctrl y clic: suma (o quita) un objeto del mismo tipo que el principal. */
+  const sumar = (s: Seleccion, a?: [number, number]) => {
+    const g = sumarAlGrupo({ sel: sel(), extras: extras() }, s)
+    setSel(g.sel)
+    setExtras(g.extras)
+    setAncla(a ?? null)
+    if (g.extras.length > 0) avisarFigura('seleccion-multiple')
   }
   const puede = (t: 'texto' | 'flecha' | 'etiqueta'): boolean => {
     const ok = t === 'texto' ? estado().anot.textos.length < TOPE_DE.texto : t === 'flecha' ? estado().anot.flechas.length < TOPE_DE.flecha : estado().anot.etiquetas.length < TOPE_DE.etiqueta
@@ -132,11 +162,12 @@ export default function EditorFigura(props: PropsEditor) {
     if (tipo === 'texto') setEnfocarTexto((n) => n + 1)
   }
   const borrar = () => {
-    const s = sel()
-    if (!s) return
-    aplicar((e) => borrarNota(e, s))
+    const todos = todosLosElegidos({ sel: sel(), extras: extras() })
+    if (todos.length === 0) return
+    aplicar((e) => todos.reduce(borrarNota, e))
     cerrar()
     setSel(null)
+    setExtras([])
   }
   const deshacerTodo = () => {
     setH((x) => deshacer(x))
@@ -181,7 +212,8 @@ export default function EditorFigura(props: PropsEditor) {
       const paso = e.shiftKey ? 10 : 1
       const dx = k === 'ArrowLeft' ? -paso : k === 'ArrowRight' ? paso : 0
       const dy = k === 'ArrowUp' ? -paso : k === 'ArrowDown' ? paso : 0
-      return aplicar((x) => moverNota(x, s, dx, dy, figura()), `mover:${s.id}`)
+      const todos = todosLosElegidos({ sel: s, extras: extras() })
+      return aplicar((x) => todos.reduce((e, o) => moverNota(e, o, dx, dy, figura()), x), `mover:${s.id}`)
     }
     if (e.target instanceof HTMLButtonElement || e.target instanceof HTMLSelectElement) return
     const h = HERRAMIENTAS.find((t) => t.tecla.toLowerCase() === k.toLowerCase())
@@ -210,6 +242,13 @@ export default function EditorFigura(props: PropsEditor) {
     const e = props.figura(n).eje
     if (!e || e.mapa.escala === 'log') return n
     return ajustarDecimalesX(n, pasoDeEjeX(props.tipo === 'pantalla' ? 'pantalla' : 'grafica', e.mapa.dom, e.unidad, e.prefijo), decimalesPorOmision(e.unidad))
+  }
+  /** Dónde cae el tramo ya elegido sobre la figura completa, para sombrearlo mientras se elige otro. */
+  const tramoElegidoPx = (): [number, number] | null => {
+    const e = eje()
+    const r = e && herramienta() === 'rango' ? rangoEfectivo(estado().rango, e.total) : null
+    if (!e || !r) return null
+    return [aPixel(r.min, e.mapa.dom, e.mapa.escala, e.mapa.px0, e.mapa.px1), aPixel(r.max, e.mapa.dom, e.mapa.escala, e.mapa.px0, e.mapa.px1)]
   }
   const recortado = () => {
     const e = eje()
@@ -271,32 +310,49 @@ export default function EditorFigura(props: PropsEditor) {
     onRestablecer: () => {}
   })
   const opcionesArchivo = () => ({ op: props.opciones, formato: props.opciones.formato, onCambiar: props.onCambiar, series: [], sinRejilla: true })
+  // El orden del panel sin nada elegido lo fijó el equipo revisor: restablecer, datos, tema, mostrar, letra, texto, rejilla, grosores, adornos.
   const seccionFigura = () => (
     <>
-      <p class="editor-nota">Elige un texto, una traza, un eje o una etiqueta en la figura, o en la lista de arriba, para cambiar sus propiedades.</p>
-      <Show when={lineas() && !csv()}>
-        <BloqueRejilla
-          {...panelAspecto()}
-          abierto
-          fondo={
-            <>
-              <CamposDeFondo {...opcionesArchivo()} />
-              <CamposDeAdornos adornos={estado().adornos} onCambiar={(p) => aplicar((e) => cambiarAdornos(e, p))} />
-            </>
-          }
-        />
-      </Show>
+      <button type="button" class="boton editor-restablecer" data-zona="restablecer" onClick={() => aplicar(() => props.inicial)}>
+        Restablecer figura
+      </button>
       <Show when={datos().length > 1}>
-        <Bloque titulo="Datos" resumen={`${datos().filter((d) => d.activo && !d.sinDato).length} de ${datos().length}`} abierto>
-          <ChipsDatos rotulo="Qué se exporta" datos={datos()} onAlternar={(id) => aplicar((e) => alternarTraza(e, id, todas()))} />
-        </Bloque>
+        <div data-zona="datos">
+          <Bloque titulo="Datos" resumen={`${datos().filter((d) => d.activo && !d.sinDato).length} de ${datos().length}`} abierto>
+            <ChipsDatos rotulo="Qué se exporta" datos={datos()} onAlternar={(id) => aplicar((e) => alternarTraza(e, id, todas()))} />
+          </Bloque>
+        </div>
+      </Show>
+      <Show when={lineas() && !csv()}>
+        {/* Cada zona lleva su marca para que el tutorial la enmarque. */}
+        <div data-zona="tema">
+          <ControlTema {...panelAspecto()} />
+        </div>
+        <div data-zona="mostrar">
+          <CamposDeFondo {...opcionesArchivo()} />
+        </div>
+        <div data-zona="letra">
+          <CamposDeLetra {...opcionesArchivo()} />
+        </div>
+        <div data-zona="texto">
+          <SeccionTextos {...panelAspecto()} sinTamanoTexto />
+        </div>
+        <div data-zona="rejilla">
+          <ControlRejilla {...panelAspecto()} />
+          <GrosorRejilla {...panelAspecto()} />
+          <SubdivisionesEjes {...panelAspecto()} />
+        </div>
+        <div data-zona="ejes">
+          <GrosorEjes {...panelAspecto()} />
+        </div>
+        <div data-zona="adornos">
+          <CamposDeAdornos adornos={estado().adornos} onCambiar={(p) => aplicar((e) => cambiarAdornos(e, p))} />
+        </div>
+        <GrosorTrazas {...panelAspecto()} />
       </Show>
       <Bloque titulo="Archivo" resumen={NOMBRE_FORMATO_FIGURA[props.opciones.formato]} abierto={csv()}>
-        <CamposDeArchivo {...opcionesArchivo()} />
+        <CamposDeArchivo {...opcionesArchivo()} sinLetra={lineas() && !csv()} />
       </Bloque>
-      <button type="button" class="boton editor-restablecer" onClick={() => aplicar(() => props.inicial)}>
-        Restablecer la figura
-      </button>
     </>
   )
 
@@ -306,10 +362,13 @@ export default function EditorFigura(props: PropsEditor) {
         <SelectorEstilo
           elegido={preajusteDe(estado().adornos)}
           onElegir={(n) =>
-            aplicar((e) => {
-              const r = aplicarPreajuste(props.tipo, n, e.aspecto)
-              return { ...e, aspecto: r.aspecto, adornos: r.adornos }
-            })
+            {
+              aplicar((e) => {
+                const r = aplicarPreajuste(props.tipo, n, e.aspecto)
+                return { ...e, aspecto: r.aspecto, adornos: r.adornos }
+              })
+              if (n === 'informe') avisarFigura('informe')
+            }
           }
         />
       </Show>
@@ -354,15 +413,17 @@ export default function EditorFigura(props: PropsEditor) {
           <div class="editor-centro">
             <Show when={!csv()} fallback={props.vistaCsv?.(estado())}>
               <p class="editor-pista" role="status">
-                {herramienta() === 'seleccionar' ? 'Rueda para acercar. Arrastra el fondo para mover. Doble clic en una traza anota su valor.' : HERRAMIENTAS.find((t) => t.id === herramienta())!.ayuda + '.'}
+                {herramienta() === 'seleccionar' ? `Rueda para acercar. Arrastra el fondo para mover. Da clic para modificar algo específico.${sel() ? ' Con Mayús y clic sumas otro del mismo tipo.' : ''}` : HERRAMIENTAS.find((t) => t.id === herramienta())!.ayuda + '.'}
               </p>
               <VistaEditor
                 figura={figura()}
                 anot={estado().anot}
                 sel={sel()}
+                extras={extras()}
                 herramienta={herramienta()}
+                tramoPx={tramoElegidoPx()}
                 ancla={ancla()}
-                onSel={elegir}
+                onSel={(s, a, aditivo) => (aditivo && s ? sumar(s, a) : elegir(s, a))}
                 onAgregarTexto={(fx, fy) => puede('texto') && alAgregar(agregarTexto(estado(), fx, fy), 'texto')}
                 onAgregarFlecha={(x1, y1, x2, y2) => puede('flecha') && alAgregar(agregarFlecha(estado(), x1, y1, x2, y2), 'flecha')}
                 onAgregarEtiqueta={(t, x, dx, dy) => puede('etiqueta') && alAgregar(agregarEtiqueta(estado(), t, x, dx, dy), 'etiqueta')}
@@ -377,7 +438,7 @@ export default function EditorFigura(props: PropsEditor) {
                 }}
                 barra={() => (
                   <Show when={sel()}>
-                    {(s) => <BarraFlotante estado={estado()} sel={s()} trazas={trazas()} claveDeTraza={props.claveDeTraza} aplicar={aplicar} onBorrar={borrar} />}
+                    {(s) => <BarraFlotante estado={estado()} sel={s()} trazas={trazas()} claveDeTraza={props.claveDeTraza} aplicar={aplicarGrupo} onBorrar={borrar} />}
                   </Show>
                 )}
               />
@@ -386,13 +447,14 @@ export default function EditorFigura(props: PropsEditor) {
           <PanelPropiedades
             estado={estado()}
             sel={sel()}
+            extras={extras()}
             onSel={(s) => elegir(s)}
             items={items()}
             geo={geo()}
             trazas={trazas()}
             claveDeTraza={props.claveDeTraza}
             ejeX={props.ejeX}
-            aplicar={aplicar}
+            aplicar={aplicarGrupo}
             todas={todas()}
             enfocarTexto={enfocarTexto()}
             tamGeneral={props.opciones.tamañoLetra}

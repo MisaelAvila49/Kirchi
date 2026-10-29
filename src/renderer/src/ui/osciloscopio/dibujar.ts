@@ -43,7 +43,7 @@ export function coloresPantalla(tema: Tema, exportar = false, tonos: Readonly<Pa
   return { fondo: exportar ? L.paneles : L.lienzo, reticula: L.rejillaMenor, ejes: L.rejillaMayor, texto: L.textoSecundario, canal, canalTexto, letra: (t) => T[`${t}-texto`] }
 }
 
-/** Los cursores: tiempos absolutos (s) y voltajes en la escala del canal elegido. */
+/** Los cursores: tiempos (s) desde el borde izquierdo de la pantalla, para que se queden quietos mientras ella avanza, y voltajes en la escala del canal elegido. */
 export interface CursoresPantalla {
   canal: CanalOMatematico
   t: readonly [number, number] | null
@@ -133,7 +133,7 @@ function fraccionesDe(e: EstiloPantalla | undefined): number[] | undefined {
   return m ? m.valores.map((v) => (v - m.dominio.min) / (m.dominio.max - m.dominio.min)) : undefined
 }
 
-function reticula(ctx: Lienzo2D, W: number, H: number, c: ColoresPantalla, dpr: number, estilo: EstiloRejilla = 'lineas', subX?: number | null, subY?: number | null, grosor = 1, fraccionesX?: readonly number[]): void {
+function reticula(ctx: Lienzo2D, W: number, H: number, c: ColoresPantalla, dpr: number, estilo: EstiloRejilla = 'lineas', subX?: number | null, subY?: number | null, grosor = 1, fraccionesX?: readonly number[], grosorEjes = 1): void {
   const dx = W / DIVISIONES_H
   const dy = H / DIVISIONES_V
   ctx.lineWidth = grosor * dpr
@@ -183,8 +183,9 @@ function reticula(ctx: Lienzo2D, W: number, H: number, c: ColoresPantalla, dpr: 
     }
   }
   ctx.setLineDash([])
-  // Los ejes centrales con sus marcas de quinto de división.
+  // Los ejes centrales con sus marcas de quinto de división: llevan el grosor de los ejes, no el heredado de la rejilla.
   ctx.strokeStyle = c.ejes
+  ctx.lineWidth = grosorEjes * dpr
   ctx.beginPath()
   const [cx, cy] = [Math.round(W / 2) + 0.5, Math.round(H / 2) + 0.5]
   ctx.moveTo(cx, 0)
@@ -239,7 +240,7 @@ export function dibujarPantalla(ctx: Lienzo2D, p: PantallaSab | null, a: Ajustes
     ctx.translate(m.x, m.y)
   }
   const [w, h] = m ? [m.w, m.h] : [W, H]
-  if (!o.sinReticula) reticula(ctx, w, h, c, o.dpr, o.estilo?.rejillaEstilo, o.estilo?.subdivisionesX, o.estilo?.subdivisionesY, o.estilo?.grosorRejilla, fraccionesDe(o.estilo))
+  if (!o.sinReticula) reticula(ctx, w, h, c, o.dpr, o.estilo?.rejillaEstilo, o.estilo?.subdivisionesX, o.estilo?.subdivisionesY, o.estilo?.grosorRejilla, fraccionesDe(o.estilo), o.estilo?.grosorEjes)
   const conPantalla = !!p && p.ncol > 0 && Number.isFinite(p.t0)
   const xy = canalesXY(a)
   if (conPantalla && xy) dibujarXY(ctx, p!, a, xy, w, h, c, o)
@@ -402,7 +403,7 @@ function dibujarTrazas(ctx: Lienzo2D, p: PantallaSab, a: AjustesOsciloscopio, W:
     ctx.setLineDash([3 * o.dpr, 3 * o.dpr])
     ctx.beginPath()
     for (const tc of cur.t ?? []) {
-      const x = ((tc - p.t0) / span) * W
+      const x = (tc / span) * W
       ctx.moveTo(x, 0)
       ctx.lineTo(x, H)
     }
@@ -419,7 +420,7 @@ function dibujarTrazas(ctx: Lienzo2D, p: PantallaSab, a: AjustesOsciloscopio, W:
       ctx.beginPath()
       const i = o.resaltado.endsWith('1') ? 0 : 1
       if (o.resaltado[0] === 't' && cur.t) {
-        const x = ((cur.t[i] - p.t0) / span) * W
+        const x = (cur.t[i] / span) * W
         ctx.moveTo(x, 0)
         ctx.lineTo(x, H)
       } else if (o.resaltado[0] === 'v' && cur.v && t) {
@@ -456,7 +457,7 @@ function lecturaDeCursores(ctx: Lienzo2D, cur: CursoresPantalla, p: PantallaSab,
   const ancho = Math.max(...lineas.map((x) => ctx.measureText(x).width)) + 12 * dpr
   const alto = (lineas.length * 15 + 8) * dpr
   const span = DIVISIONES_H * a.base
-  const xc = cur.t ? ((Math.max(cur.t[0], cur.t[1]) - p.t0) / span) * W + 10 * dpr : W - ancho - 6 * dpr
+  const xc = cur.t ? (Math.max(cur.t[0], cur.t[1]) / span) * W + 10 * dpr : W - ancho - 6 * dpr
   const x = Math.max(4 * dpr, Math.min(W - ancho - 4 * dpr, xc))
   const y = 8 * dpr
   ctx.fillStyle = c.fondo

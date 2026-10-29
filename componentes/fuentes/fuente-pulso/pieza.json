@@ -2,6 +2,7 @@
   "id": "fuente-pulso",
   "nombre": { "es": "Fuente de pulso", "en": "Pulse source" },
   "categoria": "fuentes",
+  "grupo": "Independientes",
   "prefijo": "V",
   "buscar": ["pulso", "pulse", "cuadrada", "reloj", "clock", "pwm"],
   "pines": [

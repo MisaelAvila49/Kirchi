@@ -9,14 +9,14 @@ interface Props {
   onAhoraNo(noVolver: boolean): void
 }
 
-/** La oferta del primer arranque: un recorrido corto del capítulo 1, el selector de los cinco o nada por ahora. */
+/** La oferta del primer arranque: un recorrido corto por la ventana (capítulo 1), el selector de los cuatro o nada por ahora. */
 export default function OfertaTutorial(props: Props) {
   const [noVolver, setNoVolver] = createSignal(true)
-  const primero = capituloPorId('primer-circuito')
+  const primero = capituloPorId('conoce')
   return (
     <Dialogo titulo="Bienvenido a Kirchi" clase="tutorial-oferta" onCerrar={() => props.onAhoraNo(noVolver())}>
       <p>
-        ¿Quieres un recorrido de {primero?.minutos ?? 6} minutos para armar tu primer circuito? Puedes dejarlo cuando quieras y retomarlo desde la pestaña Ayuda.
+        ¿Quieres un recorrido de {primero?.minutos ?? 4} minutos por la ventana de Kirchi? Puedes dejarlo cuando quieras y retomarlo desde la pestaña Ayuda.
       </p>
       <div class="dialogo-botones tutorial-oferta-botones">
         <button type="button" class="boton principal" data-autofoco onClick={() => props.onEmpezar(noVolver())}>

@@ -38,9 +38,9 @@
         "pendiente": { "hoja": "la hoja del fabricante (Songle) no se pudo bajar de su sitio; la copia consultada es de un agregador" },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Sanyou SRD (V3.2) p. 3, Wiring Diagram y P.C.B. Layout 1c (vista inferior): bobina en las dos patillas de 1 mm, común en la de en medio desplazada 2 mm, NC y NA en las esquinas opuestas; llevado a la huella Relay_THT:Relay_SPDT_SANYOU_SRD_Series_Form_C de KiCad 9 (pad 1 común, 2 y 5 bobina, 4 NC, 3 NA) y cotejado con el símbolo Relay:SANYOU_SRD_Form_C (bobina 5 y 2, brazo en reposo sobre el 4). El dibujo de Songle SRD (copia de un agregador) tiene la misma rejilla de 12.2 × 12 mm y el mismo contacto en reposo. Número LCSC C35449 confirmado en su página de LCSC (SRD-05VDC-SL-C, Songle, relé de potencia)"
+          "fuente": "Sanyou SRD (V3.2) p. 3, Wiring Diagram y P.C.B. Layout 1c (vista inferior): bobina en los dos pines de 1 mm, común en el de en medio desplazada 2 mm, NC y NA en las esquinas opuestas; llevado a la huella Relay_THT:Relay_SPDT_SANYOU_SRD_Series_Form_C de KiCad 9 (pad 1 común, 2 y 5 bobina, 4 NC, 3 NA) y cotejado con el símbolo Relay:SANYOU_SRD_Form_C (bobina 5 y 2, brazo en reposo sobre el 4). El dibujo de Songle SRD (copia de un agregador) tiene la misma rejilla de 12.2 × 12 mm y el mismo contacto en reposo. Número LCSC C35449 confirmado en su página de LCSC (SRD-05VDC-SL-C, Songle, relé de potencia)"
         },
-        "nota": "Pastilla de cinco patillas, bobina de 5 V sin polaridad y contacto SPDT de 10 A. Los números son los pads de la huella de KiCad: Songle no numera sus patillas."
+        "nota": "Pastilla de cinco pines, bobina de 5 V sin polaridad y contacto SPDT de 10 A. Los números son los pads de la huella de KiCad: Songle no numera sus pines."
       }
     }
   }

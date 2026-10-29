@@ -26,11 +26,14 @@ import { medirMono } from './etiquetas'
 import type { GeometriaFigura } from './geometria'
 import { resolverEtiqueta, type ItemObjeto, type Seleccion } from './objetos'
 
-export type Aplicar = (f: (e: EstadoEditor) => EstadoEditor, clave?: string) => void
+/** `forzar` nombra los campos de la traza que se igualan en todo el grupo aunque el principal ya los tuviera. */
+export type Aplicar = (f: (e: EstadoEditor) => EstadoEditor, clave?: string, forzar?: readonly string[]) => void
 
 interface Props {
   estado: EstadoEditor
   sel: Seleccion | null
+  /** Los que se suman al principal con Mayús o Ctrl y clic: lo que se cambie aquí vale para todos. */
+  extras?: readonly Seleccion[]
   onSel(s: Seleccion | null): void
   items: readonly ItemObjeto[]
   geo: GeometriaFigura | null
@@ -89,6 +92,7 @@ export default function PanelPropiedades(props: Props) {
     props.onSel(it ? it.sel : null)
   }
   const a = props.aplicar
+  const enGrupo = () => (props.extras?.length ?? 0) > 0
 
   // ----- Texto puesto a mano o título -----
   const textoDe = (s: Seleccion) => (s.tipo === 'texto' ? props.estado.anot.textos.find((t) => t.id === s.id) : undefined)
@@ -107,6 +111,7 @@ export default function PanelPropiedades(props: Props) {
     return (
       <>
         <Titulo borrar={s.tipo === 'texto' ? props.onBorrar : undefined}>{s.tipo === 'texto' ? 'Texto' : s.id === 'subtitulo' ? 'Subtítulo' : 'Título'}</Titulo>
+        <Show when={!enGrupo()}>
         <label class="editor-campo">
           <span class="editor-rotulo">Texto</span>
           <input
@@ -123,6 +128,7 @@ export default function PanelPropiedades(props: Props) {
             }}
           />
         </label>
+        </Show>
         <Show when={s.tipo === 'fijo'}>
           <p class="editor-nota">{est()?.texto === '' ? 'En blanco: no se dibuja.' : 'Vacío lo quita de la figura.'}</p>
           <Show when={est()?.texto !== undefined}>
@@ -205,12 +211,12 @@ export default function PanelPropiedades(props: Props) {
               <span class="asp-muestra" data-tono-figura={tv().tono} aria-hidden="true" /> {tv().etiqueta}
             </Titulo>
             <Fila rotulo="Color">
-              <Tonos nombre={`Color de ${tv().etiqueta}`} valor={tv().tonoElegido} auto="el tono predeterminado" onElegir={(c) => a((e) => cambiarTraza(e, k(), { color: c }))} />
+              <Tonos nombre={`Color de ${tv().etiqueta}`} valor={tv().tonoElegido} auto="el tono predeterminado" onElegir={(c) => a((e) => cambiarTraza(e, k(), { color: c }), undefined, ['color'])} />
             </Fila>
             <Show when={tv().unidad !== ''}>
               <label class="editor-campo">
                 <span class="editor-rotulo">Grosor</span>
-                <select class="campo" value={tv().grosor === null ? '' : String(tv().grosor)} onChange={(e) => a((x) => cambiarTraza(x, k(), { grosor: e.currentTarget.value === '' ? null : Number(e.currentTarget.value) }))}>
+                <select class="campo" value={tv().grosor === null ? '' : String(tv().grosor)} onChange={(e) => a((x) => cambiarTraza(x, k(), { grosor: e.currentTarget.value === '' ? null : Number(e.currentTarget.value) }), undefined, ['grosor'])}>
                   <option value="">Igual que la gráfica</option>
                   <For each={GROSORES}>{(g) => <option value={String(g)}>{g} px</option>}</For>
                 </select>
@@ -218,7 +224,7 @@ export default function PanelPropiedades(props: Props) {
             </Show>
             <label class="editor-campo">
               <span class="editor-rotulo">Eje vertical</span>
-              <select class="campo" value={tv().lado} onChange={(e) => a((x) => cambiarTraza(x, k(), { lado: e.currentTarget.value as LadoEjeY }))}>
+              <select class="campo" value={tv().lado} onChange={(e) => a((x) => cambiarTraza(x, k(), { lado: e.currentTarget.value as LadoEjeY }), undefined, ['lado'])}>
                 <For each={LADOS_EJE_Y}>{(l) => <option value={l}>{NOMBRE_LADO[l]}</option>}</For>
               </select>
             </label>
@@ -356,6 +362,11 @@ export default function PanelPropiedades(props: Props) {
             <Show when={s().tipo} keyed>
               {(tipo) => (
                 <>
+                  <Show when={enGrupo()}>
+                    <p class="editor-nota editor-grupo" role="status">
+                      {`${1 + (props.extras?.length ?? 0)} elegidos del mismo tipo: lo que cambies se aplica a todos.`}
+                    </p>
+                  </Show>
                   {tipo === 'texto' || tipo === 'fijo' ? seccionTexto(s()) : null}
                   {tipo === 'flecha' ? seccionFlecha(s()) : null}
                   {tipo === 'etiqueta' ? seccionEtiqueta(s()) : null}

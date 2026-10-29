@@ -2,6 +2,7 @@
   "id": "tl431",
   "nombre": { "es": "TL431 referencia", "en": "TL431 reference" },
   "categoria": "integrados",
+  "grupo": "Reguladores y referencias",
   "prefijo": "U",
   "buscar": ["u", "tl431", "431", "referencia", "reference", "shunt", "zener ajustable", "zener programable", "programmable zener"],
   "pines": [
@@ -15,12 +16,12 @@
   "modelo": {
     "tipo": "compuesto", "prop": "modelo",
     "modelos": {
-      "TL431": { "vref": 2.493, "a0": 20000, "gbw": 500, "rout": 500, "ilim": 0.005, "dhi": 0.8, "dlo": 0.01, "rq": 1000000000000, "rs": 0.2, "rref": 1250000 }
+      "TL431": { "vref": 2.493, "a0": 20000, "gbw": 500000000, "rout": 500, "ilim": 0.005, "dhi": 0.8, "dlo": 0.01, "rq": 1000000000000, "rs": 0.2, "rref": 1250000 }
     },
     "internas": ["vr", "g", "ae"],
     "medida": { "mas": "K", "menos": "A", "i": 3 },
     "elementos": [
-      { "t": "OA", "mas": "REF", "menos": "vr", "sal": "g", "vmas": "K", "vmenos": "ae", "params": { "a0": "a0", "gbw": "gbw", "sr": 15000, "rin": 1000000000000, "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" } },
+      { "t": "OA", "mas": "REF", "menos": "vr", "sal": "g", "vmas": "K", "vmenos": "ae", "euler": true, "params": { "a0": "a0", "gbw": "gbw", "sr": 1000000000, "rin": 1000000000000, "rout": "rout", "ilim": "ilim", "dhi": "dhi", "dlo": "dlo", "rq": "rq" } },
       { "t": "V", "a": "vr", "b": "ae", "volts": "vref" },
       { "t": "Q", "c": "K", "b": "g", "e": "ae", "params": { "is": 1e-14, "bf": 150, "nf": 1, "br": 1 } },
       { "t": "R", "a": "ae", "b": "A", "ohms": "rs" },
@@ -64,7 +65,7 @@
   },
   "etiquetas": { "ref": { "x": 3, "y": -3 }, "valor": { "x": 3, "y": 3 } },
   "fuentes": {
-    "TL431": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments TL431/TL432, SLVS543S (ago 2004, rev. may 2024), https://www.ti.com/lit/ds/symlink/tl431.pdf: referencia de 2.495 V típica entre REF y A con K unido a REF y 10 mA (2.44 a 2.55 V), corriente de REF de 2 µA típica (4 µA máx), impedancia dinámica de 0.2 Ω típica (0.5 Ω máx) de 1 mA a 100 mA y corriente de cátodo de 37 V y 150 mA como máximos absolutos. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador entre REF y una fuente interna que maneja un transistor de K a A, una resistencia de 0.2 Ω entre el emisor y A que fija la impedancia dinámica, el diodo de A a K de la hoja y una resistencia de REF a A que da la corriente de REF. La fuente interna es de 2.493 V para que a 10 mA entre K y A queden los 2.495 V de la hoja. El amplificador interno tiene un producto ganancia-ancho de banda de 500 Hz: con la ganancia del transistor el lazo cruza cerca de 200 kHz, y más rápido la regla trapezoidal de la vista previa oscilaba; el arranque tarda unos 100 µs y con un capacitor en K se asienta sin oscilar. No modela la corriente mínima de regulación (la salida sigue regulando con menos de 1 mA), la regulación de línea de −1.4 mV/V, el ruido ni la deriva con la temperatura."
+    "TL431": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments TL431/TL432, SLVS543S (ago 2004, rev. may 2024), https://www.ti.com/lit/ds/symlink/tl431.pdf: referencia de 2.495 V típica entre REF y A con K unido a REF y 10 mA (2.44 a 2.55 V), corriente de REF de 2 µA típica (4 µA máx), impedancia dinámica de 0.2 Ω típica (0.5 Ω máx) de 1 mA a 100 mA y corriente de cátodo de 37 V y 150 mA como máximos absolutos. Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: un amplificador entre REF y una fuente interna que maneja un transistor de K a A, una resistencia de 0.2 Ω entre el emisor y A que fija la impedancia dinámica, el diodo de A a K de la hoja y una resistencia de REF a A que da la corriente de REF. La fuente interna es de 2.493 V para que a 10 mA entre K y A queden los 2.495 V de la hoja. El amplificador interno es casi instantáneo (producto ganancia-ancho de banda de 500 MHz y velocidad de subida de 1000 V/µs): la referencia se asienta en microsegundos, como la real, también con un capacitor en K. No modela la corriente mínima de regulación (la salida sigue regulando con menos de 1 mA), la regulación de línea de −1.4 mV/V, el ruido ni la deriva con la temperatura."
   },
   "datos": {
     "por": "modelo",

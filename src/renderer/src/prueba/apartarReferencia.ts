@@ -272,8 +272,8 @@ export function etiquetasSinChoquesReferencia(doc: Documento, lib: Map<string, P
       elegidos.push(q)
       propios.push(cajaTexto(q))
     }
-    // 2. Referencia y valor apilados del lado con más holgura.
-    if (!elegidos && rs.length === 2 && !rs.some((r) => r.t.local.renglon)) {
+    // 2. Referencia, valor y ajuste apilados del lado con más holgura.
+    if (!elegidos && rs.length >= 2 && !rs.some((r) => r.t.local.renglon)) {
       const primero = candidato(rs[0], 0).q
       const bloques = bloquesApilados(suyo, rs.map((r) => ({ texto: r.t.texto, color: r.t.color })), ladoDePunto(suyo, primero.x, primero.y))
       let mejor = -1

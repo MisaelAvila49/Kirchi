@@ -2,6 +2,7 @@
   "id": "mosfet-p",
   "nombre": { "es": "MOSFET canal P", "en": "P-channel MOSFET" },
   "categoria": "semiconductores",
+  "grupo": "Efecto de campo e IGBT",
   "prefijo": "Q",
   "buscar": ["mosfet", "pmos", "fet", "canal p", "bs250", "irf9540", "irf4905"],
   "pines": [
@@ -81,7 +82,7 @@
           "fecha": "2026-10-26",
           "fuente": "Diodes BS250P (DS33014 rev. 3-2, oct 2019) p. 1, dibujo E-Line D, G, S sin numerar; General Semiconductor BS250 (2/28/99) p. 1, vista inferior D, G, S; Philips BS250 (1 S, 2 G, 3 D); Transistor_FET:BS250 de KiCad 9 (D1 G2 S3)"
         },
-        "nota": "La compuerta es la patilla de en medio en todas las fuentes; lo que no coincide es de qué lado quedan drenador y fuente."
+        "nota": "La compuerta es el pin de en medio en todas las fuentes; lo que no coincide es de qué lado quedan drenador y fuente."
       },
       "IRF9540": {
         "fabricante": "Vishay",

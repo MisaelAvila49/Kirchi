@@ -2,6 +2,7 @@
   "id": "amp-op",
   "nombre": { "es": "Amp. operacional", "en": "Operational amplifier" },
   "categoria": "integrados",
+  "grupo": "Amplificadores y comparadores",
   "prefijo": "U",
   "buscar": ["u", "op", "opamp", "amp op", "amplificador", "amplificador operacional", "741", "lm741", "lm358", "tl081", "lm324", "op07", "ne5532", "tlv9002", "rail to rail", "riel a riel", "mcp6002", "mcp6001", "op27", "ideal"],
   "pines": [
@@ -185,7 +186,7 @@
           "fecha": "2026-10-26",
           "fuente": "TI TL081x, tabla Pin Functions paquete P (IN- 2, IN+ 3, VCC- 4, OUT 6, VCC+ 7, NC 8); Amplifier_Operational:TL081 de KiCad 9"
         },
-        "nota": "Las patillas 1 y 5 difieren entre la hoja vigente (TL081H, NC) y el símbolo de KiCad 9 (NULL); IN-, IN+, V-, OUT y V+ coinciden en las dos"
+        "nota": "Los pines 1 y 5 difieren entre la hoja vigente (TL081H, NC) y el símbolo de KiCad 9 (NULL); IN-, IN+, V-, OUT y V+ coinciden en las dos"
       },
       "LM358": {
         "fabricante": "Texas Instruments",
@@ -331,11 +332,11 @@
           }
         ],
         "pendiente": {
-          "equivalencias": "KiCad 9 no trae el OP27 ni un amplificador sencillo genérico de 8 patillas; el genérico de la pieza (Simulation_SPICE:OPAMP) numera 1 a 5 y no sigue el DIP-8"
+          "equivalencias": "KiCad 9 no trae el OP27 ni un amplificador sencillo genérico de 8 pines; el genérico de la pieza (Simulation_SPICE:OPAMP) numera 1 a 5 y no sigue el DIP-8"
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Analog Devices OP27 (rev. H), figura Pin Configurations 8 patillas: 1 VOS trim, 2 -IN, 3 +IN, 4 V-, 5 NC, 6 OUT, 7 V+, 8 VOS trim"
+          "fuente": "Analog Devices OP27 (rev. H), figura Pin Configurations 8 pines: 1 VOS trim, 2 -IN, 3 +IN, 4 V-, 5 NC, 6 OUT, 7 V+, 8 VOS trim"
         },
         "nota": "Una sola fuente: KiCad 9 no trae el OP27. La URL de la hoja de analog.com no respondió al descargarla; el contenido se leyó en una copia de la misma revisión H"
       },

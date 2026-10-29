@@ -3,14 +3,16 @@
 V1 1 0 DC 12
 BL 1 0 I=V(1)/(2.88*(1+9*V(th)))
 BP 0 th I=V(1)*V(1)/(2.88*(1+9*V(th)))/5
-RTH th 0 1
-CTH th 0 0.05
+RTH th 0 10
+BQ th 0 I=0.9*pwr(V(th),3.333333333)
+CTH th 0 0.155
+BW pw 0 V=0.1*V(th)+0.9*pwr(V(th),3.333333333)
 .options reltol=1e-4 abstol=1e-12 vntol=1e-7
 .control
 set wr_singlescale
 set wr_vecnames
 option numdgt=7
 tran 0.2m 300m 0 20u uic
-wrdata salida.txt i(v1) v(th)
+wrdata salida.txt i(v1) v(pw)
 .endc
 .end

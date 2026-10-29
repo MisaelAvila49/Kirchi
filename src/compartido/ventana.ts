@@ -2,6 +2,8 @@
 export type OrdenVentana = 'acercar' | 'alejar' | 'tamaño-real' | 'pantalla-completa'
 export const ORDENES_VENTANA: readonly OrdenVentana[] = ['acercar', 'alejar', 'tamaño-real', 'pantalla-completa']
 export const CANAL_ORDEN_VENTANA = 'ventana:orden'
+/** Del proceso principal a la página: la ventana entró (true) o salió (false) de la pantalla completa. */
+export const CANAL_PANTALLA_COMPLETA = 'ventana:pantalla-completa'
 
 export const esOrdenVentana = (v: unknown): v is OrdenVentana => typeof v === 'string' && (ORDENES_VENTANA as readonly string[]).includes(v)
 

@@ -154,7 +154,7 @@ export default function Pantalla(props: Props) {
       const i = cursorXYCercano(c, props.ajustes, m, x, y, tol)
       return i === null ? null : i === 0 ? 't1' : 't2'
     }
-    return props.pantalla ? cursorCercano(c, x - m.x, y - m.y, m.w, m.h, props.pantalla.t0, props.ajustes, tol) : null
+    return props.pantalla ? cursorCercano(c, x - m.x, y - m.y, m.w, m.h, props.ajustes, tol) : null
   }
   const enPixeles = (e: PointerEvent | WheelEvent) => {
     const r = canvas.getBoundingClientRect()
@@ -258,7 +258,7 @@ export default function Pantalla(props: Props) {
       props.onCursores?.(ponerCursorXY(c, tomado.cual === 't1' ? 0 : 1, props.pantalla, props.ajustes, m, q.x, q.y))
       return
     }
-    const valor = tomado.cual[0] === 't' ? tiempoDeX(q.x - m.x, m.w, props.pantalla.t0, props.ajustes) : voltajeDeY(q.y - m.y, m.h, props.ajustes, c.canal)
+    const valor = tomado.cual[0] === 't' ? tiempoDeX(q.x - m.x, m.w, props.ajustes) : voltajeDeY(q.y - m.y, m.h, props.ajustes, c.canal)
     props.onCursores?.(ponerCursor(c, tomado.cual, valor))
   }
   const soltar = () => {

@@ -26,8 +26,16 @@ export interface CtxTutorial {
   cursores?: boolean
   /** El lienzo limpio (Ctrl+Shift+L, o Ctrl+\) está activo. */
   limpio?: boolean
-  /** El diálogo abierto, si hay uno. */
+  /** Los chips de voltaje de las redes están visibles (tecla V). */
+  voltajes?: boolean
+  /** El diálogo abierto, si hay uno (`atajos`, `exportar-grafica`, `exportar-esquema`, `exportar-captura`...). */
   dialogo?: string | null
+  /** El panel del riel izquierdo a la vista (null con el panel plegado). */
+  izquierdo?: 'libreria' | 'plantillas' | 'calculadoras' | null
+  /** La calculadora elegida y, en Filtros, el tipo y la frecuencia del muesco escritos. */
+  calculadora?: { activa: string; tipo?: string; f0?: string }
+  /** El botón Cursores de la gráfica de una corrida está encendido (se lee del DOM). */
+  cursoresGrafica?: boolean
 }
 
 /** Dónde pone el foco el paso: un control de la interfaz (por selector), una zona del lienzo (mundo) o nada. */
@@ -48,8 +56,16 @@ export interface Guia {
   cables: Punto[][]
 }
 
+export type LadoGlobo = 'abajo' | 'arriba' | 'derecha' | 'izquierda'
+
 export interface PasoDef {
   id: string
+  /**
+   * «Mira»: un marco enmarca una zona, el globo la explica en una línea y se avanza con «Siguiente». «Haz» (por omisión): la aplicación comprueba la acción y avanza.
+   */
+  tipo?: 'mira' | 'haz'
+  /** El globo y el marco se dibujan encima del diálogo abierto (la figura que se exporta), en vez de esconderse. */
+  sobreDialogo?: boolean
   /** Lo que se hace, en una línea: el «Sigue: …» del paso anterior y el nombre accesible del punto. */
   resumen: string
   /** Texto del globo. `{tecla:id}` se cambia por la tecla vigente del comando (la que el usuario tenga configurada). */
@@ -60,7 +76,7 @@ export interface PasoDef {
   pista?: string
   objetivo(ctx: CtxTutorial): Objetivo
   /** Lo que el paso abre al empezar, porque los paneles arrancan plegados: la librería, un panel del riel derecho o una pestaña de la franja. */
-  abre?: 'libreria' | 'inspector' | 'mediciones' | 'proyecto' | 'analisis' | 'osciloscopio'
+  abre?: 'libreria' | 'plantillas' | 'calculadoras' | 'inspector' | 'mediciones' | 'proyecto' | 'analisis' | 'osciloscopio' | 'graficas'
   /** Otras zonas o controles que quedan a la vista junto al objetivo: el resultado de la acción aparece en otro lugar (la lectura, la pantalla). */
   focos?(ctx: CtxTutorial): Objetivo[]
   /** La sombra de la pieza esperada y los cables esperados. Colocar la pieza sobre la sombra cumple el paso. */
@@ -75,8 +91,8 @@ export interface PasoDef {
    * Cómo se comprueba el paso al retomar cuando una acción posterior pudo cambiarlo (220 Ω pasa a 1 kΩ en «valor»). Sin esto se usa `hecho`.
    */
   sigueVigente?(ctx: CtxTutorial): boolean
-  /** El lado del objetivo donde se prefiere el globo (por omisión, debajo): un paso que se hace debajo del objetivo lo pide a un costado. */
-  lado?: 'abajo' | 'arriba' | 'derecha' | 'izquierda'
+  /** El lado del objetivo donde se prefiere el globo (por omisión, debajo): un paso que se hace debajo del objetivo lo pide a un costado. Puede depender del circuito si el objetivo cambia de lugar durante el paso. */
+  lado?: LadoGlobo | ((ctx: CtxTutorial) => LadoGlobo)
   /** Verdadero cuando la acción ocurrió en el editor o en la simulación. */
   hecho(ctx: CtxTutorial): boolean
 }
@@ -88,6 +104,8 @@ export interface CapituloDef {
   titulo: string
   /** Una línea para el selector. */
   resumen: string
+  /** Una frase que dice de qué trata el capítulo y qué se hace en él. */
+  descripcion: string
   minutos: number
   tono: TonoCategoria
   /** Los pasos; vacío en un capítulo que todavía no está hecho (el selector lo marca «Próximamente»). */
@@ -96,8 +114,8 @@ export interface CapituloDef {
   zona: Caja
   /** Pasos que tendrá cuando esté hecho, para el selector. */
   totalPasos: number
-  /** Abre un documento nuevo al empezar (el capítulo 1). */
+  /** Abre un documento nuevo al empezar (los capítulos que parten de un lienzo vacío). */
   documentoNuevo?: boolean
-  /** Empieza con su circuito de arranque (`arranques.ts`), el que deja el capítulo anterior (capítulos 2 a 5). */
+  /** Empieza con su propio circuito de arranque (`arranques.ts`): cada capítulo se puede hacer solo. */
   arranque?: boolean
 }

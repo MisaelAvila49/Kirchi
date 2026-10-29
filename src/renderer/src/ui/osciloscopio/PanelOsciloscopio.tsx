@@ -280,7 +280,7 @@ export default function PanelOsciloscopio(props: Props) {
     if (!a || !p) return
     if (canalesXY(a)) return props.onCursores?.(cursoresInicialesXY(p, a))
     const canal = a.canales.find((c) => c.on)?.canal ?? 'A'
-    props.onCursores?.(cursoresIniciales(a, p.t0, canal))
+    props.onCursores?.(cursoresIniciales(a, canal))
   }
   /** Al abrir, el foco entra al panel (la primera casilla de las medidas o, sin canales, su botón de cerrar): ahí Esc lo cierra. */
   /** Mover un eje con el ratón: el lado de la escala de un canal o dónde va el eje del tiempo, en la propiedad `aspecto`. */

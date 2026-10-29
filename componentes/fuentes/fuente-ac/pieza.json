@@ -2,6 +2,7 @@
   "id": "fuente-ac",
   "nombre": { "es": "Fuente de voltaje AC", "en": "AC voltage source" },
   "categoria": "fuentes",
+  "grupo": "Independientes",
   "prefijo": "V",
   "buscar": ["ac", "ca", "alterna", "senoidal", "sine", "fuente ac"],
   "pines": [

@@ -2,6 +2,7 @@
   "id": "capacitor",
   "nombre": { "es": "Capacitor", "en": "Capacitor" },
   "categoria": "pasivos",
+  "grupo": "Capacitores e inductores",
   "prefijo": "C",
   "buscar": ["c", "cap", "capacitor", "condensador"],
   "pines": [
@@ -23,7 +24,7 @@
         "pendiente": { "parte": "depende del valor y del dieléctrico", "hoja": "depende del fabricante", "lcsc": "depende del valor" },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Huella de KiCad 9 C_Disc_D5.0mm_W2.5mm_P5.00mm (cerámico de disco de 5 mm, paso de 5.00 mm); patillas 1 y 2 según la huella y Device:C. Representativa: el tamaño depende del valor y del voltaje"
+          "fuente": "Huella de KiCad 9 C_Disc_D5.0mm_W2.5mm_P5.00mm (cerámico de disco de 5 mm, paso de 5.00 mm); pines 1 y 2 según la huella y Device:C. Representativa: el tamaño depende del valor y del voltaje"
         }
       }
     }

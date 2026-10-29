@@ -5,6 +5,7 @@
     "en": "N-channel JFET"
   },
   "categoria": "semiconductores",
+  "grupo": "Efecto de campo e IGBT",
   "prefijo": "J",
   "buscar": [
     "jfet",

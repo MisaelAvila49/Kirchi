@@ -2,6 +2,7 @@
   "id": "ldr",
   "nombre": { "es": "Fotorresistencia", "en": "Photoresistor" },
   "categoria": "pasivos",
+  "grupo": "Sensores resistivos",
   "prefijo": "LDR",
   "buscar": ["ldr", "fotorresistencia", "photoresistor", "luz", "fotoresistor", "gl5528", "gl5516", "gl5539", "cds"],
   "pines": [
@@ -9,7 +10,7 @@
     { "id": "2", "nombre": "2", "x": 4, "y": 0 }
   ],
   "props": [
-    { "id": "modelo", "nombre": "Modelo", "defecto": "GL5528", "opciones": ["GL5516", "GL5528", "GL5539"] },
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "GL5528", "opciones": ["GL5516", "GL5528", "GL5539"] },
     {
       "id": "luz",
       "nombre": "Luz",
@@ -17,7 +18,7 @@
       "defecto": "300",
       "enVivo": { "magnitud": "luz", "min": 0.1, "max": 100000, "paso": 10, "pasoFino": 2, "escala": "log" }
     },
-    { "id": "junto", "nombre": "Mostrar", "defecto": "Ambos", "opciones": ["Nada", "Ajuste", "Resistencia", "Ambos"], "omitir": true }
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Como en Configuración", "opciones": ["Como en Configuración", "Ajuste", "Valores", "Ambos", "Nada"], "omitir": true }
   ],
   "modelo": {
     "tipo": "ldr",
@@ -57,7 +58,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Senba GL55 Series CdS Photoresistor Manual (copia LCSC C125630, p. 2): GL5516, 5 a 10 kΩ a 10 lux, oscuridad 0.5 MΩ, γ 0.5, subida 30 ms, bajada 30 ms; LCSC C125626 lista 5kΩ~10kΩ, 500 kΩ, γ 0.5. Patillas: dos terminales sin polaridad; Device:R_Photo de KiCad 9 (pines 1 y 2)"
+          "fuente": "Senba GL55 Series CdS Photoresistor Manual (copia LCSC C125630, p. 2): GL5516, 5 a 10 kΩ a 10 lux, oscuridad 0.5 MΩ, γ 0.5, subida 30 ms, bajada 30 ms; LCSC C125626 lista 5kΩ~10kΩ, 500 kΩ, γ 0.5. Pines: dos terminales sin polaridad; Device:R_Photo de KiCad 9 (pines 1 y 2)"
         }
       },
       "GL5528": {
@@ -77,7 +78,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Senba GL55 (copia LCSC C125630, p. 2): GL5528, 10 a 20 kΩ a 10 lux, oscuridad 1 MΩ, γ 0.6, 20/30 ms; la copia de Rapid (GL5528, p. 1) da lo mismo; LCSC C125627 lista 10kΩ~20kΩ, 1 MΩ, γ 0.6. Patillas: Device:R_Photo de KiCad 9"
+          "fuente": "Senba GL55 (copia LCSC C125630, p. 2): GL5528, 10 a 20 kΩ a 10 lux, oscuridad 1 MΩ, γ 0.6, 20/30 ms; la copia de Rapid (GL5528, p. 1) da lo mismo; LCSC C125627 lista 10kΩ~20kΩ, 1 MΩ, γ 0.6. Pines: Device:R_Photo de KiCad 9"
         }
       },
       "GL5539": {
@@ -98,7 +99,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Senba GL55 (copia LCSC C125630, p. 2): GL5539, 50 a 100 kΩ a 10 lux, γ 0.8, 20/30 ms; LCSC C125630 lista 50kΩ~100kΩ y γ 0.8. Patillas: Device:R_Photo de KiCad 9"
+          "fuente": "Senba GL55 (copia LCSC C125630, p. 2): GL5539, 50 a 100 kΩ a 10 lux, γ 0.8, 20/30 ms; LCSC C125630 lista 50kΩ~100kΩ y γ 0.8. Pines: Device:R_Photo de KiCad 9"
         }
       }
     }

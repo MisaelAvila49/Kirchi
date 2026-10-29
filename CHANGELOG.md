@@ -1,5 +1,59 @@
 # Historial de cambios
 
+## 2.1.0
+
+Nueve piezas nuevas (111 en total) con convertidores A/D y D/A, interruptores DIP, teclados y registros de desplazamiento, el ajuste de las perillas en su propio recuadro, cuatro tipos nuevos en la calculadora de amplificadores, un tutorial que recorre todo Kirchi, Configuración reordenada y modelos más fieles del TL431, el foco y el comparador.
+
+### Nuevo
+
+- Piezas nuevas, 111 en total:
+  - Convertidor A/D ADC0804 y convertidor D/A DAC0808, con la conversión por aproximaciones sucesivas y la corriente de sus 256 códigos. El Registro avisa una vez cuando una entrada del DAC lleva más de un microsegundo sin nivel definido.
+  - Interruptores DIP de 4 y de 8 posiciones, y teclados matriciales de 4x4 y de 4x3. Con la vista previa corriendo, un clic en la palanca o en la tecla mueve sus contactos, y las teclas de la computadora accionan el teclado seleccionado.
+  - Registros de desplazamiento 74164 (entrada serie, salida paralela), 74165 (carga paralela) y 74595 (con almacenamiento y salidas de tres estados).
+- El ajuste del potenciómetro, los termistores y los sensores de temperatura va en su propio recuadro, que se mueve y se deshace como la Referencia y el Valor. La opción Mostrar de cada pieza ofrece «Como en Configuración», «Ajuste», «Valores», «Ambos» y «Nada», y Configuración › General tiene «Texto de las piezas ajustables» con la opción por omisión.
+- Los diálogos de exportar de gráficas y capturas conservan lo ajustado mientras los datos sean los mismos, y «Restablecer» los devuelve a sus valores.
+- La calculadora de amplificadores se llama «Amplificadores con operacional» y suma integrador, derivador, sumador inversor de 2 a 4 entradas y amplificador de instrumentación, cada uno con su ecuación, su revisión de saturación y su circuito.
+- El editor de la figura que se exporta permite elegir varios elementos del mismo tipo (trazas, textos, flechas, etiquetas de valor, ejes o títulos) con Mayús o Ctrl y clic, y cambiar su color, tamaño o grosor a la vez.
+- El asistente coloca chips por paquete y unidad, cambia la unidad de una pieza, agrupa encapsulados y lee los paquetes y los números de pin.
+- La pestaña Análisis dice a la vista por qué no se puede elegir un análisis (la vista previa no está detenida o el archivo es de solo lectura).
+
+### Diseño
+
+- El tamaño de letra de notas y etiquetas se muestra y se escribe en puntos (la omisión es 5.7 pt y el rango va de 2.8 a 56.7 pt).
+- La interfaz dice «pin» en lugar de «patilla»: menús, avisos, inspector, asistente y guías.
+- Configuración tiene las pestañas en una columna a la izquierda y una tarjeta por grupo, con el mismo interruptor para todo lo que es sí o no, la ayuda (i) junto al nombre y las carpetas con la misma fila. Algunos rótulos se aclararon: «Serie de valores al escribir» (con «Sin serie»), «Texto de las piezas ajustables», «Evitar parpadeo del lienzo» (ahora en Apariencia) y «Conectar un asistente».
+- La Librería agrupa también Pasivos, Fuentes, Semiconductores, Interruptores y Circuitos integrados en grupos plegables.
+- El panel de la figura que se exporta sigue el orden Restablecer figura, Datos, Tema, Mostrar, Letra, Apariencia de texto, Rejilla, Grosor de la rejilla, Subdivisiones de los ejes, Grosor de los ejes y Adornos, en gráficas y capturas, y la pista dice «Da clic para modificar algo específico.»
+- Los avisos de la vista previa dicen lo que sí se puede hacer mientras corre: los valores se ajustan, y solo mover, cablear, borrar o los análisis esperan a detenerla.
+- En Gráficas, las lecturas de los cursores van en una columna a la derecha de la gráfica (lista de análisis, gráfica y cursores) y bajan debajo de ella cuando el panel es angosto.
+- El deslizador general de texto se llama «Tamaño del texto» y tiene globo.
+- El grosor de los ejes del osciloscopio engrosa también la cruz central.
+- El tutorial «Aprende Kirchi» es un recorrido completo en cuatro capítulos: Conoce Kirchi, Tu primer circuito, Medir y Analizar y exportar. Cada uno parte de su propio circuito, así que se puede hacer solo, y el selector dice en una frase de qué trata. Los pasos «Mira» enmarcan una zona con una línea de explicación y se avanzan con «Siguiente»; los pasos «Haz» comprueban la acción. Todo paso señala su zona con el marco, también sobre el diálogo de exportar, y los textos llevan los iconos de la interfaz junto a sus nombres. El avance guardado de la versión anterior se reinicia.
+
+### Arreglos
+
+- Al elegir varias trazas en el exportar, el color, el grosor y el eje que ya tenía la primera se aplican también a las demás.
+- En el exportar de una gráfica, las muestras de color de Datos siguen al color que se eligió para cada traza.
+- Al exportar una gráfica o una captura del osciloscopio, el color que se elige para una traza ya no lo pisan los colores que guardaba el diálogo de versiones anteriores.
+- Duplicar o pegar una etiqueta o una nota la deja en un lugar libre, sin encimarla sobre piezas, cables u otros textos.
+- La barra de formato de una etiqueta o una nota se coloca arriba, abajo o al costado, donde no tape las piezas.
+- Lo capturado del osciloscopio se dibuja sin escalones al verlo hacia atrás o con menos tiempo por división: una senoidal ya no sale cuadrada.
+- El recuadro del valor del NTC, el PTC y la fotorresistencia vuelve a mostrar su modelo en vez de quedar vacío.
+- Un cambio hecho en caliente en una parte del circuito que no cambia con el tiempo se aplica desde el instante de la simulación, y sus voltajes, promedios y sondas lo muestran de inmediato.
+- La vista previa corre más rápido en los circuitos que mezclan lógica y analógico y en el motor 28BYJ-48 con ULN2003, que ya alcanzan el tiempo real con ×1.
+- Si ngspice no arranca, el error dice la ruta, el código del sistema y, en macOS, qué hacer. En macOS la comprobación espera más y se reintenta.
+- La aplicación libera memoria apartada dos segundos después de cargar cada ventana.
+- Al abrir, la interfaz y el proceso principal ocupan unos 10 MB menos: su código se guarda a un byte por carácter y la librería del asistente se carga solo cuando se conecta.
+- Al elegir el tramo a exportar se ve todo el eje, así que un tramo elegido antes ya no limita la elección.
+- La búsqueda de la Librería y del buscador pone primero la mejor coincidencia («led» da el LED y no las fuentes controladas) y descarta las que solo contienen el texto dentro de otra palabra.
+- Con la vista previa corriendo, la nota de la referencia fija ya no tapa el campo Valor del editor, y los voltajes esquivan las banderas de las sondas, las pantallas de los medidores y las cifras de los instrumentos.
+- Los cursores de tiempo del osciloscopio se quedan fijos en la pantalla mientras ella avanza, como en un osciloscopio real, y se mide sin pausar.
+- Los números de pin se ven desde el 100 % de zoom y el botón de Vista los oculta y los muestra.
+- El TL431 y el LM4040 se asientan en microsegundos y dan su voltaje en mediciones cortas, se muestree o no.
+- El foco sube su resistencia con la temperatura del filamento: su corriente crece con el voltaje y se funde al doble de su potencia.
+- La salida del comparador ya no pasa del voltaje de su alimentación al conmutar.
+- El asistente mide frecuencia, promedio y rms del osciloscopio sobre periodos completos, sin contar el arranque.
+
 ## 2.0.1
 
 El instalador de macOS vuelve a publicarse junto con los de Windows y Linux.

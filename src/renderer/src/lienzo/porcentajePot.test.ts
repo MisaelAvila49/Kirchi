@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { calcularConexiones } from '../conexiones/conexiones'
 import type { Documento, Pieza } from '../doc/tipos'
 import { cuerpoEnMundo } from '../editor/colision'
@@ -7,6 +7,7 @@ import { pinesEnMundo } from '../piezas/transformar'
 import { divisor } from '../prueba/circuitos'
 import { libreriaDePrueba } from '../prueba/libreria'
 import type { Lectura } from '../sim/lectura'
+import { ponerTextoAjuste } from './ajusteEnPieza'
 import { cajaTexto } from './apartar'
 import { construirCapaSim } from './capaSim'
 import { PALETA_CLARA } from './paleta'
@@ -18,7 +19,7 @@ function conPot(posicion: string, rot: Pieza['rot'] = 0, espejo = false): Docume
   const d = divisor()
   delete d.piezas.p_r1
   delete d.piezas.p_r2
-  d.piezas.p_rv = { id: 'p_rv', tipo: 'potenciometro', ref: 'RV1', x: 10, y: -8, rot, espejo, props: { valor: '10k', posicion } }
+  d.piezas.p_rv = { id: 'p_rv', tipo: 'potenciometro', ref: 'RV1', x: 10, y: -8, rot, espejo, props: { valor: '10k', posicion, junto: 'Ajuste' } }
   d.cables.c_b = { id: 'c_b', puntos: [{ x: 14, y: -8 }, { x: 18, y: -8 }, { x: 18, y: 8 }, { x: 0, y: 8 }, { x: 0, y: 4 }] }
   return d
 }
@@ -32,6 +33,37 @@ describe('porcentaje del cursor junto al potenciómetro', () => {
     const cursor = pinesEnMundo(d.piezas.p_rv, lib.get('potenciometro')!).find((q) => q.id === '3')!
     expect(Math.hypot(t.x - cursor.x, t.y - cursor.y)).toBeLessThan(6)
     expect(t.tamaño).toBeLessThan(1.6)
+  })
+
+  afterEach(() => ponerTextoAjuste('Valores'))
+
+  it('solo aparece si «Mostrar» pide el ajuste: con los valores, ambos, nada o lo de Configuración', () => {
+    const textos = (junto: string | undefined) => {
+      const d = conPot('25 %')
+      if (junto === undefined) delete d.piezas.p_rv.props.junto
+      else d.piezas.p_rv.props.junto = junto
+      return porcentajesDePot(d, lib, new Set(['p_rv']), [], []).map((t) => t.texto)
+    }
+    expect(textos('Valores')).toEqual([])
+    expect(textos('Nada')).toEqual([])
+    expect(textos('Ajuste')).toEqual(['25 %'])
+    expect(textos('Ambos')).toEqual(['25 %'])
+    // Sin la opción guardada la pieza sigue a Configuración, que por omisión dice los valores.
+    expect(textos(undefined)).toEqual([])
+    ponerTextoAjuste('Ajuste')
+    expect(textos(undefined)).toEqual(['25 %'])
+    ponerTextoAjuste('Ambos')
+    expect(textos(undefined)).toEqual(['25 %'])
+    ponerTextoAjuste('Nada')
+    expect(textos(undefined)).toEqual([])
+  })
+
+  it('al mover la perilla simulando, la capa no escribe el porcentaje si no se pidió', () => {
+    const d = conPot('75 %')
+    d.piezas.p_rv.props.junto = 'Valores'
+    const con = calcularConexiones(d, lib)
+    const l: Lectura = { t: 0, ratio: 1, redes: new Map(), piezas: new Map([['p_rv', { v: 5, i: 0.0005, p: 0.0025, cursor: 3.75 }]]) }
+    expect(construirCapaSim(d, lib, con, l, 5, PALETA_CLARA, undefined, null).textos.some((t) => t.texto === '75 %')).toBe(false)
   })
 
   it('solo aparece si la pieza se simula', () => {
@@ -70,7 +102,7 @@ describe('porcentaje del cursor junto al potenciómetro', () => {
 
   it('dos potenciómetros no se pisan sus porcentajes y el resultado no depende del orden', () => {
     const d = conPot('25 %')
-    d.piezas.p_rv2 = { ...d.piezas.p_rv, id: 'p_rv2', ref: 'RV2', x: 10, y: -8 + 2, props: { valor: '10k', posicion: '80 %' } }
+    d.piezas.p_rv2 = { ...d.piezas.p_rv, id: 'p_rv2', ref: 'RV2', x: 10, y: -8 + 2, props: { valor: '10k', posicion: '80 %', junto: 'Ajuste' } }
     const v = porcentajesDePot(d, lib, new Set(['p_rv', 'p_rv2']), [], [])
     expect(v.map((t) => t.texto).sort()).toEqual(['25 %', '80 %'])
     expect(solapan(cajaTexto(v[0]), cajaTexto(v[1]))).toBe(false)

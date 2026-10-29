@@ -2,6 +2,7 @@
   "id": "regulador-negativo",
   "nombre": { "es": "Regulador fijo negativo", "en": "Fixed negative regulator" },
   "categoria": "integrados",
+  "grupo": "Reguladores y referencias",
   "prefijo": "U",
   "buscar": ["u", "regulador", "regulator", "7905", "79xx", "mc7905", "voltaje negativo", "negative", "mc7912", "mc7915"],
   "pines": [

@@ -1,0 +1,121 @@
+{
+  "netlist": {
+    "nodes": 5,
+    "elements": [
+      {
+        "type": "V",
+        "a": 1,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 5
+        }
+      },
+      {
+        "type": "V",
+        "a": 2,
+        "b": 0,
+        "wave": {
+          "kind": "dc",
+          "v": 2
+        }
+      },
+      {
+        "type": "R",
+        "a": 3,
+        "b": 0,
+        "ohms": 1000
+      },
+      {
+        "type": "R",
+        "a": 4,
+        "b": 0,
+        "ohms": 1000
+      },
+      {
+        "type": "INTC",
+        "a": 1,
+        "b": 3,
+        "canal": 0,
+        "r_on": 100,
+        "r_off": 100000000
+      },
+      {
+        "type": "INTC",
+        "a": 1,
+        "b": 4,
+        "canal": 1,
+        "r_on": 100,
+        "r_off": 100000000
+      },
+      {
+        "type": "INTC",
+        "a": 2,
+        "b": 3,
+        "canal": 2,
+        "r_on": 100,
+        "r_off": 100000000
+      },
+      {
+        "type": "INTC",
+        "a": 2,
+        "b": 4,
+        "canal": 3,
+        "r_on": 100,
+        "r_off": 100000000
+      }
+    ],
+    "canales": [
+      {
+        "inicial": 0
+      },
+      {
+        "inicial": 0
+      },
+      {
+        "inicial": 0
+      },
+      {
+        "inicial": 0
+      }
+    ]
+  },
+  "fin": 0.0002,
+  "hmax": 2e-8,
+  "tolerancia_t": 5e-8,
+  "columnas": {
+    "v(c1)": {
+      "nodo": 3
+    },
+    "v(c2)": {
+      "nodo": 4
+    }
+  },
+  "valores": [
+    {
+      "t": 0.00003,
+      "canal": 0,
+      "valor": 1
+    },
+    {
+      "t": 0.00006,
+      "canal": 1,
+      "valor": 1
+    },
+    {
+      "t": 0.00009,
+      "canal": 0,
+      "valor": 0
+    },
+    {
+      "t": 0.00012,
+      "canal": 3,
+      "valor": 1
+    },
+    {
+      "t": 0.00015,
+      "canal": 1,
+      "valor": 0
+    }
+  ]
+}

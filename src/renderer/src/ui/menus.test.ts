@@ -272,7 +272,7 @@ describe('submenú Formato', () => {
     expect(lista(entradasFormato(v, (id) => TEXTO[id]))).toEqual([
       '✓ Negrita [Ctrl+B]', 'Cursiva [Ctrl+I]', 'Subrayado [Ctrl+U]', '—',
       '✓ Mona Sans', 'Source Serif', 'Geist Mono', '—',
-      'Letra más grande (2.5 mm) [Ctrl+Shift+.]', 'Letra más chica (1.8 mm) [Ctrl+Shift+,]', '—',
+      'Letra más grande (7.1 pt) [Ctrl+Shift+.]', 'Letra más chica (5.1 pt) [Ctrl+Shift+,]', '—',
       'Izquierda', '✓ Centro [Ctrl+Shift+E]', 'Derecha', 'Justificado', '—',
       '✓ Negro', 'Gris', 'Rojo', 'Azul', 'Verde', '—',
       '✓ Contorno predeterminado (gris)', 'Contorno negro', 'Contorno gris', 'Contorno rojo', 'Contorno azul', 'Contorno verde', 'Sin contorno'

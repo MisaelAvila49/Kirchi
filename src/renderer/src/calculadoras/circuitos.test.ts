@@ -12,9 +12,9 @@ import { libreriaDePrueba } from '../prueba/libreria'
 import { armar } from '../plantillas/armar'
 import init, { Simulator } from '../sim/pkg/kirchi_engine.js'
 import { avisosDelCircuito } from '../ui/proyecto'
-import { circuitoAmplificador, circuitoAstable, circuitoDivisor, circuitoFiltro, circuitoLed, circuitoMonoestable, circuitoNotch, circuitoPasaBanda, circuitoRechazaBanda, type Armado } from './circuitos'
+import { circuitoAmplificador, circuitoAstable, circuitoDerivador, circuitoDivisor, circuitoFiltro, circuitoInstrumentacion, circuitoIntegrador, circuitoLed, circuitoMonoestable, circuitoNotch, circuitoPasaBanda, circuitoRechazaBanda, circuitoSumador, type Armado } from './circuitos'
 import { notchDobleT, pasaBanda, rechazaBanda, respuestaPasaBanda, respuestaRechazaBanda } from './filtros'
-import { amplificador, astable555, divisor, filtroRC, led, monoestable555, type Calculo } from './formulas'
+import { amplificador, astable555, derivador, divisor, filtroRC, instrumentacion, integrador, led, monoestable555, sumador, type Calculo } from './formulas'
 import { modeloAmpOp, modeloLed } from './modelosPieza'
 import { redondeoDe } from './redondeo'
 
@@ -331,5 +331,146 @@ describe('notch generado', () => {
     const d = armar(a.def, lib)
     expect(amplitud(d, 'c2.2', r.f0Real, 40)).toBeLessThan(0.02)
     for (const f of [r.f0Real / 10, r.f0Real * 10]) expect(Math.abs(amplitud(d, 'c2.2', f, f < 500 ? 5 : 40) / r.gDecada - 1)).toBeLessThan(0.03)
+  })
+})
+
+/** Amplitud (pico) de un pin con el generador `gen` a la frecuencia `f`, tras asentarse el transitorio. */
+function amplitudDe(doc: Documento, pin: string, gen: string, f: number, periodosAsentar: number): number {
+  const d: Documento = JSON.parse(JSON.stringify(doc))
+  d.piezas[`p_${gen}`].props.frecuencia = String(f)
+  const T = 1 / f
+  const m = traza(d, pin, periodosAsentar * T, (periodosAsentar + 2) * T, T / 100, Math.min(1e-5, T / 200))
+  const v = m.map((x) => x.v)
+  return (Math.max(...v) - Math.min(...v)) / 2
+}
+
+describe('integrador generado', () => {
+  const modelo = modeloAmpOp(lib, 'LM741')!
+  it('sin Rf: cumple las reglas del editor y la salida simulada tiene el pico de la ficha', () => {
+    const e = { rin: 1000, fu: 1000, vin: 0.5, f: 1000, vs: 15, modelo }
+    const r = ok(integrador(e, E12))
+    const d = reglasDelEditor(circuitoIntegrador(e, r, 'LM741'))
+    expect([refDe(d, 'r1'), refDe(d, 'c1')]).toEqual(['R1', 'C1'])
+    expect(Math.abs(amplitudDe(d, 'u1.OUT', 'v1', 1000, 25) / r.vpico - 1)).toBeLessThan(0.03)
+  })
+  it('con Rf en paralelo: la salida simulada tiene el pico de la ficha, con fp por debajo de la señal y por encima', () => {
+    const e = { rin: 1000, fu: 1000, gdc: 10, vin: 0.5, f: 1000, vs: 15, modelo }
+    const r = ok(integrador(e, E12))
+    const a = circuitoIntegrador(e, r, 'LM741')
+    const d = reglasDelEditor(a)
+    expect([refDe(d, 'r1'), refDe(d, 'r2'), refDe(d, 'c1')]).toEqual(['R1', 'R2', 'C1'])
+    expect(Math.abs(amplitudDe(d, 'u1.OUT', 'v1', 1000, 40) / r.vpico - 1)).toBeLessThan(0.03)
+    // Cerca de fp (unos 106 Hz) la ganancia deja de subir como 1 / f.
+    const fp = r.fp!
+    const h = (f: number) => r.rfc! / r.rinc / Math.sqrt(1 + (f / fp) ** 2)
+    expect(Math.abs(amplitudDe(d, 'u1.OUT', 'v1', fp, 25) / (0.5 * h(fp)) - 1)).toBeLessThan(0.03)
+    expect(a.nombre).toMatch(/^Integrador con ganancia 1 en/)
+  })
+})
+
+describe('derivador generado', () => {
+  const modelo = modeloAmpOp(lib, 'LM741')!
+  it('sin Rs: cumple las reglas del editor y la salida simulada tiene el pico de la ficha', () => {
+    const e = { cap: 100e-9, fu: 1000, vin: 0.5, f: 1000, vs: 15, modelo }
+    const r = ok(derivador(e, E12))
+    const d = reglasDelEditor(circuitoDerivador(e, r, 'LM741'))
+    expect([refDe(d, 'c1'), refDe(d, 'r1')]).toEqual(['C1', 'R1'])
+    expect(Math.abs(amplitudDe(d, 'u1.OUT', 'v1', 1000, 25) / r.vpico - 1)).toBeLessThan(0.03)
+  })
+  it('con Rs en serie: la salida simulada tiene el pico de la ficha a la señal y frenada arriba de fs', () => {
+    const e = { cap: 100e-9, fu: 1000, rs: 150, vin: 0.5, f: 1000, vs: 15, modelo }
+    const r = ok(derivador(e, E12))
+    const d = reglasDelEditor(circuitoDerivador(e, r, 'LM741'))
+    expect([refDe(d, 'c1'), refDe(d, 'r1'), refDe(d, 'r2')]).toEqual(['C1', 'R1', 'R2'])
+    expect(Math.abs(amplitudDe(d, 'u1.OUT', 'v1', 1000, 25) / r.vpico - 1)).toBeLessThan(0.03)
+    // Con una señal chica: a 30 kHz la grande pasaría de los 0.5 V/µs de giro del LM741.
+    const h = (f: number) => f / r.fuReal / Math.sqrt(1 + (f / r.fs!) ** 2)
+    d.piezas.p_v1.props.amplitud = '0.2'
+    expect(Math.abs(amplitudDe(d, 'u1.OUT', 'v1', 30e3, 40) / (0.1 * h(30e3)) - 1)).toBeLessThan(0.06)
+  })
+})
+
+describe('sumador generado', () => {
+  const modelo = modeloAmpOp(lib, 'LM741')!
+  const casos = [
+    { g: [1, 2], v: [1, 0.5] },
+    { g: [1, 2, 5], v: [1, 0.5, -0.2] },
+    { g: [1, 2, 1, 4], v: [0.3, 0.5, 1, -0.1] }
+  ]
+  for (const k of casos) {
+    it(`${k.g.length} entradas: cumple las reglas del editor y la salida simulada es la suma de la ficha`, () => {
+      const e = { rf: 10e3, g: k.g, v: k.v, vs: 15, modelo }
+      const r = ok(sumador(e, E12))
+      const a = circuitoSumador(e, r, 'LM741')
+      const d = reglasDelEditor(a)
+      expect(refDe(d, 'rf')).toBe(`R${k.g.length + 1}`)
+      expect(voltajes(d, ['u1.OUT'], 5e-3)['u1.OUT']).toBeCloseTo(r.vout, 2)
+      expect(a.nombre).toBe(`Sumador inversor de ${k.g.length} entradas`)
+    })
+  }
+  it('con una fuente corta la suma satura donde dice la ficha', () => {
+    const e = { rf: 10e3, g: [1, 1], v: [4, 4], vs: 5, modelo }
+    const r = ok(sumador(e, E12))
+    expect(r.satura).toBe(true)
+    const d = reglasDelEditor(circuitoSumador(e, r, 'LM741'))
+    const v = voltajes(d, ['u1.OUT'], 5e-3)['u1.OUT']
+    expect(v).toBeLessThan(0)
+    expect(Math.abs(Math.abs(v) - r.vsatMenos)).toBeLessThan(0.35)
+  })
+})
+
+describe('amplificador de instrumentación generado', () => {
+  const modelo = modeloAmpOp(lib, 'LM741')!
+  it('cumple las reglas del editor y las tres salidas simuladas son las de la ficha, con modo común', () => {
+    const e = { g: 10, r: 10e3, rd: 10e3, vd: 0.01, vcm: 1, vs: 15, modelo }
+    const r = ok(instrumentacion(e, E12))
+    const a = circuitoInstrumentacion(e, r, 'LM741')
+    const d = reglasDelEditor(a)
+    expect(refDe(d, 'rg')).toBe('R3')
+    const v = voltajes(d, ['u1.OUT', 'u2.OUT', 'u3.OUT'], 5e-3)
+    // U1 es el amplificador de V1 (arriba en la ficha vu1) y U2 el de V2.
+    expect(v['u1.OUT']).toBeCloseTo(r.vu1, 2)
+    expect(v['u2.OUT']).toBeCloseTo(r.vu2, 2)
+    expect(v['u3.OUT']).toBeCloseTo(r.vout, 2)
+    expect(a.nombre).toBe('Amplificador de instrumentación de ganancia 10.1')
+  })
+  it('rechaza el modo común: cambiarlo no mueve la salida de la etapa diferencial', () => {
+    const e = { g: 50, r: 10e3, rd: 10e3, vd: 0.02, vcm: 0, vs: 15, modelo }
+    const r0 = ok(instrumentacion(e, E12))
+    const r1 = ok(instrumentacion({ ...e, vcm: 3 }, E12))
+    const v0 = voltajes(reglasDelEditor(circuitoInstrumentacion(e, r0, 'LM741')), ['u3.OUT'], 5e-3)['u3.OUT']
+    const v1 = voltajes(reglasDelEditor(circuitoInstrumentacion({ ...e, vcm: 3 }, r1, 'LM741')), ['u3.OUT'], 5e-3)['u3.OUT']
+    expect(v0).toBeCloseTo(r0.vout, 2)
+    expect(Math.abs(v1 - v0)).toBeLessThan(0.02)
+  })
+})
+
+describe('amplificadores con operacional: los cables dados', () => {
+  const modelo = modeloAmpOp(lib, 'LM741')!
+  const base = { vs: 15, modelo }
+  const armados: [string, Armado][] = [
+    ['integrador', circuitoIntegrador({ rin: 1000, fu: 1000, vin: 0.5, f: 1000, ...base }, ok(integrador({ rin: 1000, fu: 1000, vin: 0.5, f: 1000, ...base }, E12)), 'LM741')],
+    ['integrador con Rf', circuitoIntegrador({ rin: 1000, fu: 1000, gdc: 100, vin: 0.5, f: 1000, ...base }, ok(integrador({ rin: 1000, fu: 1000, gdc: 100, vin: 0.5, f: 1000, ...base }, E12)), 'LM741')],
+    ['derivador', circuitoDerivador({ cap: 100e-9, fu: 1000, vin: 0.5, f: 1000, ...base }, ok(derivador({ cap: 100e-9, fu: 1000, vin: 0.5, f: 1000, ...base }, E12)), 'LM741')],
+    ['derivador con Rs', circuitoDerivador({ cap: 100e-9, fu: 1000, rs: 150, vin: 0.5, f: 1000, ...base }, ok(derivador({ cap: 100e-9, fu: 1000, rs: 150, vin: 0.5, f: 1000, ...base }, E12)), 'LM741')],
+    ...[2, 3, 4].map((n): [string, Armado] => {
+      const e = { rf: 10e3, g: [1, 2, 1, 4].slice(0, n), v: [1, 0.5, 0.2, 0.1].slice(0, n), ...base }
+      return [`sumador de ${n}`, circuitoSumador(e, ok(sumador(e, E12)), 'LM741')]
+    }),
+    ['instrumentación', circuitoInstrumentacion({ g: 10, r: 10e3, rd: 10e3, vd: 0.01, vcm: 1, ...base }, ok(instrumentacion({ g: 10, r: 10e3, rd: 10e3, vd: 0.01, vcm: 1, ...base }, E12)), 'LM741')]
+  ]
+  const redes = (doc: Documento) => {
+    const con = calcularConexiones(doc, lib)
+    const grupos = new Map<number, string[]>()
+    for (const [pin, red] of con.redDePin) grupos.set(red, [...(grupos.get(red) ?? []), pin.replace(/^p_/, '')])
+    return [...grupos.values()].map((g) => g.sort().join(',')).sort()
+  }
+  it.each(armados)('%s: unen las mismas redes que las conexiones pedidas (nada unido de más, nada suelto)', (_n, a) => {
+    expect(redes(armar(a.def, lib, 'prueba'))).toEqual(redes(armar({ ...a.def, cables: undefined }, lib, 'prueba')))
+  })
+  it.each(armados)('%s: Entrada y Salida o solo Salida, y ninguna nota', (_n, a) => {
+    const d = armar(a.def, lib, 'prueba')
+    expect(Object.keys(d.notas)).toEqual([])
+    expect(Object.values(d.etiquetas).map((x) => x.nombre)).toContain('Salida')
   })
 })

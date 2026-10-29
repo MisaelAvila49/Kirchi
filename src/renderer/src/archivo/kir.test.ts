@@ -185,8 +185,8 @@ describe('.kir', () => {
     expect(r.avisos).toEqual([
       'Se descartó la alineación de la etiqueta VSAL: solo las notas se alinean.',
       'Se descartó la fuente «comic» de la etiqueta VSAL.',
-      'Se descartó el tamaño 2.55 mm de la etiqueta VSAL: lleva un solo decimal.',
-      'Se descartó el tamaño 40 mm de la nota: el máximo es 20 mm.',
+      'Se descartó el tamaño 7.2 pt de la etiqueta VSAL: no es un tamaño válido.',
+      'Se descartó el tamaño 113.4 pt de la nota: el máximo es 56.7 pt.',
       'Se descartó la tinta «morado» de la nota.',
       'Se descartó «brillo» del formato de la nota: no es una propiedad de formato.',
       'Se descartó «anchoFijo» de la nota: solo admite true.'
@@ -516,6 +516,31 @@ describe('.kir: textos movidos a mano (formato 3)', () => {
     if (!r.ok) throw new Error(r.error)
     expect(r.doc).toEqual(d)
     expect(r.avisos).toEqual([])
+  })
+
+  it('la posición del ajuste va de ida y vuelta como la de los otros textos, también en formato 3', () => {
+    const d = completo()
+    d.piezas.p_r1 = { ...d.piezas.p_r1, textos: { ajuste: { lugar: 'arriba' } } }
+    const bytes = escribirKir(d, '0.0.1')
+    expect(formatoDe(bytes)).toBe(3)
+    const r = leerKir(bytes)
+    if (!r.ok) throw new Error(r.error)
+    expect(r.doc).toEqual(d)
+    expect(r.avisos).toEqual([])
+    const mala = leer(conTextos({ ajuste: { lugar: 'centro' }, ref: { lugar: 'abajo' } }))
+    if (!mala.ok) throw new Error(mala.error)
+    expect(mala.doc.piezas.p1.textos).toEqual({ ref: { lugar: 'abajo' } })
+    expect(mala.avisos).toEqual(['Se descartó la posición a mano de un texto de R1: no es válida.'])
+  })
+
+  it('un archivo guardado antes del recuadro del ajuste se lee igual y se vuelve a guardar con los mismos bytes', () => {
+    const d = completo()
+    d.piezas.p_r1 = { ...d.piezas.p_r1, textos: { ref: { lugar: 'abajo' }, valor: { x: 3.25, y: -4 } } }
+    const bytes = escribirKir(d, '0.0.1')
+    const r = leerKir(bytes)
+    if (!r.ok) throw new Error(r.error)
+    expect(r.doc.piezas.p_r1.textos).toEqual({ ref: { lugar: 'abajo' }, valor: { x: 3.25, y: -4 } })
+    expect(escribirKir(r.doc, '0.0.1')).toEqual(bytes)
   })
 
   it('volver todo a su lugar automático quita el campo y el archivo vuelve a su formato y a sus bytes de antes', () => {

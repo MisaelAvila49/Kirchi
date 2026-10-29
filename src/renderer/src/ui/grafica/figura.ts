@@ -4,7 +4,6 @@ import { conTamañoGeneral, type AspectoGrafica, type AspectoTraza } from '../..
 import { celdaDeTexto } from '../osciloscopio/exportarCaptura'
 import { MARGEN_MARCO, marcoDoble, PILAS_POR_OMISION, tipografiaDeFigura, type FiguraCaptura, type PilasFuentes } from '../osciloscopio/figura'
 import type { Adornos } from '../exportar/preajustes'
-import type { SerieFigura } from '../exportar/modelo'
 import { rangoEfectivo, type RangoExportar } from '../exportar/rango'
 import { dibujarGrafica, dibujarLeyenda, geometriaGrafica } from './dibujo'
 import { trazasUnicas, type ModeloGrafica, type VistaGrafica } from './modelo'
@@ -47,24 +46,6 @@ export function vistaConRango(m: ModeloGrafica, v: VistaGrafica, rango: RangoExp
   return r ? { ...v, x: r } : v
 }
 
-/** Las series para el color de cada línea del diálogo: una por traza (o por serie de barras), con una clave corta `t0`, `t1`… */
-export function seriesDeGrafica(m: ModeloGrafica): (SerieFigura & { clave: string })[] {
-  const claves = m.tipo === 'barras' ? (m.barras?.series.map((s) => s.clave) ?? []) : [...new Set(m.trazas.map((t) => t.clave))]
-  return claves.map((clave, i) => ({ id: `t${i}`, nombre: clave, clave }))
-}
-
-/** El modelo con los tonos que eligió el diálogo (por `t0`…) encima de los de la gráfica. */
-export function modeloConTonos(m: ModeloGrafica, op: Pick<OpcionesFigura, 'colores'>): ModeloGrafica {
-  const series = seriesDeGrafica(m)
-  const tono = (clave: string, actual: TonoFigura): TonoFigura => {
-    const s = series.find((x) => x.clave === clave)
-    const elegido = s && Object.hasOwn(op.colores, s.id) ? op.colores[s.id] : undefined
-    return elegido ?? actual
-  }
-  if (m.tipo === 'barras' && m.barras) return { ...m, barras: { ...m.barras, series: m.barras.series.map((s) => ({ ...s, tono: tono(s.clave, s.tono) })) } }
-  return { ...m, trazas: m.trazas.map((t) => ({ ...t, tono: tono(t.clave, t.tono) })) }
-}
-
 /**
  * Modelo con lo que el diálogo cambió de cada traza. Las trazas de una misma clave (magnitud y fase de un Bode) comparten lo elegido.
  */
@@ -94,7 +75,7 @@ export function figuraDeGrafica(e: EntradaFigura, op: OpcionesFigura, actual: Te
   const tema = temaEfectivo(e.aspecto.tema, actual)
   const c = coloresGrafica(tema, tema === 'claro')
   const tip = tipografiaDeFigura(op, pilas)
-  const modelo = modeloConTonos(e.modelo, op)
+  const modelo = e.modelo
   const vista = vistaConRango(modelo, e.vista, e.rango)
   // El tamaño general de la letra de la figura llega a los ejes que no traen el suyo (y el reparto crece con él).
   const aspecto: AspectoGrafica = conTamañoGeneral(e.aspecto, tip.px)

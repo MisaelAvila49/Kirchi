@@ -5,6 +5,16 @@ const ventana = { w: 1440, h: 800 }
 const globo = { w: 292, h: 140 }
 
 describe('colocarGlobo', () => {
+  it('se aparta de una zona que no debe tapar (el editor de valores abierto bajo el objetivo)', () => {
+    const o = { x: 300, y: 200, w: 100, h: 60 }
+    const editor = { x: 280, y: 270, w: 220, h: 120 }
+    const s = colocarGlobo({ objetivo: o, globo, ventana, evitar: [editor] })
+    expect(s.lado).toBe('arriba')
+    expect(s.y).toBe(200 - 12 - 140)
+    // Sin estorbo se queda debajo.
+    expect(colocarGlobo({ objetivo: o, globo, ventana }).lado).toBe('abajo')
+  })
+
   it('pone el globo debajo del objetivo, alineado a su borde, con la flecha en su centro', () => {
     const s = colocarGlobo({ objetivo: { x: 300, y: 200, w: 100, h: 60 }, globo, ventana })
     expect(s.lado).toBe('abajo')

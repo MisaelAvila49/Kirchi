@@ -1,10 +1,10 @@
 import type { SerieComercial } from '../../../compartido/ajustes'
 import type { PiezaDef } from '../piezas/tipos'
 import { formatearMedida, formatearValor, leerValor } from '../valores/valores'
-import { circuitoAmplificador, circuitoAstable, circuitoDivisor, circuitoFiltro, circuitoLed, circuitoMonoestable, circuitoNotch, circuitoPasaBanda, circuitoRechazaBanda, type Armado } from './circuitos'
+import { circuitoAmplificador, circuitoAstable, circuitoDerivador, circuitoDivisor, circuitoFiltro, circuitoInstrumentacion, circuitoIntegrador, circuitoLed, circuitoMonoestable, circuitoNotch, circuitoPasaBanda, circuitoRechazaBanda, circuitoSumador, type Armado } from './circuitos'
 import type { Ecuacion } from './ecuacion'
 import { enDecibeles, notchDobleT, pasaBanda, rechazaBanda } from './filtros'
-import { amplificador, astable555, divisor, filtroRC, led, monoestable555, type Calculo } from './formulas'
+import { amplificador, astable555, derivador, divisor, filtroRC, instrumentacion, integrador, led, monoestable555, sumador, type Calculo, type ModeloAmpOp } from './formulas'
 import { coloresLed, modeloAmpOp, modeloLed, modelosAmpOp } from './modelosPieza'
 import { redondeoDe } from './redondeo'
 
@@ -97,14 +97,16 @@ type Lectura = { valor: number } | { error: string }
 const UNIDADES_ESPERADAS: Record<string, string> = { V: 'voltios (V)', A: 'amperios (A)', 'Ω': 'ohmios (Ω)', F: 'faradios (F)', Hz: 'hertz (Hz)', s: 'segundos (s)', '': 'un número' }
 
 /** Un número en notación de ingeniería («4k7», «100n», «2.5 ms») con la unidad que corresponde o sin ella. */
-function leerNumero(texto: string, unidad: string, opciones: { cero?: boolean } = {}): Lectura {
+function leerNumero(texto: string, unidad: string, opciones: { cero?: boolean; negativo?: boolean } = {}): Lectura {
   const v = leerValor(texto)
   if (!v) return { error: `Escribe ${UNIDADES_ESPERADAS[unidad] ?? 'un número'}, por ejemplo ${EJEMPLO[unidad] ?? '10'}.` }
   if (v.unidad !== '' && v.unidad !== unidad) return { error: `Aquí va ${UNIDADES_ESPERADAS[unidad] ?? 'un número'}.` }
-  if (opciones.cero ? v.valor < 0 : !(v.valor > 0)) return { error: opciones.cero ? 'No puede ser negativo.' : 'Tiene que ser mayor que cero.' }
+  if (!opciones.negativo && (opciones.cero ? v.valor < 0 : !(v.valor > 0))) return { error: opciones.cero ? 'No puede ser negativo.' : 'Tiene que ser mayor que cero.' }
   const lim = LIMITES[unidad]
   // Con `cero` el mínimo es 0 (una señal nula es válida); sin él, lo de abajo del mínimo no se admite.
-  if (lim && (v.valor > lim[1] || (v.valor < lim[0] && !(opciones.cero && v.valor === 0)))) {
+  // Con `negativo` los límites valen para la magnitud: una señal puede ir de −1 kV a 1 kV.
+  const m = Math.abs(v.valor)
+  if (lim && (m > lim[1] || (m < lim[0] && !((opciones.cero || opciones.negativo) && v.valor === 0)))) {
     return { error: `Fuera de rango: va de ${textoLimite(lim[0], unidad)} a ${textoLimite(lim[1], unidad)}.` }
   }
   return { valor: v.valor }
@@ -122,12 +124,12 @@ function leerPorcentaje(texto: string): Lectura {
 }
 
 /** Lee varios campos a la vez: junta los errores por campo y entrega los números cuando no hay ninguno. */
-function leer<K extends string>(e: EstadoCalc, pedidos: Record<K, { unidad: string; cero?: boolean; porcentaje?: boolean }>): { v: Record<K, number> } | { errores: Record<string, string> } {
+function leer<K extends string>(e: EstadoCalc, pedidos: Record<K, { unidad: string; cero?: boolean; negativo?: boolean; porcentaje?: boolean }>): { v: Record<K, number> } | { errores: Record<string, string> } {
   const v = {} as Record<K, number>
   const errores: Record<string, string> = {}
   for (const id of Object.keys(pedidos) as K[]) {
     const p = pedidos[id]
-    const l = p.porcentaje ? leerPorcentaje(e[id] ?? '') : leerNumero(e[id] ?? '', p.unidad, { cero: p.cero })
+    const l = p.porcentaje ? leerPorcentaje(e[id] ?? '') : leerNumero(e[id] ?? '', p.unidad, { cero: p.cero, negativo: p.negativo })
     if ('error' in l) errores[id] = l.error
     else v[id] = l.valor
   }
@@ -160,7 +162,7 @@ const ok = <T extends object>(r: Calculo<T>): ({ ok: true } & T) | string => (r.
 
 function conLectura<K extends string>(
   e: EstadoCalc,
-  pedidos: Record<K, { unidad: string; cero?: boolean; porcentaje?: boolean }>,
+  pedidos: Record<K, { unidad: string; cero?: boolean; negativo?: boolean; porcentaje?: boolean }>,
   seguir: (v: Record<K, number>) => Evaluacion
 ): Evaluacion {
   const l = leer(e, pedidos)
@@ -486,53 +488,262 @@ const monoestableCalc: DefCalculadora = {
   }
 }
 
+// Los amplificadores con operacional: una sola calculadora con un selector de tipo. Cada tipo conserva su cálculo y su circuito.
+type TipoAmp = 'inversor' | 'no-inversor' | 'integrador' | 'derivador' | 'instrumentacion' | 'sumador'
+const tipoAmp = (e: EstadoCalc): TipoAmp => (['no-inversor', 'integrador', 'derivador', 'instrumentacion', 'sumador'] as const).find((t) => t === e.tipo) ?? 'inversor'
+const esAmp = (...tipos: TipoAmp[]) => (e: EstadoCalc): boolean => tipos.includes(tipoAmp(e))
+/** Cuántas entradas lleva el sumador (de 2 a 4). */
+const entradasSumador = (e: EstadoCalc): number => Math.min(4, Math.max(2, Number(e.n) || 2))
+const gAmp = (x: number): string => menos(String(Number(x.toPrecision(3))))
+
+type PedidosCalc = Record<string, { unidad: string; cero?: boolean; negativo?: boolean }>
+
+function evaluarInversor(e: EstadoCalc, c: Contexto, modelo: ModeloAmpOp, modeloNombre: string): Evaluacion {
+  return conLectura(e, { g: { unidad: '' }, rin: { unidad: 'Ω' }, vs: { unidad: 'V' }, vin: { unidad: 'V', cero: true } }, (v) => {
+    const red = redondeoDe(c.serie)
+    const inv = e.tipo !== 'no-inversor'
+    const entrada = { tipo: inv ? ('inversor' as const) : ('no-inversor' as const), g: v.g, rin: v.rin, vs: v.vs, vin: v.vin, modelo }
+    const r = ok(amplificador(entrada, red))
+    if (typeof r === 'string') return sinSalida(r)
+    const g = gAmp
+    return {
+      erroresCampo: {},
+      salida: {
+        valores: [fila('Rf', r.rf, r.rfc, R, c), ...(iguales(r.rinc, v.rin) ? [] : [fila('Rin', v.rin, r.rinc, R, c)])],
+        reales: [
+          { rotulo: 'Ganancia real', valor: g(r.gReal), detalle: `${pct(Math.abs(r.gReal) / v.g - 1)} de lo pedido` },
+          { rotulo: `Salida con ${V(v.vin)}`, valor: r.satura ? `${V(r.vout >= 0 ? r.vsatMas : -r.vsatMenos)} (recortada)` : V(r.vout), detalle: r.satura ? `pedía ${V(r.vout)}` : undefined },
+          { rotulo: 'Entrada máxima sin recorte', valor: V(r.vinMax) },
+          { rotulo: 'Ancho de banda', valor: Hz(r.ancho), detalle: 'GBW entre la ganancia de ruido' }
+        ],
+        avisos: r.avisos,
+        ecuaciones: [
+          {
+            ecuacion: inv ? 'Ganancia = −Rf / Rin' : 'Ganancia = 1 + Rf / Rin',
+            sustitucion: inv ? `Ganancia = −${R(r.rfc)} / ${R(r.rinc)} = ${g(r.gReal)}` : `Ganancia = 1 + ${R(r.rfc)} / ${R(r.rinc)} = ${g(r.gReal)}`
+          },
+          { ecuacion: 'Vsalida = Ganancia · Vin', sustitucion: `Vsalida = ${g(r.gReal)} · ${V(v.vin)} = ${V(r.vout)}` }
+        ],
+        armado: circuitoAmplificador(entrada, r, modeloNombre)
+      }
+    }
+  })
+}
+
+/** La salida de la señal de prueba: el pico, o el límite del amplificador si se recorta. */
+const filaSalida = (rotulo: string, vpico: number, satura: boolean, r: { vsatMas: number; vsatMenos: number }): FilaReal => ({
+  rotulo,
+  valor: satura ? `${V(Math.min(r.vsatMas, r.vsatMenos))} (recortada)` : V(vpico),
+  detalle: satura ? `pedía ${V(vpico)}` : 'pico'
+})
+
+function evaluarIntegrador(e: EstadoCalc, c: Contexto, modelo: ModeloAmpOp, modeloNombre: string): Evaluacion {
+  const conRf = e.conrf !== 'no'
+  const pedidos: PedidosCalc = { rin: { unidad: 'Ω' }, fu: { unidad: 'Hz' }, fsen: { unidad: 'Hz' }, vin: { unidad: 'V', cero: true }, vs: { unidad: 'V' }, ...(conRf ? { gdc: { unidad: '' } } : {}) }
+  return conLectura(e, pedidos, (v) => {
+    const red = redondeoDe(c.serie)
+    const entrada = { rin: v.rin, fu: v.fu, gdc: conRf ? v.gdc : undefined, vin: v.vin, f: v.fsen, vs: v.vs, modelo }
+    const r = ok(integrador(entrada, red))
+    if (typeof r === 'string') return sinSalida(r)
+    const rf = r.rf !== undefined && r.rfc !== undefined ? [fila('Rf', r.rf, r.rfc, R, c)] : []
+    const ecuaciones = [{ ecuacion: 'fu = 1 / (2π · Rin · C)', sustitucion: `fu = 1 / (2π · ${R(r.rinc)} · ${Cap(r.cc)}) = ${Hz(r.fuReal)}` }]
+    if (r.rfc === undefined || r.fp === undefined) {
+      ecuaciones.push({ ecuacion: 'Vsalida = Vin · fu / f', sustitucion: `Vsalida = ${V(v.vin)} · ${Hz(r.fuReal)} / ${Hz(v.fsen)} = ${V(r.vpico)}` })
+    } else {
+      ecuaciones.push(
+        { ecuacion: 'fp = 1 / (2π · Rf · C)', sustitucion: `fp = 1 / (2π · ${R(r.rfc)} · ${Cap(r.cc)}) = ${Hz(r.fp)}` },
+        {
+          ecuacion: 'Vsalida = Vin · Rf / (Rin · √(1 + (f / fp) · (f / fp)))',
+          sustitucion: `Vsalida = ${V(v.vin)} · ${R(r.rfc)} / (${R(r.rinc)} · √(1 + (${Hz(v.fsen)} / ${Hz(r.fp)}) · (${Hz(v.fsen)} / ${Hz(r.fp)}))) = ${V(r.vpico)}`
+        }
+      )
+    }
+    return {
+      erroresCampo: {},
+      salida: {
+        valores: [fila('Capacitor', r.c, r.cc, Cap, c), ...rf, ...(iguales(r.rinc, v.rin) ? [] : [fila('Rin', v.rin, r.rinc, R, c)])],
+        reales: [
+          { rotulo: 'Ganancia 1 en', valor: Hz(r.fuReal), detalle: `${pct(r.fuReal / v.fu - 1)} de lo pedido` },
+          { rotulo: 'Constante de tiempo', valor: S(r.tau) },
+          filaSalida(`Salida con ${V(v.vin)} a ${Hz(v.fsen)}`, r.vpico, r.satura, r),
+          { rotulo: 'Entrada máxima sin recorte', valor: V(r.vinMax) },
+          ...(r.fp === undefined ? [] : [{ rotulo: 'Corte de Rf con C', valor: Hz(r.fp), detalle: `ganancia en continua ${gAmp((r.rfc ?? 0) / r.rinc)}` }])
+        ],
+        avisos: r.avisos,
+        ecuaciones,
+        armado: circuitoIntegrador(entrada, r, modeloNombre)
+      }
+    }
+  })
+}
+
+function evaluarDerivador(e: EstadoCalc, c: Contexto, modelo: ModeloAmpOp, modeloNombre: string): Evaluacion {
+  const conRs = e.cons !== 'no'
+  const pedidos: PedidosCalc = { cap: { unidad: 'F' }, fu: { unidad: 'Hz' }, fsen: { unidad: 'Hz' }, vin: { unidad: 'V', cero: true }, vs: { unidad: 'V' }, ...(conRs ? { rs: { unidad: 'Ω' } } : {}) }
+  return conLectura(e, pedidos, (v) => {
+    const red = redondeoDe(c.serie)
+    const entrada = { cap: v.cap, fu: v.fu, rs: conRs ? v.rs : undefined, vin: v.vin, f: v.fsen, vs: v.vs, modelo }
+    const r = ok(derivador(entrada, red))
+    if (typeof r === 'string') return sinSalida(r)
+    const ecuaciones = [{ ecuacion: 'fu = 1 / (2π · Rf · C)', sustitucion: `fu = 1 / (2π · ${R(r.rfc)} · ${Cap(r.cc)}) = ${Hz(r.fuReal)}` }]
+    if (r.rsc === undefined || r.fs === undefined) {
+      ecuaciones.push({ ecuacion: 'Vsalida = Vin · f / fu', sustitucion: `Vsalida = ${V(v.vin)} · ${Hz(v.fsen)} / ${Hz(r.fuReal)} = ${V(r.vpico)}` })
+    } else {
+      ecuaciones.push(
+        { ecuacion: 'fs = 1 / (2π · Rs · C)', sustitucion: `fs = 1 / (2π · ${R(r.rsc)} · ${Cap(r.cc)}) = ${Hz(r.fs)}` },
+        {
+          ecuacion: 'Vsalida = Vin · (f / fu) / √(1 + (f / fs) · (f / fs))',
+          sustitucion: `Vsalida = ${V(v.vin)} · (${Hz(v.fsen)} / ${Hz(r.fuReal)}) / √(1 + (${Hz(v.fsen)} / ${Hz(r.fs)}) · (${Hz(v.fsen)} / ${Hz(r.fs)})) = ${V(r.vpico)}`
+        }
+      )
+    }
+    return {
+      erroresCampo: {},
+      salida: {
+        valores: [fila('Rf', r.rf, r.rfc, R, c), fila('Capacitor', v.cap, r.cc, Cap, c), ...(r.rsc === undefined ? [] : [fila('Rs', v.rs, r.rsc, R, c)])],
+        reales: [
+          { rotulo: 'Ganancia 1 en', valor: Hz(r.fuReal), detalle: `${pct(r.fuReal / v.fu - 1)} de lo pedido` },
+          { rotulo: 'Constante de tiempo', valor: S(r.tau) },
+          filaSalida(`Salida con ${V(v.vin)} a ${Hz(v.fsen)}`, r.vpico, r.satura, r),
+          { rotulo: 'Entrada máxima sin recorte', valor: V(r.vinMax) },
+          ...(r.fs === undefined ? [] : [{ rotulo: 'Corte de Rs con C', valor: Hz(r.fs), detalle: `ganancia máxima ${gAmp(r.gAlta ?? 0)}` }])
+        ],
+        avisos: r.avisos,
+        ecuaciones,
+        armado: circuitoDerivador(entrada, r, modeloNombre)
+      }
+    }
+  })
+}
+
+function evaluarSumador(e: EstadoCalc, c: Contexto, modelo: ModeloAmpOp, modeloNombre: string): Evaluacion {
+  const n = entradasSumador(e)
+  const filas = Array.from({ length: n }, (_, i) => i + 1)
+  const pedidos: PedidosCalc = { rf: { unidad: 'Ω' }, vs: { unidad: 'V' } }
+  for (const k of filas) {
+    pedidos[`g${k}`] = { unidad: '' }
+    pedidos[`e${k}`] = { unidad: 'V', negativo: true }
+  }
+  return conLectura(e, pedidos, (v) => {
+    const red = redondeoDe(c.serie)
+    const entrada = { rf: v.rf, g: filas.map((k) => v[`g${k}`]), v: filas.map((k) => v[`e${k}`]), vs: v.vs, modelo }
+    const r = ok(sumador(entrada, red))
+    if (typeof r === 'string') return sinSalida(r)
+    const parentesis = (x: number): string => (x < 0 ? `(${V(x)})` : V(x))
+    const terminos = filas.map((k) => `Rf / R${k} · V${k}`).join(' + ')
+    const cifras = filas.map((k) => `${R(r.rfc)} / ${R(r.ric[k - 1])} · ${parentesis(entrada.v[k - 1])}`).join(' + ')
+    return {
+      erroresCampo: {},
+      salida: {
+        valores: [fila('Rf', v.rf, r.rfc, R, c), ...filas.map((k) => fila(`R${k}`, r.ri[k - 1], r.ric[k - 1], R, c))],
+        reales: [
+          { rotulo: 'Ganancias reales', valor: r.gReal.map((x) => gAmp(-x)).join(', '), detalle: `${pct(r.gReal[0] / v.g1 - 1)} la primera frente a lo pedido` },
+          { rotulo: 'Salida con esas señales', valor: r.satura ? `${V(r.vout >= 0 ? r.vsatMas : -r.vsatMenos)} (recortada)` : V(r.vout), detalle: r.satura ? `pedía ${V(r.vout)}` : undefined },
+          { rotulo: 'Margen antes de recortar', valor: Number.isFinite(r.escala) ? `×${Number(r.escala.toPrecision(2))}` : 'sin límite', detalle: 'con todas las señales a la vez' },
+          { rotulo: 'Ancho de banda', valor: Hz(r.ancho), detalle: 'GBW entre la ganancia de ruido' }
+        ],
+        avisos: r.avisos,
+        ecuaciones: [{ ecuacion: `Vsalida = −(${terminos})`, sustitucion: `Vsalida = −(${cifras}) = ${V(r.vout === 0 ? 0 : r.vout)}` }],
+        armado: circuitoSumador(entrada, r, modeloNombre)
+      }
+    }
+  })
+}
+
+function evaluarInstrumentacion(e: EstadoCalc, c: Contexto, modelo: ModeloAmpOp, modeloNombre: string): Evaluacion {
+  const pedidos: PedidosCalc = { g: { unidad: '' }, r: { unidad: 'Ω' }, rd: { unidad: 'Ω' }, vd: { unidad: 'V', cero: true }, vcm: { unidad: 'V', negativo: true }, vs: { unidad: 'V' } }
+  return conLectura(e, pedidos, (v) => {
+    const red = redondeoDe(c.serie)
+    const entrada = { g: v.g, r: v.r, rd: v.rd, vd: v.vd, vcm: v.vcm, vs: v.vs, modelo }
+    const r = ok(instrumentacion(entrada, red))
+    if (typeof r === 'string') return sinSalida(r)
+    const recorta = r.vout > r.vsatMas || r.vout < -r.vsatMenos
+    return {
+      erroresCampo: {},
+      salida: {
+        valores: [
+          fila('Rg', r.rg, r.rgc, R, c),
+          { rotulo: 'Etapa de entrada', exacto: `dos de ${R(r.rc)}`, frase: true },
+          { rotulo: 'Etapa diferencial', exacto: `cuatro de ${R(r.rdc)}`, frase: true }
+        ],
+        reales: [
+          { rotulo: 'Ganancia real', valor: gAmp(r.gReal), detalle: `${pct(r.gReal / v.g - 1)} de lo pedido` },
+          {
+            rotulo: `Salida con ${V(v.vd)}`,
+            valor: recorta ? `${V(r.vout >= 0 ? r.vsatMas : -r.vsatMenos)} (recortada)` : V(r.vout),
+            detalle: recorta ? `pedía ${V(r.vout)}` : r.satura ? 'un amplificador de entrada se recorta' : undefined
+          },
+          { rotulo: 'Salidas de la etapa de entrada', valor: `${V(r.vu1)} y ${V(r.vu2)}`, detalle: 'modo común más y menos la mitad de la señal amplificada' },
+          { rotulo: 'Señal diferencial máxima', valor: V(r.vdMax), detalle: 'sin recorte en ninguna de las tres salidas' },
+          { rotulo: 'Ancho de banda', valor: Hz(r.ancho), detalle: 'GBW entre la ganancia' }
+        ],
+        avisos: r.avisos,
+        nota: r.nota,
+        ecuaciones: [
+          { ecuacion: 'Ganancia = 1 + 2 · R / Rg', sustitucion: `Ganancia = 1 + 2 · ${R(r.rc)} / ${R(r.rgc)} = ${gAmp(r.gReal)}` },
+          { ecuacion: 'Vsalida = Ganancia · Vd', sustitucion: `Vsalida = ${gAmp(r.gReal)} · ${V(v.vd)} = ${V(r.vout)}` }
+        ],
+        armado: circuitoInstrumentacion(entrada, r, modeloNombre)
+      }
+    }
+  })
+}
+
 const amplificadorCalc: DefCalculadora = {
   id: 'amplificador',
-  corto: 'Amplificador',
-  nombre: 'Amplificador inversor y no inversor',
-  resumen: 'Rf para la ganancia que se pide, y si la salida se recorta con la fuente que hay.',
-  palabras: 'amplificador operacional inversor no inversor ganancia opamp rf',
+  corto: 'Amplificadores',
+  nombre: 'Amplificadores con operacional',
+  resumen: 'Inversor, no inversor, integrador, derivador, de instrumentación y sumador, y si la salida se recorta con la fuente que hay.',
+  palabras: 'amplificador amplificadores operacional inversor no inversor ganancia opamp rf integrador integra derivador deriva instrumentacion instrumentación diferencial sumador suma sumadora',
   campos: [
-    { tipo: 'conmutador', id: 'tipo', rotulo: 'Tipo', defecto: 'inversor', opciones: () => [{ valor: 'inversor', texto: 'Inversor' }, { valor: 'no-inversor', texto: 'No inversor' }] },
-    { tipo: 'num', id: 'g', rotulo: 'Ganancia', unidad: '', defecto: '10' },
-    { tipo: 'num', id: 'rin', rotulo: 'Rin', unidad: 'Ω', defecto: '1k' },
+    {
+      tipo: 'lista',
+      id: 'tipo',
+      rotulo: 'Tipo',
+      defecto: 'inversor',
+      opciones: () => [
+        { valor: 'inversor', texto: 'Inversor' },
+        { valor: 'no-inversor', texto: 'No inversor' },
+        { valor: 'integrador', texto: 'Integrador' },
+        { valor: 'derivador', texto: 'Derivador' },
+        { valor: 'instrumentacion', texto: 'De instrumentación' },
+        { valor: 'sumador', texto: 'Sumador inversor' }
+      ]
+    },
+    { tipo: 'num', id: 'g', rotulo: 'Ganancia', unidad: '', defecto: '10', visible: esAmp('inversor', 'no-inversor', 'instrumentacion') },
+    { tipo: 'num', id: 'rin', rotulo: 'Rin', unidad: 'Ω', defecto: '1k', visible: esAmp('inversor', 'no-inversor', 'integrador') },
+    { tipo: 'num', id: 'fu', rotulo: 'Frecuencia de ganancia 1', unidad: 'Hz', defecto: '1k', visible: esAmp('integrador', 'derivador') },
+    { tipo: 'conmutador', id: 'conrf', rotulo: 'Rf en paralelo con C', defecto: 'si', opciones: () => [{ valor: 'si', texto: 'Con Rf' }, { valor: 'no', texto: 'Sin Rf' }], visible: esAmp('integrador') },
+    { tipo: 'num', id: 'gdc', rotulo: 'Ganancia máxima en continua', unidad: '', defecto: '100', visible: (e) => tipoAmp(e) === 'integrador' && e.conrf !== 'no' },
+    { tipo: 'num', id: 'cap', rotulo: 'Capacitor', unidad: 'F', defecto: '100n', visible: esAmp('derivador') },
+    { tipo: 'conmutador', id: 'cons', rotulo: 'Rs en serie con C', defecto: 'si', opciones: () => [{ valor: 'si', texto: 'Con Rs' }, { valor: 'no', texto: 'Sin Rs' }], visible: esAmp('derivador') },
+    { tipo: 'num', id: 'rs', rotulo: 'Rs', unidad: 'Ω', defecto: '150', visible: (e) => tipoAmp(e) === 'derivador' && e.cons !== 'no' },
+    { tipo: 'num', id: 'r', rotulo: 'R de la etapa de entrada', unidad: 'Ω', defecto: '10k', visible: esAmp('instrumentacion') },
+    { tipo: 'num', id: 'rd', rotulo: 'R de la etapa diferencial', unidad: 'Ω', defecto: '10k', visible: esAmp('instrumentacion') },
+    { tipo: 'conmutador', id: 'n', rotulo: 'Entradas', defecto: '2', opciones: () => [{ valor: '2', texto: '2' }, { valor: '3', texto: '3' }, { valor: '4', texto: '4' }], visible: esAmp('sumador') },
+    { tipo: 'num', id: 'rf', rotulo: 'Rf', unidad: 'Ω', defecto: '10k', visible: esAmp('sumador') },
+    ...[1, 2, 3, 4].flatMap((k): CampoCalc[] => [
+      { tipo: 'num', id: `g${k}`, rotulo: `Ganancia de la entrada ${k}`, unidad: '', defecto: ['1', '2', '1', '1'][k - 1], visible: (e) => tipoAmp(e) === 'sumador' && k <= entradasSumador(e) },
+      { tipo: 'num', id: `e${k}`, rotulo: `Señal ${k}`, unidad: 'V', defecto: ['1', '0.5', '0.2', '0.1'][k - 1], visible: (e) => tipoAmp(e) === 'sumador' && k <= entradasSumador(e) }
+    ]),
+    { tipo: 'num', id: 'vd', rotulo: 'Señal diferencial (V1 − V2)', unidad: 'V', defecto: '10m', visible: esAmp('instrumentacion') },
+    { tipo: 'num', id: 'vcm', rotulo: 'Modo común', unidad: 'V', defecto: '1', visible: esAmp('instrumentacion') },
+    { tipo: 'num', id: 'fsen', rotulo: 'Frecuencia de la señal', unidad: 'Hz', defecto: '1k', visible: esAmp('integrador', 'derivador') },
     { tipo: 'num', id: 'vs', rotulo: 'Fuente ±', unidad: 'V', defecto: '15' },
-    { tipo: 'num', id: 'vin', rotulo: 'Señal de entrada', unidad: 'V', defecto: '0.5' },
+    { tipo: 'num', id: 'vin', rotulo: 'Señal de entrada', unidad: 'V', defecto: '0.5', visible: esAmp('inversor', 'no-inversor', 'integrador', 'derivador') },
     { tipo: 'lista', id: 'modelo', rotulo: 'Amplificador', defecto: 'LM741', opciones: (c) => modelosAmpOp(c.lib).map((x) => ({ valor: x, texto: x })) }
   ],
   evaluar(e, c) {
     const modeloNombre = e.modelo ?? 'LM741'
     const modelo = modeloAmpOp(c.lib, modeloNombre)
     if (!modelo) return sinSalida('La librería no trae ese amplificador.')
-    return conLectura(e, { g: { unidad: '' }, rin: { unidad: 'Ω' }, vs: { unidad: 'V' }, vin: { unidad: 'V', cero: true } }, (v) => {
-      const red = redondeoDe(c.serie)
-      const inv = e.tipo !== 'no-inversor'
-      const entrada = { tipo: inv ? ('inversor' as const) : ('no-inversor' as const), g: v.g, rin: v.rin, vs: v.vs, vin: v.vin, modelo }
-      const r = ok(amplificador(entrada, red))
-      if (typeof r === 'string') return sinSalida(r)
-      const g = (x: number) => menos(String(Number(x.toPrecision(3))))
-      return {
-        erroresCampo: {},
-        salida: {
-          valores: [fila('Rf', r.rf, r.rfc, R, c), ...(iguales(r.rinc, v.rin) ? [] : [fila('Rin', v.rin, r.rinc, R, c)])],
-          reales: [
-            { rotulo: 'Ganancia real', valor: g(r.gReal), detalle: `${pct(Math.abs(r.gReal) / v.g - 1)} de lo pedido` },
-            { rotulo: `Salida con ${V(v.vin)}`, valor: r.satura ? `${V(r.vout >= 0 ? r.vsatMas : -r.vsatMenos)} (recortada)` : V(r.vout), detalle: r.satura ? `pedía ${V(r.vout)}` : undefined },
-            { rotulo: 'Entrada máxima sin recorte', valor: V(r.vinMax) },
-            { rotulo: 'Ancho de banda', valor: Hz(r.ancho), detalle: 'GBW entre la ganancia de ruido' }
-          ],
-          avisos: r.avisos,
-          ecuaciones: [
-            {
-              ecuacion: inv ? 'Ganancia = −Rf / Rin' : 'Ganancia = 1 + Rf / Rin',
-              sustitucion: inv ? `Ganancia = −${R(r.rfc)} / ${R(r.rinc)} = ${g(r.gReal)}` : `Ganancia = 1 + ${R(r.rfc)} / ${R(r.rinc)} = ${g(r.gReal)}`
-            },
-            { ecuacion: 'Vsalida = Ganancia · Vin', sustitucion: `Vsalida = ${g(r.gReal)} · ${V(v.vin)} = ${V(r.vout)}` }
-          ],
-          armado: circuitoAmplificador(entrada, r, modeloNombre)
-        }
-      }
-    })
+    switch (tipoAmp(e)) {
+      case 'integrador': return evaluarIntegrador(e, c, modelo, modeloNombre)
+      case 'derivador': return evaluarDerivador(e, c, modelo, modeloNombre)
+      case 'sumador': return evaluarSumador(e, c, modelo, modeloNombre)
+      case 'instrumentacion': return evaluarInstrumentacion(e, c, modelo, modeloNombre)
+      default: return evaluarInversor(e, c, modelo, modeloNombre)
+    }
   }
 }
 

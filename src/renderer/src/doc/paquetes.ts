@@ -55,7 +55,7 @@ export function unidadesDelPaquete(doc: Documento, paquete: string): Pieza[] {
 }
 
 /** Valores de lo que comparten las unidades, con el de omisión de la definición, para saber si dos piezas caben en un paquete. */
-function firmaDe(def: PiezaDef, props: Record<string, string>): string {
+export function firmaDe(def: PiezaDef, props: Record<string, string>): string {
   return def.props.filter((d) => PROPS_COMPARTIDAS.includes(d.id)).map((d) => `${d.id}=${props[d.id] ?? d.defecto ?? ''}`).join('|')
 }
 

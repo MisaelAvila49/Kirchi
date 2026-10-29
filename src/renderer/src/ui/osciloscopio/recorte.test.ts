@@ -144,4 +144,9 @@ describe('tamaño y grosores generales en la figura del osciloscopio', () => {
     expect(svg).toContain('stroke-width="3"')
     expect(svg).toContain('stroke-width="2.5"')
   })
+  it('el grosor de los ejes engrosa también la cruz central, no solo las rayitas de afuera', async () => {
+    const n = (g: number) => (svgText.match(new RegExp(`stroke-width="${g}"`, 'g')) ?? []).length
+    const svgText = await svgCon(figuraPorOmision(), { ...ASPECTO_OSCILOSCOPIO, grosorRejilla: 1, grosorEjes: 3 })
+    expect(n(3)).toBeGreaterThanOrEqual(2)
+  })
 })

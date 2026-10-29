@@ -2,6 +2,7 @@
   "id": "fuente-pwl",
   "nombre": { "es": "Fuente de voltaje por tramos (PWL)", "en": "Piecewise-linear voltage source (PWL)" },
   "categoria": "fuentes",
+  "grupo": "Independientes",
   "prefijo": "V",
   "buscar": ["pwl", "tramos", "por tramos", "forma de onda", "arbitraria", "piecewise", "fuente pwl"],
   "pines": [

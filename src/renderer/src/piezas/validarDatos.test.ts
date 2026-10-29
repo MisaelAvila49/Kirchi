@@ -63,18 +63,18 @@ describe('validarDatos', () => {
 
   it('una patilla física repetida se rechaza', () => {
     const f = fila3({ presentaciones: [{ encapsulado: 'TO-92', patillas: { E: '1', B: '1', C: '3' } }] })
-    expect(una({ valores: { '*': f } })[0]).toBe('x/pieza.json: datos.valores.*.presentaciones[0] usa la patilla 1 más de una vez')
+    expect(una({ valores: { '*': f } })[0]).toBe('x/pieza.json: datos.valores.*.presentaciones[0] usa el pin 1 más de una vez')
   })
 
   it('un encapsulado numerado debe cubrir de 1 a N', () => {
     const pines = [1, 2, 3, 4, 6, 7].map((k) => ({ id: `P${k}`, nombre: `P${k}`, x: 0, y: 0 }))
     const f = { presentaciones: [{ encapsulado: 'DIP-8', patillas: Object.fromEntries(pines.map((p, i) => [p.id, ['1', '2', '3', '4', '6', '7'][i]])) }] }
-    expect(una({ valores: { '*': f } }, { pines })).toEqual(['x/pieza.json: datos.valores.*.presentaciones[0] DIP-8 tiene 8 patillas, faltan la 5 y la 8'])
+    expect(una({ valores: { '*': f } }, { pines })).toEqual(['x/pieza.json: datos.valores.*.presentaciones[0] DIP-8 tiene 8 pines, faltan el 5 y el 8'])
   })
 
   it('una patilla fuera del rango del encapsulado se rechaza', () => {
     const f = fila3({ presentaciones: [{ encapsulado: 'TO-92', patillas: { E: '1', B: '2', C: '4' } }] })
-    expect(una({ valores: { '*': f } })[0]).toBe('x/pieza.json: datos.valores.*.presentaciones[0] TO-92 no tiene la patilla 4 (va de 1 a 3)')
+    expect(una({ valores: { '*': f } })[0]).toBe('x/pieza.json: datos.valores.*.presentaciones[0] TO-92 no tiene el pin 4 (va de 1 a 3)')
   })
 
   it('pendiente.patillas excusa los pines y las patillas sin cubrir', () => {

@@ -12,7 +12,7 @@ export const DIRECCION_LUGAR: Readonly<Record<LugarTexto, readonly [number, numb
 /** Lo más lejos (en unidades del símbolo, por eje) que queda un texto movido libre: así no se pierde lejos de su pieza. */
 export const LIMITE_TEXTO_LIBRE = 100
 /** Los textos que se mueven. */
-export const CUALES_TEXTO: readonly CualTexto[] = ['ref', 'valor']
+export const CUALES_TEXTO: readonly CualTexto[] = ['ref', 'valor', 'ajuste']
 
 const esLugar = (v: unknown): v is LugarTexto => typeof v === 'string' && Object.hasOwn(DIRECCION_LUGAR, v)
 const coordenada = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= LIMITE_TEXTO_LIBRE
@@ -33,9 +33,9 @@ export function posicionManual(p: Pieza, cual: CualTexto): PosicionTexto | null 
 }
 
 /** La pieza tiene algún texto movido a mano. */
-export const tieneTextosManuales = (p: Pieza): boolean => posicionManual(p, 'ref') !== null || posicionManual(p, 'valor') !== null
+export const tieneTextosManuales = (p: Pieza): boolean => CUALES_TEXTO.some((c) => posicionManual(p, c) !== null)
 
-/** Textos de un `.kir`: solo `ref` y `valor` con posición válida, en un objeto nuevo (protege de `__proto__`).
+/** Textos de un `.kir`: solo `ref`, `valor` y `ajuste` con posición válida, en un objeto nuevo (protege de `__proto__`).
  * `descartados` cuenta lo inválido (−1 si no es objeto). */
 export function leerTextos(v: unknown): { textos: Partial<Record<CualTexto, PosicionTexto>> | null; descartados: number } {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return { textos: null, descartados: -1 }

@@ -497,8 +497,8 @@ describe.skipIf(!hay)('los convertidores armados con piezas se exportan a ngspic
     const bits = ['alto', 'alto', '0', '0', '0', '0', '0', '0']
     const pines = { ...Object.fromEntries(A.map((p, k) => [p, bits[k]])), IO: 'io', GND: '0', VEE: 'vee', VCC: 'vcc', VREFP: 'refp', VREFN: 'refn', COMP: 'comp' }
     const { r, nodo } = compilar([V('V1', '5', 'vcc'), V('V2', '-15', 'vee'), V('V3', '5', 'alto'), R('R14', '5k', 'refp', 'vref'), V('V4', '10', 'vref'), R('R15', '5k', 'refn', '0'), R('RL', '1k', 'io', '0'), { tipo: 'dac-t', ref: 'U1', props: {}, pines }])
-    // 1 mA de referencia (REF+ queda en el voltaje de REF-, 5 V) y 0.75 de ella sale de IO por la carga de 1 kΩ.
-    const esperado = -0.75
+    // 2 mA de referencia (VREF / R14: VREF- solo se mide, R15 no resta corriente) y 0.75 de ella sale de IO por la carga de 1 kΩ.
+    const esperado = -1.5
     expect(await operacion(r.netlist!, nodo('io'))).toBeCloseTo(esperado, 4)
     expect(enElMotor(r.netlist!, nodo('io'))).toBeCloseTo(esperado, 4)
   }, 60_000)

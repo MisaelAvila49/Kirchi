@@ -146,13 +146,15 @@ button, input, select, textarea { font: inherit; }
 .boton.simular.activa { border-color: var(--seleccion); color: var(--seleccion); }
 .globo-boton { position: absolute; top: calc(100% + 6px); left: 50%; z-index: 45; transform: translateX(-50%); padding: 3px 8px; border-radius: 4px; background: var(--paneles); color: var(--trazo); border: 1px solid var(--bordes); font-size: 12px; white-space: nowrap; pointer-events: none; visibility: hidden; }
 .con-globo:hover .globo-boton, .con-globo:focus-within .globo-boton { visibility: visible; }
-/* Configuración → Atajos: la lista se desplaza dentro del diálogo; cada fila, nombre, teclas y acciones. */
-.config-atajos-lista { max-height: 46vh; overflow-y: auto; margin: 8px 0; }
-.config-fila { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--bordes); }
-.config-teclas { display: flex; flex-wrap: wrap; gap: 4px; }
-.config-acciones { grid-column: 1 / -1; display: flex; gap: 4px; }
+/* Configuración → Atajos: las mismas tarjetas y filas que las otras pestañas; cada fila, nombre, teclas y acciones, y el aviso debajo. */
+.config-atajos-lista { margin: 8px 0; }
+.config-fila { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; min-height: 40px; padding: 6px 0; border-bottom: 1px solid var(--bordes); }
+.config-fila:last-child { border-bottom: 0; }
+.config-nombre { flex: 1 1 9em; min-width: 0; }
+.config-teclas { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.config-acciones { display: flex; gap: 6px; }
 .chip-tecla { display: inline-flex; align-items: center; gap: 2px; }
-.config-aviso { grid-column: 1 / -1; margin: 0; color: var(--invalido); }
+.config-aviso { flex: 1 1 100%; margin: 0; color: var(--invalido); }
 .barra-limpia .globo-boton { top: auto; bottom: calc(100% + 6px); }
 
 /* Riel (44 px), panel lateral (300 px, el mismo ancho en los dos lados), lienzo, panel derecho (300 px) y riel derecho (44 px): columnas fijas, así un panel plegado deja su columna en cero. */
@@ -319,14 +321,21 @@ button, input, select, textarea { font: inherit; }
 .icono { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .icono.relleno { fill: currentColor; stroke: none; }
 .dialogo.configuracion { width: min(640px, 100%); }
-.pestañas-config { display: flex; flex-wrap: wrap; gap: 2px; margin: 0 0 10px; border-bottom: 1px solid var(--bordes); }
-.pestañas-config [role='tab'] { position: relative; padding: 7px 12px; border: 0; background: transparent; color: var(--texto-secundario); font: 600 12px/1.2 var(--fuente-interfaz); cursor: pointer; }
-.pestañas-config [role='tab']:hover, .pestañas-config [role='tab'][aria-selected='true'] { color: var(--trazo); }
-.pestañas-config [role='tab'][aria-selected='true']::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 2px; border-radius: 2px 2px 0 0; background: var(--seleccion); }
-.pestañas-config [role='tab']:focus-visible { outline: 2px solid var(--seleccion); outline-offset: -2px; border-radius: 4px; }
-.panel-config { min-height: 300px; }
-.panel-config > :first-child { margin-top: 0; }
-@media (forced-colors: active) { .pestañas-config [role='tab'][aria-selected='true']::after { background: Highlight; } }
+.cfg-cuerpo { display: flex; align-items: stretch; }
+.pestañas-config { display: flex; flex-direction: column; flex: none; width: 152px; gap: 2px; margin: 0; padding: 4px 8px 8px 0; }
+.pestañas-config [role='tab'] { padding: 8px 10px; border: 0; border-radius: 7px; background: transparent; color: var(--texto-secundario); font: 600 12px/1.2 var(--fuente-interfaz); text-align: left; cursor: pointer; }
+.pestañas-config [role='tab']:hover { color: var(--trazo); background: var(--resalte); }
+.pestañas-config [role='tab'][aria-selected='true'] { color: var(--seleccion); background: var(--seleccion-fondo); }
+.pestañas-config [role='tab']:focus-visible { outline: 2px solid var(--seleccion); outline-offset: -2px; }
+.panel-config { flex: 1; min-width: 0; height: min(500px, calc(100vh - 170px)); min-height: 220px; padding: 0 6px 36px 6px; overflow-x: hidden; overflow-y: auto; }
+.cfg-ph { margin: 2px 0 8px; font-size: 14px; font-weight: 700; font-stretch: 110%; }
+@media (max-width: 560px) {
+  .cfg-cuerpo { flex-direction: column; }
+  .pestañas-config { flex-direction: row; width: auto; overflow-x: auto; padding: 0 0 6px; margin-bottom: 8px; border-bottom: 1px solid var(--bordes); }
+  .pestañas-config [role='tab'] { white-space: nowrap; }
+  .panel-config { padding: 0 0 36px; }
+}
+@media (forced-colors: active) { .pestañas-config [role='tab'][aria-selected='true'] { outline: 2px solid Highlight; outline-offset: -2px; } }
 .opciones { margin: 8px 0 12px; padding: 8px 10px 10px; border: 1px solid var(--bordes); border-radius: 8px; }
 .opciones legend { padding: 0 4px; font-weight: 600; }
 .opcion { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; }
@@ -335,18 +344,45 @@ button, input, select, textarea { font: inherit; }
 .muestra { width: 22px; height: 4px; border-radius: 2px; }
 .nota-dialogo { margin: 4px 0 0; }
 .opciones .nota-dialogo { margin: 0 0 8px; }
-/* Configuración: grupos rotulados, pistas con globo (i), interruptor y estado del asistente. */
-.panel-config .grupo { margin: 0; padding: 10px 0 12px; border: 0; border-bottom: 1px solid var(--bordes); min-inline-size: 0; }
-.panel-config .grupo:last-of-type { border-bottom: 0; }
-.panel-config .grupo > legend { padding: 0; margin-bottom: 6px; font-weight: 650; }
-.panel-config .fila { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 28px; }
-.panel-config .fila .opcion { padding: 0; }
-.panel-config .fld-campo input[type='range'] { accent-color: var(--seleccion); }
+/* Configuración: una tarjeta por grupo; filas con el nombre y la ayuda (i) a la izquierda y el control a la derecha, o debajo a todo el ancho si es de elegir. */
+.cfg-g { margin: 0 0 10px; padding: 2px 14px 4px; background: var(--lienzo); border: 1px solid var(--bordes); border-radius: 10px; }
+.cfg-gh { margin: 0; padding: 10px 0 2px; font-size: 12px; font-weight: 650; }
+.cfg-fila { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: center; min-height: 40px; padding: 6px 0; border-bottom: 1px solid var(--bordes); }
+.cfg-fila:last-child { border-bottom: 0; }
+.cfg-lab { min-width: 0; }
+.cfg-nm { font-weight: 500; margin-right: 5px; }
+.cfg-lab .info { vertical-align: middle; }
+.cfg-cap { display: block; margin-top: 1px; font-size: 11px; color: var(--texto-secundario); }
+.cfg-ctl { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.cfg-fila.apila { grid-template-columns: minmax(0, 1fr); padding: 8px 0 10px; }
+.cfg-fila.apila .cfg-ctl { justify-content: flex-start; }
+.cfg-fila.apila .cfg-seg { width: 100%; }
+.cfg-fila.apila .cfg-seg label { flex: 1 1 0; }
+.cfg-fila.apila .cfg-seg span { width: 100%; }
+.cfg-seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--bordes); border-radius: 7px; overflow: hidden; background: var(--paneles); }
+.cfg-seg label { position: relative; display: flex; }
+.cfg-seg label + label { border-left: 1px solid var(--bordes); }
+.cfg-seg span { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 26px; padding: 0 10px; cursor: pointer; white-space: nowrap; color: var(--trazo); }
+.cfg-seg input:checked + span { background: var(--seleccion-fondo); color: var(--seleccion); font-weight: 600; }
+.cfg-seg input:focus-visible + span { outline: 2px solid var(--seleccion); outline-offset: -2px; }
+.cfg-seg label:hover input:not(:checked) + span { background: var(--resalte); }
+.cfg-g .boton, .cfg-g .carpeta { background: var(--paneles); }
+.cfg-rango { display: flex; align-items: center; gap: 8px; }
+.cfg-rango input { width: 150px; accent-color: var(--seleccion); }
+.cfg-rango output { min-width: 3.4em; text-align: right; }
+.cfg-buscar { position: sticky; top: 0; z-index: 2; margin-bottom: 10px; }
+@media (max-width: 560px) {
+  .cfg-fila { grid-template-columns: minmax(0, 1fr); }
+  .cfg-ctl { justify-content: flex-start; }
+  .cfg-seg span { padding: 0 8px; }
+  .carpeta { max-width: 100%; }
+}
+@media (forced-colors: active) { .cfg-seg input:checked + span { outline: 2px solid Highlight; outline-offset: -2px; } }
 .pista { display: flex; align-items: center; gap: 5px; margin: 2px 0 4px; color: var(--texto-secundario); }
 .info { position: relative; display: inline-grid; place-items: center; width: 16px; height: 16px; padding: 0; flex: none; border: 1px solid var(--borde-campo); border-radius: 50%; background: transparent; color: var(--texto-secundario); font: 600 10px/1 var(--fuente-interfaz); cursor: help; }
 .info:hover, .info:focus-visible, .info[data-visible] { color: var(--seleccion); border-color: var(--seleccion); }
 .info:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 2px; }
-.info .globo-pista { display: none; position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-30%); width: 230px; padding: 6px 9px; z-index: 5; background: var(--paneles); color: var(--trazo); border: 1px solid var(--bordes); border-radius: 6px; box-shadow: var(--sombra); font: 400 12px/1.35 var(--fuente-interfaz); text-align: left; white-space: normal; cursor: default; }
+.info .globo-pista { display: none; position: absolute; left: -8px; top: calc(100% + 6px); width: min(230px, 66vw); padding: 6px 9px; z-index: 5; background: var(--paneles); color: var(--trazo); border: 1px solid var(--bordes); border-radius: 6px; box-shadow: var(--sombra); font: 400 12px/1.35 var(--fuente-interfaz); text-align: left; white-space: normal; cursor: default; }
 .info[data-visible] .globo-pista { display: block; }
 .carpeta { padding: 3px 8px; border: 1px solid var(--bordes); border-radius: 5px; background: var(--lienzo); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .interruptor { position: relative; width: 34px; height: 20px; padding: 0; flex: none; border: 0; border-radius: 10px; background: var(--borde-campo); cursor: pointer; }

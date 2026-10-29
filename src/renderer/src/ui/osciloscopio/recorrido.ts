@@ -62,16 +62,30 @@ export function ventanaDeRegistro(r: RegistroFino, base: number, ncol: number, t
           banderas |= r.columnas[q + 4] & BANDERAS_DE_NIVEL
         }
       } else {
-        const j = Math.min(r.n - 1, Math.max(0, Math.floor((0.5 * (a + b) - r.t0) / r.dt)))
-        const q = delCanal + j * CIFRAS_COLUMNA
-        if (!(r.columnas[q + 4] & BANDERA_VACIA)) {
-          const [ini, f] = [r.t0 + j * r.dt, r.columnas[q + 2]]
-          const en = (t: number) => f + (r.columnas[q + 3] - f) * Math.min(1, Math.max(0, (t - ini) / r.dt))
-          pr = en(a)
-          ul = en(b)
+        // Cada borde sale de la fina que lo contiene: con la fina del punto medio para los dos, la parte de la columna que caía
+        // en la vecina quedaba fija en su primero o su último, y la traza subía en escalones. Un borde de finas dentro de la
+        // columna entra al mínimo y al máximo (ahí dobla la recta).
+        const fina = (t: number) => Math.min(r.n - 1, Math.max(0, Math.floor((t - r.t0) / r.dt)))
+        const en = (t: number, j: number) => {
+          const q = delCanal + j * CIFRAS_COLUMNA
+          if (r.columnas[q + 4] & BANDERA_VACIA) return Number.NaN
+          const f = r.columnas[q + 2]
+          return f + (r.columnas[q + 3] - f) * Math.min(1, Math.max(0, (t - (r.t0 + j * r.dt)) / r.dt))
+        }
+        const [ja, jb] = [fina(a), fina(b)]
+        const [va, vb] = [en(a, ja), en(b, jb)]
+        pr = Number.isNaN(va) ? vb : va
+        ul = Number.isNaN(vb) ? va : vb
+        if (!Number.isNaN(pr)) {
           mn = Math.min(pr, ul)
           mx = Math.max(pr, ul)
-          banderas = r.columnas[q + 4] & BANDERAS_DE_NIVEL
+          for (let j = ja; j < jb; j++) {
+            const v = en(r.t0 + (j + 1) * r.dt, j)
+            if (Number.isNaN(v)) continue
+            mn = Math.min(mn, v)
+            mx = Math.max(mx, v)
+          }
+          for (let j = ja; j <= jb; j++) banderas |= r.columnas[delCanal + j * CIFRAS_COLUMNA + 4] & BANDERAS_DE_NIVEL
         }
       }
       if (Number.isNaN(pr)) columnas[o + 4] = BANDERA_VACIA

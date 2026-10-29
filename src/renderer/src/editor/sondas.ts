@@ -160,14 +160,29 @@ function nuevoLugar(despues: Documento, lib: Map<string, PiezaDef>, conAntes: Co
   return mejor
 }
 
-/** Lo más lejos que un pin queda del origen de su pieza en la librería (gire como gire): la caja de una pieza para `Tocado`. */
-const alcances = new WeakMap<Map<string, PiezaDef>, number>()
-function alcanceDePines(lib: Map<string, PiezaDef>): number {
-  let m = alcances.get(lib)
+/** Lo más lejos que un pin de `d` queda de su origen (gire como gire): la caja de una pieza para `Tocado`. */
+const alcances = new WeakMap<PiezaDef, number>()
+function alcanceDe(d: PiezaDef): number {
+  let m = alcances.get(d)
   if (m === undefined) {
     m = 0
-    for (const d of lib.values()) for (const q of d.pines) m = Math.max(m, Math.abs(q.x), Math.abs(q.y))
-    alcances.set(lib, m)
+    for (const q of d.pines) m = Math.max(m, Math.abs(q.x), Math.abs(q.y))
+    alcances.set(d, m)
+  }
+  return m
+}
+
+/** El de cada pieza y no el mayor de la librería: un circuito integrado grande no debe ensanchar la caja de una resistencia.
+ * Sin definición se usa el mayor, que siempre alcanza. */
+const alcancesLibreria = new WeakMap<Map<string, PiezaDef>, number>()
+function alcanceDePines(lib: Map<string, PiezaDef>, tipo: string): number {
+  const d = lib.get(tipo)
+  if (d) return alcanceDe(d)
+  let m = alcancesLibreria.get(lib)
+  if (m === undefined) {
+    m = 0
+    for (const def of lib.values()) m = Math.max(m, alcanceDe(def))
+    alcancesLibreria.set(lib, m)
   }
   return m
 }
@@ -197,7 +212,6 @@ class Tocado {
     puntos.sort((a, b) => a.x - b.x)
     this.xs = puntos.map((q) => q.x)
     this.ids = puntos.map((q) => ({ id: q.id, y: q.y, entrada: q.entrada }))
-    const m = alcanceDePines(lib)
     for (const c of cambios) {
       if (c.col === 'sondas') this.sondas.add(c.id)
       if (c.col === 'piezas') for (const id of porInstrumento.get(c.id) ?? []) this.sondas.add(id)
@@ -209,6 +223,7 @@ class Tocado {
           for (let k = 1; k < pts.length; k++) this.marcar(Math.min(pts[k - 1].x, pts[k].x), Math.min(pts[k - 1].y, pts[k].y), Math.max(pts[k - 1].x, pts[k].x), Math.max(pts[k - 1].y, pts[k].y), cable)
         } else if (c.col === 'piezas') {
           const q = v as Pieza
+          const m = alcanceDePines(lib, q.tipo)
           this.marcar(q.x - m, q.y - m, q.x + m, q.y + m)
         } else if (c.col === 'etiquetas') {
           const e = v as Etiqueta

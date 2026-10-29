@@ -1,0 +1,227 @@
+{
+ "fuente": {
+  "familias": [
+   "74HC",
+   "74LS"
+  ],
+  "documentos": [
+   {
+    "familia": "74HC",
+    "documento": "TI SN54HC164, SN74HC164, SCLS115G",
+    "revision": "sep 2015",
+    "pagina": 11,
+    "figura": "Figure 1, 'SN74HC164 Example Timing Diagram'"
+   },
+   {
+    "familia": "74LS",
+    "documento": "TI SN54/74LS164 (TTL Devices)",
+    "revision": "mar 1988",
+    "pagina": "2 del PDF (2-516)",
+    "figura": "'typical clear, shift, and clear sequences' (mismo estímulo y mismas salidas que la del HC)"
+   }
+  ],
+  "lectura": "Los tiempos salen de medir la figura sobre una rejilla de un período de reloj. Error de lectura estimado: 0.1 período."
+ },
+ "escala": "t en períodos de reloj. El reloj sube en cada entero de 'subidas' y baja en 'bajadas'. Elegir el período mayor que 10 veces el retardo máximo de la hoja.",
+ "relojes": [
+  {
+   "senal": "CLK",
+   "inicial": 1,
+   "bajadas": [
+    -0.5,
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5,
+    6.5,
+    7.5,
+    8.5,
+    9.5,
+    10.5,
+    11.5,
+    12.5,
+    13.5,
+    14.5
+   ],
+   "subidas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  }
+ ],
+ "inicial": {
+  "CLR": 1,
+  "A": 1,
+  "B": 0
+ },
+ "pasos": [
+  {
+   "t": -2.5,
+   "entradas": {
+    "CLR": 0
+   }
+  },
+  {
+   "t": -2.0,
+   "entradas": {
+    "CLR": 1
+   }
+  },
+  {
+   "t": 0.75,
+   "entradas": {
+    "A": 0,
+    "B": 1
+   }
+  },
+  {
+   "t": 2.75,
+   "entradas": {
+    "A": 1
+   }
+  },
+  {
+   "t": 4.75,
+   "entradas": {
+    "A": 0
+   }
+  },
+  {
+   "t": 5.75,
+   "entradas": {
+    "A": 1
+   }
+  },
+  {
+   "t": 6.25,
+   "entradas": {
+    "A": 0
+   }
+  },
+  {
+   "t": 10.75,
+   "entradas": {
+    "CLR": 0
+   }
+  },
+  {
+   "t": 11.25,
+   "entradas": {
+    "CLR": 1
+   }
+  }
+ ],
+ "salidas_codificadas": "salidas = cadena 'QA QB QC QD QE QF QG QH' de ocho 0 o 1",
+ "muestras": [
+  {
+   "t": -1.5,
+   "salidas": {
+    "Q": "00000000"
+   },
+   "origen": "figura: primer 'Clear' (CLR bajo, asíncrono)"
+  },
+  {
+   "t": 2.4,
+   "salidas": {
+    "Q": "00000000"
+   },
+   "origen": "figura: A y B no dan 1 en ningún flanco hasta el 3"
+  },
+  {
+   "t": 3.4,
+   "salidas": {
+    "Q": "10000000"
+   },
+   "origen": "figura: QA sube"
+  },
+  {
+   "t": 4.4,
+   "salidas": {
+    "Q": "11000000"
+   },
+   "origen": "figura: QB sube"
+  },
+  {
+   "t": 5.4,
+   "salidas": {
+    "Q": "01100000"
+   },
+   "origen": "figura: A en bajo, QA baja, QC sube"
+  },
+  {
+   "t": 6.4,
+   "salidas": {
+    "Q": "10110000"
+   },
+   "origen": "figura: A en alto en el flanco 6, QA sube, QD sube"
+  },
+  {
+   "t": 7.4,
+   "salidas": {
+    "Q": "01011000"
+   },
+   "origen": "figura: QE sube"
+  },
+  {
+   "t": 8.4,
+   "salidas": {
+    "Q": "00101100"
+   },
+   "origen": "figura: QF sube"
+  },
+  {
+   "t": 9.4,
+   "salidas": {
+    "Q": "00010110"
+   },
+   "origen": "figura: QG sube"
+  },
+  {
+   "t": 10.4,
+   "salidas": {
+    "Q": "00001011"
+   },
+   "origen": "figura: QH sube y QE sube"
+  },
+  {
+   "t": 10.9,
+   "salidas": {
+    "Q": "00000000"
+   },
+   "origen": "figura: segundo 'Clear'"
+  },
+  {
+   "t": 11.4,
+   "salidas": {
+    "Q": "00000000"
+   },
+   "origen": "figura: CLR bajo en el flanco 11 no desplaza"
+  },
+  {
+   "t": 13.4,
+   "salidas": {
+    "Q": "00000000"
+   },
+   "origen": "figura: A en bajo, nada que desplazar"
+  }
+ ],
+ "notas": [
+  "A empieza en alto y B en bajo, así que la entrada AND vale 0 hasta que B sube en 0.75.",
+  "En las muestras 3.4 a 10.4 la figura solo da los niveles en las trazas Q; las cadenas se completaron aplicando el desplazamiento de la hoja y se comprobaron contra cada traza dibujada (QA a QH)."
+ ]
+}

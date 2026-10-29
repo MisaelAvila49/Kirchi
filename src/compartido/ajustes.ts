@@ -20,6 +20,10 @@ export type PestañaCinta = 'inicio' | 'vista' | 'ayuda'
 export type SerieComercial = 'E6' | 'E12' | 'E24' | 'libre'
 export const SERIES_COMERCIALES: readonly SerieComercial[] = ['E6', 'E12', 'E24', 'libre']
 
+/** Qué se escribe en el recuadro del ajuste de una pieza que se mueve (potenciómetro, termistor, fotorresistencia): la pieza puede pedir otra cosa. */
+export type TextoAjuste = 'Ajuste' | 'Valores' | 'Ambos' | 'Nada'
+export const TEXTOS_AJUSTE: readonly TextoAjuste[] = ['Ajuste', 'Valores', 'Ambos', 'Nada']
+
 export const TEMAS: readonly Tema[] = ['claro', 'oscuro']
 export const COLORES_DE_CABLE: readonly ColorCables[] = ['verde', 'tinta', 'azul']
 export const PANELES: readonly PanelLateral[] = ['libreria', 'plantillas', 'calculadoras']
@@ -134,8 +138,10 @@ export interface AjustesTutorial {
 
 export const MAX_CAPITULOS_TUTORIAL = 12
 export const MAX_PASO_TUTORIAL = 99
-/** Los capítulos que existen (`ui/tutorial/capitulos.ts`; una prueba los compara): el avance de cualquier otro id se descarta. */
-export const IDS_CAPITULOS_TUTORIAL: readonly string[] = ['primer-circuito', 'medir', 'senales', 'archivo', 'trucos']
+/**
+ * Los capítulos que existen (`ui/tutorial/capitulos.ts`; una prueba los compara): el avance de cualquier otro id se descarta. Los ids de los cinco capítulos de antes (`primer-circuito`, `medir`, `senales`, `archivo`, `trucos`) no están aquí a propósito: sus pasos ya no son los mismos, así que su avance se descarta sin error y los cuatro capítulos nuevos empiezan sin empezar.
+ */
+export const IDS_CAPITULOS_TUTORIAL: readonly string[] = ['conoce', 'circuito', 'medir-senales', 'analizar']
 export const tutorialPorOmision = (): AjustesTutorial => ({ ofertaVista: false, avanzarSolo: true, avance: {} })
 
 /** Los tres diálogos de archivo que recuerdan su última carpeta (las plantillas no: tienen carpeta fija). */
@@ -193,6 +199,8 @@ export interface Ajustes {
   lienzoSincronizado: boolean
   /** Serie comercial de resistencias y capacitores en el inspector y el doble clic: E12 por omisión. */
   serieComercial: SerieComercial
+  /** Lo que dice el recuadro del ajuste de las piezas que no piden otra cosa en su opción «Mostrar». */
+  textoAjuste: TextoAjuste
   /** Tamaño de la interfaz en por ciento (el zoom de la página): uno de los pasos de 80 a 150. Lo aplica el proceso principal. */
   tamañoInterfaz: TamañoInterfaz
   /** Alto del panel de la franja abierta (px), o null si nunca se arrastró su borde: 150 px, y 320 al abrir el osciloscopio. Se acota al 60 % del alto de la ventana. */
@@ -257,6 +265,7 @@ export const ajustesPorOmision = (): Ajustes => ({
   cinta: { plegada: false, pestaña: 'inicio' },
   lienzoSincronizado: true,
   serieComercial: 'E12',
+  textoAjuste: 'Valores',
   tamañoInterfaz: TAMAÑO_INTERFAZ_NORMAL,
   altoFranja: null,
   simulacion: simulacionPorOmision(),
@@ -514,6 +523,7 @@ export function normalizarAjustes(v: unknown, base: Ajustes = ajustesPorOmision(
     cinta: cinta(propia(o, 'cinta'), base.cinta),
     lienzoSincronizado: booleano(propia(o, 'lienzoSincronizado'), base.lienzoSincronizado),
     serieComercial: una(propia(o, 'serieComercial'), SERIES_COMERCIALES, base.serieComercial),
+    textoAjuste: una(propia(o, 'textoAjuste'), TEXTOS_AJUSTE, base.textoAjuste),
     tamañoInterfaz: esTamañoInterfaz(propia(o, 'tamañoInterfaz')) ? (propia(o, 'tamañoInterfaz') as TamañoInterfaz) : base.tamañoInterfaz,
     altoFranja: propia(o, 'altoFranja') === undefined ? base.altoFranja : altoFranja(propia(o, 'altoFranja'), base.altoFranja),
     simulacion: simulacion(propia(o, 'simulacion'), base.simulacion),
@@ -591,4 +601,6 @@ export interface ApiKirchi {
   ventana?(orden: OrdenVentana): void
   /** Escucha el tamaño de la interfaz vigente (lo cambia el proceso principal); devuelve la forma de dejar de escuchar. */
   alTamañoInterfaz?(f: (t: TamañoInterfaz) => void): () => void
+  /** Avisa cuando la ventana entra o sale de la pantalla completa; devuelve la forma de dejar de escuchar. */
+  alPantallaCompleta?(f: (completa: boolean) => void): () => void
 }

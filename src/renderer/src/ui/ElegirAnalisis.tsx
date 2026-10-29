@@ -1,4 +1,4 @@
-import { For } from 'solid-js'
+import { For, Show } from 'solid-js'
 import { DESCRIPCION_FICHA } from '../analisis/descripciones'
 import { NOMBRE_FICHA, TIPOS_FICHA, type TipoFicha } from '../analisis/fichas'
 import IconoCinta from './cinta/IconoCinta'
@@ -19,6 +19,12 @@ export default function ElegirAnalisis(props: { onElegir: (t: TipoFicha) => void
   return (
     <div class="an-elegir">
       <p class="secundario">Elige el análisis que quieres hacer.</p>
+      {/* Por qué no se puede elegir, a la vista: el globo solo aparece al detenerse sobre un botón. */}
+      <Show when={props.motivoNoEditable}>
+        <p class="nota-serie aviso an-aviso" role="status">
+          {props.motivoNoEditable}
+        </p>
+      </Show>
       <ul class="an-elegir-lista">
         <For each={TIPOS_FICHA}>
           {(t) => (

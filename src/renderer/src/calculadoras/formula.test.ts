@@ -80,7 +80,7 @@ describe('fórmula en árbol', () => {
 
   it('todas las ecuaciones y sustituciones de las calculadoras se leen (ninguna cae al texto plano)', () => {
     for (const d of CALCULADORAS) {
-      const estados: Record<string, string>[] = d.id === 'amplificador' ? [{}, { tipo: 'no-inversor' }] : d.id === 'filtro' ? [{}, { tipo: 'altas' }] : [{}]
+      const estados: Record<string, string>[] = d.id === 'amplificador' ? [{}, { tipo: 'no-inversor' }, { tipo: 'integrador' }, { tipo: 'integrador', conrf: 'no' }, { tipo: 'derivador' }, { tipo: 'derivador', cons: 'no' }, { tipo: 'sumador' }, { tipo: 'sumador', n: '4' }, { tipo: 'instrumentacion' }] : d.id === 'filtro' ? [{}, { tipo: 'altas' }] : [{}]
       for (const e of estados) {
         const ev = d.evaluar({ ...estadoInicial(d), ...e }, { serie: 'E12', lib })
         expect(ev.salida, `${d.id} ${JSON.stringify(e)}: ${ev.error ?? JSON.stringify(ev.erroresCampo)}`).toBeDefined()

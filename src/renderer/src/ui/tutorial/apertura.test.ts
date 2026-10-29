@@ -15,18 +15,32 @@ describe('los pasos del tutorial abren el panel que señalan', () => {
     expect(aperturaDelPaso({ abre: 'osciloscopio' })).toEqual({ parche: {}, franja: 'osciloscopio' })
   })
 
-  it('capítulo 1: la fuente se puede elegir en la librería', () => {
-    expect(paso('primer-circuito', 'fuente').abre).toBe('libreria')
+  it('calculadoras, plantillas y la pestaña Gráficas también se abren', () => {
+    expect(aperturaDelPaso({ abre: 'calculadoras' })).toEqual({ parche: { panel: 'calculadoras', lateral: true }, franja: null })
+    expect(aperturaDelPaso({ abre: 'plantillas' })).toEqual({ parche: { panel: 'plantillas', lateral: true }, franja: null })
+    expect(aperturaDelPaso({ abre: 'graficas' })).toEqual({ parche: {}, franja: 'graficas' })
   })
 
-  it('capítulo 2: las lecturas abren Mediciones y elegir la función abre el Inspector', () => {
-    for (const id of ['lectura', 'lectura-corriente', 'lectura-ohmios']) expect(paso('medir', id).abre, id).toBe('mediciones')
-    for (const id of ['corriente', 'ohmios']) expect(paso('medir', id).abre, id).toBe('inspector')
+  it('capítulo 1: los pasos «Mira» abren el panel o la franja que enmarcan', () => {
+    expect(paso('conoce', 'izquierdo').abre).toBe('libreria')
+    expect(paso('conoce', 'derecho').abre).toBe('inspector')
+    expect(paso('conoce', 'franja').abre).toBe('osciloscopio')
   })
 
-  it('capítulo 3: el generador abre el inspector y los ajustes del osciloscopio abren su pestaña', () => {
-    expect(paso('senales', 'cuadrada').abre).toBe('inspector')
-    for (const id of ['tiempo', 'disparo', 'cursores']) expect(paso('senales', id).abre, id).toBe('osciloscopio')
+  it('capítulo 2: arrastrar el LED abre la Librería', () => {
+    expect(paso('circuito', 'led').abre).toBe('libreria')
+  })
+
+  it('capítulo 3: la lectura abre Mediciones, el generador el inspector y el osciloscopio la franja', () => {
+    expect(paso('medir-senales', 'lectura').abre).toBe('mediciones')
+    expect(paso('medir-senales', 'cuadrada').abre).toBe('inspector')
+    for (const id of ['tiempo-div', 'disparo', 'cursores', 'medidas']) expect(paso('medir-senales', id).abre, id).toBe('osciloscopio')
+  })
+
+  it('capítulo 4: la calculadora, el análisis y las gráficas se abren solos', () => {
+    expect(paso('analizar', 'filtros').abre).toBe('calculadoras')
+    expect(paso('analizar', 'bode').abre).toBe('analisis')
+    expect(paso('analizar', 'cursores-grafica').abre).toBe('graficas')
   })
 
   it('ningún paso del tutorial señala el inspector, la librería o la franja sin abrirlos', () => {

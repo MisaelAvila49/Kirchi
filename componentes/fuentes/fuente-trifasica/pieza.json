@@ -5,6 +5,7 @@
     "en": "Three-phase source"
   },
   "categoria": "fuentes",
+  "grupo": "Independientes",
   "prefijo": "VT",
   "buscar": [
     "trifasica",

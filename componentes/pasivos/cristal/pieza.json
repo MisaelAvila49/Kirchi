@@ -5,6 +5,7 @@
     "en": "Quartz crystal"
   },
   "categoria": "pasivos",
+  "grupo": "Fusible y cristal",
   "prefijo": "Y",
   "buscar": [
     "y",
@@ -159,7 +160,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Huella de KiCad 9 Crystal_HC49-U_Vertical (HC-49/U de dos patillas) y símbolo Device:Crystal (1 y 2); sin hoja, la fila es representativa"
+          "fuente": "Huella de KiCad 9 Crystal_HC49-U_Vertical (HC-49/U de dos pines) y símbolo Device:Crystal (1 y 2); sin hoja, la fila es representativa"
         }
       },
       "8 MHz": {
@@ -173,7 +174,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Huella de KiCad 9 Crystal_HC49-U_Vertical (HC-49/U de dos patillas) y símbolo Device:Crystal (1 y 2); sin hoja, la fila es representativa"
+          "fuente": "Huella de KiCad 9 Crystal_HC49-U_Vertical (HC-49/U de dos pines) y símbolo Device:Crystal (1 y 2); sin hoja, la fila es representativa"
         }
       },
       "16 MHz": {
@@ -187,7 +188,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Huella de KiCad 9 Crystal_HC49-U_Vertical (HC-49/U de dos patillas) y símbolo Device:Crystal (1 y 2); sin hoja, la fila es representativa"
+          "fuente": "Huella de KiCad 9 Crystal_HC49-U_Vertical (HC-49/U de dos pines) y símbolo Device:Crystal (1 y 2); sin hoja, la fila es representativa"
         }
       }
     }

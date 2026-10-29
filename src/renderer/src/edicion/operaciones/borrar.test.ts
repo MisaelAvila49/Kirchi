@@ -39,7 +39,7 @@ describe('borrar', () => {
     expect(n.aplicar({ orden: 'borrar', refs: ['R9'] })).toEqual({ ok: false, motivo: 'No hay ninguna pieza con la referencia «R9».' })
     expect(n.aplicar({ orden: 'borrar', etiquetas: ['NADA'] })).toEqual({ ok: false, motivo: 'No hay etiquetas con el nombre «NADA».' })
     expect(n.aplicar({ orden: 'borrar', cables: ['R9.1'] })).toEqual({ ok: false, motivo: 'No hay ninguna pieza con la referencia «R9».' })
-    expect(n.aplicar({ orden: 'borrar', cables: ['R1.7'] })).toEqual({ ok: false, motivo: 'R1 no tiene la patilla «7».' })
+    expect(n.aplicar({ orden: 'borrar', cables: ['R1.7'] })).toEqual({ ok: false, motivo: 'R1 no tiene el pin «7».' })
     expect(n.aplicar({ orden: 'borrar' })).toEqual({ ok: false, motivo: 'No hay nada que borrar.' })
     expect(n.historial.puedeDeshacer).toBe(false)
   })

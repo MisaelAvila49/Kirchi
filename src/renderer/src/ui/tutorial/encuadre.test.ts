@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { debeEncuadrar, zonaFueraDeVista } from './encuadre'
+import { debeEncuadrar, sobresaleDelPanel, zonaFueraDeVista } from './encuadre'
 
 const area = { x: 100, y: 50, w: 800, h: 600 }
 const identidad = (p: { x: number; y: number }) => ({ x: p.x, y: p.y })
@@ -23,5 +23,11 @@ describe('encuadre del tutorial', () => {
     expect(debeEncuadrar('a', 'b', false)).toBe(true)
     expect(debeEncuadrar('a', 'a', false)).toBe(false)
     expect(debeEncuadrar('a', 'a', true)).toBe(true)
+  })
+  it('una zona de un panel con desplazamiento se desplaza solo si sobresale de lo que el panel deja ver', () => {
+    const panel = { x: 700, y: 100, w: 300, h: 400 }
+    expect(sobresaleDelPanel({ x: 710, y: 120, w: 200, h: 80 }, panel)).toBe(false)
+    expect(sobresaleDelPanel({ x: 710, y: 460, w: 200, h: 80 }, panel)).toBe(true)
+    expect(sobresaleDelPanel({ x: 710, y: 60, w: 200, h: 80 }, panel)).toBe(true)
   })
 })

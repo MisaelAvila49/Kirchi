@@ -63,7 +63,7 @@
         "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "TI CD74HC4511 (SCHS279E), fig. 4-1 p. 3 (imagen); TI CD4511B (mismas patillas); KiCad 74xx:74LS47 (mismas posiciones de A a g)"
+          "fuente": "TI CD74HC4511 (SCHS279E), fig. 4-1 p. 3 (imagen); TI CD4511B (mismos pines); KiCad 74xx:74LS47 (mismas posiciones de A a g)"
         }
       },
       "74LS|activas en alto": {
@@ -130,7 +130,7 @@
             "lcsc": { "numero": "C5327", "comprobado": "2026-10-26" }
           }
         ],
-        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4511B, diagrama funcional p. 1 (imagen); TI CD74HC4511 (mismas patillas)" }
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD4511B, diagrama funcional p. 1 (imagen); TI CD74HC4511 (mismos pines)" }
       }
     }
   }

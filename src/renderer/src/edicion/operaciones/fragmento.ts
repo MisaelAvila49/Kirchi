@@ -52,7 +52,7 @@ export function fragmentoOrden(est: Estado, o: Fragmentos, opciones: Opciones = 
   if (o.en) {
     const q = puntoAUnidades(o.en)
     if (!q) return rechazo(MOTIVO_FUERA_DE_REJILLA)
-    const lugar = lugarParaPegar(doc, lib, f.piezas, f.cables, q, est.indice, 0)
+    const lugar = lugarParaPegar(doc, lib, f.piezas, f.cables, q, est.indice, 0, f)
     if (lugar.libre) en = lugar.en
     else if (!o.buscarLugar) return rechazo(`${verbo}: no hay lugar libre ahí.`)
     else {
@@ -125,7 +125,7 @@ function lugarLibre(est: Estado, f: Fragmento): { en: Punto; donde: 'debajo' | '
       ]
     : [{ en: { x: 0, y: 0 }, donde: 'debajo' }]
   for (const c of candidatos) {
-    const lugar = lugarParaPegar(doc, lib, f.piezas, f.cables, c.en, est.indice)
+    const lugar = lugarParaPegar(doc, lib, f.piezas, f.cables, c.en, est.indice, undefined, f)
     if (lugar.libre) return { en: lugar.en, donde: c.donde }
   }
   return null

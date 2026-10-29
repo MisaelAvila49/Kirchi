@@ -1,9 +1,9 @@
 import { For, Show } from 'solid-js'
-import { ESCALAS_PNG, FAMILIAS_FIGURA, MUESTREOS_CSV, SEPARADORES_CSV, type MuestreoCsv, type SeparadorCsv, TAMAÑO_LETRA_FIGURA, TONOS_FIGURA, type FormatoFigura, type OpcionesFigura } from '../../../../compartido/ajustes'
+import { ESCALAS_PNG, FAMILIAS_FIGURA, MUESTREOS_CSV, SEPARADORES_CSV, type MuestreoCsv, type SeparadorCsv, TAMAÑO_LETRA_FIGURA, type FormatoFigura, type OpcionesFigura } from '../../../../compartido/ajustes'
 
 import { NOMBRE_MUESTREO, NOMBRE_SEPARADOR } from './csvFormato'
 import type { Adornos } from './preajustes'
-import { AYUDA_FORMATO, NOMBRE_FAMILIA_FIGURA, NOMBRE_FORMATO_FIGURA, NOMBRE_TONO_FIGURA, SUB_FORMATO, visiblesDe, type SerieFigura } from './modelo'
+import { AYUDA_FORMATO, NOMBRE_FAMILIA_FIGURA, NOMBRE_FORMATO_FIGURA, SUB_FORMATO, visiblesDe, type SerieFigura } from './modelo'
 
 /**
  * Controles de exportar una figura de datos, comunes al osciloscopio y a las gráficas. Cada figura dice sus series (`series`) y opciones (`visibles`).
@@ -44,6 +44,8 @@ interface PropsOpciones {
   series: readonly SerieFigura[]
   /** La rejilla se elige en el aspecto de la gráfica: aquí no se repite. */
   sinRejilla?: boolean
+  /** La letra va aparte (exportar la pone en su sitio del panel). */
+  sinLetra?: boolean
 }
 
 /** Resolución (PNG) y letra: van dentro del bloque «Formato de archivo». */
@@ -84,7 +86,18 @@ export function CamposDeArchivo(props: PropsOpciones) {
           </label>
         </fieldset>
       </Show>
-      <Show when={v().letra}>
+      <Show when={v().letra && !props.sinLetra}>
+        <CamposDeLetra {...props} />
+      </Show>
+    </>
+  )
+}
+
+/** La familia y el tamaño general de la letra de la figura. */
+export function CamposDeLetra(props: PropsOpciones) {
+  return (
+    <>
+      <Show when={visiblesDe(props.formato).letra}>
         <fieldset class="opciones">
           <legend>Letra</legend>
           <label class="campo-figura">
@@ -93,8 +106,8 @@ export function CamposDeArchivo(props: PropsOpciones) {
               <For each={FAMILIAS_FIGURA}>{(f) => <option value={f}>{NOMBRE_FAMILIA_FIGURA[f]}</option>}</For>
             </select>
           </label>
-          <label class="campo-figura">
-            <span>Tamaño</span>
+          <label class="campo-figura" title="Cambia juntos el título y los números de los ejes. Cada texto también tiene su tamaño propio al seleccionarlo.">
+            <span>Tamaño del texto</span>
             <input
               type="range"
               min={TAMAÑO_LETRA_FIGURA[0]}
@@ -133,49 +146,6 @@ export function CamposDeFondo(props: PropsOpciones) {
               <input type="checkbox" checked={props.op.rejilla} onChange={(e) => props.onCambiar({ rejilla: e.currentTarget.checked })} />
               Rejilla
             </label>
-          </Show>
-        </fieldset>
-      </Show>
-    </>
-  )
-}
-
-/** El tono de cada línea (en el bloque «Trazas»). */
-export function CamposDeColor(props: PropsOpciones) {
-  const v = () => visiblesDe(props.formato)
-  const repetidos = () => {
-    const usados = props.series.map((s) => props.op.colores[s.id])
-    return usados.some((t, i) => t !== undefined && usados.indexOf(t) !== i)
-  }
-  return (
-    <>
-      <Show when={v().colores && props.series.length > 0}>
-        <fieldset class="opciones">
-          <legend>Color de cada línea</legend>
-          <For each={props.series}>
-            {(s) => (
-              <div class="serie-figura" role="group" aria-label={`Color de ${s.nombre}`}>
-                <span class="serie-nombre">{s.nombre}</span>
-                <span class="tonos-figura">
-                  <For each={TONOS_FIGURA}>
-                    {(t) => (
-                      <button
-                        type="button"
-                        class="tono-figura"
-                        data-tono-figura={t}
-                        aria-pressed={props.op.colores[s.id] === t}
-                        aria-label={NOMBRE_TONO_FIGURA[t]}
-                        title={NOMBRE_TONO_FIGURA[t]}
-                        onClick={() => props.onCambiar({ colores: { ...props.op.colores, [s.id]: t } })}
-                      />
-                    )}
-                  </For>
-                </span>
-              </div>
-            )}
-          </For>
-          <Show when={repetidos()}>
-            <p class="secundario nota-dialogo">Dos líneas con el mismo color se confunden en la figura.</p>
           </Show>
         </fieldset>
       </Show>

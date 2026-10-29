@@ -123,7 +123,7 @@
         "pendiente": { "lcsc": "no se halló un número LCSC de CD74HC190E de TI (solo SN74HC190N(XBLW), otro fabricante)" },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "TI CD74HC190/191 (SCHS275E, oct 2003), p. 1, TOP VIEW; KiCad 74xx:74LS190 (9.0.0, mismo número de patilla, otra familia; el símbolo 74HC190 no existe)"
+          "fuente": "TI CD74HC190/191 (SCHS275E, oct 2003), p. 1, TOP VIEW; KiCad 74xx:74LS190 (9.0.0, mismo número de pin, otra familia; el símbolo 74HC190 no existe)"
         }
       },
       "74LS": {

@@ -33,7 +33,6 @@ import {
 } from '../../../../compartido/grafica/aspecto'
 import { SUBDIVISIONES } from '../../../../compartido/grafica/ticks'
 import { admitePrefijo, decimalesPorOmision, unidadConPrefijo } from '../../../../compartido/grafica/ejes'
-import Bloque from '../exportar/Bloque'
 import { NOMBRE_TONO_FIGURA } from '../exportar/modelo'
 import CamposRango from './CamposRango'
 import { mismasClaves } from './claves'
@@ -79,6 +78,8 @@ interface Props {
   sinColor?: boolean
   /** Sin la lectura al pasar el ratón (el diálogo de exportar no la usa). */
   sinLectura?: boolean
+  /** El tamaño del texto ya se elige aparte (exportar): «Textos» no lo repite. */
+  sinTamanoTexto?: boolean
   /** X-Y: las trazas que pueden hacer de eje horizontal y cómo se llama el eje de siempre («Tiempo»). Sin candidatas, no hay selector. */
   candidatosX?: readonly { clave: string; etiqueta: string }[]
   nombreEjeBase?: string
@@ -144,8 +145,6 @@ export const OPCIONES_TEMA_EXPORTAR: readonly (readonly ['claro' | 'oscuro', str
 
 const GROSORES: readonly number[] = Array.from({ length: (GROSOR_RANGO[1] - GROSOR_RANGO[0]) * 2 + 1 }, (_, i) => GROSOR_RANGO[0] + i / 2)
 
-const nombreRejilla = (a: AspectoGrafica) => (a.rejilla ? NOMBRE_ESTILO_REJILLA[a.rejillaEstilo] : 'Sin rejilla')
-
 /** «Ejes»: dónde van, las marcas, la unidad mostrada y la lectura al pasar el ratón. */
 export function SeccionEjes(props: Props) {
   const id = createUniqueId()
@@ -206,6 +205,7 @@ export function SeccionTextos(props: Props) {
     <>
       <Opciones nombre="Color" valor={textoTono()} opciones={opcionesTexto} onCambiar={(t) => props.onAspecto({ textoTono: t === 'traza' ? null : t })} />
       <Opciones nombre="Grosor del texto" valor={a().textoPeso} opciones={PESOS_TEXTO.map((p) => [p, NOMBRE_PESO[p]] as const)} onCambiar={(p: PesoTexto) => props.onAspecto({ textoPeso: p })} />
+      <Show when={!props.sinTamanoTexto}>
       <label class="asp-campo asp-rango">
         <span class="asp-rotulo">Tamaño del texto</span>
         <input
@@ -219,6 +219,7 @@ export function SeccionTextos(props: Props) {
         />
         <output class="cifra">{a().textoTam ?? TEXTO_TAM_BASE} px</output>
       </label>
+      </Show>
     </>
   )
 }
@@ -318,53 +319,84 @@ function Deslizador2(props: { rotulo: string; valor: number; min: number; max: n
   )
 }
 
-/** «Rejilla»: el estilo de la rejilla, sus subdivisiones y el tema de la gráfica; `fondo` suma lo propio del editor de exportar. */
-export function SeccionRejilla(props: Props & { fondo?: JSX.Element }) {
+/** El estilo de la rejilla (ninguna, puntos, líneas...). */
+export function ControlRejilla(props: Props) {
   const a = () => props.aspecto
   const rejillaValor = (): EstiloRejilla | 'ninguna' => (a().rejilla ? a().rejillaEstilo : 'ninguna')
   const opcionesRejilla: readonly (readonly [EstiloRejilla | 'ninguna', string])[] = [['ninguna', 'Ninguna'], ...ESTILOS_REJILLA.map((e) => [e, NOMBRE_ESTILO_REJILLA[e]] as const)]
   return (
-    <>
-      <OpcionesIconos
-        nombre="Rejilla"
-        valor={rejillaValor()}
-        opciones={opcionesRejilla}
-        icono={(v) => ICONOS_REJILLA[v]()}
-        onCambiar={(v) => (v === 'ninguna' ? props.onAspecto({ rejilla: false }) : props.onAspecto({ rejilla: true, rejillaEstilo: v }))}
-      />
-      <Show when={props.conGrosores}>
-        <Deslizador2 rotulo="Grosor de las trazas" valor={a().grosor} min={GROSOR_RANGO[0]} max={GROSOR_RANGO[1]} onCambiar={(v) => props.onAspecto({ grosor: v })} />
-        <Deslizador2 rotulo="Grosor de los ejes" valor={a().grosorEjes ?? 1} min={GROSOR_LINEAS_RANGO[0]} max={GROSOR_LINEAS_RANGO[1]} onCambiar={(v) => props.onAspecto({ grosorEjes: v === 1 ? undefined : v })} />
-        <Show when={a().rejilla}>
-          <Deslizador2 rotulo="Grosor de la rejilla" valor={a().grosorRejilla ?? 1} min={GROSOR_LINEAS_RANGO[0]} max={GROSOR_LINEAS_RANGO[1]} onCambiar={(v) => props.onAspecto({ grosorRejilla: v === 1 ? undefined : v })} />
-        </Show>
-      </Show>
-      <Show when={a().rejilla}>
-        <Opciones
-          nombre="Subdivisiones del eje horizontal"
-          valor={subdivisionValor(a().subdivisionesX)}
-          opciones={opcionesSubdivision(props.ejeX?.log === true)}
-          onCambiar={(v) => props.onAspecto({ subdivisionesX: subdivisionDe(v) })}
-        />
-        <Opciones nombre="Subdivisiones del eje vertical" valor={subdivisionValor(a().subdivisionesY)} opciones={opcionesSubdivision(false)} onCambiar={(v) => props.onAspecto({ subdivisionesY: subdivisionDe(v) })} />
-      </Show>
-      <Show
-        when={props.temaExplicito}
-        fallback={<Opciones nombre="Tema de la gráfica" valor={a().tema} opciones={TEMAS_GRAFICA.map((t) => [t, NOMBRE_TEMA_GRAFICA[t]] as const)} onCambiar={(t: TemaGrafica) => props.onAspecto({ tema: t })} />}
-      >
-        <BotonesTema valor={a().tema === 'oscuro' ? 'oscuro' : 'claro'} onCambiar={(t) => props.onAspecto({ tema: t })} />
-      </Show>
-      {props.fondo}
-    </>
+    <OpcionesIconos
+      nombre="Rejilla"
+      valor={rejillaValor()}
+      opciones={opcionesRejilla}
+      icono={(v) => ICONOS_REJILLA[v]()}
+      onCambiar={(v) => (v === 'ninguna' ? props.onAspecto({ rejilla: false }) : props.onAspecto({ rejilla: true, rejillaEstilo: v }))}
+    />
   )
 }
 
-/** Bloque plegable de «Rejilla y fondo» (el editor de exportar). */
-export function BloqueRejilla(props: Props & { abierto?: boolean; fondo?: JSX.Element }) {
+/** Grosor de las trazas. */
+export function GrosorTrazas(props: Props) {
+  return <Deslizador2 rotulo="Grosor de las trazas" valor={props.aspecto.grosor} min={GROSOR_RANGO[0]} max={GROSOR_RANGO[1]} onCambiar={(v) => props.onAspecto({ grosor: v })} />
+}
+
+/** Grosor de los ejes. */
+export function GrosorEjes(props: Props) {
+  return <Deslizador2 rotulo="Grosor de los ejes" valor={props.aspecto.grosorEjes ?? 1} min={GROSOR_LINEAS_RANGO[0]} max={GROSOR_LINEAS_RANGO[1]} onCambiar={(v) => props.onAspecto({ grosorEjes: v === 1 ? undefined : v })} />
+}
+
+/** Grosor de la rejilla; sin rejilla no hay nada que graduar. */
+export function GrosorRejilla(props: Props) {
   return (
-    <Bloque titulo="Rejilla y fondo" resumen={`${nombreRejilla(props.aspecto)} · ${NOMBRE_TEMA_GRAFICA[props.aspecto.tema].toLowerCase()}`} abierto={props.abierto}>
-      <SeccionRejilla {...props} />
-    </Bloque>
+    <Show when={props.aspecto.rejilla}>
+      <Deslizador2 rotulo="Grosor de la rejilla" valor={props.aspecto.grosorRejilla ?? 1} min={GROSOR_LINEAS_RANGO[0]} max={GROSOR_LINEAS_RANGO[1]} onCambiar={(v) => props.onAspecto({ grosorRejilla: v === 1 ? undefined : v })} />
+    </Show>
+  )
+}
+
+/** Subdivisiones de los dos ejes; sin rejilla no se dibujan. */
+export function SubdivisionesEjes(props: Props) {
+  const a = () => props.aspecto
+  return (
+    <Show when={a().rejilla}>
+      <Opciones
+        nombre="Subdivisiones del eje horizontal"
+        valor={subdivisionValor(a().subdivisionesX)}
+        opciones={opcionesSubdivision(props.ejeX?.log === true)}
+        onCambiar={(v) => props.onAspecto({ subdivisionesX: subdivisionDe(v) })}
+      />
+      <Opciones nombre="Subdivisiones del eje vertical" valor={subdivisionValor(a().subdivisionesY)} opciones={opcionesSubdivision(false)} onCambiar={(v) => props.onAspecto({ subdivisionesY: subdivisionDe(v) })} />
+    </Show>
+  )
+}
+
+/** El tema de la figura. */
+export function ControlTema(props: Props) {
+  const a = () => props.aspecto
+  return (
+    <Show
+      when={props.temaExplicito}
+      fallback={<Opciones nombre="Tema de la gráfica" valor={a().tema} opciones={TEMAS_GRAFICA.map((t) => [t, NOMBRE_TEMA_GRAFICA[t]] as const)} onCambiar={(t: TemaGrafica) => props.onAspecto({ tema: t })} />}
+    >
+      <BotonesTema valor={a().tema === 'oscuro' ? 'oscuro' : 'claro'} onCambiar={(t) => props.onAspecto({ tema: t })} />
+    </Show>
+  )
+}
+
+/** «Rejilla»: el estilo de la rejilla, sus grosores, sus subdivisiones y el tema de la gráfica; `fondo` suma lo propio del editor de exportar. */
+export function SeccionRejilla(props: Props & { fondo?: JSX.Element }) {
+  return (
+    <>
+      <ControlRejilla {...props} />
+      <Show when={props.conGrosores}>
+        <GrosorTrazas {...props} />
+        <GrosorEjes {...props} />
+        <GrosorRejilla {...props} />
+      </Show>
+      <SubdivisionesEjes {...props} />
+      <ControlTema {...props} />
+      {props.fondo}
+    </>
   )
 }
 

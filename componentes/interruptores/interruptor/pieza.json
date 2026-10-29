@@ -2,6 +2,7 @@
   "id": "interruptor",
   "nombre": { "es": "Interruptor", "en": "Switch" },
   "categoria": "interruptores",
+  "grupo": "Individuales",
   "prefijo": "S",
   "buscar": ["s", "sw", "switch", "interruptor", "apagador"],
   "pines": [

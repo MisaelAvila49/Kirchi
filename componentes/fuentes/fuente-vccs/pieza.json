@@ -5,6 +5,7 @@
     "en": "Transconductor (voltage-controlled current source)"
   },
   "categoria": "fuentes",
+  "grupo": "Controladas",
   "prefijo": "G",
   "buscar": [
     "g",

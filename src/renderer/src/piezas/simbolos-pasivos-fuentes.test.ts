@@ -104,7 +104,7 @@ describe('pasivos y fuentes nuevos', () => {
   it('el valor que se muestra en el lienzo es el de la primera propiedad numérica', () => {
     const pieza = (tipo: string) => ({ id: 'p', tipo, ref: 'X1', x: 0, y: 0, rot: 0, espejo: false, props: {} }) as const
     const valor = (tipo: string) => textoDeValor(pieza(tipo), lib.get(tipo)!)
-    expect(valor('potenciometro')).toBe('10 kΩ · 50 %')
+    expect(valor('potenciometro')).toBe('10 kΩ')
     expect(valor('fuente-ac')).toBe('5 V')
     expect(valor('fuente-corriente')).toBe('1 mA')
     expect(valor('fusible')).toBe('1 A')

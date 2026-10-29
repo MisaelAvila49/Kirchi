@@ -7,6 +7,7 @@ import type { DatoExportable } from '../exportar/campos'
 import { aplicarFormatoCsv, CARACTER_SEPARADOR } from '../exportar/csvFormato'
 import { tablaDeCsv } from '../exportar/csvTabla'
 import EditorFigura from '../exportar/editor/EditorFigura'
+import { sumaFinita } from '../exportar/editor/memoria'
 import type { EstadoEditor } from '../exportar/editor/edicion'
 import { ADORNOS_PREAJUSTE } from '../exportar/preajustes'
 import VistaCsv from '../exportar/VistaCsv'
@@ -51,6 +52,8 @@ export default function DialogoCaptura(props: Props) {
     const a: AspectoDeCaptura = props.aspecto ?? { aspecto: ASPECTO_OSCILOSCOPIO, canales: {} }
     return { anot: a.anotaciones ?? anotacionesVacias(), aspecto: { ...a.aspecto, tema: temaEfectivo(props.opciones.tema, props.tema) }, trazas: { ...a.canales }, ocultas: [], adornos: { ...ADORNOS_PREAJUSTE.instrumento }, rango: null }
   })()
+  // La suma de las columnas separa dos corridas pausadas en el mismo instante con otros valores en el circuito.
+  const identidad = `${props.referencia}|${props.pantalla.tCaptura}|${props.pantalla.t0}|${props.pantalla.ncol}|${sumaFinita(props.pantalla.columnas)}`
   const asp = (e: EstadoEditor): AspectoDeCaptura => ({ aspecto: e.aspecto, canales: canalesCompletos(e.trazas), rango: e.rango, apagados: [...e.ocultas], adornos: e.adornos, anotaciones: e.anot })
   const exportados = (e: EstadoEditor) => conCanalesApagados(props.ajustes, e.ocultas)
   const csv = (e: EstadoEditor) => (props.opciones.formato === 'csv' ? aplicarFormatoCsv(csvDeCaptura(props.referencia, exportados(e), props.pantalla, e.rango), props.opciones) : '')
@@ -60,13 +63,14 @@ export default function DialogoCaptura(props: Props) {
       .filter((s) => s.id !== MATEMATICO)
       .map((s) => {
         const c = e.trazas[s.id]
-        return { clave: s.id, etiqueta: s.nombre, tono: c?.color ?? tonoDeCanal(props.opciones, s.id as never), lado: c?.lado ?? 'izquierda', tonoElegido: c?.color ?? null, grosor: c?.grosor ?? null, prefijo: c?.prefijo ?? null, decimales: c?.decimales, unidad: 'V', rango: c?.rango }
+        return { clave: s.id, etiqueta: s.nombre, tono: c?.color ?? tonoDeCanal(s.id as never), lado: c?.lado ?? 'izquierda', tonoElegido: c?.color ?? null, grosor: c?.grosor ?? null, prefijo: c?.prefijo ?? null, decimales: c?.decimales, unidad: 'V', rango: c?.rango }
       })
   return (
     <EditorFigura
       titulo={`Exportar la captura de ${props.referencia}`}
       tipo="pantalla"
       inicial={inicial}
+      identidad={identidad}
       opciones={props.opciones}
       onCambiar={props.onCambiar}
       formatos={FORMATOS}

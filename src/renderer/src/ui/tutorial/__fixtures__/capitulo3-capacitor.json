@@ -1,0 +1,462 @@
+{
+ "soloArriba": {
+  "piezas": {
+   "r": {
+    "id": "r",
+    "tipo": "resistencia",
+    "ref": "R1",
+    "x": 16,
+    "y": -4,
+    "rot": 0,
+    "espejo": false,
+    "props": {
+     "valor": "1k"
+    }
+   },
+   "d": {
+    "id": "d",
+    "tipo": "led",
+    "ref": "D1",
+    "x": 32,
+    "y": 0,
+    "rot": 90,
+    "espejo": false,
+    "props": {
+     "color": "rojo"
+    }
+   },
+   "g": {
+    "id": "g",
+    "tipo": "tierra",
+    "ref": "GND1",
+    "x": 0,
+    "y": 12,
+    "rot": 0,
+    "espejo": false,
+    "props": {}
+   },
+   "p_8a9f9a274e": {
+    "id": "p_8a9f9a274e",
+    "tipo": "multimetro",
+    "ref": "XMM1",
+    "x": 50,
+    "y": 4,
+    "rot": 0,
+    "espejo": false,
+    "props": {
+     "modo": "V DC",
+     "ideal": "no"
+    }
+   },
+   "p_bc6d31149d": {
+    "id": "p_bc6d31149d",
+    "tipo": "tierra",
+    "ref": "GND2",
+    "x": 50,
+    "y": 10,
+    "rot": 0,
+    "espejo": false,
+    "props": {}
+   },
+   "p_afc0a0b457": {
+    "id": "p_afc0a0b457",
+    "tipo": "generador",
+    "ref": "XFG1",
+    "x": 0,
+    "y": -10,
+    "rot": 180,
+    "espejo": false,
+    "props": {
+     "frecuencia": "1k",
+     "forma": "Senoidal",
+     "amplitud": "2",
+     "desplazamiento": "0",
+     "simetria": "50 %",
+     "ciclo": "25 %",
+     "salida": "encendida",
+     "ideal": "no"
+    }
+   },
+   "p_7d7e5f2f45": {
+    "id": "p_7d7e5f2f45",
+    "tipo": "capacitor",
+    "ref": "C1",
+    "x": 40,
+    "y": 0,
+    "rot": 90,
+    "espejo": false,
+    "props": {
+     "valor": "100u"
+    }
+   }
+  },
+  "cables": {
+   "c1": {
+    "id": "c1",
+    "puntos": [
+     {
+      "x": 0,
+      "y": -4
+     },
+     {
+      "x": 12,
+      "y": -4
+     }
+    ]
+   },
+   "c2": {
+    "id": "c2",
+    "puntos": [
+     {
+      "x": 20,
+      "y": -4
+     },
+     {
+      "x": 32,
+      "y": -4
+     }
+    ]
+   },
+   "c3": {
+    "id": "c3",
+    "puntos": [
+     {
+      "x": 32,
+      "y": 4
+     },
+     {
+      "x": 0,
+      "y": 4
+     }
+    ]
+   },
+   "c4": {
+    "id": "c4",
+    "puntos": [
+     {
+      "x": 0,
+      "y": 4
+     },
+     {
+      "x": 0,
+      "y": 12
+     }
+    ]
+   },
+   "c_339eb06d59": {
+    "id": "c_339eb06d59",
+    "puntos": [
+     {
+      "x": 0,
+      "y": -16
+     },
+     {
+      "x": -4,
+      "y": -16
+     },
+     {
+      "x": -4,
+      "y": 12
+     },
+     {
+      "x": 0,
+      "y": 12
+     }
+    ]
+   },
+   "c_5d7c13cd52": {
+    "id": "c_5d7c13cd52",
+    "puntos": [
+     {
+      "x": 40,
+      "y": -4
+     },
+     {
+      "x": 32,
+      "y": -4
+     }
+    ]
+   }
+  },
+  "etiquetas": {},
+  "notas": {},
+  "sondas": {
+   "s_289225aa59": {
+    "id": "s_289225aa59",
+    "tipo": "medidor",
+    "x": 26,
+    "y": -4,
+    "magnitud": "voltaje",
+    "modo": "dc",
+    "pantalla": {
+     "dx": 7,
+     "dy": -6
+    },
+    "ref": "M1"
+   },
+   "s_e803ba16a1": {
+    "id": "s_e803ba16a1",
+    "tipo": "multimetro",
+    "x": 6,
+    "y": -4,
+    "instrumento": "p_8a9f9a274e",
+    "entrada": "+"
+   },
+   "s_6c9277e154": {
+    "id": "s_6c9277e154",
+    "tipo": "voltaje",
+    "x": 18,
+    "y": 4
+   }
+  }
+ },
+ "completo": {
+  "piezas": {
+   "r": {
+    "id": "r",
+    "tipo": "resistencia",
+    "ref": "R1",
+    "x": 16,
+    "y": -4,
+    "rot": 0,
+    "espejo": false,
+    "props": {
+     "valor": "1k"
+    }
+   },
+   "d": {
+    "id": "d",
+    "tipo": "led",
+    "ref": "D1",
+    "x": 32,
+    "y": 0,
+    "rot": 90,
+    "espejo": false,
+    "props": {
+     "color": "rojo"
+    }
+   },
+   "g": {
+    "id": "g",
+    "tipo": "tierra",
+    "ref": "GND1",
+    "x": 0,
+    "y": 12,
+    "rot": 0,
+    "espejo": false,
+    "props": {}
+   },
+   "p_cb13204748": {
+    "id": "p_cb13204748",
+    "tipo": "multimetro",
+    "ref": "XMM1",
+    "x": 50,
+    "y": 4,
+    "rot": 0,
+    "espejo": false,
+    "props": {
+     "modo": "V DC",
+     "ideal": "no"
+    }
+   },
+   "p_43ce0ed260": {
+    "id": "p_43ce0ed260",
+    "tipo": "tierra",
+    "ref": "GND2",
+    "x": 50,
+    "y": 10,
+    "rot": 0,
+    "espejo": false,
+    "props": {}
+   },
+   "p_fd11b34293": {
+    "id": "p_fd11b34293",
+    "tipo": "generador",
+    "ref": "XFG1",
+    "x": 0,
+    "y": -10,
+    "rot": 180,
+    "espejo": false,
+    "props": {
+     "frecuencia": "1k",
+     "forma": "Senoidal",
+     "amplitud": "2",
+     "desplazamiento": "0",
+     "simetria": "50 %",
+     "ciclo": "25 %",
+     "salida": "encendida",
+     "ideal": "no"
+    }
+   },
+   "p_daedb6efbd": {
+    "id": "p_daedb6efbd",
+    "tipo": "capacitor",
+    "ref": "C1",
+    "x": 40,
+    "y": 0,
+    "rot": 90,
+    "espejo": false,
+    "props": {
+     "valor": "100u"
+    }
+   }
+  },
+  "cables": {
+   "c1": {
+    "id": "c1",
+    "puntos": [
+     {
+      "x": 0,
+      "y": -4
+     },
+     {
+      "x": 12,
+      "y": -4
+     }
+    ]
+   },
+   "c2": {
+    "id": "c2",
+    "puntos": [
+     {
+      "x": 20,
+      "y": -4
+     },
+     {
+      "x": 28,
+      "y": -4
+     }
+    ]
+   },
+   "c3": {
+    "id": "c3",
+    "puntos": [
+     {
+      "x": 32,
+      "y": 4
+     },
+     {
+      "x": 0,
+      "y": 4
+     }
+    ]
+   },
+   "c4": {
+    "id": "c4",
+    "puntos": [
+     {
+      "x": 0,
+      "y": 4
+     },
+     {
+      "x": 0,
+      "y": 12
+     }
+    ]
+   },
+   "c_f2d16ba834": {
+    "id": "c_f2d16ba834",
+    "puntos": [
+     {
+      "x": 0,
+      "y": -16
+     },
+     {
+      "x": -4,
+      "y": -16
+     },
+     {
+      "x": -4,
+      "y": 12
+     },
+     {
+      "x": 0,
+      "y": 12
+     }
+    ]
+   },
+   "c_f4e5de5c2a": {
+    "id": "c_f4e5de5c2a",
+    "puntos": [
+     {
+      "x": 40,
+      "y": -4
+     },
+     {
+      "x": 40,
+      "y": -2
+     },
+     {
+      "x": 28,
+      "y": -2
+     },
+     {
+      "x": 28,
+      "y": -4
+     }
+    ]
+   },
+   "c_cc8b9391cc": {
+    "id": "c_cc8b9391cc",
+    "puntos": [
+     {
+      "x": 28,
+      "y": -4
+     },
+     {
+      "x": 32,
+      "y": -4
+     }
+    ]
+   },
+   "c_f870f74257": {
+    "id": "c_f870f74257",
+    "puntos": [
+     {
+      "x": 40,
+      "y": 4
+     },
+     {
+      "x": 40,
+      "y": 12
+     },
+     {
+      "x": 0,
+      "y": 12
+     }
+    ]
+   }
+  },
+  "etiquetas": {},
+  "notas": {},
+  "sondas": {
+   "s_e5308b3439": {
+    "id": "s_e5308b3439",
+    "tipo": "medidor",
+    "x": 26,
+    "y": -4,
+    "magnitud": "voltaje",
+    "modo": "dc",
+    "pantalla": {
+     "dx": 7,
+     "dy": -6
+    },
+    "ref": "M1"
+   },
+   "s_29e286e330": {
+    "id": "s_29e286e330",
+    "tipo": "multimetro",
+    "x": 6,
+    "y": -4,
+    "instrumento": "p_cb13204748",
+    "entrada": "+"
+   },
+   "s_6bae635a86": {
+    "id": "s_6bae635a86",
+    "tipo": "voltaje",
+    "x": 18,
+    "y": 4
+   }
+  }
+ }
+}

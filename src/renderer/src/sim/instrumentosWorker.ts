@@ -370,8 +370,10 @@ export class InstrumentosEnWorker {
 
   /** Todo lo que conservan las sondas de un osciloscopio como columnas finas e iguales, para desplazarse por la captura
    * detenida o en pausa. Cada columna dura lo de una de la pantalla actual o, si la captura es muy larga, lo que quepa en
-   * `COLUMNAS_FINAS`. Null sin osciloscopio `k` ni tramo con dato. */
-  capturaFina(k: number, hasta?: number): RegistroFino | null {
+   * `COLUMNAS_FINAS`. Con `paso` (el paso máximo del motor), nunca más anchas que él: vista con una base más fina que la
+   * de la captura, una columna de la pantalla de entonces abarcaba medio periodo y la senoidal salía cuadrada.
+   * Null sin osciloscopio `k` ni tramo con dato. */
+  capturaFina(k: number, hasta?: number, paso?: number): RegistroFino | null {
     const c = this.cfg.osciloscopios[k]
     const e = this.osc[k]
     if (!c || !e) return null
@@ -382,7 +384,8 @@ export class InstrumentosEnWorker {
     const fin = Math.min(hasta ?? Number.POSITIVE_INFINITY, ...vivas.map((s) => this.m.sonda_tiempo(s)))
     const ini = Math.max(0, ...vivas.map((s) => this.m.sonda_cubre(s)).filter((t) => Number.isFinite(t)))
     if (!(fin > ini)) return null
-    const dt = Math.max((DIVISIONES_H * a.base) / Math.max(COLUMNAS_MIN, e.ncol), (fin - ini) / COLUMNAS_FINAS)
+    const dePantalla = (DIVISIONES_H * a.base) / Math.max(COLUMNAS_MIN, e.ncol)
+    const dt = Math.max(paso !== undefined && paso > 0 ? Math.min(dePantalla, paso) : dePantalla, (fin - ini) / COLUMNAS_FINAS)
     const n = Math.max(1, Math.ceil((fin - ini) / dt))
     const columnas = new Float32Array(CANALES_PANTALLA * n * CIFRAS_COLUMNA)
     // Por trozos de lo que cabe en una llamada al motor; cada trozo se copia antes de pedir el siguiente.

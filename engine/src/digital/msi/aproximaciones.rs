@@ -142,7 +142,10 @@ impl Aproximaciones {
     pub fn paso(&mut self, ahora: Ps, e: &[Nivel]) {
         let (iniciando, leyendo) = self.controles(e);
         let arranca = self.iniciando == Nivel::Uno && iniciando == Nivel::Cero;
-        self.iniciando = iniciando;
+        // Un flanco lento pasa por X: Uno, X, Cero sigue siendo la subida de WR que arranca la conversión.
+        if iniciando != Nivel::X {
+            self.iniciando = iniciando;
+        }
         if iniciando == Nivel::Uno {
             self.reposo();
         } else if arranca {
@@ -231,6 +234,16 @@ mod tests {
         assert_eq!(resultado(&b, 8), 77);
         assert_eq!(intr(&b, 8), Cero, "INTR baja al terminar");
         assert_eq!(prueba(&b, 8), 0);
+    }
+
+    #[test]
+    fn una_subida_de_wr_que_pasa_por_x_arranca_la_conversion() {
+        let mut b = adc(interno(1e-6), 8, 2, 8);
+        b.pone(5 * US, &[(0, 0), (1, 0)]);
+        b.en(10 * US, &[(1, X)]);
+        b.pone(11 * US, &[(1, 1)]);
+        assert!(b.m.despertar().is_some(), "la conversión arrancó");
+        assert_eq!(prueba(&b, 8), 0x80);
     }
 
     #[test]

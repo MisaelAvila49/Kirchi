@@ -1,6 +1,6 @@
 # Guía de uso
 
-Esta guía recorre lo básico de Kirchi. Dentro de la aplicación, el tutorial «Aprende Kirchi» (menú Ayuda) explica lo mismo paso a paso.
+Esta guía recorre lo básico de Kirchi. Dentro de la aplicación, el tutorial «Aprende Kirchi» (menú Ayuda) recorre Kirchi paso a paso, en cuatro capítulos que se pueden hacer por separado: Conoce Kirchi, Tu primer circuito, Medir y Analizar y exportar. En los pasos «Mira» un marco señala una zona y se avanza con «Siguiente»; en los pasos «Haz» la aplicación comprueba lo que hiciste.
 
 ## La ventana
 
@@ -47,28 +47,32 @@ El menú **Analizar**, en Inicio, ofrece seis análisis que usan ngspice.
 | Fourier | Armónicos de una señal. |
 | Barrido de parámetro | El resultado al variar un valor de una pieza. |
 
+Si no se puede elegir ninguno (la vista previa no está detenida o el archivo es de solo lectura), la pestaña Análisis lo dice arriba de la lista.
+
 Se elige el análisis, se ajustan sus campos en su ficha y se pulsa **Ejecutar**. Los resultados quedan en la pestaña **Gráficas** de la franja inferior, con cursores, zoom y exportación. Las redes con nombre (etiquetas) y las sondas indican qué curvas dibujar.
 
 ## Datos de la pieza
 
-Al seleccionar una pieza, el inspector muestra una sección «Datos de la pieza» con el encapsulado, una tabla con el número, el nombre y la nota de cada patilla, la huella, la parte y el enlace a la hoja de datos. Cambian al elegir otro modelo u otra presentación (un 2N3904 y un TIP31 traen encapsulados distintos). Un dato que todavía no se cotejó con una fuente lleva la marca «sin verificar».
+Al seleccionar una pieza, el inspector muestra una sección «Datos de la pieza» con el encapsulado, una tabla con el número, el nombre y la nota de cada pin, la huella, la parte y el enlace a la hoja de datos. Cambian al elegir otro modelo u otra presentación (un 2N3904 y un TIP31 traen encapsulados distintos). Un dato que todavía no se cotejó con una fuente lleva la marca «sin verificar».
 
 «Copiar» deja la huella en el portapapeles. «Abrir» lleva la hoja de datos o la página del número LCSC al navegador del sistema, solo al pulsarlo y nunca por su cuenta. Con la vista previa corriendo la sección sigue disponible.
 
-El asistente consulta lo mismo con la herramienta `datos_pieza`: encapsulado, patillas, número LCSC con su marca, hoja y equivalencias.
+El asistente consulta lo mismo con la herramienta `datos_pieza`: encapsulado, pines, número LCSC con su marca, hoja y equivalencias.
 
 Un circuito guarda la lista de lo que necesita. Si lo abres en una versión de Kirchi que no tiene una pieza o un modelo, un aviso lo nombra, se conserva al guardar y se puede simular al actualizar.
 
 ### Piezas
 
-Hay 102 piezas en nueve categorías. La Librería agrupa las digitales en grupos plegables con su conteo y recuerda cuáles dejaste cerrados.
+Hay 111 piezas en nueve categorías. La Librería agrupa en grupos plegables, con su conteo, las categorías Pasivos, Fuentes, Semiconductores, Interruptores, Digitales y Circuitos integrados, y recuerda cuáles dejaste cerrados. Electromecánicos, Indicadores e Instrumentos son listas planas.
 
 - **Compuertas.** AND, OR, NAND, NOR, XOR y XNOR de 2 a 8 entradas (el ajuste Entradas está en el inspector y en el editor del doble clic), inversor Schmitt 74HC14 y búfer de tres estados 74HC125, cuyas salidas pueden compartir una red.
-- **Lógica MSI** (74HC y 74LS): decodificadores 138, 139, 7447 y CD4028, multiplexores 151, 153 y 157, codificador de prioridad 148, sumador 283, comparador de magnitud 85, búfer 244, transceptor 245, contadores 161, 163, 190 y 193 y contador Johnson CD4017.
+- **Lógica MSI** (74HC y 74LS): decodificadores 138, 139, 7447 y CD4028, multiplexores 151, 153 y 157, codificador de prioridad 148, sumador 283, comparador de magnitud 85, búfer 244, transceptor 245, contadores 161, 163, 190 y 193, contador Johnson CD4017 y registros de desplazamiento 74164 (entrada serie, salida paralela), 74165 (carga paralela) y 74595 (con almacenamiento y salidas de tres estados).
 - **Semiconductores.** JFET de canal N y P, IGBT, UJT 2N2646, y los modelos BC337, BC327, 2N5551, 2N5401 y 2N3055.
 - **Fuentes.** Controladas de voltaje y de corriente (E, G, H y F) y fuente de voltaje por tramos (PWL), que dibuja su forma de onda en miniatura.
 - **Sensores.** Termistores NTC y PTC, fotorresistencias, LM35 y TMP36.
 - **Integrados.** Optoacopladores 4N25 y PC817, referencias TL431 y LM4040, amplificador de instrumentación INA128, amplificador de audio LM386, reguladores 7809, 7815, 7912 y 7915, amplificadores MCP6002 y OP27, comparador LM339 y puente H L298.
+- **Convertidores.** ADC0804 (A/D de 8 bits por aproximaciones sucesivas) y DAC0808 (D/A de 8 bits con salida en corriente). El Registro avisa una vez si una entrada del DAC lleva más de un microsegundo sin nivel definido.
+- **Interruptores y teclados.** Interruptores DIP de 4 y de 8 posiciones, y teclados matriciales de 4x4 y de 4x3. Con la vista previa corriendo, un clic en la palanca de un DIP o en una tecla del teclado mueve sus contactos, y las teclas de la computadora accionan el teclado seleccionado (cada clic es un paso de deshacer).
 - **Motores.** Motores a pasos 28BYJ-48 (unipolar) y 17HS4401 (bipolar), con el ángulo y los pasos en Mediciones.
 - **Instrumentos.** Punta lógica, que enciende sus luces de alto y bajo según el nivel que toca.
 
@@ -76,17 +80,17 @@ En el buscador, `bc` propone BC337 y BC547.
 
 ## Perillas en vivo
 
-El potenciómetro, el reóstato, los termistores, la fotorresistencia y los sensores de temperatura tienen una perilla que se mueve mientras se simula: desde el inspector, desde el panel Mediciones, con la rueda del ratón sobre la pieza o con las teclas. Algunas llevan escala logarítmica y un campo para escribir el valor. Junto al valor de la pieza se lee el ajuste y la resistencia que resulta, según la opción Mostrar del inspector. Si el motor rechaza un valor, la perilla vuelve al anterior y el Registro lo avisa.
+El potenciómetro, el reóstato, los termistores, la fotorresistencia y los sensores de temperatura tienen una perilla que se mueve mientras se simula: desde el inspector, desde el panel Mediciones, con la rueda del ratón sobre la pieza o con las teclas. Algunas llevan escala logarítmica y un campo para escribir el valor. El ajuste se lee en un recuadro propio junto a la pieza, que se mueve y se deshace como la Referencia y el Valor. La opción Mostrar del inspector elige qué dice: «Como en Configuración» (la opción por omisión), «Ajuste», «Valores» (la resistencia de cada lado o de la parte), «Ambos» o «Nada». El ajuste general se elige en Configuración › General › «Texto de las piezas ajustables». Si el motor rechaza un valor, la perilla vuelve al anterior y el Registro lo avisa.
 
 ## Chips de varias unidades
 
 Un circuito integrado con varias unidades, como un 74HC00, se coloca por unidades: la primera pieza toma el primer paquete libre (U1A), la siguiente se acomoda en la unidad que sigue (U1B) y así hasta llenarlo. En el inspector, el selector Unidad cambia a cuál corresponde la pieza y deshabilita las ocupadas. Cambiar el nombre del paquete lo cambia en todas sus unidades.
 
-«Agrupar en encapsulados», en Inicio y en el clic derecho, junta las piezas sueltas seleccionadas en paquetes. El panel Proyecto lista los encapsulados. Las patillas de alimentación que comparten las unidades de un paquete se unen solas, y si quedan en redes distintas la simulación avisa.
+«Agrupar en encapsulados», en Inicio y en el clic derecho, junta las piezas sueltas seleccionadas en paquetes. El panel Proyecto lista los encapsulados. Los pines de alimentación que comparten las unidades de un paquete se unen solos, y si quedan en redes distintas la simulación avisa.
 
-## Números de patilla
+## Números de pin
 
-Vista › Números de patilla dibuja el número de cada pin de los chips, según su unidad y su familia. Viene visible. El archivo que se exporta los lleva solo si están visibles.
+Vista › Números de pin dibuja el número de cada pin de los chips, según su unidad y su familia. Viene visible. El archivo que se exporta los lleva solo si están visibles.
 
 ## Mediciones de lógica
 
@@ -96,6 +100,12 @@ Mediciones tiene una sección «Lógica y convertidores». Para los chips MSI mu
 
 - **Plantillas.** Selecciona una parte del circuito y elige «Guardar como plantilla» en Inicio › Archivo. Para colocarla, abre el panel Plantillas y haz clic en el lienzo. Kirchi incluye quince, como el divisor, el LED con resistencia, el 555 astable, filtros, el puente H discreto y un contador de 0 a 99 con displays.
 - **Calculadoras.** Seis calculadoras (divisor de voltaje, LED con resistencia, filtros, 555 astable, 555 monoestable y amplificador) dan valores comerciales y muestran la ecuación con la sustitución. **Generar circuito** deja el circuito listo para colocar con un clic.
+
+## Texto y tamaños
+
+El tamaño de letra de una nota o etiqueta se escribe y se muestra en puntos (pt); por omisión es 5.7 pt y el rango va de 2.8 a 56.7 pt. El deslizador «Tamaño del texto» de los diálogos de exportar cambia todo el texto de la figura a la vez.
+
+Los diálogos de exportar una gráfica o una captura recuerdan lo que ajustaste mientras los datos sean los mismos. «Restablecer» los devuelve a sus valores por omisión.
 
 ## Atajos
 
@@ -116,7 +126,9 @@ Mediciones tiene una sección «Lógica y convertidores». Para los chips MSI mu
 | Hoja de atajos | `?` |
 | Configuración | `Ctrl+,` |
 
-La hoja completa de atajos está en Ayuda › Atajos. Los atajos se cambian en Configuración, y un conflicto entre dos atajos se pregunta antes de aplicarse.
+Configuración (`Ctrl+,`) tiene las secciones General, Apariencia, Simulación, Asistente y Atajos en una columna a la izquierda, con una tarjeta por grupo. Los cambios se guardan solos.
+
+La hoja completa de atajos está en Ayuda › Atajos. Los atajos se cambian en Configuración › Atajos, y un conflicto entre dos atajos se pregunta antes de aplicarse.
 
 ## Asistente
 
@@ -124,7 +136,7 @@ Un asistente de IA (Claude Desktop, Claude Code o cualquier cliente MCP) puede t
 
 1. Abre Configuración › Asistente y activa «Permitir que un asistente controle Kirchi».
 2. Pulsa «Copiar configuración del asistente» y pega el texto en la configuración del cliente; el estado de la pestaña dice «Listo. Escríbele al asistente desde tu cliente.» Con el instalador de Windows lleva la ruta completa de Kirchi y con la Microsoft Store el alias `kirchi`.
-3. Escríbele directo en tu cliente, en palabras. Puede colocar piezas, cablear, cambiar valores, simular, leer mediciones, usar plantillas y calculadoras, correr y guardar análisis con trazas por patilla, y exportar la imagen o la gráfica.
+3. Escríbele directo en tu cliente, en palabras. Puede colocar piezas, cablear, cambiar valores, simular, leer mediciones, usar plantillas y calculadoras, correr y guardar análisis con trazas por pin, y exportar la imagen o la gráfica.
 
 Mientras trabaja, la fila de título muestra qué asistente está conectado y un botón para desconectarlo. Cada paso suyo se deshace con Ctrl+Z y queda en el Registro. Un circuito nuevo del asistente se abre en su propia ventana, y lo que tengas abierto se edita ahí a la vista. Sus archivos están en la carpeta del asistente (Documentos\Kirchi\Asistente), que puedes cambiar o restablecer en la misma pestaña, y se guardan solos después de cada cambio. Si un archivo abierto cambia fuera de Kirchi, un aviso ofrece «Recargar» o «Conservar el mío». Si desconectas, el asistente no vuelve hasta que apagues y enciendas el permiso.
 

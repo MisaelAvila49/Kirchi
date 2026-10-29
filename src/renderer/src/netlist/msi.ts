@@ -64,7 +64,9 @@ const fuentePuro = (s: string) => (s.startsWith('!') ? s.slice(1) : s)
 /** El elemento del motor de una pieza `lut` o `msi`. `opcionFamilia` es la familia elegida en la pieza y `vcc` su alimentación. */
 export function elementoMsi(m: ModeloMsi, k: ParametrosLogicos, opcionFamilia: string, vcc: number, ctx: ContextoMsi): ElementoMotor | { error: string } {
   const c = tablaCompilada(m)
-  if (!c) return { error: 'La tabla de la pieza no compila.' }
+  // Un registro de desplazamiento sin salidas de tabla (el 164, el 165) no lleva ninguna.
+  const sinTabla = m.tipo === 'msi' && !tablaDelModelo(m)
+  if (!c && !sinTabla) return { error: 'La tabla de la pieza no compila.' }
   const juego = m.retardos[opcionFamilia]
   const familia = FAMILIAS.familias[opcionFamilia]
   if (!juego || !familia) return { error: `La pieza no trae retardos para ${opcionFamilia}.` }
@@ -75,10 +77,10 @@ export function elementoMsi(m: ModeloMsi, k: ParametrosLogicos, opcionFamilia: s
   const tres = salidasTresEstados(m)
   const abiertas = m.abiertas ?? []
   const z_como = k.z_como
-  const tabla = ctx.tabla(c.filas)
+  const tabla = c ? ctx.tabla(c.filas) : undefined
 
   if (m.tipo === 'lut') {
-    const tab = c.tabla
+    const tab = c!.tabla
     const locales = tab.columnas.filter((n) => !m.comunes.includes(n))
     const pinDe = (reb: Record<string, string> | null, n: string) => (reb ? reb[n] : n)
     const comunes = m.comunes.map((n) => ctx.leer(n))
@@ -87,7 +89,7 @@ export function elementoMsi(m: ModeloMsi, k: ParametrosLogicos, opcionFamilia: s
       salidas: tab.salidas.map((n) => ctx.manejar(pinDe(reb, n), tres.has(pinDe(reb, n))))
     }))
     return {
-      type: 'LUT', comunes, rebanadas, tabla,
+      type: 'LUT', comunes, rebanadas, tabla: tabla!,
       retardos: tab.salidas.map(retardo),
       ...(abiertas.length ? { abierta: tab.salidas.map((n) => abiertas.includes(n)) } : {}),
       z_como
@@ -118,8 +120,8 @@ export function elementoMsi(m: ModeloMsi, k: ParametrosLogicos, opcionFamilia: s
         }
 
   // Las fuentes de la tabla: una por columna, `estado` en sus bits (el más significativo primero), qK y aK en su bit.
-  const fuentes: FuenteMsi[] = c.tabla.columnas.flatMap((col): FuenteMsi[] => {
-    if (col === 'estado') return Array.from({ length: c.bitsEstado ?? 1 }, (_, i) => ({ bit: (c.bitsEstado ?? 1) - 1 - i }))
+  const fuentes: FuenteMsi[] = (c?.tabla.columnas ?? []).flatMap((col): FuenteMsi[] => {
+    if (col === 'estado') return Array.from({ length: c!.bitsEstado ?? 1 }, (_, i) => ({ bit: (c!.bitsEstado ?? 1) - 1 - i }))
     const q = /^([qa])(\d+)$/.exec(col)
     if (q) return [q[1] === 'q' ? { bit: Number(q[2]) } : { aux: Number(q[2]) }]
     return [{ entrada: idx(col) }]
@@ -127,7 +129,7 @@ export function elementoMsi(m: ModeloMsi, k: ParametrosLogicos, opcionFamilia: s
   const nombresSalida = Object.keys(m.salidas)
   const de: SalidaMsi[] = nombresSalida.map((pin) => {
     const v = m.salidas[pin]
-    if (v === 'tabla') return { tipo: 'tabla', columna: c.tabla.salidas.indexOf(pin) }
+    if (v === 'tabla') return { tipo: 'tabla', columna: c!.tabla.salidas.indexOf(pin) }
     const q = /^(!?)([qa])(\d+)$/.exec(v)!
     return { tipo: 'directa', fuente: q[2] === 'q' ? { bit: Number(q[3]) } : { aux: Number(q[3]) }, ...(q[1] ? { negada: true } : {}) }
   })
@@ -135,7 +137,7 @@ export function elementoMsi(m: ModeloMsi, k: ParametrosLogicos, opcionFamilia: s
     type: 'MSI',
     entradas: pinesEntrada.map((p) => ctx.leer(p)),
     salidas: nombresSalida.map((p) => ctx.manejar(p, tres.has(p) || abiertas.includes(p))),
-    nucleo, de, fuentes, tabla,
+    nucleo, de, fuentes, ...(tabla !== undefined ? { tabla } : {}),
     retardos: nombresSalida.map(retardo),
     ...(abiertas.length ? { abierta: nombresSalida.map((p) => abiertas.includes(p)) } : {}),
     z_como

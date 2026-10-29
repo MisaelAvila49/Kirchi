@@ -3,6 +3,7 @@ import { cuerpoEnMundo } from '../editor/colision'
 import { transformar } from '../piezas/transformar'
 import type { PiezaDef } from '../piezas/tipos'
 import { posicionDeProp, textoPosicion } from '../sim/potenciometro'
+import { pideAjuste } from './ajusteEnPieza'
 import { AIRE_TEXTO, cajaTexto, valores } from './apartar'
 import { Cubetas } from './cubetas'
 import type { Texto } from './etiquetas'
@@ -17,11 +18,11 @@ const CELDA = 10
  * paso de lado ya queda libre. */
 const LUGARES: readonly (readonly [number, number])[] = [[1.4, -0.4], [-1.4, -0.4], [1.4, -1.8], [-1.4, -1.8], [0, -2.2], [1.4, 1.6], [-1.4, 1.6], [3.4, -0.4], [-3.4, -0.4], [0, -4], [3.4, -2.2], [-3.4, -2.2]]
 
-/** Porcentaje del cursor de cada potenciómetro simulado, en tinta de pieza y negrita, junto al pin del cursor y en el
+/** Porcentaje del cursor de cada potenciómetro simulado cuyo «Mostrar» pide el ajuste, en tinta de pieza y negrita, junto al pin del cursor y en el
  * primer lugar de `LUGARES` sin encimarse con cuerpos, cables, textos, chips ni otro porcentaje. Si todos están ocupados,
  * el primero. Piezas por id. */
 export function porcentajesDePot(doc: Documento, lib: Map<string, PiezaDef>, simulados: ReadonlySet<string>, textos: readonly Texto[], chips: readonly Texto[]): Texto[] {
-  const pots = valores(doc.piezas).filter((p) => simulados.has(p.id) && lib.get(p.tipo)?.modelo?.tipo === 'pot').sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  const pots = valores(doc.piezas).filter((p) => simulados.has(p.id) && lib.get(p.tipo)?.modelo?.tipo === 'pot' && pideAjuste(p, lib.get(p.tipo)!)).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
   if (pots.length === 0) return []
   const piezas = valores(doc.piezas), cables = valores(doc.cables)
   let n = textos.length + chips.length + piezas.length + pots.length

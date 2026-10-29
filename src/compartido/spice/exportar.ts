@@ -420,6 +420,7 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
         const ps = parametros(e.model, PARAMETROS_BJT)
         const m = modelo('qm', (n) => `.model ${n} ${pnp ? 'pnp' : 'npn'}(${ps})`)
         cuerpo.push(`q${k} ${c} ${b} ${em} ${m}`)
+        if (e.euler === true) opcionesSolver.add('method=gear')
         break
       }
       case 'M': {
@@ -444,17 +445,21 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
         })
         usaAmpop = true
         cuerpo.push(`x${k} ${ns.join(' ')} ampop ${ps.join(' ')}`)
+        // Lo que el motor integra con Euler (un lazo interno mucho más rápido que el paso) con el trapecio oscila: Gear lo amortigua.
+        if (e.euler === true) opcionesSolver.add('method=gear')
         break
       }
       case 'LAMP': {
         const [a, b] = [nodo(e, 'a'), nodo(e, 'b')]
         const [rf, kk, pnom, tau] = [positivo(e, 'rfrio'), num(e, 'k'), positivo(e, 'pnom'), positivo(e, 'tau')]
-        // La resistencia crece con la temperatura relativa th (0 frío, 1 a la potencia nominal): rfrio (1 + k th).
+        // La resistencia crece con la temperatura relativa th (0 frío, 1 la nominal): rfrio (1 + k th). Pierde 0.1 th por
+        // conducción y 0.9 th^(10/3) por radiación (I ∝ V^0.55), con la capacidad tau p'(1) = 3.1 tau.
         const r = `(${f(rf)}*(1+${fp(kk)}*v(th${k})))`
         cuerpo.push(`bl${k} ${a} ${b} i=(${vn(a)}-${vn(b)})/${r}`)
         cuerpo.push(`bp${k} 0 th${k} i=(${vn(a)}-${vn(b)})*(${vn(a)}-${vn(b)})/${r}/${f(pnom)}`)
-        cuerpo.push(`rth${k} th${k} 0 1`)
-        cuerpo.push(`cth${k} th${k} 0 ${f(tau)}`)
+        cuerpo.push(`rth${k} th${k} 0 10`)
+        cuerpo.push(`bq${k} th${k} 0 i=0.9*pwr(v(th${k}),3.333333333)`)
+        cuerpo.push(`cth${k} th${k} 0 ${f(3.1 * tau)}`)
         break
       }
       case 'MOTOR': {

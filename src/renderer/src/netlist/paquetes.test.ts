@@ -56,11 +56,11 @@ describe('patillas compartidas de un encapsulado', () => {
       { tipo: 'resistencia', ref: 'R1', props: { valor: '1k' }, pines: { '1': 'ent', '2': '0' } }
     ])
     const u = unirCompartidas(e, lib, calcularConexiones(e, lib))
-    expect(u.errores.map((x) => x.texto)).toEqual(['U1A y U1B comparten la patilla 8 (V+) y están en redes distintas.'])
+    expect(u.errores.map((x) => x.texto)).toEqual(['U1A y U1B comparten el pin 8 (V+) y están en redes distintas.'])
     expect(u.errores[0].piezas).toHaveLength(2)
     const r = compilar(e)
     expect(r.netlist).toBeNull()
-    expect(r.errores).toContain('U1A y U1B comparten la patilla 8 (V+) y están en redes distintas.')
+    expect(r.errores).toContain('U1A y U1B comparten el pin 8 (V+) y están en redes distintas.')
   })
 
   it('el editor no avisa de pin suelto en la unidad que comparte y sí del conflicto', () => {

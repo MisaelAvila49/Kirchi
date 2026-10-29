@@ -93,6 +93,8 @@ interface Props {
   simulando?: boolean
   /** El interruptor o botón seleccionado durante la vista previa, para accionarlo con el ratón o el teclado. */
   accion?: AccionSim | null
+  /** Qué teclas mueven la pieza seleccionada mientras la vista previa corre (un DIP o un teclado). */
+  ayudaContactos?: string | null
   onConmutar?(): void
   /** El potenciómetro seleccionado (con o sin vista previa) y el cambio de su posición; es lo único que se edita simulando. */
   pot?: PotVista | null
@@ -477,6 +479,9 @@ export default function Inspector(props: Props) {
         </Show>
         <Show when={props.carga && !(props.vista.tipo === 'pieza' && props.vista.defId === 'multimetro')}>
           <p class="secundario sub">{props.carga}</p>
+        </Show>
+        <Show when={props.ayudaContactos}>
+          <p class="secundario sub">{props.ayudaContactos}</p>
         </Show>
         <Show when={props.accion}>
           <section class="acciones-sim" aria-label="Accionar">

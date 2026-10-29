@@ -230,3 +230,77 @@ describe('calculadora de filtros: un selector de tipo', () => {
     expect(filtros('rechazabanda', { fl: '5k', fh: '1k' }).salida).toBeDefined()
   })
 })
+
+describe('calculadora de amplificadores: un selector de tipo', () => {
+  const amp = (tipo: string, extra: Record<string, string> = {}, serie: Contexto['serie'] = 'E12') => def('amplificador').evaluar({ ...estadoInicial(def('amplificador')), tipo, ...extra }, ctx(serie))
+  const visibles = (tipo: string, extra: Record<string, string> = {}) =>
+    def('amplificador').campos.filter((k) => !k.visible || k.visible({ ...estadoInicial(def('amplificador')), tipo, ...extra })).map((k) => k.id)
+
+  it('el nombre, el resumen y las palabras de búsqueda cubren los seis tipos', () => {
+    const d = def('amplificador')
+    expect(d.nombre).toBe('Amplificadores con operacional')
+    for (const p of ['inversor', 'no inversor', 'integrador', 'derivador', 'instrumentacion', 'sumador']) expect(d.palabras).toContain(p)
+    const tipo = d.campos.find((k) => k.id === 'tipo')!
+    expect(tipo.tipo === 'lista' && tipo.opciones({ serie: 'E12', lib }).map((o) => o.valor)).toEqual(['inversor', 'no-inversor', 'integrador', 'derivador', 'instrumentacion', 'sumador'])
+  })
+  it('cada tipo muestra solo sus campos', () => {
+    expect(visibles('inversor')).toEqual(['tipo', 'g', 'rin', 'vs', 'vin', 'modelo'])
+    expect(visibles('integrador')).toEqual(['tipo', 'rin', 'fu', 'conrf', 'gdc', 'fsen', 'vs', 'vin', 'modelo'])
+    expect(visibles('integrador', { conrf: 'no' })).toEqual(['tipo', 'rin', 'fu', 'conrf', 'fsen', 'vs', 'vin', 'modelo'])
+    expect(visibles('derivador')).toEqual(['tipo', 'fu', 'cap', 'cons', 'rs', 'fsen', 'vs', 'vin', 'modelo'])
+    expect(visibles('derivador', { cons: 'no' })).toEqual(['tipo', 'fu', 'cap', 'cons', 'fsen', 'vs', 'vin', 'modelo'])
+    expect(visibles('instrumentacion')).toEqual(['tipo', 'g', 'r', 'rd', 'vd', 'vcm', 'vs', 'modelo'])
+    expect(visibles('sumador')).toEqual(['tipo', 'n', 'rf', 'g1', 'e1', 'g2', 'e2', 'vs', 'modelo'])
+    expect(visibles('sumador', { n: '4' })).toEqual(['tipo', 'n', 'rf', 'g1', 'e1', 'g2', 'e2', 'g3', 'e3', 'g4', 'e4', 'vs', 'modelo'])
+  })
+  it('con sus valores de inicio y E12 cada tipo da sus valores, sus ecuaciones y su circuito', () => {
+    const integ = amp('integrador').salida!
+    expect(integ.valores.map((v) => v.rotulo)).toEqual(['Capacitor', 'Rf'])
+    expect(integ.ecuaciones.map((q) => q.ecuacion)).toEqual(['fu = 1 / (2π · Rin · C)', 'fp = 1 / (2π · Rf · C)', 'Vsalida = Vin · Rf / (Rin · √(1 + (f / fp) · (f / fp)))'])
+    expect(integ.ecuaciones[0].sustitucion).toBe('fu = 1 / (2π · 1 kΩ · 150 nF) = 1.06 kHz')
+    expect(amp('integrador', { conrf: 'no' }).salida!.ecuaciones[1].sustitucion).toBe('Vsalida = 500 mV · 1.06 kHz / 1 kHz = 531 mV')
+    const deriv = amp('derivador').salida!
+    expect(deriv.valores.map((v) => v.rotulo)).toEqual(['Rf', 'Capacitor', 'Rs'])
+    expect(deriv.ecuaciones.map((q) => q.ecuacion)).toEqual(['fu = 1 / (2π · Rf · C)', 'fs = 1 / (2π · Rs · C)', 'Vsalida = Vin · (f / fu) / √(1 + (f / fs) · (f / fs))'])
+    const suma = amp('sumador').salida!
+    expect(suma.valores.map((v) => v.rotulo)).toEqual(['Rf', 'R1', 'R2'])
+    expect(suma.ecuaciones[0].ecuacion).toBe('Vsalida = −(Rf / R1 · V1 + Rf / R2 · V2)')
+    expect(suma.ecuaciones[0].sustitucion).toBe('Vsalida = −(10 kΩ / 10 kΩ · 1 V + 10 kΩ / 4.7 kΩ · 500 mV) = −2.06 V')
+    const instr = amp('instrumentacion').salida!
+    expect(instr.ecuaciones[0].sustitucion).toBe('Ganancia = 1 + 2 · 10 kΩ / 2.2 kΩ = 10.1')
+    expect(instr.ecuaciones[1].sustitucion).toBe('Vsalida = 10.1 · 10 mV = 101 mV')
+    expect(instr.nota).toMatch(/rechazo del modo común/)
+  })
+  it('la saturación usa las caídas del modelo y rotula la salida recortada', () => {
+    const integ = amp('integrador', { conrf: 'no', vin: '20' })
+    expect(integ.salida!.reales[2].valor).toBe('14 V (recortada)')
+    expect(integ.salida!.avisos.some((a) => /se recorta/.test(a))).toBe(true)
+    const suma = amp('sumador', { e1: '5', e2: '5', vs: '5' })
+    expect(suma.salida!.reales[1].valor).toBe('−4 V (recortada)')
+    const lm358 = amp('sumador', { e1: '2', e2: '2', vs: '5', modelo: 'LM358' })
+    expect(lm358.salida!.reales[1].valor).toBe('−5 V (recortada)')
+    expect(amp('instrumentacion', { vcm: '13.8', vd: '100m' }).salida!.avisos[0]).toMatch(/amplificador de entrada/)
+  })
+  it('los errores van a su campo y los de la fórmula explican', () => {
+    expect(Object.keys(amp('integrador', { fu: 'abc' }).erroresCampo)).toEqual(['fu'])
+    expect(Object.keys(amp('derivador', { cap: '0' }).erroresCampo)).toEqual(['cap'])
+    expect(amp('integrador', { gdc: '0.5' }).error).toMatch(/1 o más/)
+    expect(amp('instrumentacion', { g: '1' }).error).toMatch(/mayor que 1/)
+    expect(Object.keys(amp('sumador', { g2: '0' }).erroresCampo)).toEqual(['g2'])
+    // Las entradas que no se ven no se leen: un error en la cuarta no estorba al sumador de dos.
+    expect(amp('sumador', { e4: 'abc' }).erroresCampo).toEqual({})
+  })
+  it('las señales del sumador y el modo común aceptan negativos y los demás campos no', () => {
+    expect(amp('sumador', { e2: '-0.5' }).salida!.reales[1].valor).toBe('63.8 mV')
+    expect(amp('instrumentacion', { vcm: '-2' }).erroresCampo).toEqual({})
+    expect(Object.keys(amp('instrumentacion', { vd: '-1m' }).erroresCampo)).toEqual(['vd'])
+    expect(Object.keys(amp('inversor', { vin: '-1' }).erroresCampo)).toEqual(['vin'])
+  })
+  it('cada tipo genera un circuito con nombre y descripción válidos como plantilla', () => {
+    for (const tipo of ['inversor', 'no-inversor', 'integrador', 'derivador', 'instrumentacion', 'sumador']) {
+      const a = amp(tipo).salida!.armado
+      expect(motivoNombreInvalido(a.nombre), a.nombre).toBeNull()
+      expect(`${a.nombre}${a.descripcion}`).not.toMatch(/—/)
+    }
+  })
+})

@@ -2,6 +2,7 @@
   "id": "ptc",
   "nombre": { "es": "Termistor PTC", "en": "PTC thermistor" },
   "categoria": "pasivos",
+  "grupo": "Sensores resistivos",
   "prefijo": "TH",
   "buscar": ["ptc", "termistor ptc", "thermistor ptc", "coeficiente positivo", "b59339", "resistencia ptc"],
   "pines": [
@@ -9,7 +10,7 @@
     { "id": "2", "nombre": "2", "x": 4, "y": 0 }
   ],
   "props": [
-    { "id": "modelo", "nombre": "Modelo", "defecto": "B59339A1202P020", "opciones": ["B59339A1202P020"] },
+    { "id": "modelo", "nombre": "Modelo", "mostrar": true, "defecto": "B59339A1202P020", "opciones": ["B59339A1202P020"] },
     {
       "id": "temperatura",
       "nombre": "Temperatura",
@@ -17,7 +18,7 @@
       "defecto": "25",
       "enVivo": { "magnitud": "temperatura", "min": -25, "max": 125, "paso": 5, "pasoFino": 1 }
     },
-    { "id": "junto", "nombre": "Mostrar", "defecto": "Ambos", "opciones": ["Nada", "Ajuste", "Resistencia", "Ambos"], "omitir": true }
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Como en Configuración", "opciones": ["Como en Configuración", "Ajuste", "Valores", "Ambos", "Nada"], "omitir": true }
   ],
   "modelo": {
     "tipo": "termistor",
@@ -62,7 +63,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "EPCOS B593** (enero 2016) p. 2: RR 2000 Ω ± 25 %, Rmin 900 Ω, IR 10 mA, IS 20 mA, ISmax 0.15 A, Ir 2.0 mA, ts 0.5 s, Tref 120 °C, Vmax 265 V, VR 230 V; LCSC C17506069 (nombre B59339A1202P020, 2 kΩ, listado sin paquete). Patillas: dos terminales sin polaridad; Device:Thermistor_PTC de KiCad 9 (pines 1 y 2)"
+          "fuente": "EPCOS B593** (enero 2016) p. 2: RR 2000 Ω ± 25 %, Rmin 900 Ω, IR 10 mA, IS 20 mA, ISmax 0.15 A, Ir 2.0 mA, ts 0.5 s, Tref 120 °C, Vmax 265 V, VR 230 V; LCSC C17506069 (nombre B59339A1202P020, 2 kΩ, listado sin paquete). Pines: dos terminales sin polaridad; Device:Thermistor_PTC de KiCad 9 (pines 1 y 2)"
         },
         "nota": "Es la PTC cerámica de conmutación (respuesta a la pregunta 1): caja de plástico con patas, se calienta sola y salta de resistencia cerca de Tref. Otras dos filas de la misma hoja: 500 Ω (B59339A1501P020, Rmin 260 Ω, Tref 120 °C) y 5000 Ω (B59339A1502P020, Rmin 3200 Ω, Tref 115 °C)."
       }

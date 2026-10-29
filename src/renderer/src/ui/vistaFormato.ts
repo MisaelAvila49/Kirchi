@@ -59,17 +59,33 @@ export function vistaFormato(doc: Documento, sel: Seleccion): VistaFormato | nul
   }
 }
 
+const area2 = (a: Caja, b: Caja): number => Math.max(0, Math.min(a.maxX, b.maxX) - Math.max(a.minX, b.minX)) * Math.max(0, Math.min(a.maxY, b.maxY) - Math.max(a.minY, b.minY))
+
 /**
  * Esquina de la barra flotante para la caja `c` de lo seleccionado (px de ventana) dentro de `area`: centrada arriba si cabe, si no abajo, siempre dentro del área.
+ * Con `obstaculos` (cuerpos de piezas en pantalla) prueba arriba, abajo, a la derecha y a la izquierda y toma la primera que no pisa ninguno; si todas pisan, la que tapa menos.
  */
-export function posicionBarraFormato(c: Caja, ancho: number, alto: number, area: Caja, hueco = 8): { left: number; top: number; abajo: boolean } {
+export function posicionBarraFormato(c: Caja, ancho: number, alto: number, area: Caja, hueco = 8, obstaculos: readonly Caja[] = []): { left: number; top: number; abajo: boolean } {
   const m = 4
-  const left = Math.max(area.minX + m, Math.min((c.minX + c.maxX) / 2 - ancho / 2, area.maxX - m - ancho))
+  const dentroX = (x: number) => Math.max(area.minX + m, Math.min(x, area.maxX - m - ancho))
+  const dentroY = (y: number) => Math.max(area.minY + m, Math.min(y, area.maxY - m - alto))
+  const centroX = (c.minX + c.maxX) / 2 - ancho / 2
+  const centroY = (c.minY + c.maxY) / 2 - alto / 2
   const arriba = c.minY - hueco - alto
-  if (arriba >= area.minY + m) return { left, top: Math.min(arriba, area.maxY - m - alto), abajo: false }
-  const abajo = c.maxY + hueco
-  // Siempre dentro del área: si el texto la rebasa por abajo o por arriba, la barra se pega al borde.
-  return { left, top: Math.max(area.minY + m, Math.min(abajo, area.maxY - m - alto)), abajo: true }
+  const sitios = [
+    { left: dentroX(centroX), top: Math.min(arriba, area.maxY - m - alto), abajo: false, cabe: arriba >= area.minY + m },
+    { left: dentroX(centroX), top: dentroY(c.maxY + hueco), abajo: true, cabe: true },
+    { left: dentroX(c.maxX + hueco), top: dentroY(centroY), abajo: false, cabe: c.maxX + hueco + ancho <= area.maxX - m },
+    { left: dentroX(c.minX - hueco - ancho), top: dentroY(centroY), abajo: false, cabe: c.minX - hueco - ancho >= area.minX + m }
+  ]
+  const tapa = (s: { left: number; top: number }) => {
+    const caja = { minX: s.left, minY: s.top, maxX: s.left + ancho, maxY: s.top + alto }
+    return obstaculos.reduce((n, o) => n + area2(caja, o), 0) + 4 * area2(caja, c)
+  }
+  const libres = sitios.filter((s) => s.cabe)
+  const elegido = obstaculos.length === 0 ? libres[0] : libres.reduce((mejor, s) => (tapa(s) < tapa(mejor) ? s : mejor), libres[0])
+  const { left, top, abajo } = elegido
+  return { left, top, abajo }
 }
 
 /** La caja de lo seleccionado toca el área del lienzo (si no, la barra se esconde en vez de flotar sobre otra cosa). */

@@ -209,7 +209,7 @@
           }
         ],
         "pendiente": {
-          "patillas": "una sola fuente (hoja de TI, imagen); KiCad 9 no tiene el símbolo. Las patillas del primer grupo quedan como lectura de la hoja y falta la segunda fuente"
+          "patillas": "una sola fuente (hoja de TI, imagen); KiCad 9 no tiene el símbolo. Los pines del primer grupo quedan como lectura de la hoja y falta la segunda fuente"
         },
         "comprobado": {
           "fecha": "2026-10-26",

@@ -82,6 +82,13 @@ const MAX_LOCALIZACIONES: u32 = 4;
 /// Un paso que terminaría a menos de esta fracción de sí mismo antes del final de la llamada se estira hasta él. Si no, la suma de pasos deja una astilla de ~1e-13 s cuyo ruido de redondeo en 2C/h (1e7 S) impide converger, y la simulación se atasca en el mismo instante (compuanalogica.kir).
 const RESTO_MIN: f64 = 1e-3;
 
+/// Oscilación del trapecio: un voltaje que cambia de sentido en cada paso (dos vueltas seguidas, cada cambio de `ZIGZAG_FRACCION`
+/// de su valor y `ZIGZAG_V` o más) durante `ZIGZAG_PASOS` pasos hace que los `EULER_PASOS` siguientes vayan con Euler hacia atrás.
+const ZIGZAG_PASOS: u8 = 2;
+const EULER_PASOS: u8 = 4;
+const ZIGZAG_FRACCION: f64 = 1e-2;
+const ZIGZAG_V: f64 = 1e-6;
+
 /// Lo más corto que puede ser un tramo de una onda cuadrada, como fracción del paso máximo: con menos, cada flanco es un
 /// punto de quiebre y el tiempo simulado casi no avanza.
 const SEGMENTO_MIN_POR_PASO: f64 = 1e-4;
@@ -182,6 +189,10 @@ pub struct EstadoTransient {
     delta: f64,
     delta_old: [f64; 4],
     order: u8,
+    zz_paso: Vec<f64>,
+    zz_vueltas: Vec<u8>,
+    zz_racha: u8,
+    zz_euler: u8,
     first: bool,
     at_break: bool,
     save_delta: f64,
@@ -271,6 +282,12 @@ pub struct Transient {
     delta: f64,
     delta_old: [f64; 4],
     order: u8,
+    /// Lo que cambió cada voltaje en el último paso y cuántas veces seguidas cambió de sentido, la racha de pasos en zigzag y los
+    /// pasos de Euler que faltan (ver `ZIGZAG_PASOS`).
+    zz_paso: Vec<f64>,
+    zz_vueltas: Vec<u8>,
+    zz_racha: u8,
+    zz_euler: u8,
     /// Aún no se da el primer paso: sin estimación de error y con las cargas del instante 0.
     first: bool,
     /// El paso anterior terminó en una discontinuidad: el siguiente es de Euler y más corto.
@@ -309,6 +326,9 @@ pub struct Transient {
     localizaciones: u32,
     /// Ningún dispositivo tiene dinámica: entre eventos la solución no cambia (ver `advance_hasta_cruce`).
     estatico: bool,
+    /// Desde qué instante salta sin pasos (la solución no cambió desde ahí) y lo que llevaban sus sondas entonces: `retroceder_salto` la regresa ahí.
+    salto_desde: Option<f64>,
+    sondas_salto: Vec<EstadoSonda>,
     /// Los dispositivos de estampa fija (resistencias, fusibles) y los demás: los fijos se estampan una vez en la base del
     /// solucionador y cada iteración empieza de ahí; `base_lista` cae con cada cambio en caliente, reposición o discontinuidad.
     fijos: Vec<usize>,
@@ -455,6 +475,10 @@ impl Transient {
             delta: h * 1e-3,
             delta_old: [h; 4],
             order: 1,
+            zz_paso: vec![0.0; n],
+            zz_vueltas: vec![0; n],
+            zz_racha: 0,
+            zz_euler: 0,
             first: true,
             at_break: true,
             save_delta: h,
@@ -482,6 +506,8 @@ impl Transient {
             hubo_cruce: false,
             localizaciones: 0,
             estatico,
+            salto_desde: None,
+            sondas_salto: Vec::new(),
             fijos,
             variables,
             con_trunc,
@@ -528,6 +554,10 @@ impl Transient {
             delta: self.delta,
             delta_old: self.delta_old,
             order: self.order,
+            zz_paso: self.zz_paso.clone(),
+            zz_vueltas: self.zz_vueltas.clone(),
+            zz_racha: self.zz_racha,
+            zz_euler: self.zz_euler,
             first: self.first,
             at_break: self.at_break,
             save_delta: self.save_delta,
@@ -568,9 +598,14 @@ impl Transient {
         self.x_acc.clone_from(&e.x_acc);
         self.st.clone_from(&e.st);
         self.t = e.t;
+        self.salto_desde = None;
         self.delta = e.delta;
         self.delta_old = e.delta_old;
         self.order = e.order;
+        self.zz_paso.clone_from(&e.zz_paso);
+        self.zz_vueltas.clone_from(&e.zz_vueltas);
+        self.zz_racha = e.zz_racha;
+        self.zz_euler = e.zz_euler;
         self.first = e.first;
         self.at_break = e.at_break;
         self.save_delta = e.save_delta;
@@ -629,6 +664,11 @@ impl Transient {
             // Una isla sin dinámica (resistencias, LED, fuentes continuas, puentes) no cambia entre eventos: salta a la meta en
             // cuanto no hay una rampa en curso ni una discontinuidad pendiente.
             if self.estatico && !self.first && !self.at_break && self.next_break() == f64::INFINITY {
+                if self.salto_desde.is_none() {
+                    self.salto_desde = Some(self.t);
+                    self.sondas_salto.clear();
+                    self.sondas_salto.extend(self.sondas.iter().map(|s| s.sonda.estado()));
+                }
                 let h = t_end - self.t;
                 self.t = t_end;
                 self.tramo_quieto(h);
@@ -681,6 +721,11 @@ impl Transient {
         self.devs.get(k).map_or(0, |d| d.indefinidos())
     }
 
+    /// Cuántas veces dejó un bit sin nivel definido el elemento `k` durante más de un microsegundo (0 si no lleva esa cuenta).
+    pub fn indefinidos_persistentes(&self, k: usize) -> u64 {
+        self.devs.get(k).map_or(0, |d| d.indefinidos_persistentes())
+    }
+
     /// El paso más corto que da el motor (una milmillonésima del máximo).
     pub fn hmin(&self) -> f64 {
         self.hmin
@@ -691,6 +736,9 @@ impl Transient {
     /// empieza a registrar con el primer paso.
     pub fn agregar_sonda(&mut self, id: usize, medida: Medida, mut sonda: Sonda) {
         sonda.fijar_columna_minima(self.hmax);
+        if self.salto_desde.is_some() {
+            self.sondas_salto.push(sonda.estado());
+        }
         if !self.first {
             sonda.empujar(self.t, self.medir(medida));
         }
@@ -726,6 +774,15 @@ impl Transient {
     /// La isla avanzó `h` sin cambiar nada (una isla sin dinámica saltó a la meta): los promedios suman el valor constante y
     /// las sondas registran el instante nuevo.
     fn tramo_quieto(&mut self, h: f64) {
+        self.acumular_quieto(h);
+        if !self.sondas.is_empty() {
+            self.registrar_sondas();
+        }
+    }
+
+    /// Lo que suma un salto de `h` sin pasos: el estado que no es de la matriz y los promedios. Con `h` negativo lo deshace (todo es
+    /// lineal en `h` salvo el calentamiento del fusible, cuya exponencial se invierte exacta).
+    fn acumular_quieto(&mut self, h: f64) {
         // El estado que no es de la matriz sigue con las mismas entradas (el calentamiento de un fusible).
         for (r, d) in self.readings.iter_mut().zip(self.devs.iter_mut()) {
             if d.avanzar_quieto(h) {
@@ -753,9 +810,28 @@ impl Transient {
                 self.pot_int[q] += self.pot_ult[q] * h;
             }
         }
-        if !self.sondas.is_empty() {
-            self.registrar_sondas();
+    }
+
+    /// Regresa una isla que salta sin pasos a `t` (o al inicio del salto), deshaciendo promedios y recortando sondas, para que un
+    /// cambio en caliente se vea desde `t`. Devuelve si regresó.
+    pub fn retroceder_salto(&mut self, t: f64) -> bool {
+        let Some(desde) = self.salto_desde else { return false };
+        let t = t.max(desde);
+        if self.at_break || t >= self.t {
+            return false;
         }
+        let h = self.t - t;
+        self.acumular_quieto(-h);
+        self.t = t;
+        if self.sondas_salto.len() == self.sondas.len() {
+            for (s, e) in self.sondas.iter_mut().zip(&self.sondas_salto) {
+                s.sonda.recortar(e);
+            }
+            if t > desde {
+                self.registrar_sondas();
+            }
+        }
+        true
     }
 
     /// Empieza a integrar los voltajes de nodo y las corrientes: cuesta un recorrido más por paso aceptado.
@@ -1132,6 +1208,11 @@ impl Transient {
         Ok(())
     }
 
+    /// El paso máximo.
+    pub fn hmax(&self) -> f64 {
+        self.hmax
+    }
+
     /// Si `set_max_step(h)` lo aceptaría, sin cambiar nada (el simulador mixto revisa todas sus islas antes de cambiar una).
     pub fn comprobar_paso(&self, h: f64) -> Result<(), EngineError> {
         if !(h.is_finite() && h >= PASO_RANGO.0 && h <= PASO_RANGO.1) {
@@ -1402,9 +1483,13 @@ impl Transient {
 
     /// Un paso aceptado que no pasa de `stop`. Los intentos fallidos o con demasiado error se repiten más cortos.
     fn step_until(&mut self, stop: f64) -> Result<(), EngineError> {
+        self.salto_desde = None;
         loop {
             let brk = self.next_break();
             let mut delta = self.delta.min(self.hmax);
+            if self.zz_euler > 0 {
+                self.order = 1;
+            }
             if self.at_break {
                 self.order = 1;
                 delta = delta.min(0.1 * self.save_delta.min(brk - self.t)).max(2.0 * self.hmin);
@@ -1486,7 +1571,7 @@ impl Transient {
                     self.delta = newdelta.max(self.hmin);
                     continue;
                 }
-                if self.order == 1 {
+                if self.order == 1 && self.zz_euler == 0 {
                     let lte2 = self.truncation(2, delta);
                     let dt2 = (2.0 * delta).min(lte2).min(self.hmax);
                     if dt2 > 1.05 * delta {
@@ -1604,6 +1689,7 @@ impl Transient {
                 self.acum_v[k] += 0.5 * (self.x_acc[k] + self.x[k]) * delta;
             }
         }
+        self.vigilar_zigzag();
         self.x_acc.copy_from_slice(&self.x);
         let mut discontinuidad = false;
         for &k in &self.con_accept {
@@ -1692,6 +1778,32 @@ impl Transient {
                 term_abs[j] += 0.5 * (a.abs() + b.abs()) * delta;
                 term_ult[j] = b;
             }
+        }
+    }
+
+    /// Con pasos mucho más largos que una constante de tiempo del circuito (un lazo rápido, una carga que se vacía en un paso)
+    /// el trapecio no amortigua y la solución salta de un lado al otro en cada paso; Euler hacia atrás sí la amortigua.
+    fn vigilar_zigzag(&mut self) {
+        // Con `x_acc` aún en el paso anterior: tres cambios seguidos de sentido alterno son dos vueltas.
+        let mut zigzag = false;
+        for i in 0..self.n {
+            if self.is_current[i] {
+                continue;
+            }
+            let (v, v1, e1) = (self.x[i], self.x_acc[i], self.zz_paso[i]);
+            let e = v - v1;
+            let umbral = (ZIGZAG_FRACCION * v.abs().max(v1.abs())).max(ZIGZAG_V);
+            let vueltas = if e * e1 < 0.0 && e.abs() > umbral && e1.abs() > umbral { self.zz_vueltas[i].saturating_add(1) } else { 0 };
+            self.zz_vueltas[i] = vueltas;
+            self.zz_paso[i] = e;
+            zigzag |= vueltas >= 2;
+        }
+        self.zz_racha = if zigzag { self.zz_racha + 1 } else { 0 };
+        if self.zz_racha >= ZIGZAG_PASOS {
+            self.zz_racha = 0;
+            self.zz_euler = EULER_PASOS;
+        } else {
+            self.zz_euler = self.zz_euler.saturating_sub(1);
         }
     }
 

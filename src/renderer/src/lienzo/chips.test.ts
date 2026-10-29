@@ -112,6 +112,14 @@ describe('chipsDeVoltaje', () => {
     expect(chip.y).toBe(-8 + SEPARACION_CHIP)
   })
 
+  it('una caja de medición (bandera, pantalla de medidor) en el lugar de arriba manda el chip debajo y coincide con la referencia', () => {
+    const estorbo = { minX: 0, maxX: 6, minY: -8 - SEPARACION_CHIP - 2, maxY: -8 - SEPARACION_CHIP + 2 }
+    const o: OpcionesChips = { redes: null, estorbos: [estorbo] }
+    const [chip] = chipsDeVoltaje(d, lib, con, lectura([[alta, 5]]), [], o)
+    expect(chip.y).toBe(-8 + SEPARACION_CHIP)
+    expect([chip]).toStrictEqual(chipsDeVoltajeReferencia(d, lib, con, lectura([[alta, 5]]), [], o))
+  })
+
   it('dos chips no se enciman', () => {
     const chips = chipsDeVoltaje(d, lib, con, lectura([[alta, 5], [medio, 2.5]]))
     const [a, b] = chips.map((c) => cajaTexto(c))

@@ -66,7 +66,7 @@ export default function BarraFlotante(props: Props) {
           onMenos={() => a((e) => cambiarTraza(e, k, { grosor: Math.max(GROSOR_RANGO[0], g - 0.5) }), clave('grosor'))}
           onMas={() => a((e) => cambiarTraza(e, k, { grosor: Math.min(GROSOR_RANGO[1], g + 0.5) }), clave('grosor'))}
         />
-        <Tonos nombre={`Color de ${t.etiqueta}`} valor={t.tonoElegido} onElegir={(c) => a((e) => cambiarTraza(e, k, { color: c }))} />
+        <Tonos nombre={`Color de ${t.etiqueta}`} valor={t.tonoElegido} onElegir={(c) => a((e) => cambiarTraza(e, k, { color: c }), undefined, ['color'])} />
       </>
     )
   }

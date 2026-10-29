@@ -396,3 +396,259 @@ export function amplificador(e: EntradaAmplificador, red: Redondeo = SIN_REDONDE
   if (rfc > 1e6) avisos.push(`Rf de ${R(rfc)} es muy alta: el ruido y la corriente de entrada del amplificador pesan. Baja Rin y Rf en la misma proporción.`)
   return { ok: true, rf, rfc, rinc, gReal, vsatMas, vsatMenos, vout, satura, vinMax, ancho: e.modelo.gbw / ruido, avisos }
 }
+
+// ------------------------------------------------------------------------------------------ Integrador, derivador, sumador e instrumentación
+
+const Hz = (x: number) => formatearValor(x, 'Hz')
+const Cap = (x: number) => formatearValor(x, 'F')
+const DOS_PI = 2 * Math.PI
+
+/** Hasta dónde llega la salida de un modelo con una fuente simétrica ±vs: arriba y abajo (V, positivos). */
+const rieles = (vs: number, m: ModeloAmpOp): { vsatMas: number; vsatMenos: number } => ({ vsatMas: vs - m.dhi, vsatMenos: vs - m.dlo })
+
+const avisoRecorte = (vin: string, vsal: number, vs: number, r: { vsatMas: number; vsatMenos: number }, vinMax: string): string =>
+  `Con ${vin} de entrada la salida pediría ${V(vsal)}, pero con ±${V(vs)} este amplificador llega a ${V(r.vsatMas)} arriba y ${V(r.vsatMenos)} abajo: la señal se recorta. La entrada máxima sin recorte es ${vinMax}.`
+
+export interface EntradaIntegrador {
+  rin: number
+  /** Frecuencia en que la ganancia vale 1 (Hz). */
+  fu: number
+  /** Ganancia máxima en continua que fija Rf en paralelo con C; sin ella no hay Rf. */
+  gdc?: number
+  /** Señal senoidal de prueba: pico (V) y frecuencia (Hz). */
+  vin: number
+  f: number
+  vs: number
+  modelo: ModeloAmpOp
+}
+
+export interface ResultadoIntegrador {
+  c: number
+  cc: number
+  rinc: number
+  rf?: number
+  rfc?: number
+  fuReal: number
+  /** Frecuencia de corte de Rf con C: por debajo de ella deja de integrar. */
+  fp?: number
+  tau: number
+  /** Ganancia (magnitud) a la frecuencia de la señal. */
+  gSenal: number
+  /** Pico de la salida con la señal de prueba. */
+  vpico: number
+  vsatMas: number
+  vsatMenos: number
+  satura: boolean
+  vinMax: number
+  avisos: string[]
+}
+
+export function integrador(e: EntradaIntegrador, red: Redondeo = SIN_REDONDEO): Calculo<ResultadoIntegrador> {
+  if (!positivo(e.rin)) return falla('Rin debe ser mayor que cero.')
+  if (!positivo(e.fu)) return falla('La frecuencia de ganancia 1 debe ser mayor que cero.')
+  if (!positivo(e.f)) return falla('La frecuencia de la señal debe ser mayor que cero.')
+  if (!positivo(e.vs)) return falla('La fuente debe ser mayor que cero.')
+  if (!Number.isFinite(e.vin) || e.vin < 0) return falla('La señal de entrada no puede ser negativa.')
+  if (e.gdc !== undefined && !(e.gdc >= 1)) return falla('La ganancia máxima en continua es 1 o más: Rf no puede ser menor que Rin.')
+  const rinc = red.r(e.rin)
+  // C se calcula con la Rin ya comercial: así el error de la serie no se suma al del capacitor.
+  const c = 1 / (DOS_PI * rinc * e.fu)
+  const cc = red.c(c)
+  const fuReal = 1 / (DOS_PI * rinc * cc)
+  const rf = e.gdc === undefined ? undefined : e.gdc * rinc
+  const rfc = rf === undefined ? undefined : red.r(rf)
+  const fp = rfc === undefined ? undefined : 1 / (DOS_PI * rfc * cc)
+  const gSenal = rfc === undefined || fp === undefined ? fuReal / e.f : rfc / rinc / Math.sqrt(1 + (e.f / fp) ** 2)
+  const vpico = e.vin * gSenal
+  const r = rieles(e.vs, e.modelo)
+  const lim = Math.min(r.vsatMas, r.vsatMenos)
+  const vinMax = lim / gSenal
+  const satura = vpico > lim
+  const avisos: string[] = []
+  if (satura) avisos.push(avisoRecorte(V(e.vin), vpico, e.vs, r, V(vinMax)))
+  if (rfc === undefined) avisos.push('Sin Rf, cualquier voltaje continuo en la entrada o desvío del amplificador se integra sin parar y la salida acaba en un riel. Agrega una ganancia máxima en continua para ponerle Rf.')
+  else if (fp !== undefined && e.f < 3 * fp) avisos.push(`A ${Hz(e.f)} la señal queda cerca o debajo de fp = ${Hz(fp)}: el circuito amplifica en vez de integrar. Para integrar, deja fp una década por debajo de la frecuencia de la señal.`)
+  if (rinc < 1000) avisos.push(`Rin de ${R(rinc)} carga a la fuente de señal. Sube Rin y baja C en la misma proporción.`)
+  if (cc >= 1e-6) avisos.push(`Un capacitor de ${Cap(cc)} suele ser electrolítico, con polaridad y fuga. Para integrar conviene uno de película: sube Rin y baja C.`)
+  if (fuReal > e.modelo.gbw / 10) avisos.push(`La ganancia 1 en ${Hz(fuReal)} queda cerca del producto ganancia-ancho de banda del amplificador (${Hz(e.modelo.gbw)}): el integrador real se aleja del ideal.`)
+  return { ok: true, c, cc, rinc, rf, rfc, fuReal, fp, tau: rinc * cc, gSenal, vpico, ...r, satura, vinMax, avisos }
+}
+
+export interface EntradaDerivador {
+  cap: number
+  /** Frecuencia en que la ganancia vale 1 (Hz). */
+  fu: number
+  /** Resistencia en serie con el capacitor de entrada, que limita la ganancia en alta frecuencia; sin ella no hay Rs. */
+  rs?: number
+  vin: number
+  f: number
+  vs: number
+  modelo: ModeloAmpOp
+}
+
+export interface ResultadoDerivador {
+  rf: number
+  rfc: number
+  cc: number
+  rsc?: number
+  fuReal: number
+  /** Frecuencia de corte de Rs con C: por encima de ella la ganancia se frena. */
+  fs?: number
+  /** Ganancia máxima en alta frecuencia, Rf / Rs. */
+  gAlta?: number
+  tau: number
+  gSenal: number
+  vpico: number
+  vsatMas: number
+  vsatMenos: number
+  satura: boolean
+  vinMax: number
+  avisos: string[]
+}
+
+export function derivador(e: EntradaDerivador, red: Redondeo = SIN_REDONDEO): Calculo<ResultadoDerivador> {
+  if (!positivo(e.cap)) return falla('La capacitancia debe ser mayor que cero.')
+  if (!positivo(e.fu)) return falla('La frecuencia de ganancia 1 debe ser mayor que cero.')
+  if (!positivo(e.f)) return falla('La frecuencia de la señal debe ser mayor que cero.')
+  if (!positivo(e.vs)) return falla('La fuente debe ser mayor que cero.')
+  if (!Number.isFinite(e.vin) || e.vin < 0) return falla('La señal de entrada no puede ser negativa.')
+  const cc = red.c(e.cap)
+  const rf = 1 / (DOS_PI * e.fu * cc)
+  const rfc = red.r(rf)
+  const fuReal = 1 / (DOS_PI * rfc * cc)
+  const rsc = e.rs === undefined ? undefined : red.r(e.rs)
+  const fs = rsc === undefined ? undefined : 1 / (DOS_PI * rsc * cc)
+  const gAlta = rsc === undefined ? undefined : rfc / rsc
+  const gSenal = e.f / fuReal / (fs === undefined ? 1 : Math.sqrt(1 + (e.f / fs) ** 2))
+  const vpico = e.vin * gSenal
+  const r = rieles(e.vs, e.modelo)
+  const lim = Math.min(r.vsatMas, r.vsatMenos)
+  const vinMax = lim / gSenal
+  const satura = vpico > lim
+  const avisos: string[] = []
+  if (satura) avisos.push(avisoRecorte(V(e.vin), vpico, e.vs, r, V(vinMax)))
+  if (rsc === undefined) avisos.push('Sin Rs la ganancia sube sin límite con la frecuencia: el ruido se amplifica y el circuito puede oscilar. Una Rs en serie con C la limita a Rf / Rs.')
+  else if (fs !== undefined && e.f > fs / 3) avisos.push(`A ${Hz(e.f)} la señal queda cerca o arriba de fs = ${Hz(fs)}: el circuito deja de derivar y se comporta como un inversor de ganancia ${(gAlta ?? 0).toPrecision(3)}.`)
+  if (gSenal > e.modelo.gbw / e.f) avisos.push(`A ${Hz(e.f)} pide una ganancia de ${gSenal.toPrecision(3)} y el amplificador solo da unas ${(e.modelo.gbw / e.f).toPrecision(3)} (su producto ganancia-ancho de banda es ${Hz(e.modelo.gbw)}): la salida real será menor.`)
+  if (rfc > 1e6) avisos.push(`Rf de ${R(rfc)} es muy alta: el ruido y la corriente de entrada del amplificador pesan. Sube C o la frecuencia de ganancia 1.`)
+  if (rfc < 1000) avisos.push(`Rf de ${R(rfc)} es muy baja: la salida del amplificador la excita con mucha corriente. Baja C.`)
+  return { ok: true, rf, rfc, cc, rsc, fuReal, fs, gAlta, tau: rfc * cc, gSenal, vpico, ...r, satura, vinMax, avisos }
+}
+
+export interface EntradaSumador {
+  rf: number
+  /** Ganancia (magnitud) de cada entrada, de 2 a 4. */
+  g: number[]
+  /** Voltaje continuo de cada entrada (V, con signo). */
+  v: number[]
+  vs: number
+  modelo: ModeloAmpOp
+}
+
+export interface ResultadoSumador {
+  rfc: number
+  /** Resistencia exacta y comercial de cada entrada. */
+  ri: number[]
+  ric: number[]
+  /** Ganancia de cada entrada con las resistencias comerciales (magnitud). */
+  gReal: number[]
+  vout: number
+  vsatMas: number
+  vsatMenos: number
+  satura: boolean
+  /** Cuántas veces pueden crecer todas las señales a la vez antes de recortar. */
+  escala: number
+  ancho: number
+  avisos: string[]
+}
+
+export function sumador(e: EntradaSumador, red: Redondeo = SIN_REDONDEO): Calculo<ResultadoSumador> {
+  if (e.g.length < 2 || e.g.length > 4 || e.v.length !== e.g.length) return falla('El sumador lleva de 2 a 4 entradas.')
+  if (!positivo(e.rf)) return falla('Rf debe ser mayor que cero.')
+  if (!positivo(e.vs)) return falla('La fuente debe ser mayor que cero.')
+  if (e.g.some((x) => !positivo(x))) return falla('Cada ganancia debe ser mayor que cero.')
+  if (e.v.some((x) => !Number.isFinite(x))) return falla('Cada señal debe ser un número.')
+  const rfc = red.r(e.rf)
+  const ri = e.g.map((g) => rfc / g)
+  const ric = ri.map((x) => red.r(x))
+  const gReal = ric.map((x) => rfc / x)
+  const vout = -gReal.reduce((s, g, i) => s + g * e.v[i], 0)
+  const r = rieles(e.vs, e.modelo)
+  const satura = vout > r.vsatMas || vout < -r.vsatMenos
+  const escala = vout === 0 ? Infinity : (vout > 0 ? r.vsatMas : r.vsatMenos) / Math.abs(vout)
+  const ruido = 1 + gReal.reduce((s, g) => s + g, 0)
+  const avisos: string[] = []
+  if (satura) {
+    avisos.push(`Con esas señales la salida pediría ${V(vout)}, pero con ±${V(e.vs)} este amplificador llega a ${V(r.vsatMas)} arriba y ${V(r.vsatMenos)} abajo: la suma se recorta. Las señales pueden crecer ${escala.toPrecision(2)} veces, no más.`)
+  }
+  const chica = Math.min(...ric)
+  if (chica < 1000) avisos.push(`Una entrada de ${R(chica)} carga a su fuente de señal. Sube Rf y las resistencias de entrada en la misma proporción.`)
+  if (rfc > 1e6) avisos.push(`Rf de ${R(rfc)} es muy alta: el ruido y la corriente de entrada del amplificador pesan. Baja Rf y las resistencias de entrada en la misma proporción.`)
+  return { ok: true, rfc, ri, ric, gReal, vout, ...r, satura, escala, ancho: e.modelo.gbw / ruido, avisos }
+}
+
+export interface EntradaInstrumentacion {
+  /** Ganancia pedida, mayor que 1. */
+  g: number
+  /** Las dos resistencias iguales de la etapa de entrada. */
+  r: number
+  /** Las cuatro resistencias iguales de la etapa diferencial. */
+  rd: number
+  /** Señal diferencial de prueba, V1 − V2 (V, pico), y modo común (V). */
+  vd: number
+  vcm: number
+  vs: number
+  modelo: ModeloAmpOp
+}
+
+export interface ResultadoInstrumentacion {
+  rg: number
+  rgc: number
+  rc: number
+  rdc: number
+  gReal: number
+  vout: number
+  /** Salida de cada amplificador de entrada (el de V1 y el de V2), con la señal de prueba. */
+  vu1: number
+  vu2: number
+  vsatMas: number
+  vsatMenos: number
+  satura: boolean
+  /** Mayor señal diferencial (pico) que no recorta ninguna de las tres salidas. */
+  vdMax: number
+  ancho: number
+  avisos: string[]
+  nota: string
+}
+
+export function instrumentacion(e: EntradaInstrumentacion, red: Redondeo = SIN_REDONDEO): Calculo<ResultadoInstrumentacion> {
+  if (!positivo(e.g)) return falla('La ganancia debe ser mayor que cero.')
+  if (!(e.g > 1)) return falla('La ganancia es mayor que 1: con 1 no hace falta Rg y la etapa de entrada son dos seguidores.')
+  if (!positivo(e.r)) return falla('R debe ser mayor que cero.')
+  if (!positivo(e.rd)) return falla('La R de la etapa diferencial debe ser mayor que cero.')
+  if (!positivo(e.vs)) return falla('La fuente debe ser mayor que cero.')
+  if (!Number.isFinite(e.vd) || e.vd < 0) return falla('La señal diferencial no puede ser negativa.')
+  if (!Number.isFinite(e.vcm)) return falla('El modo común debe ser un número.')
+  const rc = red.r(e.r)
+  const rdc = red.r(e.rd)
+  const rg = (2 * rc) / (e.g - 1)
+  const rgc = red.r(rg)
+  const gReal = 1 + (2 * rc) / rgc
+  const vout = gReal * e.vd
+  const vu1 = e.vcm + (gReal * e.vd) / 2
+  const vu2 = e.vcm - (gReal * e.vd) / 2
+  const r = rieles(e.vs, e.modelo)
+  const fuera = (x: number) => x > r.vsatMas || x < -r.vsatMenos
+  const satura = fuera(vout) || fuera(vu1) || fuera(vu2)
+  const vdMax = Math.max(0, Math.min(Math.min(r.vsatMas, r.vsatMenos) / gReal, (2 * (r.vsatMas - e.vcm)) / gReal, (2 * (r.vsatMenos + e.vcm)) / gReal))
+  const avisos: string[] = []
+  if (satura) {
+    const quien = fuera(vout) ? `la salida pediría ${V(vout)}` : `un amplificador de entrada pediría ${V(fuera(vu1) ? vu1 : vu2)}`
+    avisos.push(`Con ${V(e.vd)} diferencial y ${V(e.vcm)} de modo común ${quien}, pero con ±${V(e.vs)} este amplificador llega a ${V(r.vsatMas)} arriba y ${V(r.vsatMenos)} abajo: la señal se recorta. La señal diferencial máxima sin recorte es ${V(vdMax)}.`)
+  }
+  if (rgc < 100) avisos.push(`Rg de ${R(rgc)} exige mucha corriente a los amplificadores de entrada. Baja la ganancia o sube R.`)
+  if (rc < 1000) avisos.push(`R de ${R(rc)} carga a las salidas de los amplificadores de entrada. Sube R y Rg en la misma proporción.`)
+  if (rc > 1e6) avisos.push(`R de ${R(rc)} es muy alta: el ruido y la corriente de entrada pesan. Baja R y Rg en la misma proporción.`)
+  const nota = 'El rechazo del modo común depende de que las cuatro resistencias de la etapa diferencial coincidan: en un montaje real conviene 0.1 % o un arreglo de resistencias.'
+  return { ok: true, rg, rgc, rc, rdc, gReal, vout, vu1, vu2, ...r, satura, vdMax, ancho: e.modelo.gbw / gReal, avisos, nota }
+}

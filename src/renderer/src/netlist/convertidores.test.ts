@@ -99,6 +99,17 @@ describe('el ADC0804', () => {
     expect(r.manejoDeRed.get(nodo('intr'))).toBe(msi.salidas[16])
   })
 
+  it('el comparador baja su umbral medio LSB del VREF/2 que hay: la mitad de VCC al aire y el de la fuente si la hay', () => {
+    const umbral = (extra: Parte[]) => {
+      const { r } = compilar([...circuitoAdc(RC()), ...extra])
+      return de(r.netlist!.elements, 'ADC').find((x) => x.histeresis)!
+    }
+    // VCC de 5 V con VREF/2 al aire: 2.5 V, medio LSB de 9.77 mV (histéresis de 0.1 mV alrededor).
+    expect(umbral([]).in_low).toBeCloseTo(-2.5 / 256 - 0.05e-3, 9)
+    expect(umbral([]).in_high).toBeCloseTo(-2.5 / 256 + 0.05e-3, 9)
+    expect(umbral([V('V9', '1', 'vref2')]).in_low).toBeCloseTo(-1 / 256 - 0.05e-3, 9)
+  })
+
   it('la tabla de salida abre los datos solo con CS y RD en bajo y sube INTR al leer', () => {
     const { r } = compilar(circuitoAdc(RC()))
     const msi = de(r.netlist!.elements, 'MSI')[0]
@@ -154,7 +165,9 @@ describe('el DAC0808', () => {
     expect(r.errores).toEqual([])
     const els = r.netlist!.elements
     const dacm = de(els, 'DACM')[0]
-    expect(dacm).toMatchObject({ modo: 'corriente', out: r.nodoDeRed.get(nodo('io')), ret: r.nodoDeRed.get(nodo('vee')), ref_p: r.nodoDeRed.get(nodo('refp')), ref_n: r.nodoDeRed.get(nodo('refn')), t_asentamiento: 150e-9 })
+    expect(dacm).toMatchObject({ modo: 'corriente', out: r.nodoDeRed.get(nodo('io')), ret: r.nodoDeRed.get(nodo('vee')), ref_p: r.nodoDeRed.get(nodo('refp')), t_asentamiento: 150e-9 })
+    // VREF- se mide con un seguidor hacia VEE: la corriente de referencia no pasa por R15.
+    expect(de(els, 'E')[0]).toMatchObject({ p: dacm.ref_n, n: dacm.ret, cp: r.nodoDeRed.get(nodo('refn')), cn: dacm.ret, ganancia: 1 })
     expect(dacm.bits).toHaveLength(8)
     // Seis entradas a tierra leen 0 sin puente; las dos que van a «alto» llevan el suyo, con los umbrales de la hoja.
     expect(de(els, 'LOGIC')).toHaveLength(6)

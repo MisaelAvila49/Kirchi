@@ -5,6 +5,7 @@
     "en": "Current-controlled voltage source"
   },
   "categoria": "fuentes",
+  "grupo": "Controladas",
   "prefijo": "H",
   "buscar": [
     "h",

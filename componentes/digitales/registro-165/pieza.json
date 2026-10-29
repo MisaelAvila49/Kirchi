@@ -1,0 +1,163 @@
+{
+  "id": "registro-165",
+  "nombre": {
+    "es": "Registro de desplazamiento de 8 bits, carga paralela y salida serie (74165)",
+    "en": "8-bit parallel-load serial-out shift register (74165)"
+  },
+  "categoria": "digitales",
+  "grupo": "Registros y búferes",
+  "prefijo": "U",
+  "buscar": [
+    "u",
+    "registro",
+    "register",
+    "desplazamiento",
+    "shift",
+    "paralelo",
+    "serie",
+    "carga",
+    "8 bits",
+    "74165",
+    "74hc165",
+    "74ls165"
+  ],
+  "pines": [
+    { "id": "SH/LD", "nombre": "SH/LD (carga paralela asíncrona, activa en bajo)", "x": -8, "y": -12 },
+    { "id": "CLK", "nombre": "CLK (reloj, flanco de subida)", "x": -8, "y": -10 },
+    { "id": "CLK INH", "nombre": "CLK INH (inhibición del reloj)", "x": -8, "y": -8 },
+    { "id": "SER", "nombre": "SER (entrada serie)", "x": -8, "y": -4 },
+    { "id": "A", "nombre": "A", "x": -8, "y": 0 },
+    { "id": "B", "nombre": "B", "x": -8, "y": 2 },
+    { "id": "C", "nombre": "C", "x": -8, "y": 4 },
+    { "id": "D", "nombre": "D", "x": -8, "y": 6 },
+    { "id": "E", "nombre": "E", "x": -8, "y": 8 },
+    { "id": "F", "nombre": "F", "x": -8, "y": 10 },
+    { "id": "G", "nombre": "G", "x": -8, "y": 12 },
+    { "id": "H", "nombre": "H", "x": -8, "y": 14 },
+    { "id": "QH", "nombre": "QH (salida serie)", "x": 8, "y": -12 },
+    { "id": "QHN", "nombre": "QH negada (salida complementaria)", "x": 8, "y": -10 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "msi",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "nucleo": {
+      "tipo": "desplazamiento",
+      "bits": 8,
+      "reloj": { "senales": ["CLK", "CLK INH"], "combina": "O", "flanco": "subida" },
+      "serie": ["SER"],
+      "carga": { "senal": "!SH/LD", "sincrona": false, "datos": ["A", "B", "C", "D", "E", "F", "G", "H"] }
+    },
+    "salidas": { "QH": "q7", "QHN": "!q7" },
+    "retardos": { "74HC": { "vcc": 4.5, "Q*": [1.5e-8, 1.5e-8] }, "74LS": { "vcc": 5, "Q*": [1.4e-8, 1.6e-8] } }
+  },
+  "caja": {
+    "titulo": "SRG8",
+    "forma": "funcional",
+    "izquierda": ["!SH/LD", "CLK", "CLK INH", null, "SER", null, "A", "B", "C", "D", "E", "F", "G", "H"],
+    "derecha": ["QH", "QHN"],
+    "marcas": { "CLK": ["dinamico"], "QHN": ["bajo"] }
+  },
+  "fuentes": {
+    "74HC": "TI SN74HC165 (SCLS116H): función p. 13 y retardo típico de 15 ns de CLK a QH y a QH negada (p. 6, 4.5 V, CL 50 pF). SH/LD a QH usa el retardo de CLK a QH.",
+    "74LS": "TI SN74LS165A (SDLS062D): función p. 1 y retardos típicos de CLK a la salida (14 ns de subida, 16 de bajada) (p. 8, 5 V, CL 15 pF). SH/LD a QH usa el retardo de CLK a QH."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC165N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc165.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0; la carga paralela es asíncrona por nivel de SH/LD y el retardo de SH/LD a QH usa el de CLK a QH.",
+        "equivalencias": { "kicad": "74xx:74HC165" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "SH/LD": "1",
+              "CLK": "2",
+              "E": "3",
+              "F": "4",
+              "G": "5",
+              "H": "6",
+              "QHN": "7",
+              "QH": "9",
+              "SER": "10",
+              "A": "11",
+              "B": "12",
+              "C": "13",
+              "D": "14",
+              "CLK INH": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74HC165N",
+            "lcsc": { "numero": "C2909", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC165 (SCLS116H, dic 2015), p. 3, Pin Functions; KiCad 74xx:74HC165 (9.0.0)" },
+        "nota": "QHN es la salida complementaria de QH (en la hoja, QH con barra, pin 7): sin barra chocaría con el nombre de QH."
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS165AN",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls165a.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0; la carga paralela es asíncrona por nivel de SH/LD y el retardo de SH/LD a QH usa el de CLK a QH.",
+        "equivalencias": { "kicad": "74xx:74LS165" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "SH/LD": "1",
+              "CLK": "2",
+              "E": "3",
+              "F": "4",
+              "G": "5",
+              "H": "6",
+              "QHN": "7",
+              "QH": "9",
+              "SER": "10",
+              "A": "11",
+              "B": "12",
+              "C": "13",
+              "D": "14",
+              "CLK INH": "15"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS165AN"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de SN74LS165AN" },
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74LS165A (SDLS062D, feb 2002), p. 1, TOP VIEW; KiCad 74xx:74LS165 (9.0.0)" },
+        "nota": "QHN es la salida complementaria de QH (en la hoja, QH con barra, pin 7)."
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -18 }, "valor": { "x": 0, "y": 18 } },
+  "rotulos": [
+    { "texto": "SH/LD", "x": -5.2, "y": -12, "tam": 1, "alinear": "izq" },
+    { "texto": "CLK", "x": -4.3, "y": -10, "tam": 1, "alinear": "izq" },
+    { "texto": "CLK INH", "x": -5.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "SER", "x": -5.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "A", "x": -5.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -5.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "C", "x": -5.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "D", "x": -5.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "E", "x": -5.2, "y": 8, "tam": 1, "alinear": "izq" },
+    { "texto": "F", "x": -5.2, "y": 10, "tam": 1, "alinear": "izq" },
+    { "texto": "G", "x": -5.2, "y": 12, "tam": 1, "alinear": "izq" },
+    { "texto": "H", "x": -5.2, "y": 14, "tam": 1, "alinear": "izq" },
+    { "texto": "QH", "x": 5.2, "y": -12, "tam": 1, "alinear": "der" },
+    { "texto": "QHN", "x": 5.2, "y": -10, "tam": 1, "alinear": "der" },
+    { "texto": "SRG8", "x": 0, "y": -15, "tam": 1, "alinear": "centro" }
+  ]
+}

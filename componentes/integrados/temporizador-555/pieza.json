@@ -2,6 +2,7 @@
   "id": "temporizador-555",
   "nombre": { "es": "Temporizador 555", "en": "555 timer" },
   "categoria": "integrados",
+  "grupo": "Conversión y temporización",
   "prefijo": "U",
   "buscar": ["u", "555", "ne555", "lm555", "temporizador", "timer"],
   "pines": [

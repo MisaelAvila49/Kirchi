@@ -79,6 +79,8 @@ function terminalBuscado(def: PiezaDef, consulta: string, palabras: string[], va
   return { def, puntos }
 }
 
+const PUNTAJE_FUERTE = 50
+
 export function buscar(consulta: string, lib: Map<string, PiezaDef>, recientes: string[] = []): Resultado[] {
   const { termino, valor } = interpretar(consulta)
   const palabras = normalizar(termino).split(' ').filter(Boolean)
@@ -88,6 +90,7 @@ export function buscar(consulta: string, lib: Map<string, PiezaDef>, recientes: 
     return i < 0 ? Number.MAX_SAFE_INTEGER : i
   }
   const out: Resultado[] = []
+  const sinValor = new Set<Resultado>()
   for (const def of lib.values()) {
     if (def.oculta) continue
     if (def.modelo?.tipo === 'alimentacion') {
@@ -116,9 +119,13 @@ export function buscar(consulta: string, lib: Map<string, PiezaDef>, recientes: 
     if (elegido) r.valor = elegido
     else if (valor && v && prop && (!v.unidad || !prop.unidad || v.unidad === prop.unidad)) r.valor = valor
     // Con un valor escrito («v 5»), una pieza que no toma ninguno (el multímetro por «voltímetro») va después de las que sí.
-    else if (valor && !prop) r.puntos /= 2
+    else if (valor && !prop) sinValor.add(r)
     out.push(r)
   }
-  out.sort((a, b) => b.puntos - a.puntos || rango(a.def.id) - rango(b.def.id) || a.def.nombre.es.localeCompare(b.def.nombre.es, 'es') || (a.valor ?? '').localeCompare(b.valor ?? '', 'es', { numeric: true, sensitivity: 'base' }))
-  return out
+  // Una coincidencia débil (solo una subcadena, como «led» dentro de «controlled») no acompaña a las que empiezan una palabra.
+  const fuerte = out.some((r) => r.puntos >= PUNTAJE_FUERTE)
+  const lista = fuerte ? out.filter((r) => r.puntos >= PUNTAJE_FUERTE) : out
+  for (const r of sinValor) if (lista.includes(r)) r.puntos /= 2
+  lista.sort((a, b) => b.puntos - a.puntos || rango(a.def.id) - rango(b.def.id) || a.def.nombre.es.localeCompare(b.def.nombre.es, 'es') || (a.valor ?? '').localeCompare(b.valor ?? '', 'es', { numeric: true, sensitivity: 'base' }))
+  return lista
 }

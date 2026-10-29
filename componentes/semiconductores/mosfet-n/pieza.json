@@ -2,6 +2,7 @@
   "id": "mosfet-n",
   "nombre": { "es": "MOSFET canal N", "en": "N-channel MOSFET" },
   "categoria": "semiconductores",
+  "grupo": "Efecto de campo e IGBT",
   "prefijo": "Q",
   "buscar": ["mosfet", "nmos", "fet", "canal n", "2n7000", "irfz44n", "irf540n", "irlz44n", "irf520"],
   "pines": [

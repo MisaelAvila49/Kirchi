@@ -5,6 +5,7 @@
     "en": "ULN2003"
   },
   "categoria": "integrados",
+  "grupo": "Interfaz y aislamiento",
   "prefijo": "U",
   "buscar": [
     "u",
@@ -185,6 +186,36 @@
       "7B",
       "7C",
       "COM"
+    ],
+    "podar": [
+      [
+        "1B",
+        "1C"
+      ],
+      [
+        "2B",
+        "2C"
+      ],
+      [
+        "3B",
+        "3C"
+      ],
+      [
+        "4B",
+        "4C"
+      ],
+      [
+        "5B",
+        "5C"
+      ],
+      [
+        "6B",
+        "6C"
+      ],
+      [
+        "7B",
+        "7C"
+      ]
     ],
     "medida": {
       "mas": "1C",
@@ -813,7 +844,7 @@
         ],
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "TI ULN2002A/2003A/2004A (SLRS027T, mar 2025) tabla 4-1: 1B-7B patillas 1 a 7, 1C-7C patillas 16 a 10, COM 9, E 8; Transistor_Array:ULN2003A de KiCad 9"
+          "fuente": "TI ULN2002A/2003A/2004A (SLRS027T, mar 2025) tabla 4-1: 1B-7B pines 1 a 7, 1C-7C pines 16 a 10, COM 9, E 8; Transistor_Array:ULN2003A de KiCad 9"
         },
         "nota": "LCSC C93000 es el ULN2003A de ST"
       }

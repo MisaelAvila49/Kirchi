@@ -57,7 +57,9 @@ export function agruparPlan(est: Estado): Plan {
     return modificar('agrupar', 'piezas', p, { ...p, ref: c.ref, props: { ...p.props, paquete: c.paquete, unidad: c.unidad } })
   }))
   const paquetes = new Set(cambios.map((c) => c.paquete)).size
-  return { cmd, creados: {}, avisos: [`Se agruparon ${cambios.length} ${cambios.length === 1 ? 'pieza' : 'piezas'} en ${paquetes} ${paquetes === 1 ? 'encapsulado' : 'encapsulados'}.`] }
+  // Los renombres (U3 → U1C) van en el aviso para que el asistente sepa cómo se llaman ahora sus piezas.
+  const renombres = cambios.slice(0, 40).map((c) => `${est.doc.piezas[c.id].ref} → ${c.ref}`).join(', ') + (cambios.length > 40 ? '…' : '')
+  return { cmd, creados: {}, avisos: [`Se agruparon ${cambios.length} ${cambios.length === 1 ? 'pieza' : 'piezas'} en ${paquetes} ${paquetes === 1 ? 'encapsulado' : 'encapsulados'}: ${renombres}.`] }
 }
 
 /** Después de cambiar lo que comparten las unidades: las que ya no caben en el chip nuevo pasan a un paquete nuevo

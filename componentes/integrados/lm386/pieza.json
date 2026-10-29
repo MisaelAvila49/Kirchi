@@ -2,13 +2,14 @@
   "id": "lm386",
   "nombre": { "es": "LM386 audio", "en": "LM386 audio amplifier" },
   "categoria": "integrados",
+  "grupo": "Amplificadores y comparadores",
   "prefijo": "U",
   "buscar": ["u", "lm386", "386", "audio", "amplificador de audio", "audio amplifier", "amplificador de potencia", "power amplifier", "bocina", "altavoz"],
   "pines": [
     { "id": "IN-", "nombre": "entrada inversora (IN−)", "x": -6, "y": -2 },
     { "id": "IN+", "nombre": "entrada no inversora (IN+)", "x": -6, "y": 2 },
-    { "id": "GAIN1", "nombre": "ganancia (patilla 1)", "x": -2, "y": -6, "ayuda": "Sin nada la ganancia es 20 · un capacitor de 10 µF entre GAIN1 y GAIN8 la sube a unos 200" },
-    { "id": "GAIN8", "nombre": "ganancia (patilla 8)", "x": -2, "y": 6, "ayuda": "Sin nada la ganancia es 20 · un capacitor de 10 µF entre GAIN1 y GAIN8 la sube a unos 200" },
+    { "id": "GAIN1", "nombre": "ganancia (pin 1)", "x": -2, "y": -6, "ayuda": "Sin nada la ganancia es 20 · un capacitor de 10 µF entre GAIN1 y GAIN8 la sube a unos 200" },
+    { "id": "GAIN8", "nombre": "ganancia (pin 8)", "x": -2, "y": 6, "ayuda": "Sin nada la ganancia es 20 · un capacitor de 10 µF entre GAIN1 y GAIN8 la sube a unos 200" },
     { "id": "BYP", "nombre": "filtro de la polarización (BYPASS)", "x": 0, "y": 6, "ayuda": "Un capacitor de 10 µF a tierra mejora el rechazo de la alimentación" },
     { "id": "OUT", "nombre": "salida (OUT)", "x": 6, "y": 0, "ayuda": "Se acopla a la bocina con un capacitor de 250 µF · queda en la mitad de la alimentación" },
     { "id": "VS", "nombre": "alimentación (VS)", "x": 2, "y": -6 },
@@ -60,7 +61,7 @@
   "etiquetas": { "ref": { "x": 0, "y": -8 }, "valor": { "x": 0, "y": 8 } },
   "rotulos": [{ "texto": "−", "x": -3.2, "y": -2, "tam": 2 }, { "texto": "+", "x": -3.2, "y": 2, "tam": 2 }],
   "fuentes": {
-    "LM386": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments LM386, SNAS545D (may 2004, rev. ago 2023), https://www.ti.com/lit/ds/symlink/lm386.pdf: resistencias de entrada de 50 kΩ a tierra, red de ganancia de 150 Ω y 1.35 kΩ entre las patillas 1 y 8 con realimentación de 2 × 15 kΩ (ganancia de 20 sin nada y de unos 200 con 10 µF entre 1 y 8; con ese capacitor la entrada no inversora da 191, la inversora 200), salida centrada en la mitad de la alimentación con el divisor de 15 kΩ y 15 kΩ de BYPASS, ancho de banda de 300 kHz con ganancia 20 (producto ganancia-ancho de banda de 6.3 MHz), corriente en reposo de 4 mA típica con 6 V y salida de unos 4.5 V pico a pico con 8 Ω a 6 V (325 mW típicos con 10 % de distorsión). Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: tres seguidores (las dos entradas y el punto medio de BYPASS, que así no se carga con la realimentación), un amplificador diferencial y el divisor de polarización. No modela el rechazo de la alimentación, la distorsión por cruce, la corriente de polarización de 250 nA ni el calentamiento."
+    "LM386": "Parámetros ajustados por Kirchi (no copiados de un archivo de modelo) a Texas Instruments LM386, SNAS545D (may 2004, rev. ago 2023), https://www.ti.com/lit/ds/symlink/lm386.pdf: resistencias de entrada de 50 kΩ a tierra, red de ganancia de 150 Ω y 1.35 kΩ entre los pines 1 y 8 con realimentación de 2 × 15 kΩ (ganancia de 20 sin nada y de unos 200 con 10 µF entre 1 y 8; con ese capacitor la entrada no inversora da 191, la inversora 200), salida centrada en la mitad de la alimentación con el divisor de 15 kΩ y 15 kΩ de BYPASS, ancho de banda de 300 kHz con ganancia 20 (producto ganancia-ancho de banda de 6.3 MHz), corriente en reposo de 4 mA típica con 6 V y salida de unos 4.5 V pico a pico con 8 Ω a 6 V (325 mW típicos con 10 % de distorsión). Kirchi lo arma en la netlist con piezas que el motor ya tiene, sin primitivas nuevas: tres seguidores (las dos entradas y el punto medio de BYPASS, que así no se carga con la realimentación), un amplificador diferencial y el divisor de polarización. No modela el rechazo de la alimentación, la distorsión por cruce, la corriente de polarización de 250 nA ni el calentamiento."
   },
   "datos": {
     "por": "modelo",

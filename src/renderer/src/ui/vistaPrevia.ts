@@ -3,8 +3,8 @@ import type { Seleccion } from '../editor/seleccion'
 import type { PiezaDef } from '../piezas/tipos'
 import { accionDeClic, type FaseSim } from '../sim/control'
 
-/** Lo que dicen el inspector y la barra superior cuando algo no se puede editar porque corre la vista previa. */
-export const MENSAJE_DETENER_PARA_EDITAR = 'Detén la vista previa para editar.'
+/** Lo que dice la barra superior de lo que cambia piezas y cables: los valores (resistencias, fuentes, potenciómetros, instrumentos) sí cambian corriendo. */
+export const MENSAJE_DETENER_PARA_EDITAR = 'Detén la vista previa para modificar piezas y cables. Los valores sí se ajustan mientras corre.'
 /** El modo que dice la barra de estado: «Edición» con la vista previa detenida, «En pausa» en pausa y «Simulando» si corre o arranca. */
 export const textoModo = (f: FaseSim): string => (f === 'detenida' ? 'Edición' : f === 'pausada' ? 'En pausa' : 'Simulando')
 

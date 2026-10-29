@@ -520,6 +520,19 @@ describe('ULN2003A contra su hoja de datos', () => {
     expect(r.v('c7')).toBeLessThan(1.2)
     expect(r.v('c2')).toBeGreaterThan(11.9)
   })
+
+  it('un canal con su entrada y su salida al aire no entra a la netlist; con una de las dos conectada, sí', () => {
+    const elementos = (pines: Record<string, string>) => {
+      const d = conEtiquetas(lib, [DC('VS', '12', 'vs'), R('RL', '1k', 'vs', 'c'), uln({ COM: 'vs', ...pines })])
+      const r = compilarNetlist(d, lib, calcularConexiones(d, lib))
+      expect(r.errores).toEqual([])
+      return r.netlist!.elements.length
+    }
+    // Un canal son cinco elementos (la resistencia de entrada, los dos transistores, la de base a emisor y el diodo); el primero lleva además la de su colector.
+    expect(elementos({ '1C': 'c' })).toBe(2 + 6)
+    expect(elementos({ '1C': 'c', '2B': 'vs' })).toBe(2 + 6 + 5)
+    expect(elementos({ '1C': 'c', '2B': 'vs', '2C': 'c' })).toBe(2 + 6 + 5)
+  })
 })
 
 describe('potenciómetro con ley y reóstato', () => {

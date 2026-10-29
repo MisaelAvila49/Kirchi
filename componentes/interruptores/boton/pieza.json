@@ -2,6 +2,7 @@
   "id": "boton",
   "nombre": { "es": "Botón", "en": "Push button" },
   "categoria": "interruptores",
+  "grupo": "Individuales",
   "prefijo": "SW",
   "buscar": ["boton", "botón", "pulsador", "button"],
   "pines": [

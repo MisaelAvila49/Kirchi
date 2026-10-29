@@ -5,6 +5,7 @@
     "en": "L298 H-bridge"
   },
   "categoria": "integrados",
+  "grupo": "Interfaz y aislamiento",
   "prefijo": "U",
   "buscar": [
     "l298",
@@ -372,7 +373,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "STMicroelectronics L298 DS0218 rev. 5 (oct 2023) fig. 2 y tabla 3, Multiwatt15L V: 1 Sense A, 2 Out1, 3 Out2, 4 VS, 5 Input1, 6 Enable A, 7 Input2, 8 GND, 9 VSS, 10 Input3, 11 Enable B, 12 Input4, 13 Out3, 14 Out4, 15 Sense B, pestaña a la patilla 8; coincide con Driver_Motor:L298HN de KiCad 9.0.0. LCSC C19922 es el L298N de ST, MultiwAtt-15, leído en lcsc.com el 2026-10-26"
+          "fuente": "STMicroelectronics L298 DS0218 rev. 5 (oct 2023) fig. 2 y tabla 3, Multiwatt15L V: 1 Sense A, 2 Out1, 3 Out2, 4 VS, 5 Input1, 6 Enable A, 7 Input2, 8 GND, 9 VSS, 10 Input3, 11 Enable B, 12 Input4, 13 Out3, 14 Out4, 15 Sense B, pestaña al pin 8; coincide con Driver_Motor:L298HN de KiCad 9.0.0. LCSC C19922 es el L298N de ST, MultiwAtt-15, leído en lcsc.com el 2026-10-26"
         }
       }
     }

@@ -5,6 +5,7 @@
     "en": "Current-controlled current source"
   },
   "categoria": "fuentes",
+  "grupo": "Controladas",
   "prefijo": "F",
   "buscar": [
     "f",

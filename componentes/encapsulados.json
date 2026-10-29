@@ -34,6 +34,10 @@
     "VSSOP-8": { "nombre": "VSSOP de 8 patillas", "patillas": 8, "numerada": true, "montaje": "SMD", "paso": 0.65, "filas": 2 },
     "Multiwatt15": { "nombre": "Multiwatt15 (L298N, vertical)", "patillas": 15, "numerada": true, "montaje": "THT", "paso": 1.27, "filas": 2, "separacion": 5.08, "huella": "Package_TO_SOT_THT:TO-220-15_P2.54x5.08mm_StaggerOdd_Lead4.58mm_Vertical" },
     "Conector-motor-5": { "nombre": "Conector de motor de 5 hilos (28BYJ-48)", "patillas": 5, "numerada": true, "montaje": "THT", "paso": 2.5, "filas": 1, "huella": "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical" },
+    "DIP-SW-16": { "nombre": "Interruptor DIP de 8 posiciones (16 patillas)", "patillas": 16, "numerada": true, "montaje": "THT", "paso": 2.54, "filas": 2, "separacion": 7.62, "huella": "Button_Switch_THT:SW_DIP_SPSTx08_Slide_9.78x22.5mm_W7.62mm_P2.54mm" },
+    "DIP-SW-8": { "nombre": "Interruptor DIP de 4 posiciones (8 patillas)", "patillas": 8, "numerada": true, "montaje": "THT", "paso": 2.54, "filas": 2, "separacion": 7.62, "huella": "Button_Switch_THT:SW_DIP_SPSTx04_Slide_9.78x12.34mm_W7.62mm_P2.54mm" },
+    "Conector-teclado-8": { "nombre": "Conector del teclado de membrana 4x4 (8 patillas)", "patillas": 8, "numerada": true, "montaje": "THT", "paso": 2.54, "filas": 1, "huella": "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical" },
+    "Conector-teclado-7": { "nombre": "Conector del teclado de membrana 4x3 (7 patillas)", "patillas": 7, "numerada": true, "montaje": "THT", "paso": 2.54, "filas": 1, "huella": "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical" },
     "Cables-4": { "nombre": "Motor de 4 hilos sueltos", "patillas": 4, "numerada": false, "montaje": "THT" }
   }
 }

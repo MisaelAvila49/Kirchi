@@ -294,6 +294,12 @@ impl Simulator {
         Ok(self.inner.set_max_step(h)?)
     }
 
+    /// El paso máximo de cada isla (`Mixto::topes_de_paso`): `topes` son pares de elemento y paso.
+    pub fn topes_de_paso(&mut self, libre: f64, topes: &[f64]) -> Result<(), JsError> {
+        let pares: Vec<(usize, f64)> = topes.chunks_exact(2).map(|p| (p[0] as usize, p[1])).collect();
+        Ok(self.inner.topes_de_paso(libre, &pares)?)
+    }
+
     /// Repone el elemento `index` (un fusible fundido queda entero).
     pub fn reset_element(&mut self, index: usize) -> Result<(), JsError> {
         Ok(self.inner.reset_element(index)?)
@@ -368,6 +374,11 @@ impl Simulator {
     /// Las redes digitales que entraron en conflicto de bus desde la última llamada.
     pub fn take_conflictos(&mut self) -> Vec<u32> {
         self.inner.tomar_conflictos()
+    }
+
+    /// Los convertidores multiplicadores que dejaron un bit sin nivel definido desde la última llamada (su elemento en la netlist).
+    pub fn take_indefinidos(&mut self) -> Vec<u32> {
+        self.inner.tomar_indefinidos()
     }
 
     /// Corriente de cada elemento, en el orden de la netlist, de `a` hacia `b` a través del elemento.

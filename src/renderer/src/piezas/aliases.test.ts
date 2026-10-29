@@ -21,7 +21,7 @@ describe('alias del buscador', () => {
     const r = ids('u')
     // El UJT entra por su id y el motor unipolar por su nombre, que empiezan con u (sus letras de referencia son Q y M).
     expect(new Set(r)).toEqual(
-      new Set(['and', 'nand', 'or', 'nor', 'xor', 'xnor', 'not', 'not-schmitt', 'buffer-3-estados', 'biestable-d', 'biestable-jk', 'contador', 'decodificador-7seg', 'amp-op', 'ina128', 'lm386', 'lm4040', 'tl431', 'comparador', 'regulador-ajustable', 'regulador-negativo', 'regulador-positivo', 'temporizador-555', 'uln2003', 'decodificador-138', 'decodificador-139', 'decodificador-7447', 'decodificador-4028', 'multiplexor-151', 'multiplexor-153', 'multiplexor-157', 'codificador-148', 'sumador-283', 'comparador-magnitud-85', 'bufer-244', 'transceptor-245', 'contador-161', 'contador-163', 'contador-190', 'contador-193', 'contador-4017', 'ujt', 'motor-pasos-unipolar'])
+      new Set(['and', 'nand', 'or', 'nor', 'xor', 'xnor', 'not', 'not-schmitt', 'buffer-3-estados', 'biestable-d', 'biestable-jk', 'contador', 'decodificador-7seg', 'amp-op', 'dac0808', 'ina128', 'lm386', 'lm4040', 'tl431', 'comparador', 'regulador-ajustable', 'regulador-negativo', 'regulador-positivo', 'temporizador-555', 'uln2003', 'decodificador-138', 'decodificador-139', 'decodificador-7447', 'decodificador-4028', 'multiplexor-151', 'multiplexor-153', 'multiplexor-157', 'codificador-148', 'sumador-283', 'comparador-magnitud-85', 'bufer-244', 'transceptor-245', 'contador-161', 'contador-163', 'contador-190', 'contador-193', 'contador-4017', 'registro-164', 'registro-165', 'registro-595', 'adc0804', 'ujt', 'motor-pasos-unipolar'])
     )
   })
 

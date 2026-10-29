@@ -30,6 +30,8 @@ export interface ArmadoConvertidor extends ArmadoBase {
   capacitoresATierra: (red: number) => number[]
   /** Algo más que la R y la C toca la red de CLK IN (un oscilador, un generador, una salida lógica). */
   relojExterno: (red: number) => boolean
+  /** El voltaje de una red unida a tierra por una fuente de continua, si es el caso (da el medio LSB de la primera transición). */
+  voltajeFijo: (red: number) => number | undefined
 }
 
 /** El reloj del ADC: el RC de la hoja o uno externo. */
@@ -45,6 +47,8 @@ const RETARDO_PRUEBA = 1e-9
 /** Resistencia de una entrada que no toma corriente (el 1 GΩ de un contacto abierto). */
 const R_ENTRADA_ALTA = 1e9
 const HISTERESIS_COMPARADOR = 0.1e-3
+/** VREF/2 con el pin al aire: la mitad de VCC, y 5 V si VCC tampoco viene de una fuente de continua. */
+const VCC_NOMINAL = 5
 
 /** Frecuencia del oscilador de la hoja TI SNOSBI1C, f = 1/(R C ln[((VCC - VT-)/(VCC - VT+)) (VT+/VT-)]), con R y C conectadas. */
 export function frecuenciaDelReloj(r: number, c: number, vtp: number, vtn: number): number {
@@ -123,8 +127,11 @@ export function armarAdc0804(m: ModeloAd, a: ArmadoConvertidor, tabla: (filas: (
     ([out, ret, ref_p, ref_n]) => ({ type: 'DACM', modo: 'voltaje', out, ret, ref_p, ref_n, bits: prueba, t_asentamiento: T_TRANSICION }),
     unidos
   )
+  // El código n empieza en (n - 1/2) LSB: el umbral del comparador baja medio LSB, que sale del VREF/2 que tenga el circuito al compilar.
+  const vref2 = a.voltajeFijo(a.red(m.vref2)) ?? (a.voltajeFijo(a.red(m.vcc)) ?? VCC_NOMINAL) / 2
+  const medioLsb = Math.abs(vref2) / 256
   const comparador = a.nuevaDigital()
-  a.analogico([terminal(m.vinp), { red: salidaDac, etiqueta: '' }], ([p, n]) => ({ type: 'ADC', p, n, out: comparador, in_low: -HISTERESIS_COMPARADOR / 2, in_high: HISTERESIS_COMPARADOR / 2, histeresis: true }), [])
+  a.analogico([terminal(m.vinp), { red: salidaDac, etiqueta: '' }], ([p, n]) => ({ type: 'ADC', p, n, out: comparador, in_low: -medioLsb - HISTERESIS_COMPARADOR / 2, in_high: -medioLsb + HISTERESIS_COMPARADOR / 2, histeresis: true }), [])
 
   // Control: el núcleo de aproximaciones y su tabla de salida.
   const senal = (entrada: number, bajo = false) => ({ entrada, ...(bajo ? { bajo: true } : {}) })
@@ -182,12 +189,15 @@ export function armarDac0808(m: ModeloDa, a: ArmadoBase): void {
     a.analogico([terminal(pin, true), terminal(m.gnd)], ([p, n]) => ({ type: 'ADC', p, n, out: red, in_low: m.vil, in_high: m.vih }), [])
     return red
   })
-  // La corriente entra por IO y sale por VEE, k veces la de la rama de referencia (VREF+ a VREF-, que el elemento mantiene a 0 V).
+  // La corriente entra por IO y sale por VEE, k veces la de la rama de referencia (de VREF+ a una red interna que un seguidor mantiene
+  // al voltaje de VREF-): VREF- solo se mide, como en el chip, así que una R15 hacia tierra no resta corriente a la referencia.
+  const refN = a.interna()
   a.analogico(
-    [terminal(m.io), terminal(m.vee), terminal(m.vrefp), terminal(m.vrefn), terminal(m.vcc)],
+    [terminal(m.io), terminal(m.vee), terminal(m.vrefp), { red: refN, etiqueta: '' }, terminal(m.vcc)],
     ([out, ret, ref_p, ref_n]) => ({ type: 'DACM', modo: 'corriente', out, ret, ref_p, ref_n, bits, t_asentamiento: m.t_asentamiento }),
     [{ pines: [2, 3], tierra: false }]
   )
-  // COMPENSACIÓN es una patilla de alta impedancia: su capacitor no cambia la simulación.
-  void terminal(m.comp, true)
+  a.analogico([{ red: refN, etiqueta: '' }, terminal(m.vee), terminal(m.vrefn), terminal(m.vee)], ([p, n, cp, cn]) => ({ type: 'E', p, n, cp, cn, ganancia: 1 }), [{ pines: [0, 1], tierra: false }])
+  // COMPENSACIÓN es una patilla de alta impedancia (1 GΩ a tierra, que deja conectado el capacitor de la hoja): no cambia la simulación.
+  a.analogico([terminal(m.comp, true), terminal(m.gnd, true)], ([x, y]) => ({ type: 'R', a: x, b: y, ohms: R_ENTRADA_ALTA }), [{ pines: [0, 1], tierra: false }])
 }

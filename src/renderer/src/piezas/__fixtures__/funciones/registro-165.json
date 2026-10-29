@@ -1,0 +1,42 @@
+{
+ "fuente": [
+  {
+   "familia": "74HC",
+   "documento": "TI SN54HC165, SN74HC165, SCLS116H",
+   "revision": "dic 2015",
+   "paginas": "13",
+   "tabla": "Table 1. Function Table"
+  },
+  {
+   "familia": "74LS",
+   "documento": "TI SN54165, SN54LS165A, SN74165, SN74LS165A, SDLS062D",
+   "revision": "feb 2002",
+   "paginas": "1 (descripción)",
+   "tabla": "la hoja no trae tabla; el texto de la p. 1 dice lo mismo"
+  }
+ ],
+ "simbolos": {
+  "r": "flanco de subida",
+  "X": "no importa"
+ },
+ "columnas": [
+  "SH/LD",
+  "CLK",
+  "CLK INH"
+ ],
+ "salidas": [
+  "funcion"
+ ],
+ "filas": [
+  "0 X X > carga paralela asíncrona A a H (ignora CLK, CLK INH y SER)",
+  "1 1 X > no cambia",
+  "1 X 1 > no cambia",
+  "1 0 r > desplaza: SER entra en A y cada etapa toma la anterior; QH sale de H",
+  "1 r 0 > desplaza (igual)"
+ ],
+ "notas": [
+  "SCLS116H p. 12: 'CLK and CLK INH functions are interchangeable'. CLK INH solo debe cambiar a alto con CLK alto (SDLS062D p. 1: 'Clock inhibit (CLK INH) should be changed to the high level only while CLK is high').",
+  "Con SH/LD en bajo las entradas paralelas entran directo al registro, con independencia de CLK, CLK INH y SER (SDLS062D p. 1).",
+  "Salidas: QH es la etapa H; QHN (QH con barra, pin 7) es su complemento."
+ ]
+}

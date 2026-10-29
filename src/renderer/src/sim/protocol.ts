@@ -93,6 +93,12 @@ export interface EventoFundido {
   segundos: number
 }
 
+/** El paso máximo de las islas sin fuentes periódicas (`libre`) y el de cada fuente (índice de elemento y paso), que vale solo en su isla. */
+export interface TopesDePaso {
+  libre: number
+  fuentes: [number, number][]
+}
+
 export type ToWorker =
   /** `id` crece con cada carga: el cliente descarta las respuestas de una carga que ya fue reemplazada. */
   | {
@@ -108,6 +114,8 @@ export type ToWorker =
       /** La velocidad con que empieza (0 en pausa) y si es «Sin límite de tiempo real»; sin ella, 1×. */
       velocidad?: number
       sinTope?: boolean
+      /** El paso máximo por isla (`topesDeVistaPrevia`); sin él, todas las islas van con `h`. */
+      topes?: TopesDePaso
     }
   /** Ajustes nuevos de los instrumentos sin recargar (base de tiempo, acoplamiento, disparo, modo del multímetro). */
   | { type: 'instrumentos'; config: ConfigInstrumentos }
@@ -139,7 +147,7 @@ export type ToWorker =
   | { type: 'quemar'; indice: number; si: boolean; seq: number }
   /** Cambia en caliente elementos de la netlist cargada (cursor de potenciómetro, interruptor, valor de resistencia o
    * fuente) sin reiniciar el tiempo ni la carga de capacitores e inductores. */
-  | { type: 'valores'; cambios: CambioEnCaliente[]; h?: number; seq: number }
+  | { type: 'valores'; cambios: CambioEnCaliente[]; h?: number; topes?: TopesDePaso; seq: number }
   /** Escribe `valor` en el canal de una perilla en vivo a la hora de la isla; un rechazo vuelve como `rechazado` con `indice = -1 - canal`. */
   | { type: 'perilla'; canal: number; valor: number; seq: number }
   /** Repone el elemento `indice` (un fusible fundido). */
@@ -174,6 +182,8 @@ export type FromWorker =
   | { type: 'cruces'; id: number; datos: number[]; perdidos: number; ancla: { t: number; reloj: number }; velocidad: number }
   /** Redes digitales donde dos salidas de tres estados empezaron a manejar un 0 y un 1 a la vez. */
   | { type: 'conflictos'; id: number; redes: number[] }
+  /** Convertidores digital a analógico (por su elemento en la netlist) que llevan más de un microsegundo con un bit sin nivel definido. */
+  | { type: 'indefinidos'; id: number; elementos: number[] }
 
 /** `ratio`: fracción del tiempo real alcanzada (1 = al ritmo del reloj). `capacity`: segundos simulados por segundo de
  * cálculo. `currents`: corriente de cada elemento, de `a` hacia `b`. `aux` y `estado`: segunda lectura y estado de cada

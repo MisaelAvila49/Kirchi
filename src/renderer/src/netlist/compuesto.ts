@@ -28,6 +28,28 @@ export function nodosDe(e: ElementoCompuesto): string[] {
   }
 }
 
+/** Los elementos que se quitan por `podar`: los de cada grupo cuyos pines están todos al aire, más los que cuelgan de ellos por las
+ * redes internas. */
+export function elementosPodados(m: Compuesto, alAire: (pin: string) => boolean): Set<number> {
+  const fuera = new Set<number>()
+  const internas = new Set(m.internas ?? [])
+  for (const g of m.podar ?? []) {
+    if (!g.every(alAire)) continue
+    const redes = new Set<string>(g)
+    let creció = true
+    while (creció) {
+      creció = false
+      m.elementos.forEach((e, k) => {
+        if (fuera.has(k) || !nodosDe(e).some((n) => redes.has(n))) return
+        fuera.add(k)
+        creció = true
+        for (const n of nodosDe(e)) if (internas.has(n)) redes.add(n)
+      })
+    }
+  }
+  return fuera
+}
+
 /** Los nombres de valor de un elemento (los que no son números). */
 export function valoresDe(e: ElementoCompuesto): ValorCompuesto[] {
   switch (e.t) {
@@ -167,7 +189,7 @@ export function elementoDelMotor(e: ElementoCompuesto, n: number[], valor: (v: V
     case 'Q':
       return { type: 'Q', c: n[0], b: n[1], e: n[2], pnp: e.pnp === true, model: num(e.params) }
     case 'OA':
-      return { type: 'OA', p: n[0], n: n[1], out: n[2], vp: n[3], vn: n[4], model: num(e.params) }
+      return { type: 'OA', p: n[0], n: n[1], out: n[2], vp: n[3], vn: n[4], model: num(e.params), ...(e.euler ? { euler: true } : {}) }
     case 'M':
       return { type: 'M', d: n[0], g: n[1], s: n[2], pmos: e.pmos === true, model: num(e.params) }
     case 'J':

@@ -129,3 +129,30 @@ describe('modelo a la vista', () => {
     expect(nombreConModelo(lib.get('resistencia')!)).toBe(lib.get('resistencia')!.nombre.es)
   })
 })
+
+describe('buscar: la mejor coincidencia primero', () => {
+  it('«led» da el LED primero y sin las coincidencias por subcadena', () => {
+    const r = ids('led')
+    expect(r[0]).toBe('led')
+    expect(r).not.toContain('fuente-cccs')
+  })
+  it('consultas reales', () => {
+    expect(ids('res')[0]).toBe('resistencia')
+    expect(ids('555')[0]).toBe('temporizador-555')
+    expect(ids('555')).not.toContain('npn')
+    expect(ids('74595')).toEqual(['registro-595'])
+    expect(ids('fuente')[0]).toBe('fuente-dc')
+    expect(ids('nand')[0]).toBe('nand')
+    expect(ids('capacitor')[0]).toBe('capacitor')
+    expect(ids('LÉD')[0]).toBe('led')
+  })
+})
+
+describe('Librería con filtro', () => {
+  it('la categoría de la mejor coincidencia va primero', async () => {
+    const { catalogo } = await import('../ui/catalogo')
+    const c = catalogo(lib, 'led')
+    expect(c[0].piezas[0].def.id).toBe('led')
+    expect(c.flatMap((x) => x.piezas.map((p) => p.def.id))).not.toContain('fuente-cccs')
+  })
+})

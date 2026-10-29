@@ -1,0 +1,285 @@
+{
+  "id": "interruptor-dip-8",
+  "nombre": {
+    "es": "Interruptor DIP de 8 posiciones",
+    "en": "8-position DIP switch"
+  },
+  "categoria": "interruptores",
+  "grupo": "Bancos y teclados",
+  "prefijo": "SW",
+  "buscar": [
+    "sw",
+    "dip",
+    "interruptor dip",
+    "dip switch",
+    "dip 8",
+    "8 posiciones",
+    "palancas",
+    "deslizable"
+  ],
+  "pines": [
+    {
+      "id": "1",
+      "nombre": "1 (posición 1, lado A)",
+      "x": -8,
+      "y": -8
+    },
+    {
+      "id": "2",
+      "nombre": "2 (posición 2, lado A)",
+      "x": -8,
+      "y": -6
+    },
+    {
+      "id": "3",
+      "nombre": "3 (posición 3, lado A)",
+      "x": -8,
+      "y": -4
+    },
+    {
+      "id": "4",
+      "nombre": "4 (posición 4, lado A)",
+      "x": -8,
+      "y": -2
+    },
+    {
+      "id": "5",
+      "nombre": "5 (posición 5, lado A)",
+      "x": -8,
+      "y": 0
+    },
+    {
+      "id": "6",
+      "nombre": "6 (posición 6, lado A)",
+      "x": -8,
+      "y": 2
+    },
+    {
+      "id": "7",
+      "nombre": "7 (posición 7, lado A)",
+      "x": -8,
+      "y": 4
+    },
+    {
+      "id": "8",
+      "nombre": "8 (posición 8, lado A)",
+      "x": -8,
+      "y": 6
+    },
+    {
+      "id": "16",
+      "nombre": "16 (posición 1, lado B)",
+      "x": 8,
+      "y": -8
+    },
+    {
+      "id": "15",
+      "nombre": "15 (posición 2, lado B)",
+      "x": 8,
+      "y": -6
+    },
+    {
+      "id": "14",
+      "nombre": "14 (posición 3, lado B)",
+      "x": 8,
+      "y": -4
+    },
+    {
+      "id": "13",
+      "nombre": "13 (posición 4, lado B)",
+      "x": 8,
+      "y": -2
+    },
+    {
+      "id": "12",
+      "nombre": "12 (posición 5, lado B)",
+      "x": 8,
+      "y": 0
+    },
+    {
+      "id": "11",
+      "nombre": "11 (posición 6, lado B)",
+      "x": 8,
+      "y": 2
+    },
+    {
+      "id": "10",
+      "nombre": "10 (posición 7, lado B)",
+      "x": 8,
+      "y": 4
+    },
+    {
+      "id": "9",
+      "nombre": "9 (posición 8, lado B)",
+      "x": 8,
+      "y": 6
+    }
+  ],
+  "props": [
+    {
+      "id": "estado",
+      "nombre": "Estado",
+      "texto": true,
+      "defecto": "00000000",
+      "ayuda": "Un 1 por cada palanca cerrada (hacia ON), de la 1 a la 8"
+    }
+  ],
+  "modelo": {
+    "tipo": "interruptores",
+    "contactos": [
+      [
+        "1",
+        "16"
+      ],
+      [
+        "2",
+        "15"
+      ],
+      [
+        "3",
+        "14"
+      ],
+      [
+        "4",
+        "13"
+      ],
+      [
+        "5",
+        "12"
+      ],
+      [
+        "6",
+        "11"
+      ],
+      [
+        "7",
+        "10"
+      ],
+      [
+        "8",
+        "9"
+      ]
+    ],
+    "estado": "estado",
+    "r_on": 0.05,
+    "r_off": 1000000000
+  },
+  "animacion": {
+    "tipo": "zonas",
+    "zonas": [
+      {
+        "x": -3,
+        "y": -9,
+        "ancho": 6,
+        "alto": 2
+      },
+      {
+        "x": -3,
+        "y": -7,
+        "ancho": 6,
+        "alto": 2
+      },
+      {
+        "x": -3,
+        "y": -5,
+        "ancho": 6,
+        "alto": 2
+      },
+      {
+        "x": -3,
+        "y": -3,
+        "ancho": 6,
+        "alto": 2
+      },
+      {
+        "x": -3,
+        "y": -1,
+        "ancho": 6,
+        "alto": 2
+      },
+      {
+        "x": -3,
+        "y": 1,
+        "ancho": 6,
+        "alto": 2
+      },
+      {
+        "x": -3,
+        "y": 3,
+        "ancho": 6,
+        "alto": 2
+      },
+      {
+        "x": -3,
+        "y": 5,
+        "ancho": 6,
+        "alto": 2
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -15
+    },
+    "valor": {
+      "x": 0,
+      "y": 11
+    }
+  },
+  "rotulos": [
+    {
+      "texto": "ON",
+      "x": 0,
+      "y": -11.8,
+      "tam": 1.4
+    }
+  ],
+  "fuentes": {
+    "*": "CTS serie 206 (copia de terceros de la hoja y ficha de Future Electronics): resistencia de contacto inicial de 50 mΩ y aislamiento mínimo de 1,000 MΩ; el pareado del pin k con el 17 − k sale del símbolo y la huella de KiCad 9.0.0."
+  },
+  "datos": {
+    "equivalencias": { "kicad": "Switch:SW_DIP_x08" },
+    "valores": {
+      "*": {
+        "fabricante": "CTS",
+        "parte": "206-8",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-SW-16",
+            "patillas": {
+              "1": "1",
+              "2": "2",
+              "3": "3",
+              "4": "4",
+              "5": "5",
+              "6": "6",
+              "7": "7",
+              "8": "8",
+              "9": "9",
+              "10": "10",
+              "11": "11",
+              "12": "12",
+              "13": "13",
+              "14": "14",
+              "15": "15",
+              "16": "16"
+            },
+            "huella": "Button_Switch_THT:SW_DIP_SPSTx08_Slide_9.78x22.5mm_W7.62mm_P2.54mm",
+            "lcsc": { "numero": "C2842683", "sinVerificar": true },
+            "representativa": true
+          }
+        ],
+        "pendiente": {
+          "hoja": "No se pudo abrir el PDF de CTS (403) y no se halló una URL verificada; sin campo hoja. Las cifras salen de una copia de terceros (pdf.jiepei.com/206-16154817.html) y de la ficha de Future Electronics",
+          "patillas": "El pareado k con 17-k sale del símbolo Switch:SW_DIP_x08 y de la huella de KiCad 9.0.0 (misma altura del pin k y la 17-k). No se leyó el dibujo de terminales de CTS: segunda fuente independiente pendiente",
+          "lcsc": "C2842683 es el 206-8ST (sellado), solo con paquete «Through Hole» en la ficha; otros 8 posiciones en LCSC: C54962, C3293166, C99413, C501535"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "CTS Series 206/208 (copia de terceros, sin revisión visible): contacto inicial 50 mΩ máx., final 100 mΩ máx.; aislamiento 1,000 MΩ mín. entre abierto y entre cerrados adyacentes; 50 mA a 24 VDC. Future Electronics 206-8: 50 mΩ, 1000 MΩ, 24 V, 50 mA, paso 2.54 mm. Huella y símbolo de KiCad 9.0.0 (pads 1 a 16, columnas a 7.62 mm)"
+        }
+      }
+    }
+  }
+}

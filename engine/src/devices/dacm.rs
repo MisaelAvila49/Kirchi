@@ -6,6 +6,9 @@ use super::{entry, stamp_g, volt, Alloc, Ctx, Device, Event, Reading, U};
 use crate::digital::Nivel;
 use crate::netlist::ModoDacm;
 
+/// Un bit sin nivel definido (X o Z) que dura más que esto no es un flanco pasando por la zona entre los umbrales de su entrada: se avisa.
+const INDEFINIDO_PERSISTENTE: f64 = 1e-6;
+
 #[derive(Clone)]
 pub struct Dacm {
     modo: ModoDacm,
@@ -29,6 +32,10 @@ pub struct Dacm {
     /// Instante del último paso aceptado (para la lectura).
     t_acept: f64,
     indefinidos: u64,
+    /// Desde cuándo hay algún bit sin nivel definido, si lo hay; si ya se contó como persistente; y cuántas veces lo fue.
+    indef_desde: Option<f64>,
+    indef_contado: bool,
+    persistentes: u64,
     uo: U,
     ur: U,
     up: U,
@@ -56,6 +63,9 @@ impl Dacm {
             t1: 0.0,
             t_acept: 0.0,
             indefinidos: 0,
+            indef_desde: None,
+            indef_contado: false,
+            persistentes: 0,
             uo: None,
             ur: None,
             up: None,
@@ -140,11 +150,24 @@ impl Device for Dacm {
     }
 
     fn next_break(&self, t: f64) -> f64 {
-        if self.t1 > t + (t.abs() * 1e-12).max(1e-18) { self.t1 } else { f64::INFINITY }
+        let eps = (t.abs() * 1e-12).max(1e-18);
+        let rampa = if self.t1 > t + eps { self.t1 } else { f64::INFINITY };
+        // Un paso cae en el instante en que un bit indefinido deja de poder ser un flanco.
+        let indefinido = match self.indef_desde {
+            Some(d) if !self.indef_contado && d + INDEFINIDO_PERSISTENTE > t + eps => d + INDEFINIDO_PERSISTENTE,
+            _ => f64::INFINITY,
+        };
+        rampa.min(indefinido)
     }
 
     fn accept(&mut self, _x: &[f64], _s0: &[f64], t: f64, _h: f64, _ev: &mut Vec<Event>) -> bool {
         self.t_acept = t;
+        if let Some(d) = self.indef_desde {
+            if !self.indef_contado && t - d >= INDEFINIDO_PERSISTENTE * (1.0 - 1e-9) {
+                self.indef_contado = true;
+                self.persistentes += 1;
+            }
+        }
         false
     }
 
@@ -189,6 +212,12 @@ impl Device for Dacm {
                 _ => definido = false,
             }
         }
+        if definido {
+            self.indef_desde = None;
+        } else if self.indef_desde.is_none() {
+            self.indef_desde = Some(t);
+            self.indef_contado = false;
+        }
         // Con un bit en X o Z se conserva el último código definido.
         if !definido {
             if !inmediato {
@@ -209,6 +238,10 @@ impl Device for Dacm {
 
     fn indefinidos(&self) -> u64 {
         self.indefinidos
+    }
+
+    fn indefinidos_persistentes(&self) -> u64 {
+        self.persistentes
     }
 }
 
@@ -323,6 +356,28 @@ mod tests {
         tr.advance_to(3e-6, u32::MAX).unwrap();
         assert!((tr.voltage(1) - esperado).abs() < 1e-9);
         assert_eq!(tr.readings()[2].estado, 192.0);
+    }
+
+    #[test]
+    fn solo_un_bit_indefinido_que_dura_cuenta_como_persistente() {
+        let mut tr = voltaje(1e-12, "");
+        poner(&mut tr, 2, 0xC0, true);
+        tr.advance_to(1e-6, u32::MAX).unwrap();
+        // Un flanco que pasa por X medio microsegundo y se define: no cuenta.
+        tr.fijar_nivel_bit(2, 7, X, false);
+        tr.advance_to(1.5e-6, u32::MAX).unwrap();
+        tr.fijar_nivel_bit(2, 7, Cero, false);
+        tr.advance_to(5e-6, u32::MAX).unwrap();
+        assert_eq!((tr.indefinidos(2), tr.indefinidos_persistentes(2)), (1, 0));
+        // Dos microsegundos sin definirse sí, y una sola vez aunque otro bit se sume.
+        tr.fijar_nivel_bit(2, 7, X, false);
+        tr.advance_to(5.9e-6, u32::MAX).unwrap();
+        assert_eq!(tr.indefinidos_persistentes(2), 0);
+        tr.fijar_nivel_bit(2, 3, crate::digital::Nivel::Z, false);
+        tr.advance_to(9e-6, u32::MAX).unwrap();
+        assert_eq!(tr.indefinidos_persistentes(2), 1);
+        tr.advance_to(12e-6, u32::MAX).unwrap();
+        assert_eq!(tr.indefinidos_persistentes(2), 1);
     }
 
     #[test]

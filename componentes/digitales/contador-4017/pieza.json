@@ -157,7 +157,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "TI CD74HC4017 (SCHS200D, oct 2003), p. 1, Pinout y p. 2, diagrama funcional; KiCad 4xxx:4017 (9.0.0, no hay símbolo 74HC4017; mismo número de patilla)"
+          "fuente": "TI CD74HC4017 (SCHS200D, oct 2003), p. 1, Pinout y p. 2, diagrama funcional; KiCad 4xxx:4017 (9.0.0, no hay símbolo 74HC4017; mismo número de pin)"
         }
       }
     }

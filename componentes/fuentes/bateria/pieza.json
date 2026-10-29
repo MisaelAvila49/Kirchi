@@ -2,6 +2,7 @@
   "id": "bateria",
   "nombre": { "es": "Batería", "en": "Battery" },
   "categoria": "fuentes",
+  "grupo": "Independientes",
   "prefijo": "B",
   "buscar": ["b", "bateria", "batería", "pila", "battery"],
   "pines": [

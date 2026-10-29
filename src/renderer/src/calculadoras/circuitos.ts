@@ -3,8 +3,8 @@ import { nombreDeVoltaje } from '../conexiones/nombres'
 import { textoDeIngenieria } from '../valores/series'
 import { formatearValor } from '../valores/valores'
 import type { ResultadoNotch, ResultadoPasaBanda, ResultadoRechazaBanda } from './filtros'
-import { potenciaNominal, type EntradaAmplificador, type EntradaAstable, type EntradaDivisor, type EntradaFiltro, type EntradaLed, type EntradaMonoestable, type ResultadoAmplificador, type ResultadoAstable, type ResultadoDivisor, type ResultadoFiltro, type ResultadoLed, type ResultadoMonoestable } from './formulas'
-import { cablesDe, etiquetasDe, parte } from './disposicion'
+import { potenciaNominal, type EntradaDerivador, type EntradaInstrumentacion, type EntradaIntegrador, type EntradaSumador, type ResultadoDerivador, type ResultadoInstrumentacion, type ResultadoIntegrador, type ResultadoSumador, type EntradaAmplificador, type EntradaAstable, type EntradaDivisor, type EntradaFiltro, type EntradaLed, type EntradaMonoestable, type ResultadoAmplificador, type ResultadoAstable, type ResultadoDivisor, type ResultadoFiltro, type ResultadoLed, type ResultadoMonoestable } from './formulas'
+import { cablesDe, etiquetasDe, parte, type IdDisposicion } from './disposicion'
 import { ELECTROLITICO_DESDE } from './redondeo'
 
 /** Circuito de «Generar circuito» con los valores comerciales del cálculo y el acomodo de `disposicion.ts`: cables dados,
@@ -226,6 +226,117 @@ export function circuitoAmplificador(e: EntradaAmplificador, r: ResultadoAmplifi
     def,
     nombre: `Amplificador ${inv ? 'inversor' : 'no inversor'} de ganancia ${inv ? '−' : ''}${g}`,
     descripcion: `${modelo} con alimentación de ±${V(e.vs)}, ${inv ? 'Rin' : 'R a tierra'} de ${R(r.rinc)} y Rf de ${R(r.rfc)}. Entrada de prueba de ${V(e.vin)}.`
+  }
+}
+
+// ------------------------------------------------------------------------------------------ Integrador, derivador, sumador e instrumentación
+
+/** Nombres de red de la alimentación simétrica, sin el error de coma flotante del voltaje. */
+const rielesDe = (vs: number): [string, string] => {
+  const riel = Number(vs.toPrecision(6))
+  return [nombreDeVoltaje(riel), nombreDeVoltaje(-riel)]
+}
+
+/** Lo común a los lazos con generador: el amplificador, su alimentación, la carga y las uniones a tierra. */
+const baseLazo = (id: IdDisposicion, modelo: string, vs: number): { partes: Parte[]; carga: Parte[]; conexiones: [string, string][] } => {
+  const [mas, menos] = rielesDe(vs)
+  return {
+    partes: [parte(id, 'u1', 'amp-op', { modelo }), parte(id, 'p1', 'alimentacion', { nombre: mas }), parte(id, 'p2', 'alimentacion', { nombre: menos })],
+    carga: [parte(id, 'rl', 'resistencia', { valor: '10k' }), parte(id, 'g1', 'tierra'), parte(id, 'g2', 'tierra'), parte(id, 'g3', 'tierra')],
+    conexiones: [['p1.1', 'u1.V+'], ['p2.1', 'u1.V-'], ['u1.+', 'g2.1'], ['u1.OUT', 'rl.1'], ['rl.2', 'g3.1'], ['v1.COM', 'g1.1']]
+  }
+}
+
+/** Voltaje de una fuente con seis cifras: con tres, un modo común de 1 V más 5 mV de señal perdería la señal. */
+const voltio = (x: number): string => String(Number(x.toPrecision(6)))
+
+/** La señal de prueba senoidal de los lazos: pico y frecuencia del cálculo, con el generador ideal. */
+const senoide = (id: IdDisposicion, vin: number, f: number): Parte => parte(id, 'v1', 'generador', { frecuencia: t(f), amplitud: t(2 * vin), ideal: 'sí' })
+
+export function circuitoIntegrador(e: EntradaIntegrador, r: ResultadoIntegrador, modelo: string): Armado {
+  const id: IdDisposicion = r.rfc === undefined ? 'integrador' : 'integradorrf'
+  const b = baseLazo(id, modelo, e.vs)
+  const rf = r.rfc === undefined ? [] : [parte(id, 'r2', 'resistencia', { valor: t(r.rfc) })]
+  const conRf: [string, string][] = r.rfc === undefined ? [] : [['r2.1', 'u1.-'], ['r2.2', 'u1.OUT']]
+  return {
+    def: {
+      partes: [...b.partes, parte(id, 'r1', 'resistencia', { valor: t(r.rinc) }), parte(id, 'c1', 'capacitor', { valor: t(r.cc) }), ...rf, senoide(id, e.vin, e.f), ...b.carga],
+      conexiones: [...b.conexiones, ['v1.+', 'r1.1'], ['r1.2', 'u1.-'], ['c1.1', 'u1.-'], ['c1.2', 'u1.OUT'], ...conRf],
+      cables: cablesDe(id),
+      etiquetas: etiquetasDe(id)
+    },
+    nombre: `Integrador con ganancia 1 en ${Hz(r.fuReal)}`,
+    descripcion: `${modelo} con alimentación de ±${V(e.vs)}, Rin de ${R(r.rinc)} y C de ${C(r.cc)}${r.rfc === undefined ? '' : ` con Rf de ${R(r.rfc)} en paralelo`}. Entrada senoidal de ${V(e.vin)} a ${Hz(e.f)}.`
+  }
+}
+
+export function circuitoDerivador(e: EntradaDerivador, r: ResultadoDerivador, modelo: string): Armado {
+  const id: IdDisposicion = r.rsc === undefined ? 'derivador' : 'derivadorrs'
+  const b = baseLazo(id, modelo, e.vs)
+  const rs = r.rsc === undefined ? [] : [parte(id, 'r2', 'resistencia', { valor: t(r.rsc) })]
+  const entrada: [string, string][] = r.rsc === undefined ? [['c1.2', 'u1.-']] : [['c1.2', 'r2.1'], ['r2.2', 'u1.-']]
+  return {
+    def: {
+      partes: [...b.partes, parte(id, 'c1', 'capacitor', { valor: t(r.cc) }), parte(id, 'r1', 'resistencia', { valor: t(r.rfc) }), ...rs, senoide(id, e.vin, e.f), ...b.carga],
+      conexiones: [...b.conexiones, ['v1.+', 'c1.1'], ['r1.1', 'u1.-'], ['r1.2', 'u1.OUT'], ...entrada],
+      cables: cablesDe(id),
+      etiquetas: etiquetasDe(id)
+    },
+    nombre: `Derivador con ganancia 1 en ${Hz(r.fuReal)}`,
+    descripcion: `${modelo} con alimentación de ±${V(e.vs)}, C de ${C(r.cc)} y Rf de ${R(r.rfc)}${r.rsc === undefined ? '' : ` con Rs de ${R(r.rsc)} en serie`}. Entrada senoidal de ${V(e.vin)} a ${Hz(e.f)}.`
+  }
+}
+
+export function circuitoSumador(e: EntradaSumador, r: ResultadoSumador, modelo: string): Armado {
+  const n = e.g.length
+  const id = `sumador${n}` as IdDisposicion
+  const [mas, menos] = rielesDe(e.vs)
+  const filas = Array.from({ length: n }, (_, i) => i + 1)
+  const partes: Parte[] = [parte(id, 'u1', 'amp-op', { modelo }), parte(id, 'p1', 'alimentacion', { nombre: mas }), parte(id, 'p2', 'alimentacion', { nombre: menos })]
+  for (const k of filas) partes.push(parte(id, `v${k}`, 'fuente-dc', { voltaje: voltio(e.v[k - 1]) }))
+  for (const k of filas) partes.push(parte(id, `r${k}`, 'resistencia', { valor: t(r.ric[k - 1]) }))
+  partes.push(parte(id, 'rf', 'resistencia', { valor: t(r.rfc) }), parte(id, 'rl', 'resistencia', { valor: '10k' }), parte(id, 'g0', 'tierra'), parte(id, 'gl', 'tierra'))
+  for (const k of filas) partes.push(parte(id, `gs${k}`, 'tierra'))
+  const conexiones: [string, string][] = [['p1.1', 'u1.V+'], ['p2.1', 'u1.V-'], ['u1.+', 'g0.1'], ['rf.1', 'u1.-'], ['rf.2', 'u1.OUT'], ['u1.OUT', 'rl.1'], ['rl.2', 'gl.1']]
+  for (const k of filas) conexiones.push([`v${k}.+`, `r${k}.1`], [`r${k}.2`, 'u1.-'], [`v${k}.-`, `gs${k}.1`])
+  const gs = r.gReal.map((g) => Number(g.toPrecision(3)))
+  return {
+    def: { partes, conexiones, cables: cablesDe(id), etiquetas: etiquetasDe(id) },
+    nombre: `Sumador inversor de ${n} entradas`,
+    descripcion: `${modelo} con alimentación de ±${V(e.vs)} y Rf de ${R(r.rfc)}. Ganancias de ${gs.join(', ')} con entradas de ${r.ric.map(R).join(', ')}. La salida es la suma invertida.`
+  }
+}
+
+export function circuitoInstrumentacion(e: EntradaInstrumentacion, r: ResultadoInstrumentacion, modelo: string): Armado {
+  const id: IdDisposicion = 'instrumentacion'
+  const [mas, menos] = rielesDe(e.vs)
+  const res = (clave: string, valor: number) => parte(id, clave, 'resistencia', { valor: t(valor) })
+  const partes: Parte[] = [
+    parte(id, 'u1', 'amp-op', { modelo }), parte(id, 'u2', 'amp-op', { modelo }), parte(id, 'u3', 'amp-op', { modelo }),
+    ...['p1', 'p3', 'p5'].map((k) => parte(id, k, 'alimentacion', { nombre: mas })),
+    ...['p2', 'p4', 'p6'].map((k) => parte(id, k, 'alimentacion', { nombre: menos })),
+    res('r1', r.rc), res('r2', r.rc), res('rg', r.rgc),
+    res('r3', r.rdc), res('r4', r.rdc), res('r5', r.rdc), res('r6', r.rdc),
+    parte(id, 'v1', 'fuente-dc', { voltaje: voltio(e.vcm + e.vd / 2) }),
+    parte(id, 'v2', 'fuente-dc', { voltaje: voltio(e.vcm - e.vd / 2) }),
+    res('rl', 10e3),
+    parte(id, 'g1', 'tierra'), parte(id, 'g2', 'tierra'), parte(id, 'g3', 'tierra'), parte(id, 'g4', 'tierra')
+  ]
+  return {
+    def: {
+      partes,
+      conexiones: [
+        ['p1.1', 'u1.V+'], ['p2.1', 'u1.V-'], ['p3.1', 'u2.V+'], ['p4.1', 'u2.V-'], ['p5.1', 'u3.V+'], ['p6.1', 'u3.V-'],
+        ['v1.+', 'u1.+'], ['v1.-', 'g1.1'], ['v2.+', 'u2.+'], ['v2.-', 'g2.1'],
+        ['r1.1', 'u1.-'], ['r1.2', 'u1.OUT'], ['r2.1', 'u2.-'], ['r2.2', 'u2.OUT'], ['rg.1', 'u2.-'], ['rg.2', 'u1.-'],
+        ['r3.1', 'u2.OUT'], ['r3.2', 'u3.-'], ['r4.1', 'u3.-'], ['r4.2', 'u3.OUT'],
+        ['r5.1', 'u1.OUT'], ['r5.2', 'u3.+'], ['r6.1', 'u3.+'], ['r6.2', 'g3.1'], ['u3.OUT', 'rl.1'], ['rl.2', 'g4.1']
+      ],
+      cables: cablesDe(id),
+      etiquetas: etiquetasDe(id)
+    },
+    nombre: `Amplificador de instrumentación de ganancia ${Number(r.gReal.toPrecision(3))}`,
+    descripcion: `Tres ${modelo} con alimentación de ±${V(e.vs)}, R de ${R(r.rc)}, Rg de ${R(r.rgc)} y etapa diferencial de ${R(r.rdc)}. Entradas de prueba con ${V(e.vd)} diferencial y ${V(e.vcm)} de modo común.`
   }
 }
 

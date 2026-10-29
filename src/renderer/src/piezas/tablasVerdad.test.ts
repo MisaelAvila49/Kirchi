@@ -172,7 +172,8 @@ describe('los retardos de la pieza salen de los de la hoja', () => {
 
   const ids = [
     'decodificador-138', 'decodificador-139', 'decodificador-7447', 'decodificador-4028', 'multiplexor-151', 'multiplexor-153',
-    'multiplexor-157', 'codificador-148', 'sumador-283', 'comparador-magnitud-85', 'bufer-244', 'transceptor-245', 'contador-161', 'contador-163', 'contador-190', 'contador-193', 'contador-4017'
+    'multiplexor-157', 'codificador-148', 'sumador-283', 'comparador-magnitud-85', 'bufer-244', 'transceptor-245', 'contador-161', 'contador-163', 'contador-190', 'contador-193', 'contador-4017',
+    'registro-164', 'registro-165', 'registro-595'
   ]
   const casos = ids.flatMap((id) => Object.keys((lib.get(id)!.modelo as any).retardos).map((familia) => [id, familia] as const))
 
@@ -188,6 +189,22 @@ describe('los retardos de la pieza salen de los de la hoja', () => {
         expect(tip.length ? tip.some((t) => Math.abs(t - d) < 1e-6) : max.some((x) => Math.abs(x - d) < 1e-6), `${salida}: ${d} ns`).toBe(true)
         expect(d).toBeLessThanOrEqual(Math.max(...max) + 1e-6)
       }
+    }
+  })
+})
+
+describe('registro-595: las salidas pasan por OE', () => {
+  it('con OE en alto las ocho salidas quedan en alta impedancia y con OE en bajo siguen al registro de almacenamiento', () => {
+    const m = lib.get('registro-595')!.modelo as any
+    const tabla = tablaDelModelo(m) as TablaDef
+    expect(tabla.columnas).toEqual(['OE', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7'])
+    expect(tabla.salidas).toEqual(['QA', 'QB', 'QC', 'QD', 'QE', 'QF', 'QG', 'QH'])
+    const r = compilarTabla(tabla, [...tabla.columnas, ...tabla.salidas, "QH'"], { bitsEstado: 8 })
+    expect(r.errores).toEqual([])
+    const filas = (r.filas as (number | bigint)[]).map(BigInt)
+    for (let i = 0; i < 512; i++) {
+      const [oe, ...a] = bitsDe(i, 9)
+      for (let j = 0; j < 8; j++) expect(nivel(filas[i], j), `OE ${oe} almacén ${a.join('')} salida ${j}`).toBe(oe ? 2 : a[j])
     }
   })
 })

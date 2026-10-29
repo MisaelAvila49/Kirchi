@@ -27,29 +27,29 @@ const idsDeTeclas = (): { capitulo: string; paso: string; id: string }[] =>
   CAPITULOS.flatMap((c) => c.pasos.flatMap((p) => [...p.texto.matchAll(/\{tecla:([a-z0-9-]+)\}/g)].map((m) => ({ capitulo: c.id, paso: p.id, id: m[1] }))))
 
 describe('las teclas del tutorial salen de la tabla real de atajos', () => {
-  it('cada {tecla:id} de los cinco capítulos es un comando registrado con alguna tecla', () => {
+  it('cada {tecla:id} de los cuatro capítulos es un comando registrado con alguna tecla', () => {
     const a = tablaReal()
     const usados = idsDeTeclas()
-    expect(usados.length).toBeGreaterThan(15)
+    expect(usados.length).toBeGreaterThan(8)
     for (const u of usados) expect(a.teclasDe(u.id).length, `${u.capitulo}/${u.paso}: ${u.id}`).toBeGreaterThan(0)
   })
 
-  it('el capítulo 5 nombra las cinco teclas que enseña', () => {
-    const ids = idsDeTeclas().filter((u) => u.capitulo === 'trucos').map((u) => u.id)
-    expect([...new Set(ids)].sort()).toEqual(['atajos', 'buscar-comando', 'deshacer', 'encuadrar', 'limpio'])
+  it('el capítulo 1 enseña encuadrar, el lienzo limpio, buscar comandos y la hoja de atajos con sus teclas reales', () => {
+    const ids = idsDeTeclas().filter((u) => u.capitulo === 'conoce').map((u) => u.id)
+    expect([...new Set(ids)].sort()).toEqual(['atajos', 'buscar-comando', 'encuadrar', 'limpio'])
   })
 
   it('el texto sigue a la tecla que el usuario tenga configurada', () => {
     const a = tablaReal()
-    const paso = CAPITULOS[4].pasos.find((p) => p.id === 'encuadrar')!
+    const paso = CAPITULOS[1].pasos.find((p) => p.id === 'voltajes')!
     const teclaDe = (id: string) => a.teclasDe(id)[0]
     const nombreDe = (id: string) => a.nombreDe(id) ?? id
-    expect(partirTexto(paso.texto, teclaDe).some((p) => p.tipo === 'tecla' && p.tecla === 'F')).toBe(true)
-    a.ponerTeclas('encuadrar', ['Ctrl+E'])
+    expect(partirTexto(paso.texto, teclaDe).some((p) => p.tipo === 'tecla' && p.tecla === 'V')).toBe(true)
+    a.ponerTeclas('voltajes', ['Ctrl+E'])
     expect(partirTexto(paso.texto, teclaDe).some((p) => p.tipo === 'tecla' && p.tecla === 'Ctrl+E')).toBe(true)
     expect(textoLlano(paso.texto, teclaDe, nombreDe)).toContain('Ctrl+E')
     // Sin tecla (el usuario la quitó) el texto dice el nombre del comando en vez de dejar un hueco.
-    a.ponerTeclas('encuadrar', [])
-    expect(textoLlano(paso.texto, teclaDe, nombreDe)).toContain('Encuadrar todo')
+    a.ponerTeclas('voltajes', [])
+    expect(textoLlano(paso.texto, teclaDe, nombreDe)).toContain('Mostrar u ocultar los voltajes')
   })
 })

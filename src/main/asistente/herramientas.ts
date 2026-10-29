@@ -3,6 +3,7 @@ import { CATEGORIA_INCLUIDAS } from '../../compartido/plantillas'
 import { plantillasIncluidas } from '../../renderer/src/plantillas/almacen'
 import type { EntradaAnalisis } from '../../renderer/src/edicion/analisisDoc'
 import { catalogo, datosDePieza } from '../../renderer/src/edicion/catalogo'
+import { patillasDeUnidad, paqueteDe } from '../../renderer/src/doc/paquetes'
 import { describir } from '../../renderer/src/edicion/describir'
 import { resolverPerilla, valorDePerilla } from '../../renderer/src/edicion/perillas'
 import { validarOrden } from '../../renderer/src/edicion/ordenes'
@@ -96,10 +97,11 @@ export interface Herramienta {
 const circuitoEntrada = { circuito }
 
 /** Cómo se acomoda un circuito, en pocas palabras: va en las herramientas que colocan y conectan. */
+const ACOMODO_CHIPS = 'Chips con varias unidades (compuertas, amplificadores): coloca las unidades de un mismo chip cerca una de otra, que sus pines compartidos (alimentación) no se cablean aparte y que la referencia es U1B (paquete U1, unidad B).'
 const ACOMODO = 'Acomodo: entrada a la izquierda, salida a la derecha, tierra abajo, alimentaciones arriba, posiciones en pasos de 2.5 mm, de 10 a 15 mm entre etapas y sin cruzar cables. Si una plantilla o una calculadora sirve, úsala: ya viene bien acomodada.'
 const ESQUEMA_ANALISIS = '{ tipo: "op" } | { tipo: "dc", fuente, desde, hasta, paso } | { tipo: "ac", barrido, puntos (hasta 10000 por década), desde, hasta, fuente, magnitud, incluir? (frecuencias en Hz que el barrido contiene exactas, como [60]) } | { tipo: "tran", fin } | { tipo: "fourier", fundamental, armonicos, periodos, descarte, ventana }'
 const valorPerilla = z.union([z.string(), z.number()]).describe('Número en la unidad de la perilla (catalogo_piezas, «perilla») o texto con ella, como «60 °C»')
-const trazas = z.array(z.string()).optional().describe('Redes a graficar: una patilla (R2.2, U1.OUT), «red de R1.1» o el nombre de una red, con o sin etiqueta')
+const trazas = z.array(z.string()).optional().describe('Redes a graficar: un pin (R2.2, U1.OUT), «red de R1.1» o el nombre de una red, con o sin etiqueta')
 const corrientes = z.array(z.string()).optional().describe('Referencias de las piezas cuya corriente se grafica, como R1')
 
 /** Las herramientas, con su descripción y sus argumentos. El texto del circuito (notas, etiquetas) llega como datos en las
@@ -108,13 +110,13 @@ export const HERRAMIENTAS: Herramienta[] = [
   { nombre: 'estado', descripcion: 'Dice si hay una ventana de Kirchi conectada, la carpeta del asistente y cuántos circuitos tiene abiertos.', entrada: {}, lectura: true },
   {
     nombre: 'catalogo_piezas',
-    descripcion: 'Lista los tipos de pieza que se pueden colocar, con sus patillas y propiedades. Filtra por texto o categoría. Para circuitos conocidos (divisor, filtro, amplificador, 555) hay plantillas listas: ve listar_plantillas y generar_circuito.',
+    descripcion: 'Lista los tipos de pieza que se pueden colocar, con sus pines y propiedades. Filtra por texto o categoría. Los chips con varias unidades traen «unidades»: cuántas, y el número de pin físico de cada pin del símbolo por unidad. Para circuitos conocidos (divisor, filtro, amplificador, 555) hay plantillas listas: ve listar_plantillas y generar_circuito.',
     entrada: { filtro: z.string().optional().describe('Texto que debe aparecer en el id, el nombre o la categoría') },
     lectura: true
   },
   {
     nombre: 'datos_pieza',
-    descripcion: 'Datos físicos de una pieza: encapsulados con el número de patilla de cada pin, patillas de alimentación, huella de KiCad, número LCSC (con su marca: comprobado o sin verificar), hoja de datos y equivalencias. Por tipo (y opción, la de la propiedad que elige la fila, p. ej. BC547; «props» para otras propiedades) o, con «circuito» y «ref», la pieza del circuito. Las piezas de catalogo_piezas y leer_circuito con «datos» los tienen.',
+    descripcion: 'Datos físicos de una pieza: encapsulados con el número de pin físico de cada pin del símbolo, pines de alimentación, huella de KiCad, número LCSC (con su marca: comprobado o sin verificar), hoja de datos y equivalencias (en chips con varias unidades, los pines de cada unidad; con «ref» de una unidad, los suyos). Por tipo (y opción, la de la propiedad que elige la fila, p. ej. BC547; «props» para otras propiedades) o, con «circuito» y «ref», la pieza del circuito. Las piezas de catalogo_piezas y leer_circuito con «datos» los tienen.',
     entrada: {
       tipo: z.string().optional().describe('Id de pieza del catálogo'),
       opcion: z.string().optional().describe('Opción que elige la fila de datos (modelo, o «A|B» con dos propiedades)'),
@@ -124,16 +126,18 @@ export const HERRAMIENTAS: Herramienta[] = [
     },
     lectura: true
   },
-  { nombre: 'leer_circuito', descripcion: 'Describe el circuito: piezas con sus redes, redes, instrumentos, sondas, análisis y avisos. «cablesSueltos» lista los extremos de cable que no tocan nada (bórralos con borrar). Si hace falta armar algo común, busca antes una plantilla con listar_plantillas.', entrada: circuitoEntrada, lectura: true },
+  { nombre: 'leer_circuito', descripcion: 'Describe el circuito: piezas con sus redes (de un chip con unidades, también paquete, unidad y número de pin físico de cada pin del símbolo), «paquetes» con las unidades puestas y libres y los pines compartidos, redes, instrumentos, sondas, análisis y avisos. «cablesSueltos» lista los extremos de cable que no tocan nada (bórralos con borrar). Si hace falta armar algo común, busca antes una plantilla con listar_plantillas.', entrada: circuitoEntrada, lectura: true },
   { nombre: 'listar_archivos', descripcion: 'Lista los circuitos .kir de la carpeta del asistente.', entrada: {}, lectura: true },
   { nombre: 'crear_circuito', descripcion: 'Crea un circuito vacío nuevo en la carpeta del asistente y, si Kirchi está abierto, lo abre en una ventana nueva. No reemplaza uno que existe.', entrada: { nombre: z.string().describe('Nombre del archivo, con o sin .kir') }, lectura: false },
   {
     nombre: 'colocar',
-    descripcion: `Coloca una pieza. Sin «en» busca lugar libre a la derecha de lo que hay. ${ACOMODO}`,
+    descripcion: `Coloca una pieza. Sin «en» busca lugar libre a la derecha de lo que hay. Una pieza con unidades toma sola la primera libre de un chip del mismo tipo (U1A, U1B…) y abre otro al llenarse; con «paquete» (U1) elige el chip y con «unidad» (B) la letra, y si está en uso o el chip es de otro tipo lo dice. La respuesta trae la referencia que quedó. ${ACOMODO} ${ACOMODO_CHIPS}`,
     entrada: {
       ...circuitoEntrada,
       tipo: z.string().describe('Id de pieza del catálogo'),
       ref: z.string().optional(),
+      paquete: z.string().optional().describe('Chip con unidades: su referencia sin letra (U1)'),
+      unidad: z.string().optional().describe('Chip con unidades: la letra de la unidad (A, B…)'),
       valor: z.string().optional(),
       props: z.record(z.string(), z.string()).optional(),
       en: punto.optional(),
@@ -144,14 +148,26 @@ export const HERRAMIENTAS: Herramienta[] = [
   },
   {
     nombre: 'conectar',
-    descripcion: 'Une dos patillas (R1.2) o redes por nombre, con cable o, si un cable cruzaría una pieza, con etiquetas. Prefiere cables que no se crucen: mueve piezas antes que cruzar.',
+    descripcion: 'Une dos pines (R1.2) o redes por nombre, con cable o, si un cable cruzaría una pieza, con etiquetas. Prefiere cables que no se crucen: mueve piezas antes que cruzar.',
     entrada: { ...circuitoEntrada, desde: z.string(), hasta: z.string(), via: z.enum(['auto', 'cable', 'etiqueta']).optional() },
+    lectura: false
+  },
+  {
+    nombre: 'cambiar_unidad',
+    descripcion: 'Pasa una unidad de un chip a otra libre del mismo chip (U1A a U1B): cambia su referencia y no mueve cables. Si la unidad está en uso lo dice.',
+    entrada: { ...circuitoEntrada, ref: z.string().describe('Referencia de la unidad (U1A)'), unidad: z.string().describe('Letra de la unidad nueva (B)') },
+    lectura: false
+  },
+  {
+    nombre: 'agrupar_encapsulados',
+    descripcion: 'Reparte las piezas con unidades que están sueltas (compuertas, amplificadores sin paquete) en chips U1, U2… en orden de lectura, y devuelve cada renombre. No toca las que ya están en un chip.',
+    entrada: circuitoEntrada,
     lectura: false
   },
   { nombre: 'mover', descripcion: 'Mueve piezas a una posición o por un desplazamiento, en mm.', entrada: { ...circuitoEntrada, refs, a: punto.optional(), desplazar: punto.optional() }, lectura: false },
   {
     nombre: 'borrar',
-    descripcion: 'Borra piezas, cables (por red o patilla) y etiquetas (por nombre).',
+    descripcion: 'Borra piezas, cables (por red o pin) y etiquetas (por nombre).',
     entrada: { ...circuitoEntrada, refs: z.array(z.string()).optional(), cables: z.array(z.string()).optional(), etiquetas: z.array(z.string()).optional() },
     lectura: false
   },
@@ -178,7 +194,7 @@ export const HERRAMIENTAS: Herramienta[] = [
   },
   {
     nombre: 'poner_sonda',
-    descripcion: 'Pone una sonda en una patilla o red.',
+    descripcion: 'Pone una sonda en un pin o red.',
     entrada: { ...circuitoEntrada, tipo: z.enum(['osciloscopio', 'multimetro', 'voltaje', 'corriente', 'medidor']), punto: z.string(), instrumento: z.string().optional(), entrada: z.string().optional() },
     lectura: false
   },
@@ -190,7 +206,7 @@ export const HERRAMIENTAS: Herramienta[] = [
   },
   {
     nombre: 'aplicar_lote',
-    descripcion: `Aplica una lista de órdenes como un solo paso: si una falla no se aplica ninguna y se dice cuál. Cada orden lleva «orden» (colocar, conectar, mover, borrar, propiedad, transformar, instrumento, sonda, fragmento, nombrar, analisis, vaciar) y sus campos; una «clave» permite nombrar lo creado. ${ACOMODO}`,
+    descripcion: `Aplica una lista de órdenes como un solo paso: si una falla no se aplica ninguna y se dice cuál. Cada orden lleva «orden» (colocar, conectar, mover, borrar, propiedad, unidad, agrupar, transformar, instrumento, sonda, fragmento, nombrar, analisis, vaciar) y sus campos; colocar acepta «paquete» y «unidad», unidad lleva «ref» y «unidad», agrupar no lleva campos; una «clave» permite nombrar lo creado, y conectar usa la referencia completa (U1B.Y). ${ACOMODO}`,
     entrada: { ...circuitoEntrada, ordenes: z.array(z.record(z.string(), z.unknown())).min(1) },
     lectura: false
   },
@@ -210,20 +226,20 @@ export const HERRAMIENTAS: Herramienta[] = [
   },
   {
     nombre: 'simular',
-    descripcion: `Simula desde cero hasta «hasta» segundos (máximo ${TOPE_SIMULADO_S}) y devuelve voltajes de redes, corrientes de piezas (con la región de los transistores), el valor de cada perilla, multímetros, medidores y un resumen del osciloscopio. «cambios» mueve perillas en instantes dados (hasta ${MAX_CAMBIOS}) y «muestrear» lee el voltaje de una red en instantes exactos (hasta ${MAX_MUESTRAS_PEDIDAS} muestras y ${MAX_TRAZAS_MUESTREADAS} redes distintas), sin importar el paso: así se mide cuándo conmuta un comparador al mover una temperatura.`,
+    descripcion: `Simula desde cero hasta «hasta» segundos (máximo ${TOPE_SIMULADO_S}) y devuelve voltajes de redes, corrientes de piezas (con la región de los transistores), el valor de cada perilla, multímetros, medidores y un resumen del osciloscopio (mínimo y máximo de toda la corrida; media, eficaz y frecuencia de la segunda mitad, sin el arranque). «cambios» mueve perillas en instantes dados (hasta ${MAX_CAMBIOS}) y «muestrear» lee el voltaje de una red en instantes exactos (hasta ${MAX_MUESTRAS_PEDIDAS} muestras y ${MAX_TRAZAS_MUESTREADAS} redes distintas), sin importar el paso: así se mide cuándo conmuta un comparador al mover una temperatura.`,
     entrada: {
       ...circuitoEntrada,
       hasta: z.number().positive(),
       paso: z.number().positive().optional(),
       muestras: z.number().int().min(0).max(2000).optional().describe('Valores por canal del osciloscopio'),
       cambios: z.array(z.object({ t: z.number().min(0).describe('Segundos desde el inicio, dentro de «hasta»'), ref: z.string(), prop: z.string().optional(), valor: valorPerilla })).max(MAX_CAMBIOS).optional().describe('Cambios de perilla con su instante'),
-      muestrear: z.array(z.object({ t: z.number().min(0), traza: z.string().describe('Una patilla (R2.2), «red de R1.1» o el nombre de una red') })).max(MAX_MUESTRAS_PEDIDAS).optional().describe('Lecturas de voltaje en instantes exactos; la respuesta las trae en «simulado.muestras»')
+      muestrear: z.array(z.object({ t: z.number().min(0), traza: z.string().describe('Un pin (R2.2), «red de R1.1» o el nombre de una red') })).max(MAX_MUESTRAS_PEDIDAS).optional().describe('Lecturas de voltaje en instantes exactos; la respuesta las trae en «simulado.muestras»')
     },
     lectura: true
   },
   {
     nombre: 'analizar',
-    descripcion: 'Corre un análisis de ngspice: punto de operación (op), barrido de CC (dc), respuesta en frecuencia (ac), transitorio (tran) o Fourier. Las fuentes se dan por referencia, como V1. Con «trazas» grafica cualquier red por patilla (R2.2) aunque no tenga nombre; con guardar: true y un nombre, el análisis queda en el circuito y se ve en la pestaña Análisis y en Gráficas.',
+    descripcion: 'Corre un análisis de ngspice: punto de operación (op), barrido de CC (dc), respuesta en frecuencia (ac), transitorio (tran) o Fourier. Las fuentes se dan por referencia, como V1. Con «trazas» grafica cualquier red por pin (R2.2) aunque no tenga nombre; con guardar: true y un nombre, el análisis queda en el circuito y se ve en la pestaña Análisis y en Gráficas.',
     entrada: {
       ...circuitoEntrada,
       config: z.record(z.string(), z.unknown()).describe(ESQUEMA_ANALISIS),
@@ -237,8 +253,8 @@ export const HERRAMIENTAS: Herramienta[] = [
   },
   {
     nombre: 'nombrar_red',
-    descripcion: 'Da nombre a la red de una patilla con una etiqueta puesta junto a ella, para que las trazas y el Registro la nombren. No une redes: si el nombre ya es de otra, se rechaza.',
-    entrada: { ...circuitoEntrada, punto: z.string().describe('Una patilla (R2.2) o la red de una patilla'), nombre: z.string().describe('Nombre corto, hasta 24 caracteres, como SALIDA') },
+    descripcion: 'Da nombre a la red de un pin con una etiqueta puesta junto a ella, para que las trazas y el Registro la nombren. No une redes: si el nombre ya es de otra, se rechaza.',
+    entrada: { ...circuitoEntrada, punto: z.string().describe('Un pin (R2.2) o la red de un pin'), nombre: z.string().describe('Nombre corto, hasta 24 caracteres, como SALIDA') },
     lectura: false
   },
   {
@@ -331,6 +347,8 @@ const ORDEN_DE: Record<string, string> = {
   mover: 'mover',
   borrar: 'borrar',
   cambiar_propiedad: 'propiedad',
+  cambiar_unidad: 'unidad',
+  agrupar_encapsulados: 'agrupar',
   transformar: 'transformar',
   poner_instrumento: 'instrumento',
   poner_sonda: 'sonda',
@@ -689,7 +707,10 @@ export class Herramientas {
     const def = this.deps.lib.get(pieza.tipo)
     if (!def) return falla(`La pieza ${pieza.ref} es de un tipo que esta versión no conoce («${pieza.tipo}»).`)
     const r = datosDePieza(def, pieza.props)
-    return 'motivo' in r ? falla(r.motivo) : datos({ ref: pieza.ref, ...r })
+    if ('motivo' in r) return falla(r.motivo)
+    const pq = paqueteDe(pieza)
+    const numeros = pq ? patillasDeUnidad(def, pieza.props, pq.unidad) : null
+    return datos({ ref: pieza.ref, ...(pq ? { paquete: pq.paquete, unidad: pq.unidad } : {}), ...(numeros ? { numerosDeUnidad: numeros } : {}), ...r })
   }
 
   private catalogo(filtro: string) {

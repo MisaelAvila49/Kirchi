@@ -18,6 +18,8 @@ export interface EntradaGlobo {
   hueco?: number
   /** El lado que se intenta primero (un paso que pide trabajar debajo o arriba del objetivo deja el globo al costado). */
   preferido?: Exclude<Lado, 'centro'>
+  /** Zonas que el globo no debe tapar ni quedar bajo ellas (el editor de valores abierto): un lado que las toca se descarta. */
+  evitar?: readonly Rect[]
 }
 
 export interface SalidaGlobo {
@@ -44,6 +46,7 @@ export function colocarGlobo(e: EntradaGlobo): SalidaGlobo {
   const libreX = (x: number) => acotar(x, margen, Math.max(margen, W - w - margen))
   const libreY = (y: number) => acotar(y, margen, Math.max(margen, H - h - margen))
   const o = e.objetivo
+  const choca = (x: number, y: number) => (e.evitar ?? []).some((z) => x < z.x + z.w && x + w > z.x && y < z.y + z.h && y + h > z.y)
   if (o) {
     const orden = e.preferido ? [e.preferido, ...LADOS.filter((l) => l !== e.preferido)] : LADOS
     for (const lado of orden) {
@@ -53,15 +56,21 @@ export function colocarGlobo(e: EntradaGlobo): SalidaGlobo {
         if (y < margen || y + h > H - margen) continue
         // El globo arranca alineado con el objetivo si cabe: la flecha apunta a su centro.
         x = libreX(Math.min(o.x, o.x + o.w / 2 - MARGEN_FLECHA))
+        if (choca(x, y)) continue
         return { x, y, lado, flecha: acotar(o.x + o.w / 2 - x, MARGEN_FLECHA, w - MARGEN_FLECHA) }
       }
       x = lado === 'derecha' ? o.x + o.w + hueco : o.x - hueco - w
       if (x < margen || x + w > W - margen) continue
       y = libreY(o.y + o.h / 2 - h / 2)
+      if (choca(x, y)) continue
       return { x, y, lado, flecha: acotar(o.y + o.h / 2 - y, MARGEN_FLECHA, h - MARGEN_FLECHA) }
     }
   }
-  return { x: libreX(margen), y: libreY(H - h - margen), lado: 'centro', flecha: 0 }
+  // Sin lado libre: abajo a la izquierda y, si ahí también estorba, abajo a la derecha.
+  const izq = { x: libreX(margen), y: libreY(H - h - margen) }
+  const der = { x: libreX(W - w - margen), y: izq.y }
+  const sitio = choca(izq.x, izq.y) && !choca(der.x, der.y) ? der : izq
+  return { ...sitio, lado: 'centro', flecha: 0 }
 }
 
 /** El rectángulo de foco: el del objetivo con `aire` alrededor, acotado a la ventana. */

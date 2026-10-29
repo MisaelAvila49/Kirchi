@@ -299,7 +299,7 @@ export const TEXTO_DATOS_IMPLICITA = 'alimentación implícita'
 export const TEXTO_DATOS_SIN_SIMULAR = 'no se simula'
 const MONTAJE: Record<string, string> = { THT: 'orificio pasante', SMD: 'montaje superficial' }
 /** Cómo se llama cada campo pendiente en la línea «Sin dato de …». */
-const CAMPO_PENDIENTE: Record<string, string> = { lcsc: 'LCSC', hoja: 'la hoja de datos', huella: 'la huella', parte: 'la parte', patillas: 'las patillas', encapsulado: 'el encapsulado', fabricante: 'el fabricante' }
+const CAMPO_PENDIENTE: Record<string, string> = { lcsc: 'LCSC', hoja: 'la hoja de datos', huella: 'la huella', parte: 'la parte', patillas: 'los pines', encapsulado: 'el encapsulado', fabricante: 'el fabricante' }
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 
 /** Una patilla del encapsulado: su número, qué es y, si no es un pin conectable, por qué. */

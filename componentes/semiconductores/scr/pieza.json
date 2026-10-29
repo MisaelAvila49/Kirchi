@@ -5,6 +5,7 @@
     "en": "SCR thyristor"
   },
   "categoria": "semiconductores",
+  "grupo": "Tiristores",
   "prefijo": "Q",
   "buscar": [
     "scr",

@@ -3,7 +3,7 @@ import { destransformar, transformar } from '../piezas/transformar'
 import { MAX_TEXTO_PROP, type PiezaDef, type Rotulo } from '../piezas/tipos'
 import { rielDeTerminal, SIN_RIELES, type ConRieles } from '../netlist/alimentaciones'
 import { formatearValor, leerValor } from '../valores/valores'
-import { partesDeAjuste, PROP_JUNTO, SEPARADOR_AJUSTE } from './ajusteEnPieza'
+import { PROP_JUNTO, textoDeAjuste } from './ajusteEnPieza'
 import { alineacionPorX, emDeTam, TAM_ETIQUETA, type Alineacion } from './medidas'
 import { anchoEnEm } from './metricas'
 import type { Token } from './paleta'
@@ -45,18 +45,14 @@ export function textoDeValor(p: Pieza, def: PiezaDef, doc: ConRieles = SIN_RIELE
   // Un terminal de alimentación muestra el voltaje de su riel; con un nombre que ya es un voltaje («+15V»), nada.
   const riel = rielDeTerminal(doc, p, def)
   if (riel) return riel.deNombre ? null : riel.valor === null ? riel.texto : formatearValor(riel.valor, 'V')
-  // Con la opción «Mostrar» (junto), el valor lleva el ajuste y la resistencia tras él; el ajuste de la perilla no es el valor.
+  // La perilla de una pieza con recuadro de ajuste (`junto`) es ese ajuste y no su valor.
   const conJunto = def.props.some((d) => d.id === PROP_JUNTO)
   const prop = def.props.find((d) => !d.opciones && !d.texto && !d.ajuste && !(conJunto && d.enVivo))
-  let base: string | null
   if (!prop) {
-    const lista = conJunto ? undefined : def.props.find((d) => d.mostrar && d.opciones)
-    base = lista ? (p.props[lista.id] ?? lista.defecto) : null
-  } else base = valorFormateado(p.props[prop.id] ?? prop.defecto, prop.unidad)
-  if (!conJunto) return base
-  const { ajuste, resistencia } = partesDeAjuste(p, def)
-  const partes = [base, ajuste, resistencia].filter((x): x is string => x !== null && x !== '')
-  return partes.length ? partes.join(SEPARADOR_AJUSTE) : null
+    const lista = def.props.find((d) => d.mostrar && d.opciones)
+    return lista ? (p.props[lista.id] ?? lista.defecto) : null
+  }
+  return valorFormateado(p.props[prop.id] ?? prop.defecto, prop.unidad)
 }
 
 /** Valores ya leídos y formateados, por unidad y texto guardado: leer y formatear cuesta cerca de medio microsegundo por
@@ -87,7 +83,7 @@ export interface PuntoLocal {
   renglon?: 1 | -1
 }
 
-/** Un texto de pieza (su referencia o su valor) con su punto de la definición. */
+/** Un texto de pieza (su referencia, su valor o su ajuste) con su punto de la definición. */
 export interface TextoDePieza {
   cual: CualTexto
   texto: string
@@ -102,7 +98,23 @@ export function textosLocales(p: Pieza, def: PiezaDef, doc: ConRieles = SIN_RIEL
   if (def.modelo?.tipo !== 'tierra' && def.modelo?.tipo !== 'alimentacion' && p.ref !== '') out.push({ cual: 'ref', texto: p.ref, local: def.etiquetas.ref, color: 'pieza' })
   const valor = textoDeValor(p, def, doc)
   if (valor !== null && valor !== '') out.push({ cual: 'valor', texto: valor, local: puntoDelValor(p, def), color: 'valor' })
+  // El ajuste es otro recuadro: su punto de definición es el del valor, un renglón más afuera si el valor está.
+  const ajuste = textoDeAjuste(p, def)
+  if (ajuste !== null) out.push({ cual: 'ajuste', texto: ajuste, local: puntoDelAjuste(puntoDelValor(p, def), valor !== null && valor !== ''), color: 'valor' })
   return out
+}
+
+/** Distancia entre el valor y el ajuste de una pieza, en unidades: la de dos renglones apilados. */
+const ENTRE_VALOR_Y_AJUSTE = 1.8
+const puntosDeAjuste = new WeakMap<PuntoLocal, PuntoLocal>()
+
+/** Punto local del ajuste. Con valor, un renglón más lejos del cuerpo que él; sin valor, el del valor. Los objetos se comparten
+ * para que `apartar.ts` calcule los lugares de cada orientación una vez. */
+function puntoDelAjuste(valor: PuntoLocal, conValor: boolean): PuntoLocal {
+  if (!conValor || valor.renglon) return valor
+  let punto = puntosDeAjuste.get(valor)
+  if (!punto) puntosDeAjuste.set(valor, (punto = { x: valor.x, y: valor.y + (Math.sign(valor.y) || 1) * ENTRE_VALOR_Y_AJUSTE }))
+  return punto
 }
 
 /** Hueco entre un rótulo y el valor que va tras él (`etiquetas.valor.trasRotulo`), en unidades: poco más de un espacio. */

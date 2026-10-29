@@ -2,6 +2,7 @@
   "id": "regulador-ajustable",
   "nombre": { "es": "Regulador ajustable LM317", "en": "Adjustable regulator LM317" },
   "categoria": "integrados",
+  "grupo": "Reguladores y referencias",
   "prefijo": "U",
   "buscar": ["u", "regulador", "regulator", "lm317", "317", "ajustable", "adjustable"],
   "pines": [

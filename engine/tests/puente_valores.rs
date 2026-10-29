@@ -112,6 +112,7 @@ fn un_cambio_tardio_se_aplica_en_el_tiempo_de_la_isla_y_se_cuenta() {
 }
 
 /// Dos islas que leen el mismo canal: la de los LED llega lejos mientras la otra espera a un anillo de 1 ps que agota el presupuesto de eventos.
+/// La que llega lejos lleva un capacitor: una isla sin dinámica regresaría al instante del cambio (ver `islas_quietas.rs`).
 #[test]
 fn dos_islas_con_tiempos_distintos_aplican_cada_una_en_el_suyo() {
     let mut m = mixto(
@@ -119,6 +120,7 @@ fn dos_islas_con_tiempos_distintos_aplican_cada_una_en_el_suyo() {
             {"type":"EXT","a":1,"b":0,"modo":"v","canal":0,"k":1.0,"c":0.0},
             {"type":"R","a":1,"b":2,"ohms":1000},
             {"type":"R","a":2,"b":0,"ohms":1000},
+            {"type":"C","a":2,"b":0,"farads":1e-9},
             {"type":"GATE","fn":"not","inputs":[2],"output":0,"rise_delay":1e-12,"fall_delay":1e-12},
             {"type":"GATE","fn":"not","inputs":[0],"output":1,"rise_delay":1e-12,"fall_delay":1e-12},
             {"type":"GATE","fn":"not","inputs":[1],"output":2,"rise_delay":1e-12,"fall_delay":1e-12},

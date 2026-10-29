@@ -32,7 +32,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Sin presentación común única; KiCad 9 Motor:Motor_DC tiene dos patillas (1 +, 2 −) pero no hay huella de motor genérica"
+          "fuente": "Sin presentación común única; KiCad 9 Motor:Motor_DC tiene dos pines (1 +, 2 −) pero no hay huella de motor genérica"
         }
       }
     }

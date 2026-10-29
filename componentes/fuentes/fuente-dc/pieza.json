@@ -2,6 +2,7 @@
   "id": "fuente-dc",
   "nombre": { "es": "Fuente de voltaje DC", "en": "DC voltage source" },
   "categoria": "fuentes",
+  "grupo": "Independientes",
   "prefijo": "V",
   "buscar": ["v", "fuente", "voltaje", "dc", "source"],
   "pines": [

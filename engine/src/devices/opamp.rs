@@ -1,7 +1,7 @@
 //! Amplificador operacional de una etapa, con las ecuaciones del subcircuito `AMPOP` de `engine/referencias/modelos.lib`: entrada `rin`, nodo interno `x` con R1 = 1 MΩ y C1 (gm = a0/R1, polo en gbw/a0, imax = sr · C1) y saturación de `x` entre V- + dlo y V+ − dhi.
 //! Salida limitada por ilim · tanh((V(x) − V(sal)) / (rout · ilim)), que sale de V+ al entregar y entra a V- al recibir. Consumo en reposo `rq` entre alimentaciones.
 
-use super::{close, entry, init_charge, init_current, integrate, inject, stamp_g, terr, volt, Alloc, Ctx, Device, Hist, Mode, Reading, Tol, U};
+use super::{close, entry, init_charge, init_current, integrate, integrate_euler, inject, stamp_g, terr, volt, Alloc, Ctx, Device, Hist, Mode, Reading, Tol, U};
 use crate::netlist::OpampModel;
 
 /// Resistencia del nodo interno.
@@ -28,6 +28,8 @@ pub struct Opamp {
     c1: f64,
     imax: f64,
     gc: f64,
+    /// C1 con Euler hacia atrás también en los pasos de orden 2 (ver `integrate_euler`).
+    euler: bool,
 }
 
 // Casillas de estado: carga de C1 y su corriente, y las corrientes de las fuentes en la última iteración.
@@ -37,10 +39,10 @@ const ICL: usize = 3;
 const IOUT: usize = 4;
 
 impl Opamp {
-    pub fn new(p: usize, n: usize, out: usize, vp: usize, vn: usize, m: OpampModel) -> Self {
+    pub fn new(p: usize, n: usize, out: usize, vp: usize, vn: usize, m: OpampModel, euler: bool) -> Self {
         let c1 = m.a0 / (2.0 * std::f64::consts::PI * m.gbw * R1);
         let imax = m.sr * c1;
-        Self { p, n, out, vp, vn, up: None, un: None, uo: None, uvp: None, uvn: None, ux: 0, st: 0, gm: m.a0 / R1, c1, imax, gc: 1000.0 * imax, m }
+        Self { p, n, out, vp, vn, up: None, un: None, uo: None, uvp: None, uvn: None, ux: 0, st: 0, gm: m.a0 / R1, c1, imax, gc: 1000.0 * imax, euler, m }
     }
 
     /// Corriente que la etapa de ganancia mete al nodo interno y su derivada respecto de vd.
@@ -105,7 +107,7 @@ impl Device for Opamp {
             c.s0[s + QX] = self.c1 * vx;
             init_charge(c, s + QX);
         }
-        let (geq, ceq) = integrate(c, self.c1, s + QX);
+        let (geq, ceq) = if self.euler { integrate_euler(c, self.c1, s + QX) } else { integrate(c, self.c1, s + QX) };
         init_current(c, s + QX);
         stamp_g(c.m, x, None, geq);
         inject(c.rhs, x, -ceq);
@@ -151,7 +153,8 @@ impl Device for Opamp {
     }
 
     fn trunc(&self, h: &Hist, dt: &mut f64) {
-        terr(h, self.st + QX, dt);
+        let h1 = Hist { order: 1, ..*h };
+        terr(if self.euler && h.order == 2 { &h1 } else { h }, self.st + QX, dt);
     }
 
     /// Corriente que entrega la salida y si el nodo interno está detenido contra una alimentación (1 contra V+, -1
@@ -237,6 +240,24 @@ mod tests {
         assert!(i > 0.0249 && i < 0.0251, "corriente {i}");
         // La corriente sale de la alimentación positiva.
         assert!(tr.readings()[0].i < -0.025);
+    }
+
+    #[test]
+    fn un_lazo_mucho_mas_rapido_que_el_paso_no_se_queda_oscilando() {
+        // Referencia en derivación (un amplificador lento que maneja un NPN de K a tierra) con pasos de 250 µs: el lazo cruza
+        // cerca de 200 kHz y el trapecio saltaba entre 1.55 V y 3.5 V; a 10 ms leía 2.818 V en lugar de 2.495 V.
+        let json = r#"{"nodes":6,"elements":[
+            {"type":"V","a":1,"b":0,"wave":{"kind":"dc","v":12}},
+            {"type":"R","a":1,"b":2,"ohms":1000},
+            {"type":"OA","p":2,"n":3,"out":4,"vp":2,"vn":5,"model":{"a0":20000,"gbw":500,"sr":15000,"rin":1e12,"rout":500,"ilim":0.005,"dhi":0.8,"dlo":0.01,"rq":1e12}},
+            {"type":"V","a":3,"b":5,"wave":{"kind":"dc","v":2.493}},
+            {"type":"Q","c":2,"b":4,"e":5,"model":{"is":1e-14,"bf":150}},
+            {"type":"R","a":5,"b":0,"ohms":0.2}]}"#;
+        let mut tr = Transient::new(Netlist::from_json(json).unwrap(), 2.5e-4).unwrap();
+        for fin in [1e-3, 2e-3, 5e-3, 1e-2] {
+            tr.advance_to(fin, u32::MAX).unwrap();
+            assert!((tr.voltage(2) - 2.4949).abs() < 1e-3, "a {fin} s: {}", tr.voltage(2));
+        }
     }
 
     #[test]

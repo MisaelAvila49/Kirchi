@@ -80,9 +80,9 @@ describe('compilarTabla', () => {
     expect(compilarTabla({ columnas: ['estado'], salidas: ['Y'], filas: ['16 > 1'] }, ['Y'], { bitsEstado: 4 }).errores[0]).toContain('fuera de 0 a 15')
   })
 
-  it('una salida bidireccional no puede depender de la entrada de su propia patilla', () => {
+  it('una salida bidireccional no puede depender de la entrada de su propio pin', () => {
     const def = { columnas: ['DIR', 'A'], salidas: ['A'], filas: ['0 X > A', '1 X > 0'] }
-    expect(compilarTabla(def, ['DIR', 'A'], { bidireccionales: ['A'] }).errores).toEqual(['la salida A depende de la entrada A de su propia patilla'])
+    expect(compilarTabla(def, ['DIR', 'A'], { bidireccionales: ['A'] }).errores).toEqual(['la salida A depende de la entrada A de su propio pin'])
     expect(compilarTabla(def, ['DIR', 'A']).errores).toEqual([])
   })
 

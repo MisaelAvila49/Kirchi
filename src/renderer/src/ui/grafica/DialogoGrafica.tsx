@@ -4,6 +4,7 @@ import type { AspectoTraza } from '../../../../compartido/grafica/aspecto'
 import type { DatoExportable } from '../exportar/campos'
 import { aplicarFormatoCsv, CARACTER_SEPARADOR } from '../exportar/csvFormato'
 import EditorFigura from '../exportar/editor/EditorFigura'
+import { huellaDeModelo } from '../exportar/editor/memoria'
 import type { EstadoEditor } from '../exportar/editor/edicion'
 import { ADORNOS_PREAJUSTE } from '../exportar/preajustes'
 import VistaCsv from '../exportar/VistaCsv'
@@ -45,6 +46,8 @@ export default function DialogoGrafica(props: Props) {
     adornos: { ...ADORNOS_PREAJUSTE[props.entrada.aspecto.informe ? 'informe' : 'instrumento'] },
     rango: null
   }
+  // Una sola vez: el editor la vuelve a leer con cada cambio para recordar lo ajustado.
+  const identidad = huellaDeModelo(props.entrada.titulo, m0)
   const entrada = (e: EstadoEditor): EntradaFigura => ({ ...props.entrada, adornos: e.adornos, aspecto: e.aspecto, modelo: modeloConTrazas(props.entrada.modelo, cambiosCompletos(e.trazas)), vista: { ...props.entrada.vista, ocultas: new Set(e.ocultas) }, rango: e.rango, anotaciones: e.anot })
   const csv = (e: EstadoEditor) => (props.opciones.formato === 'csv' ? aplicarFormatoCsv(csvDeGrafica(props.entrada.titulo, props.entrada.subtitulo, entrada(e).modelo, entrada(e).vista, e.rango), props.opciones) : '')
   const filas = (e: EstadoEditor) => filasDeGrafica(entrada(e).modelo, entrada(e).vista, e.rango)
@@ -53,6 +56,7 @@ export default function DialogoGrafica(props: Props) {
       titulo={`Exportar la gráfica de ${props.entrada.titulo}`}
       tipo="grafica"
       inicial={inicial}
+      identidad={identidad}
       opciones={props.opciones}
       onCambiar={props.onCambiar}
       formatos={FORMATOS}
@@ -64,7 +68,8 @@ export default function DialogoGrafica(props: Props) {
           .filter((t) => !e.ocultas.includes(t.clave))
           .map((t) => ({ clave: t.clave, etiqueta: t.etiqueta, tono: t.tono, lado: t.lado, tonoElegido: e.trazas[t.clave]?.color ?? null, grosor: t.grosor ?? null, prefijo: t.prefijo ?? null, decimales: t.decimales, rango: e.trazas[t.clave]?.rango ?? t.rango, unidad: t.unidad }))
       }}
-      datos={(e): DatoExportable[] => (m0.tipo === 'barras' ? [] : trazasUnicas(m0.trazas).map((t) => ({ id: t.clave, nombre: t.etiqueta, tono: t.tono, activo: !e.ocultas.includes(t.clave) })))}
+      // El tono de cada dato sigue al que se eligió, no al de la gráfica de origen.
+      datos={(e): DatoExportable[] => (m0.tipo === 'barras' ? [] : trazasUnicas(entrada(e).modelo.trazas).map((t) => ({ id: t.clave, nombre: t.etiqueta, tono: t.tono, activo: !e.ocultas.includes(t.clave) })))}
       claveDeTraza={(id) => {
         if (m0.tipo === 'barras' || m0.trazas.some((t) => t.clave === id)) return id
         const i = id.lastIndexOf('#')

@@ -15,6 +15,7 @@ describe('reglas de formato', () => {
     expect(formatoDe(con(pieza('alimentacion')))).toBe(2)
     expect(formatoDe(con(pieza('resistencia', { textos: { ref: { lugar: 'abajo' } } })))).toBe(3)
     expect(formatoDe(con(pieza('alimentacion', { textos: { ref: { lugar: 'abajo' } } })))).toBe(3)
+    expect(formatoDe(con(pieza('potenciometro', { textos: { ajuste: { lugar: 'abajo' } } })))).toBe(3)
     expect(formatoDe({ ...documentoVacio(), figuras: { f: { id: 'f', tipo: 'linea', x: 0, y: 0, x2: 5, y2: 5 } as any } })).toBe(4)
     expect(formatoDe({ ...documentoVacio(), sondas: { s: { id: 's', tipo: 'voltaje', x: 0, y: 0 } } })).toBe(5)
     expect(formatoDe(con(pieza('npn', { spice: { bf: 100 } })))).toBe(6)

@@ -51,10 +51,10 @@ describe('razones de deshabilitado', () => {
     expect(marcado('panel-analisis', base({ inspector: true, panelDerecho: 'proyecto' }))).toBe(false)
   })
 
-  it('simulando, todo lo que edita dice «Detén la vista previa para editar.» y lo demás sigue activo', () => {
+  it('simulando, lo que modifica piezas y cables dice que los valores sí cambian y los análisis dicen el suyo; lo demás sigue activo', () => {
     const e = base({ fase: 'corriendo' })
     expect(editan.length).toBeGreaterThan(10)
-    for (const id of editan) expect(razonDeshabilitado(id, e, tecla), id).toBe(MENSAJE_DETENER_PARA_EDITAR)
+    for (const id of editan) expect(razonDeshabilitado(id, e, tecla), id).toBe(id.startsWith('analisis-') ? RAZON_ANALISIS_CON_VISTA_PREVIA : MENSAJE_DETENER_PARA_EDITAR)
     for (const id of ['copiar', 'todo', 'guardar', 'encuadrar', 'zoom-100', 'tema', 'panel-proyecto', 'detener', 'voltajes', 'simular'] as const)
       expect(razonDeshabilitado(id, e, tecla), id).toBeNull()
     expect(razonDeshabilitado('simular', base({ fase: 'arrancando' }), tecla)).toBe(RAZON_ARRANCANDO)

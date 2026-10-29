@@ -2,6 +2,7 @@
   "id": "zener",
   "nombre": { "es": "Diodo Zener", "en": "Zener diode" },
   "categoria": "semiconductores",
+  "grupo": "Diodos y LED",
   "prefijo": "D",
   "buscar": ["zener", "dz", "regulador zener", "1n4728", "1n4733", "bzx55"],
   "pines": [
@@ -88,7 +89,7 @@
         "pendiente": { "parte": "1N4728A a 1N4761A según el voltaje", "lcsc": "un número por voltaje" },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Vishay 1N4728A-1N4761A (doc. 85816 rev. 2.7), DO-41 (DO-204AL); Las hojas de diodo no numeran patillas: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D; Diode:1N47xxA de KiCad 9"
+          "fuente": "Vishay 1N4728A-1N4761A (doc. 85816 rev. 2.7), DO-41 (DO-204AL); Las hojas de diodo no numeran pines: el número es el del pad de la huella de KiCad 9 (pad 1 cátodo, pad 2 ánodo), igual que los símbolos Diode:* y Device:D; Diode:1N47xxA de KiCad 9"
         }
       },
       "BZX55C": {
@@ -103,7 +104,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Convención de pads de KiCad 9 (pad 1 cátodo, pad 2 ánodo) y encapsulado DO-35 de la copia de la hoja Vishay BZX55 rev. 1.5; una sola fuente de patillas"
+          "fuente": "Convención de pads de KiCad 9 (pad 1 cátodo, pad 2 ánodo) y encapsulado DO-35 de la copia de la hoja Vishay BZX55 rev. 1.5; una sola fuente de pines"
         }
       }
     }

@@ -56,11 +56,11 @@ export default function SeccionDatos(props: PropsSeccionDatos) {
               </Show>
             </dl>
             <Show when={v().patillas.length > 0}>
-              <table class="datos-tabla" aria-label="Patillas">
+              <table class="datos-tabla" aria-label="Pines">
                 <thead>
                   <tr>
                     <th scope="col">N.°</th>
-                    <th scope="col">Patilla</th>
+                    <th scope="col">Pin</th>
                     <Show when={v().patillas.some((p) => p.nota)}>
                       <th scope="col">Nota</th>
                     </Show>

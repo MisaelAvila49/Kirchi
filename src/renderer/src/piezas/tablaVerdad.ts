@@ -147,7 +147,7 @@ export function compilarTabla(def: TablaDef, nombres: string[], opciones: Opcion
     if (k < 0 || j < 0 || errores.length) continue
     for (let i = 0; i < total; i++) {
       if (((salida[i] >> BigInt(2 * j)) & 3n) !== ((salida[i ^ (1 << pesos[k])] >> BigInt(2 * j)) & 3n)) {
-        errores.push(`la salida ${b} depende de la entrada ${b} de su propia patilla`)
+        errores.push(`la salida ${b} depende de la entrada ${b} de su propio pin`)
         break
       }
     }

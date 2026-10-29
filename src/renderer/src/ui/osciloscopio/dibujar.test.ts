@@ -77,6 +77,19 @@ describe('pantalla del osciloscopio', () => {
     expect(anchos('v2').anchoDe.length).toBe(sin.anchoDe.length + 1)
   })
 
+  it('los cursores de tiempo se quedan en la pantalla aunque su inicio avance', () => {
+    const cursores = { canal: 'A' as const, t: [3e-3, 7e-3] as const, v: null }
+    const ops = (t0: number, cur: typeof cursores | null) => {
+      const { ctx, ops } = contexto()
+      dibujarPantalla(ctx, { ...pantalla(100, 1), t0 }, ajustes(), 800, 480, coloresPantalla('claro'), { dpr: 1, ejes: true, cursores: cur })
+      return ops.map((o) => JSON.stringify(o))
+    }
+    // Las líneas discontinuas y la lectura que agregan los cursores (el marcador del disparo sí se mueve con la pantalla).
+    const suyas = (t0: number) => { const sin = new Set(ops(t0, null)); return ops(t0, cursores).filter((o) => !sin.has(o) && (o.includes('"guiones":[3,3]') || o.includes('Δt'))) }
+    expect(suyas(0).length).toBeGreaterThan(0)
+    expect(suyas(5)).toEqual(suyas(0))
+  })
+
   it('sigue el tema y exporta en blanco con los colores del claro', () => {
     expect(coloresPantalla('claro').fondo).toBe('#F7F6F2')
     expect(coloresPantalla('oscuro').fondo).toBe('#17181B')

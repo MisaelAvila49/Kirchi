@@ -71,9 +71,9 @@ export type ElementoMotor =
   /** Diodo; el zener lleva además su resistencia en serie, su ruptura y su capacitancia. */
   | { type: 'D'; a: number; b: number; is: number; n: number; rs?: number; bv?: number; ibv?: number; nbv?: number; cjo?: number; vj?: number; m?: number; tt?: number; fc?: number }
   | { type: 'I'; a: number; b: number; amps: number }
-  | { type: 'Q'; c: number; b: number; e: number; pnp: boolean; model: Parametros }
+  | { type: 'Q'; c: number; b: number; e: number; pnp: boolean; model: Parametros; euler?: boolean }
   | { type: 'M'; d: number; g: number; s: number; pmos: boolean; model: Parametros }
-  | { type: 'OA'; p: number; n: number; out: number; vp: number; vn: number; model: Parametros }
+  | { type: 'OA'; p: number; n: number; out: number; vp: number; vn: number; model: Parametros; euler?: boolean }
   /** JFET de nivel 1; `pjf` es el de canal P. */
   | { type: 'J'; d: number; g: number; s: number; pjf: boolean; model: Parametros }
   /** Fuentes controladas: voltaje por voltaje (`E`), corriente por voltaje (`G`, `gm` en S), voltaje por corriente (`H`, `r` en Ω) y corriente por corriente (`F`). El control es `cp` y `cn`. */

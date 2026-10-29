@@ -5,12 +5,12 @@ import { pathToFileURL } from 'node:url'
 import { aplicarParche, ARG_PRUEBAS, argumentoAjustes, CANAL_ABRIR_ENLACE, CANAL_GUARDAR_AJUSTES, normalizarAjustes, type Ajustes, type Tema } from '../compartido/ajustes'
 import { CANALES } from '../compartido/archivos'
 import { CARPETA_PLANTILLAS } from '../compartido/plantillas'
-import { planDeVentana } from '../compartido/ventana'
+import { CANAL_PANTALLA_COMPLETA, planDeVentana } from '../compartido/ventana'
 import { guardarAjustes, leerAjustes } from './ajustes'
 import { claveRutaReal } from './archivos'
 import { leerBanderas } from './banderas'
 import { abrirEnlace } from './enlaces'
-import { libreriaSinVentana } from './asistente/libreria'
+import type { PiezaDef } from '../renderer/src/piezas/tipos'
 import { ControlCierre } from './cierre'
 import { planDeApertura, rutaDeAbrirArchivo, rutasDeLanzamiento } from './lanzamiento'
 import { abrirCarpeta, dialogosDe, imprimirPdf, registrarArchivos, type Ventana } from './ipcArchivos'
@@ -25,13 +25,14 @@ import { registrarOsc } from './ipcOsc'
 import type { ServicioOsc } from './servicioOsc'
 import type { ServicioGraficas, VentanaGraficas } from './servicioGraficas'
 import { carpetaHerramientas } from './recursos'
-import { localizarNgspice } from './servicioNgspice'
+import { localizarNgspice, motivoSinNgspice, rutasDeNgspice } from './servicioNgspice'
 import { textoConfiguracion } from './asistente/configCliente'
 import { VentanaAsistente } from './asistente/ventanaAsistente'
 import { ServicioArchivos } from './servicioArchivos'
 import { plantillaMenu } from './menu'
 import { esPropia as origenPropio } from './origen'
 import { resolveAppPath } from './resolveAppPath'
+import { recogerTrasCargar } from './recolector'
 import { aplicarTamaño, controlDeTamaño, estadoDeVentanaViva, factorDe, registrarVentana } from './ventana'
 
 const ISOLATION: Record<string, string> = {
@@ -304,8 +305,14 @@ function createWindow(rutaKir?: string): void {
   // Minimizar pausa la grabación en curso: el editor lo sabe por este aviso.
   win.on('minimize', () => win.webContents.send(CANAL_AL_MINIMIZAR_GRABACION, true))
   win.on('restore', () => win.webContents.send(CANAL_AL_MINIMIZAR_GRABACION, false))
+  // La pantalla completa se avisa por el evento de la ventana: medir su tamaño falla según el sistema.
+  win.on('enter-full-screen', () => win.webContents.send(CANAL_PANTALLA_COMPLETA, true))
+  win.on('leave-full-screen', () => win.webContents.send(CANAL_PANTALLA_COMPLETA, false))
   // El zoom de Chromium es por origen: se vuelve a poner al cargar, por si otra ventana del editor lo dejó distinto.
-  win.webContents.on('did-finish-load', () => aplicarTamaño(ajustes.tamañoInterfaz, [win]))
+  win.webContents.on('did-finish-load', () => {
+    aplicarTamaño(ajustes.tamañoInterfaz, [win])
+    recogerTrasCargar()
+  })
   win.once('ready-to-show', () => {
     if (plan.maximizada) win.maximize()
     win.show()
@@ -428,15 +435,16 @@ app.whenReady().then(() => {
     return ajustes
   })
   // Solo se abren los enlaces que trae la librería de piezas; con --pruebas se anotan en vez de abrir el navegador.
-  let libreriaDeEnlaces: ReturnType<typeof libreriaSinVentana> | undefined
-  ipcMain.handle(CANAL_ABRIR_ENLACE, (e, url: unknown) => {
+  // La librería se importa al primer enlace: cargada al arrancar, sus textos ocupaban memoria del proceso principal.
+  let libreriaDeEnlaces: Promise<Map<string, PiezaDef>> | undefined
+  ipcMain.handle(CANAL_ABRIR_ENLACE, async (e, url: unknown) => {
     if (!esPropia(e.senderFrame?.url)) throw new Error('origen no permitido')
-    libreriaDeEnlaces ??= libreriaSinVentana()
+    libreriaDeEnlaces ??= import('./asistente/libreria').then((m) => m.libreriaSinVentana())
     const anotar = async (u: string) => {
       const g = globalThis as { __enlacesAbiertos?: string[] }
       ;(g.__enlacesAbiertos ??= []).push(u)
     }
-    return abrirEnlace(url, libreriaDeEnlaces, banderas.pruebas ? anotar : undefined)
+    return abrirEnlace(url, await libreriaDeEnlaces, banderas.pruebas ? anotar : undefined)
   })
   ipcMain.handle(CANALES.leerAjustes, (e) => {
     if (!esPropia(e.senderFrame?.url)) throw new Error('origen no permitido')
@@ -527,7 +535,11 @@ app.whenReady().then(() => {
     }
   )
   // ngspice corre como proceso aparte (BSD y GPL, nunca enlazado); sin el ejecutable en herramientas/ los análisis dicen que no están disponibles.
-  const ngspice = registrarNgspice(localizarNgspice({ empaquetado: app.isPackaged, carpetaHerramientas: carpetaHerramientas({ empaquetado: app.isPackaged, resourcesPath: process.resourcesPath, appPath: app.getAppPath() }), appPath: app.getAppPath() }), esPropia, (id) => ventanas.has(id))
+  const dondeNgspice = { empaquetado: app.isPackaged, carpetaHerramientas: carpetaHerramientas({ empaquetado: app.isPackaged, resourcesPath: process.resourcesPath, appPath: app.getAppPath() }), appPath: app.getAppPath() }
+  const ejecutableNgspice = localizarNgspice(dondeNgspice)
+  const sinNgspice = ejecutableNgspice ? undefined : motivoSinNgspice(rutasDeNgspice(dondeNgspice))
+  if (sinNgspice) console.error(sinNgspice)
+  const ngspice = registrarNgspice(ejecutableNgspice, esPropia, (id) => ventanas.has(id), sinNgspice)
   app.on('before-quit', () => ngspice?.cerrar())
   // Playwright cierra con app.quit(): en las pruebas eso no pregunta por los cambios ni borra el diario.
   if (banderas.pruebas) app.on('before-quit', () => ventanas.forEach((v) => v.cierre.salirSinPreguntar()))

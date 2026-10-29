@@ -1,7 +1,7 @@
 //! Transistor bipolar Gummel-Poon de SPICE (bjtload.c y bjttemp.c de ngspice a 27 °C): efecto Early, caída de beta, fugas, resistencias, capacitancias de agotamiento y tiempos de tránsito. Sin sustrato ni exceso de fase.
 
 use super::region::{AMPLIFICA, CORTE, INTERRUPTOR, INVERSA};
-use super::{close, depletion, exp_tope, limexp, MAX_EXP_ARG, entry, init_charge, init_current, integrate, inject, pnjlim, predict, stamp_g, terr, volt, Alloc, Ctx, Device, Hist, Mode, Reading, Tol, U, VT};
+use super::{close, depletion, exp_tope, limexp, MAX_EXP_ARG, entry, init_charge, init_current, integrate, integrate_euler, inject, pnjlim, predict, stamp_g, terr, volt, Alloc, Ctx, Device, Hist, Mode, Reading, Tol, U, VT};
 use crate::netlist::BjtModel;
 
 /// Voltaje de unión (V) a partir del cual se la cuenta en directo para decir la región.
@@ -38,6 +38,8 @@ pub struct Bjt {
     tope_isc: f64,
     /// 1 / (1.44 vtf), o cero si vtf es infinito.
     ovtf: f64,
+    /// Cargas con Euler hacia atrás también en los pasos de orden 2 (ver `integrate_euler`).
+    euler: bool,
 }
 
 // Casillas de estado.
@@ -58,7 +60,7 @@ fn inv(v: f64) -> f64 {
 }
 
 impl Bjt {
-    pub fn new(c: usize, b: usize, e: usize, pnp: bool, m: BjtModel) -> Self {
+    pub fn new(c: usize, b: usize, e: usize, pnp: bool, m: BjtModel, euler: bool) -> Self {
         let vcrit = VT * (VT / (std::f64::consts::SQRT_2 * m.is)).ln();
         Self {
             c,
@@ -83,6 +85,7 @@ impl Bjt {
             tope_ise: exp_tope(m.ise),
             tope_isc: exp_tope(m.isc),
             ovtf: if m.vtf != 0.0 { 1.0 / (m.vtf * 1.44) } else { 0.0 },
+            euler,
             m,
         }
     }
@@ -219,15 +222,17 @@ impl Device for Bjt {
         for q in [QBE, QBC, QBX] {
             init_charge(c, s + q);
         }
-        let (geq, _) = integrate(c, capbe, s + QBE);
-        geqcb *= c.ag0;
+        let euler = self.euler && c.order == 2;
+        let integrar = if euler { integrate_euler } else { integrate };
+        let (geq, _) = integrar(c, capbe, s + QBE);
+        geqcb *= if euler { 1.0 / c.h } else { c.ag0 };
         gpi += geq;
         cb += c.s0[s + QBE + 1];
-        let (geq, _) = integrate(c, capbc, s + QBC);
+        let (geq, _) = integrar(c, capbc, s + QBC);
         gmu += geq;
         cb += c.s0[s + QBC + 1];
         cc -= c.s0[s + QBC + 1];
-        let (geqbx, _) = integrate(c, capbx, s + QBX);
+        let (geqbx, _) = integrar(c, capbx, s + QBX);
         for q in [QBE, QBC, QBX] {
             init_current(c, s + q);
         }
@@ -277,6 +282,8 @@ impl Device for Bjt {
     }
 
     fn trunc(&self, h: &Hist, dt: &mut f64) {
+        let h1 = Hist { order: 1, ..*h };
+        let h = if self.euler && h.order == 2 { &h1 } else { h };
         terr(h, self.st + QBE, dt);
         terr(h, self.st + QBC, dt);
     }

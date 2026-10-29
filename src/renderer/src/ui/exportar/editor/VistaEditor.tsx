@@ -15,11 +15,15 @@ export type Herramienta = 'seleccionar' | 'texto' | 'etiqueta' | 'flecha' | 'ran
 
 interface Props {
   figura: FiguraCaptura
+  /** El tramo ya elegido (px de la figura), sombreado mientras se elige otro. */
+  tramoPx?: [number, number] | null
   anot: Anotaciones
   sel: Seleccion | null
+  /** Los que se suman al principal (mismo tipo): también se resaltan. */
+  extras?: readonly Seleccion[]
   herramienta: Herramienta
   /** Elegir (o soltar) un objeto; `ancla` es el punto de la figura donde se hizo clic (para poner la barra flotante junto a él). */
-  onSel(s: Seleccion | null, ancla?: [number, number]): void
+  onSel(s: Seleccion | null, ancla?: [number, number], aditivo?: boolean): void
   onAgregarTexto(fx: number, fy: number): void
   onAgregarFlecha(x1: number, y1: number, x2: number, y2: number): void
   onAgregarEtiqueta(traza: string, x: number, dx: number, dy: number): void
@@ -137,12 +141,16 @@ export default function VistaEditor(props: Props) {
       return
     }
     const hit = queHay(fx, fy)
-    if (hit) {
+    // Mayús o Ctrl y clic suman al grupo y no arrastran nada: mover varios no está.
+    const aditivo = e.shiftKey || e.ctrlKey || e.metaKey
+    if (hit && aditivo) {
+      props.onSel(hit, [fx, fy], true)
+    } else if (hit) {
       props.onSel(hit, [fx, fy])
       if (hit.tipo === 'texto' || hit.tipo === 'flecha' || hit.tipo === 'etiqueta') setGesto({ tipo: 'mover', sel: hit, x: fx, y: fy, movido: false })
       else if (hit.tipo === 'eje') setGesto({ tipo: 'eje', id: hit.id, x: fx, y: fy, movido: false })
     } else {
-      props.onSel(null)
+      if (!aditivo) props.onSel(null)
       const [x, y] = punto(e)
       setGesto({ tipo: 'pan', x, y })
     }
@@ -223,17 +231,35 @@ export default function VistaEditor(props: Props) {
     const k = vz().k
     return { x, y, w: r.w * k, h: r.h * k }
   })
-  const trazaElegida = createMemo(() => {
-    const g = geo()
-    const s = props.sel
-    if (!g || !s || s.tipo !== 'traza') return ''
-    const t = g.trazas.find((q) => q.id === s.id)
+  /** El trazo de una traza elegida, en px de la caja. */
+  const trazoDe = (id: string): string => {
+    const t = geo()?.trazas.find((q) => q.id === id)
     if (!t) return ''
     const v = vz()
     const paso = Math.max(1, Math.ceil(t.px.length / 1500))
     const pts: string[] = []
     for (let i = 0; i < t.px.length; i += paso) pts.push(`${(t.px[i] * v.k + v.tx).toFixed(1)},${(t.py[i] * v.k + v.ty).toFixed(1)}`)
     return pts.join(' ')
+  }
+  const trazaElegida = createMemo(() => {
+    const s = props.sel
+    return s && s.tipo === 'traza' ? trazoDe(s.id) : ''
+  })
+  /** Las trazas que se suman a la principal. */
+  const trazasExtra = createMemo(() => (props.extras ?? []).filter((x) => x.tipo === 'traza').map((x) => trazoDe(x.id)).filter(Boolean))
+  /** Los recuadros de los demás elegidos que no son trazas. */
+  const cajasExtra = createMemo(() => {
+    const g = geo()
+    if (!g) return []
+    const k = vz().k
+    return (props.extras ?? [])
+      .filter((x) => x.tipo !== 'traza')
+      .map((x) => cajaDeSeleccion(x, g, props.anot, medirTexto))
+      .filter((r): r is NonNullable<typeof r> => r !== null)
+      .map((r) => {
+        const [x, y] = pant(r.x, r.y)
+        return { x, y, w: r.w * k, h: r.h * k }
+      })
   })
   const flechaElegida = createMemo(() => {
     const s = props.sel
@@ -310,7 +336,13 @@ export default function VistaEditor(props: Props) {
           <Show when={trazaElegida()}>
             <polyline class="editor-traza-sel" points={trazaElegida()} />
           </Show>
-          <Show when={previo()} keyed>
+          <For each={trazasExtra()}>{(pts) => <polyline class="editor-traza-sel" points={pts} />}</For>
+          <Show when={props.tramoPx} keyed>
+          {(t) => (
+            <div class="editor-rango" style={{ left: `${pant(t[0], areaY().y0)[0]}px`, top: `${pant(t[0], areaY().y0)[1]}px`, width: `${pant(t[1], 0)[0] - pant(t[0], 0)[0]}px`, height: `${pant(0, areaY().y1)[1] - pant(0, areaY().y0)[1]}px` }} aria-hidden="true" />
+          )}
+        </Show>
+        <Show when={previo()} keyed>
             {(q) => {
               if (q.tipo === 'flecha') {
                 const [ax, ay] = pant(q.x1, q.y1)
@@ -333,6 +365,9 @@ export default function VistaEditor(props: Props) {
         <Show when={cajaSel() && props.sel?.tipo !== 'traza' && props.sel?.tipo !== 'flecha'}>
           <div class="editor-sel" style={{ left: `${cajaSel()!.x - 3}px`, top: `${cajaSel()!.y - 3}px`, width: `${cajaSel()!.w + 6}px`, height: `${cajaSel()!.h + 6}px` }} aria-hidden="true" />
         </Show>
+        <For each={cajasExtra()}>
+          {(c) => <div class="editor-sel" style={{ left: `${c.x - 3}px`, top: `${c.y - 3}px`, width: `${c.w + 6}px`, height: `${c.h + 6}px` }} aria-hidden="true" />}
+        </For>
         <Show when={puntoDeEtiqueta()}>{(p) => <div class="editor-asa" style={{ left: `${p()[0]}px`, top: `${p()[1]}px` }} aria-hidden="true" />}</Show>
         <Show when={flechaElegida()}>
           {(f) => (

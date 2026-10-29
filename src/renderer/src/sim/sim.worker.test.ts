@@ -58,6 +58,7 @@ vi.mock('./pkg/kirchi_engine.js', () => {
     // .
     take_cruces = () => new Float64Array([0])
     take_conflictos = () => new Uint32Array(0)
+    take_indefinidos = () => new Uint32Array(0)
     hmin = () => 1e-14
     activar_terminales = () => {}
     activar_potencias = () => {}

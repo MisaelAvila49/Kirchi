@@ -2,6 +2,7 @@
   "id": "fusible",
   "nombre": { "es": "Fusible", "en": "Fuse" },
   "categoria": "pasivos",
+  "grupo": "Fusible y cristal",
   "prefijo": "F",
   "buscar": ["fusible", "fuse", "proteccion", "protección"],
   "pines": [

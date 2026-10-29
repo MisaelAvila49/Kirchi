@@ -148,6 +148,9 @@ pub struct Mixto {
     /// Retroceder: los estados guardados antes de cada avance en pausa (ver `guardar_estado`).
     guardados: Historial,
     valores: Valores,
+    /// Los convertidores multiplicadores (`DACM`): elemento global, isla y elemento local, y cuántos bits indefinidos ya se avisaron de cada uno.
+    multiplicadores: Vec<(usize, usize, usize)>,
+    indefinidos_avisados: Vec<u64>,
 }
 
 /// Cuántos estados guarda como máximo `Mixto::guardar_estado` (los últimos 200 avances).
@@ -271,6 +274,8 @@ impl Mixto {
                 potencias: Vec::new(),
                 guardados: Historial::default(),
                 valores,
+                multiplicadores: Vec::new(),
+                indefinidos_avisados: Vec::new(),
             };
             m.armar_sondas(&defs)?;
             m.leer();
@@ -500,7 +505,20 @@ impl Mixto {
             potencias: Vec::new(),
             guardados: Historial::default(),
             valores: Valores::default(),
+            multiplicadores: Vec::new(),
+            indefinidos_avisados: Vec::new(),
         };
+        m.multiplicadores = net
+            .elements
+            .iter()
+            .enumerate()
+            .filter(|(_, e)| matches!(e, Element::Dacm { .. }))
+            .filter_map(|(k, _)| match m.lugar[k] {
+                Lugar::Isla { isla, local } => Some((k, isla, local)),
+                Lugar::Logica { .. } => None,
+            })
+            .collect();
+        m.indefinidos_avisados = vec![0; m.multiplicadores.len()];
         m.valores = Valores {
             lectoras: (0..net.canales.len()).map(|c| (0..m.islas.len()).filter(|&i| m.islas[i].tr.lee_canal(c)).collect()).collect(),
             canales: Canales::todos(&net.canales),
@@ -729,6 +747,7 @@ impl Mixto {
         self.guardados.descartar();
         match self.lugar.get(index).copied() {
             Some(Lugar::Isla { isla, local }) => {
+                self.retroceder_quieta(isla, f64::NEG_INFINITY);
                 let r = self.islas[isla].tr.quemar(local, si);
                 r.map_err(|e| a_global_de(&self.islas[isla].globales, e))
             }
@@ -945,7 +964,9 @@ impl Mixto {
         let ahora = self.time();
         self.valores.canales.compactar(ahora, 0.0);
         let mut lleno = self.valores.canales.lleno(canal);
-        for &i in &self.valores.lectoras[canal] {
+        for k in 0..self.valores.lectoras[canal].len() {
+            let i = self.valores.lectoras[canal][k];
+            self.retroceder_quieta(i, t);
             self.islas[i].tr.compactar_canales();
             lleno |= self.islas[i].tr.canal_lleno(canal);
         }
@@ -1040,6 +1061,16 @@ impl Mixto {
         // El próximo cambio de un canal que lee la isla, si queda más allá de lo que ya alcanzó.
         let cambio = self.islas[i].tr.proximo_cambio_canal();
         if cambio > self.islas[i].alcanzado() { h.min(cambio) } else { h }
+    }
+
+    /// Antes de un cambio en caliente, una isla sin dinámica que saltó adelante regresa a `t` (sin bajar de `time()` ni de lo que
+    /// procesó la lógica); si no, su cambio se vería hasta que las demás la alcanzaran.
+    fn retroceder_quieta(&mut self, i: usize, t: f64) {
+        let mut t = t.max(self.time());
+        if let Some(l) = &self.logica {
+            t = t.max(a_s(l.ahora()));
+        }
+        self.islas[i].tr.retroceder_salto(t);
     }
 
     /// Las lecturas de cada elemento en el orden de la netlist: las de su isla o, de un modelo digital, su segunda lectura
@@ -1137,6 +1168,19 @@ impl Mixto {
         self.logica.as_mut().map_or_else(Vec::new, |l| l.tomar_conflictos())
     }
 
+    /// Los `DACM` con un bit en X o Z por más de un microsegundo desde la última llamada, por su número en la netlist (la interfaz avisa una vez).
+    pub fn tomar_indefinidos(&mut self) -> Vec<u32> {
+        let mut nuevos = Vec::new();
+        for (j, &(k, isla, local)) in self.multiplicadores.iter().enumerate() {
+            let cuenta = self.islas[isla].tr.indefinidos_persistentes(local);
+            if cuenta > self.indefinidos_avisados[j] {
+                nuevos.push(k as u32);
+            }
+            self.indefinidos_avisados[j] = cuenta;
+        }
+        nuevos
+    }
+
     /// El invariante de la lógica (`Digital::comprobar`), para las pruebas de robustez.
     pub fn comprobar_logica(&mut self) -> Result<(), String> {
         self.logica.as_mut().map_or(Ok(()), Digital::comprobar)
@@ -1197,6 +1241,7 @@ impl Mixto {
                 if fuera.get() {
                     return Err(EngineError::Invalid(format!("elemento {index}: solo se cambian en caliente resistencias y fuentes, con los mismos nodos")));
                 }
+                self.retroceder_quieta(isla, f64::NEG_INFINITY);
                 let r = self.islas[isla].tr.set_element(local, local_e);
                 r.map_err(|err| a_global_de(&self.islas[isla].globales, err))
             }
@@ -1207,6 +1252,7 @@ impl Mixto {
         self.guardados.descartar();
         match self.lugar.get(index).copied() {
             Some(Lugar::Isla { isla, local }) => {
+                self.retroceder_quieta(isla, f64::NEG_INFINITY);
                 let r = self.islas[isla].tr.set_resistance(local, ohms);
                 r.map_err(|e| a_global_de(&self.islas[isla].globales, e))
             }
@@ -1227,10 +1273,34 @@ impl Mixto {
         Ok(())
     }
 
+    /// El paso máximo de cada isla: el menor entre `libre` y el de sus elementos de `topes`, para que una fuente periódica rápida
+    /// no le imponga su paso a una isla que no la ve.
+    pub fn topes_de_paso(&mut self, libre: f64, topes: &[(usize, f64)]) -> Result<(), EngineError> {
+        let mut h = vec![libre; self.islas.len()];
+        for &(k, hk) in topes {
+            match self.lugar.get(k) {
+                Some(&Lugar::Isla { isla, .. }) => h[isla] = h[isla].min(hk),
+                Some(_) => {}
+                None => return Err(EngineError::Invalid(format!("elemento {k}: fuera de rango"))),
+            }
+        }
+        for (isla, &hi) in self.islas.iter().zip(&h) {
+            isla.tr.comprobar_paso(hi).map_err(|e| a_global_de(&isla.globales, e))?;
+        }
+        for (isla, &hi) in self.islas.iter_mut().zip(&h) {
+            if isla.tr.hmax() != hi {
+                self.guardados.descartar();
+                isla.tr.set_max_step(hi).map_err(|e| a_global_de(&isla.globales, e))?;
+            }
+        }
+        Ok(())
+    }
+
     pub fn reset_element(&mut self, index: usize) -> Result<(), EngineError> {
         self.guardados.descartar();
         match self.lugar.get(index).copied() {
             Some(Lugar::Isla { isla, local }) => {
+                self.retroceder_quieta(isla, f64::NEG_INFINITY);
                 let r = self.islas[isla].tr.reset_element(local);
                 r.map_err(|e| a_global_de(&self.islas[isla].globales, e))
             }
@@ -1619,6 +1689,26 @@ mod tests {
         let exacto = 1e-6 * 2f64.ln();
         assert!((cruce - exacto).abs() < 3e-12, "cruce en {cruce:.6e}, exacto {exacto:.6e} ({:.1} ps)", (cruce - exacto) * 1e12);
         assert!((salida - cruce - 5e-9).abs() < 1.5e-12, "salida {salida:.6e}");
+    }
+
+    #[test]
+    fn el_tope_de_una_fuente_vale_solo_en_su_isla() {
+        // La cuadrada (elemento 0) va en la isla del puente de entrada; el LED, en la del puente de salida.
+        let mut m = mixto(r#"{"nodes":4,"digital_nets":2,"elements":[
+            {"type":"V","a":1,"b":0,"wave":{"kind":"square","low":0,"high":5,"freq":1000}},
+            {"type":"ADC","p":1,"n":0,"out":0,"in_low":1.5,"in_high":3.5},
+            {"type":"GATE","fn":"not","inputs":[0],"output":1,"rise_delay":5e-9,"fall_delay":5e-9},
+            {"type":"DAC","input":1,"out":2,"v_lo":0,"v_hi":5,"r_lo":55,"r_hi":55,"t_rise":7e-9,"t_fall":7e-9},
+            {"type":"R","a":2,"b":3,"ohms":330},
+            {"type":"D","a":3,"b":0,"is":1.5e-17,"n":2}]}"#, 2e-5);
+        m.topes_de_paso(2.5e-4, &[(0, 2e-5)]).unwrap();
+        let pasos: Vec<f64> = m.islas.iter().map(|i| i.tr.hmax()).collect();
+        assert_eq!(pasos, vec![2e-5, 2.5e-4]);
+        // Un elemento que no existe no cambia nada.
+        assert!(m.topes_de_paso(1e-4, &[(9, 2e-5)]).is_err());
+        assert_eq!(m.islas.iter().map(|i| i.tr.hmax()).collect::<Vec<_>>(), pasos);
+        m.advance_to(0.01, u32::MAX).unwrap();
+        assert!((m.voltage(3) - 1.69).abs() < 0.1, "LED en {}", m.voltage(3));
     }
 
     #[test]

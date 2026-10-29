@@ -9,6 +9,8 @@ interface Props {
   /** Caja de las notas y etiquetas seleccionadas y del lienzo, en píxeles de ventana. */
   caja: Caja
   area: Caja
+  /** Cuerpos de piezas en la ventana: la barra se coloca donde menos los tape. */
+  obstaculos?: readonly Caja[]
   onOrden(o: OrdenFormato): void
   teclas(id: string): string | undefined
   /** Esc o elegir con el puntero: el foco vuelve al lienzo. */
@@ -66,7 +68,7 @@ export default function BarraFormato(props: Props) {
     e.stopPropagation()
     cs[j].focus()
   }
-  const pos = () => posicionBarraFormato(props.caja, tam().ancho, tam().alto, props.area)
+  const pos = () => posicionBarraFormato(props.caja, tam().ancho, tam().alto, props.area, undefined, props.obstaculos)
   return (
     <div
       ref={el}

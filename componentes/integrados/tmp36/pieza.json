@@ -2,6 +2,7 @@
   "id": "tmp36",
   "nombre": { "es": "Sensor TMP36", "en": "TMP36 sensor" },
   "categoria": "integrados",
+  "grupo": "Sensores de temperatura",
   "prefijo": "U",
   "buscar": ["tmp36", "sensor de temperatura", "temperature sensor", "tmp36gt9z", "termometro"],
   "pines": [
@@ -18,7 +19,7 @@
       "defecto": "25",
       "enVivo": { "magnitud": "temperatura", "min": -40, "max": 125, "paso": 5, "pasoFino": 1 }
     },
-    { "id": "junto", "nombre": "Mostrar", "defecto": "Ajuste", "opciones": ["Nada", "Ajuste"], "omitir": true }
+    { "id": "junto", "nombre": "Mostrar", "defecto": "Como en Configuración", "opciones": ["Como en Configuración", "Ajuste", "Nada"], "omitir": true }
   ],
   "modelo": {
     "tipo": "compuesto",

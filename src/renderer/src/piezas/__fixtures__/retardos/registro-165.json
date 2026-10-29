@@ -1,0 +1,106 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "cl_pF": 50,
+   "documento": "TI SN74HC165 (SCLS116H)",
+   "paginas": "6 a 10",
+   "caminos": [
+    {
+     "de": "SH/LD",
+     "a": "QH o QH-barra",
+     "tPLH": {
+      "tip": 20,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 20,
+      "max": 30
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "QH o QH-barra",
+     "tPLH": {
+      "tip": 15,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 15,
+      "max": 30
+     }
+    },
+    {
+     "de": "H",
+     "a": "QH o QH-barra",
+     "tPLH": {
+      "tip": 15,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 15,
+      "max": 30
+     }
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "cl_pF": 15,
+   "rl_ohm": 2000,
+   "documento": "TI SN74LS165A (SDLS062D)",
+   "paginas": "8",
+   "caminos": [
+    {
+     "de": "SH/LD",
+     "a": "cualquiera",
+     "tPLH": {
+      "tip": 21,
+      "max": 35
+     },
+     "tPHL": {
+      "tip": 26,
+      "max": 35
+     }
+    },
+    {
+     "de": "CLK",
+     "a": "cualquiera",
+     "tPLH": {
+      "tip": 14,
+      "max": 25
+     },
+     "tPHL": {
+      "tip": 16,
+      "max": 25
+     }
+    },
+    {
+     "de": "H",
+     "a": "QH",
+     "tPLH": {
+      "tip": 13,
+      "max": 25
+     },
+     "tPHL": {
+      "tip": 24,
+      "max": 30
+     }
+    },
+    {
+     "de": "H",
+     "a": "QH-barra",
+     "tPLH": {
+      "tip": 19,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 17,
+      "max": 25
+     }
+    }
+   ]
+  }
+ }
+}

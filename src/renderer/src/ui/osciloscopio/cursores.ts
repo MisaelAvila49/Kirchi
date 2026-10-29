@@ -14,11 +14,11 @@ const posDe = (a: AjustesOsciloscopio, c: CanalOMatematico): number => (c === MA
 /** Los cursores solo valen en el modo de pantalla en que se pusieron: de tiempo y voltaje en Y/T, de puntos de la curva en X-Y. */
 export const cursoresDelModo = (c: CursoresPantalla | null | undefined, a: Pick<AjustesOsciloscopio, 'modoXY'> | null | undefined): CursoresPantalla | null => (c && !!c.xy === !!(a && a.modoXY && a.modoXY !== 'yt') ? c : null)
 
-/** Al encender los cursores: tiempos a dos y ocho divisiones y voltajes a ±2 divisiones del canal. */
-export function cursoresIniciales(a: AjustesOsciloscopio, t0: number, canal: CanalOMatematico): CursoresPantalla {
+/** Al encender los cursores: tiempos a dos y ocho divisiones desde el borde izquierdo de la pantalla y voltajes a ±2 divisiones del canal. */
+export function cursoresIniciales(a: AjustesOsciloscopio, canal: CanalOMatematico): CursoresPantalla {
   const span = DIVISIONES_H * a.base
   const v = vdivDe(a, canal)
-  return { canal, t: [t0 + 0.2 * span, t0 + 0.8 * span], v: [-2 * v, 2 * v] }
+  return { canal, t: [0.2 * span, 0.8 * span], v: [-2 * v, 2 * v] }
 }
 
 /** Δt, 1/Δt y ΔV en cuatro cifras, y los dos valores de cada cursor (null si ese par está apagado). */
@@ -51,17 +51,17 @@ export function ponerCursor(c: CursoresPantalla, cual: CualCursor, valor: number
   return c
 }
 
-/** El tiempo de la columna `x` (píxeles) de una pantalla de `W` que empieza en `t0`. */
-export const tiempoDeX = (x: number, W: number, t0: number, a: AjustesOsciloscopio): number => t0 + (x / W) * DIVISIONES_H * a.base
+/** El tiempo de la columna `x` (píxeles) de una pantalla de `W`, desde su borde izquierdo: los cursores se fijan a la pantalla y no al tiempo de la simulación. */
+export const tiempoDeX = (x: number, W: number, a: AjustesOsciloscopio): number => (x / W) * DIVISIONES_H * a.base
 
 /** El voltaje de la fila `y` (píxeles) de una pantalla de `H` en la escala del canal `c`. */
 export const voltajeDeY = (y: number, H: number, a: AjustesOsciloscopio, c: CanalOMatematico): number => ((H / 2 - y) / (H / DIVISIONES_V) - posDe(a, c)) * vdivDe(a, c)
 
 /** El cursor que queda a `radio` píxeles o menos de (x, y), o null. Primero los de tiempo. */
-export function cursorCercano(c: CursoresPantalla, x: number, y: number, W: number, H: number, t0: number, a: AjustesOsciloscopio, radio: number): CualCursor | null {
+export function cursorCercano(c: CursoresPantalla, x: number, y: number, W: number, H: number, a: AjustesOsciloscopio, radio: number): CualCursor | null {
   const span = DIVISIONES_H * a.base
   if (c.t)
-    for (const [i, cual] of [[0, 't1'], [1, 't2']] as const) if (Math.abs(((c.t[i] - t0) / span) * W - x) <= radio) return cual
+    for (const [i, cual] of [[0, 't1'], [1, 't2']] as const) if (Math.abs((c.t[i] / span) * W - x) <= radio) return cual
   if (c.v)
     for (const [i, cual] of [[0, 'v1'], [1, 'v2']] as const) {
       const yv = H / 2 - (c.v[i] / vdivDe(a, c.canal) + posDe(a, c.canal)) * (H / DIVISIONES_V)

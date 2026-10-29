@@ -479,3 +479,69 @@ describe('etiquetasSinChoques da exactamente lo mismo que su versión de referen
     expect(etiquetasSinChoques(d, lib)).toStrictEqual(etiquetasSinChoquesReferencia(d, lib))
   })
 })
+
+describe('etiquetasSinChoques: referencia, valor y ajuste (tres textos)', () => {
+  const conAjuste = (junto = 'Ambos') => {
+    const d = circuitoPotApretado()
+    d.piezas.p_rv = { ...d.piezas.p_rv, props: { ...d.piezas.p_rv.props, junto } }
+    return d
+  }
+
+  it('el ajuste es otro texto de la pieza, después del valor, y en un circuito apretado la versión rápida y la de referencia coinciden', () => {
+    const d = conAjuste()
+    expect(etiquetasSinChoques(d, lib).get('p_rv')!.map((x) => x.texto)).toEqual(['RV1', '10 kΩ', '25 % · 2.5 kΩ | 7.5 kΩ'])
+    expect(etiquetasSinChoques(d, lib)).toStrictEqual(etiquetasSinChoquesReferencia(d, lib))
+  })
+
+  it('dos potenciómetros vecinos con los tres textos: ninguno se encima ni se lee con la otra pieza', () => {
+    const d = doc([])
+    const pot = (id: string, ref: string, x: number, y: number): Pieza => ({ id, tipo: 'potenciometro', ref, x, y, rot: 0, espejo: false, props: { valor: '10k', posicion: '25 %', junto: 'Ambos' } })
+    d.piezas.a = pot('a', 'RV1', 0, 0)
+    d.piezas.b = pot('b', 'RV2', 0, 14)
+    expect(etiquetasSinChoques(d, lib).get('a')!).toHaveLength(3)
+    expect(textosEncimados(d)).toEqual([])
+    expect(textosApretados(d)).toEqual([])
+    expect(cadaTextoCercaDeSuPieza(d)).toEqual([])
+    expect(etiquetasSinChoques(d, lib)).toStrictEqual(etiquetasSinChoquesReferencia(d, lib))
+  })
+
+  it('sin nada cerca, el ajuste queda un renglón más lejos del cuerpo que el valor', () => {
+    const d = doc([{ id: 'a', tipo: 'potenciometro', ref: 'RV1', x: 0, y: 0, rot: 0, espejo: false, props: { valor: '10k', junto: 'Ambos' } }])
+    const [, valor, ajuste] = etiquetasSinChoques(d, lib).get('a')!
+    expect(ajuste.x).toBeCloseTo(valor.x, 9)
+    expect(ajuste.y - valor.y).toBeGreaterThan(0)
+    expect(cajasSeCruzan(cajaTexto(valor), cajaTexto(ajuste))).toBe(false)
+  })
+
+  it('el ajuste movido a mano queda donde se puso y los otros dos se apartan de él', () => {
+    const d = conAjuste('Valores')
+    d.piezas.p_rv = { ...d.piezas.p_rv, textos: { ajuste: { lugar: 'derecha' } } }
+    const p = d.piezas.p_rv, def = lib.get(p.tipo)!
+    const manual = textosManuales(p, def, textosLocales(p, def, d))
+    const t = etiquetasSinChoques(d, lib).get('p_rv')!
+    expect(t[2]).toEqual(manual.get(2))
+    expect(cajasSeCruzan(cajaTexto(t[0]), cajaTexto(t[2]))).toBe(false)
+    expect(cajasSeCruzan(cajaTexto(t[1]), cajaTexto(t[2]))).toBe(false)
+    expect(etiquetasSinChoques(d, lib)).toStrictEqual(etiquetasSinChoquesReferencia(d, lib))
+  })
+
+  it('los tres textos movidos a mano a un mismo lugar se apilan', () => {
+    const d = conAjuste()
+    const lugar = { lugar: 'abajo' as const }
+    d.piezas.p_rv = { ...d.piezas.p_rv, textos: { ref: lugar, valor: lugar, ajuste: lugar } }
+    const [ref, valor, ajuste] = etiquetasSinChoques(d, lib).get('p_rv')!
+    expect(valor.y - ref.y).toBeCloseTo(SEPARACION_LINEAS, 9)
+    expect(ajuste.y - valor.y).toBeCloseTo(SEPARACION_LINEAS, 9)
+  })
+
+  it('60 circuitos al azar con todos los potenciómetros y termistores mostrando el ajuste: la versión rápida y la de referencia coinciden', () => {
+    for (let s = 1; s <= 60; s++) {
+      const d = circuitoAlAzar(s, lib)
+      for (const id of Object.keys(d.piezas)) {
+        const p = d.piezas[id]
+        if (lib.get(p.tipo)?.props.some((q) => q.id === 'junto')) d.piezas[id] = { ...p, props: { ...p.props, junto: 'Ambos' } }
+      }
+      expect(etiquetasSinChoques(d, lib), `semilla ${s}`).toStrictEqual(etiquetasSinChoquesReferencia(d, lib))
+    }
+  })
+})

@@ -3,7 +3,7 @@ import type { PropDef } from './tipos'
 
 // Validación de una pieza `compuesto`. El tipo está en `tipos.ts` y el armado en `netlist/netlist.ts`.
 
-export const CLAVES_COMPUESTO = ['tipo', 'prop', 'modelos', 'internas', 'opcionales', 'medida', 'elementos']
+export const CLAVES_COMPUESTO = ['tipo', 'prop', 'modelos', 'internas', 'opcionales', 'podar', 'medida', 'elementos']
 
 /** Los campos de nodo de cada tipo de elemento, en el orden del motor, y los de valor (obligatorios y opcionales). */
 const CAMPOS: Record<string, { nodos: string[]; valores: string[]; opcionales?: string[]; extra?: string[] }> = {
@@ -15,7 +15,7 @@ const CAMPOS: Record<string, { nodos: string[]; valores: string[]; opcionales?: 
   senoidal: { nodos: ['a', 'b'], valores: ['amp', 'freq'], opcionales: ['fase'] },
   D: { nodos: ['a', 'b'], valores: [], extra: ['params'] },
   Q: { nodos: ['c', 'b', 'e'], valores: [], extra: ['params', 'pnp'] },
-  OA: { nodos: ['mas', 'menos', 'sal', 'vmas', 'vmenos'], valores: [], extra: ['params'] },
+  OA: { nodos: ['mas', 'menos', 'sal', 'vmas', 'vmenos'], valores: [], extra: ['params', 'euler'] },
   T: { nodos: ['a1', 'b1', 'a2', 'b2'], valores: ['l1', 'n', 'k'] },
   M: { nodos: ['d', 'g', 's'], valores: [], extra: ['params', 'pmos'] },
   J: { nodos: ['d', 'g', 's'], valores: [], extra: ['params', 'pjf'] },
@@ -63,6 +63,11 @@ export function validarCompuesto(m: any, pines: string[], props: PropDef[], err:
   const nodoExiste = (n: unknown) => typeof n === 'string' && (pines.includes(n) || internas.includes(n))
   if (m.opcionales !== undefined) {
     if (!Array.isArray(m.opcionales) || !m.opcionales.every((x: unknown) => typeof x === 'string' && pines.includes(x))) err('modelo.opcionales', 'debe ser una lista de pines de la pieza')
+  }
+  if (m.podar !== undefined) {
+    const opcionales: unknown[] = Array.isArray(m.opcionales) ? m.opcionales : []
+    const esGrupo = (g: unknown) => Array.isArray(g) && g.length > 0 && g.every((x) => typeof x === 'string' && opcionales.includes(x))
+    if (!Array.isArray(m.podar) || !m.podar.every(esGrupo)) err('modelo.podar', 'debe ser una lista de grupos de pines opcionales')
   }
   if (!Array.isArray(m.elementos) || m.elementos.length === 0) {
     err('modelo.elementos', 'debe ser una lista con al menos un elemento')
@@ -115,7 +120,7 @@ export function validarCompuesto(m: any, pines: string[], props: PropDef[], err:
     } else if (new Set(def.nodos.map((n) => e[n])).size !== def.nodos.length && !['Q', 'M', 'J', 'OA'].includes(e.t)) err(c, 'sus dos nodos deben ser distintos')
     for (const v of def.valores) nombre(`${c}.${v}`, e[v])
     for (const v of def.opcionales ?? []) if (e[v] !== undefined) nombre(`${c}.${v}`, e[v])
-    for (const polaridad of ['pnp', 'pmos', 'pjf']) if (e[polaridad] !== undefined && typeof e[polaridad] !== 'boolean') err(`${c}.${polaridad}`, 'debe ser verdadero o falso')
+    for (const polaridad of ['pnp', 'pmos', 'pjf', 'euler']) if (e[polaridad] !== undefined && typeof e[polaridad] !== 'boolean') err(`${c}.${polaridad}`, 'debe ser verdadero o falso')
     if (e.t === 'EXT') {
       if (e.modo !== 'v' && e.modo !== 'i') err(`${c}.modo`, 'debe ser «v» o «i»')
       const q = props.find((p) => p.id === e.canal)

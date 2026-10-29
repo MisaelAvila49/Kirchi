@@ -150,7 +150,7 @@ function razonPorSeleccion(id: IdComando, e: EstadoCinta): string | null {
 /** Por qué un botón no actúa ahora, o null. Única función que lo decide: botón, buscador y ejecutor. */
 export function razonDeshabilitado(id: IdComando, e: EstadoCinta, tecla: Teclas): string | null {
   const c = COMANDOS[id]
-  if (c.edita && e.fase !== 'detenida') return MENSAJE_DETENER_PARA_EDITAR
+  if (c.edita && e.fase !== 'detenida') return id.startsWith('analisis-') ? RAZON_ANALISIS_CON_VISTA_PREVIA : MENSAJE_DETENER_PARA_EDITAR
   if (c.edita && e.soloLectura) return PISTA_SOLO_LECTURA
   if (DECISIONES.segunSeleccion) {
     const r = razonPorSeleccion(id, e)

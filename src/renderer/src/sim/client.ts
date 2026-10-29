@@ -1,4 +1,4 @@
-import { largoSabTerminales, readSim, SAB_LENGTH, type CambioEnCaliente, type EventoFundido, type FromWorker, type SimReading, type ToWorker } from './protocol'
+import { largoSabTerminales, readSim, SAB_LENGTH, type CambioEnCaliente, type EventoFundido, type FromWorker, type SimReading, type TopesDePaso, type ToWorker } from './protocol'
 import type { ConfigInstrumentos } from './instrumentosWorker'
 import { bytesSabInstrumentos, crearVistas, leerInstrumentos, versionDePantalla, type PantallaSab, type RegistroFino, type VistasInstrumentos } from './protocoloInstrumentos'
 import { epocaALocal } from './sonido'
@@ -33,6 +33,8 @@ export interface OpcionesCarga {
   /** La velocidad con que empieza (0 en pausa: no corre nada antes de que llegue la pausa) y si va sin tope. */
   velocidad?: number
   sinTope?: boolean
+  /** El paso máximo por isla; sin él, todas van con el paso de la carga. */
+  topes?: TopesDePaso
 }
 
 /** Lo que dice el motor al llegar un avance: el instante, lo que avanzó, si se interrumpió y cuántos estados guarda para retroceder. */
@@ -67,6 +69,8 @@ export interface MotorSimulacion {
   alCruces(f: (c: CrucesSim) => void): () => void
   /** Las redes digitales donde dos salidas de tres estados se contradicen (un 0 y un 1 a la vez); devuelve con qué dejar de oír. */
   alConflictos?(f: (redes: number[]) => void): () => void
+  /** Los convertidores D/A cuyas entradas llevan más de un microsegundo sin nivel definido (su elemento en la netlist); devuelve con qué dejar de oír. */
+  alIndefinidos?(f: (elementos: number[]) => void): () => void
   /** Ajustes nuevos de los instrumentos sin recargar (base de tiempo, acoplamiento, disparo, modo del multímetro). */
   configurarInstrumentos(config: ConfigInstrumentos): void
   /** Cuántas columnas dibuja la pantalla del osciloscopio `k` (su ancho en píxeles de dispositivo). */
@@ -88,7 +92,7 @@ export interface MotorSimulacion {
   /** Cambia valores del circuito cargado sin reiniciarlo (el tiempo y la carga de capacitores e inductores siguen). `h` es
    * el nuevo paso máximo si cambió la frecuencia de una fuente. Devuelve el número de secuencia (0 si nada que mandar),
    * que el motor repite en `alRechazo` para saber de qué cambio habla. */
-  setValues(cambios: CambioEnCaliente[], h?: number): number
+  setValues(cambios: CambioEnCaliente[], h?: number, topes?: TopesDePaso): number
   /** Escribe `valor` en el canal de una perilla en vivo; devuelve la secuencia con que el motor repite un rechazo (`indice = -1 - canal`). */
   perilla(canal: number, valor: number): number
   /** Repone el elemento `indice` de la netlist (un fusible fundido). */
@@ -134,6 +138,7 @@ export class SimClient implements MotorSimulacion {
   private perdidosEstados = new Set<(perdidos: number, guardados: number) => void>()
   private cruces = new Set<(c: CrucesSim) => void>()
   private conflictos = new Set<(redes: number[]) => void>()
+  private indefinidos = new Set<(elementos: number[]) => void>()
   private capturas = new Map<number, (p: PantallaSab | null) => void>()
   private finas = new Map<number, (r: RegistroFino | null) => void>()
 
@@ -193,6 +198,9 @@ export class SimClient implements MotorSimulacion {
     } else if (m.type === 'conflictos') {
       if (this.pendiente || m.id !== this.idActivo) return
       for (const f of this.conflictos) f(m.redes)
+    } else if (m.type === 'indefinidos') {
+      if (this.pendiente || m.id !== this.idActivo) return
+      for (const f of this.indefinidos) f(m.elementos)
     } else if (this.pendiente?.id === m.id) this.fail(m.message)
     else if (!this.pendiente && m.id === this.idActivo) this.fail(m.message)
   }
@@ -244,7 +252,8 @@ export class SimClient implements MotorSimulacion {
         ...(sabTerm ? { terminales: { sab: sabTerm, activa: opciones.corrientes === true } } : {}),
         ...(opciones.potencias?.length ? { potencias: opciones.potencias } : {}),
         ...(opciones.velocidad !== undefined ? { velocidad: opciones.velocidad } : {}),
-        ...(opciones.sinTope ? { sinTope: true } : {})
+        ...(opciones.sinTope ? { sinTope: true } : {}),
+        ...(opciones.topes ? { topes: opciones.topes } : {})
       })
     })
   }
@@ -302,6 +311,11 @@ export class SimClient implements MotorSimulacion {
     return () => this.conflictos.delete(f)
   }
 
+  alIndefinidos(f: (elementos: number[]) => void): () => void {
+    this.indefinidos.add(f)
+    return () => this.indefinidos.delete(f)
+  }
+
   configurarInstrumentos(config: ConfigInstrumentos): void {
     this.post({ type: 'instrumentos', config })
   }
@@ -347,10 +361,10 @@ export class SimClient implements MotorSimulacion {
     return this.vistasInstrumentos ? versionDePantalla(this.vistasInstrumentos, k) : 0
   }
 
-  setValues(cambios: CambioEnCaliente[], h?: number): number {
-    if (!cambios.length && h === undefined) return 0
+  setValues(cambios: CambioEnCaliente[], h?: number, topes?: TopesDePaso): number {
+    if (!cambios.length && h === undefined && !topes) return 0
     const seq = ++this.secuencia
-    this.post({ type: 'valores', cambios, ...(h !== undefined ? { h } : {}), seq })
+    this.post({ type: 'valores', cambios, ...(h !== undefined ? { h } : {}), ...(topes ? { topes } : {}), seq })
     return seq
   }
 
@@ -402,6 +416,7 @@ export class SimClient implements MotorSimulacion {
     this.rangos.clear()
     this.cruces.clear()
     this.conflictos.clear()
+    this.indefinidos.clear()
     this.perdidosEstados.clear()
     for (const f of this.llegadas.values()) f({ t: Number.NaN, dt: 0, interrumpida: true })
     this.llegadas.clear()

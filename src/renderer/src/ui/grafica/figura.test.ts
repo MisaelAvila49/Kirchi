@@ -4,7 +4,7 @@ import { ASPECTO_INFORME as ASPECTO_ANALISIS } from '../../../../compartido/graf
 import { ContextoSvg } from '../../exportar/contextoSvg'
 import { anotacionesVacias } from '../../../../compartido/grafica/anotaciones'
 import { COLORES_CLAROS, COLORES_OSCUROS } from '../colores'
-import { conTamañoGeneral, csvDeGrafica, figuraDeGrafica, filasDeGrafica, modeloConTonos, modeloConTrazas, seriesDeGrafica } from './figura'
+import { conTamañoGeneral, csvDeGrafica, figuraDeGrafica, filasDeGrafica, modeloConTrazas } from './figura'
 import { VISTA_COMPLETA, type ModeloGrafica } from './modelo'
 
 const x = Float64Array.from([10, 100, 1000])
@@ -77,13 +77,11 @@ describe('figura de una gráfica de análisis', () => {
     const { svg } = svgDe({ ...figuraPorOmision(), ejes: false })
     expect(svg).not.toContain('Frecuencia (Hz)')
   })
-  it('el tono elegido en el diálogo (t0) manda sobre el de la gráfica, y el negro sale negro', () => {
+  it('los colores que guardaron versiones viejas del diálogo (t0, t1) ya no pisan el tono de la traza', () => {
     const op = { ...figuraPorOmision(), colores: { t0: 'negro' as const } }
-    expect(modeloConTonos(bode, op).trazas.every((t) => t.tono === 'negro')).toBe(true)
-    expect(svgDe(op).svg.toLowerCase()).toContain(COLORES_CLAROS.negro.toLowerCase())
-  })
-  it('la lista de series del diálogo no repite una traza que está en dos paneles', () => {
-    expect(seriesDeGrafica(bode)).toEqual([{ id: 't0', nombre: 'V(s)', clave: 'V(s)' }])
+    const svg = svgDe(op).svg.toLowerCase()
+    expect(svg).not.toContain(`stroke="${COLORES_CLAROS.negro.toLowerCase()}"`)
+    expect(svg).toContain(`stroke="${COLORES_CLAROS['canal-a'].toLowerCase()}"`)
   })
 })
 
@@ -168,5 +166,14 @@ describe('recortar la gráfica a un tramo del eje horizontal', () => {
   it('las barras de armónicos no tienen eje que recortar', () => {
     const barras: ModeloGrafica = { tipo: 'barras', ejeX: { nombre: 'n', unidad: '', escala: 'lin', datos: { min: 0, max: 1 } }, paneles: [{ titulo: '' }], trazas: [], barras: { categorias: ['1'], series: [{ clave: 'V', etiqueta: 'V', tono: 'canal-a', unidad: 'V', valores: Float64Array.from([1]) }], unidad: 'V', frecuencias: Float64Array.from([50]), nota: '' } }
     expect(figuraDeGrafica({ ...e, modelo: barras }, figuraPorOmision(), 'claro').eje).toBeUndefined()
+  })
+})
+
+describe('grosor general de los ejes', () => {
+  const trazos = (svg: string, g: string) => (svg.match(new RegExp(`stroke-width="${g}"`, 'g')) ?? []).length
+  it('cambia las líneas de los ejes en la figura exportada', () => {
+    const base = svgDe().svg
+    const grueso = svgDe(figuraPorOmision(), 'claro', { ...e, aspecto: { ...ASPECTO_ANALISIS, grosorEjes: 3 } }).svg
+    expect(trazos(grueso, '3')).toBeGreaterThan(trazos(base, '3'))
   })
 })

@@ -1,0 +1,168 @@
+{
+  "id": "adc0804",
+  "nombre": {
+    "es": "Convertidor analógico a digital de 8 bits (ADC0804)",
+    "en": "8-bit analog-to-digital converter (ADC0804)"
+  },
+  "categoria": "integrados",
+  "grupo": "Conversión y temporización",
+  "prefijo": "U",
+  "buscar": [
+    "u",
+    "adc",
+    "adc0804",
+    "0804",
+    "convertidor",
+    "conversor",
+    "analogico digital",
+    "analógico digital",
+    "a/d",
+    "aproximaciones sucesivas",
+    "8 bits"
+  ],
+  "pines": [
+    { "id": "CS", "nombre": "CS (selección de chip, activa en bajo)", "x": -8, "y": -10 },
+    { "id": "RD", "nombre": "RD (lectura, activa en bajo)", "x": -8, "y": -8 },
+    { "id": "WR", "nombre": "WR (inicio de conversión, activa en bajo)", "x": -8, "y": -6 },
+    { "id": "CLK_IN", "nombre": "CLK IN (entrada del reloj)", "x": -8, "y": -2, "ayuda": "Una resistencia entre CLK R y CLK IN y un capacitor de CLK IN a tierra fijan el reloj, o se lleva un reloj externo a CLK IN" },
+    { "id": "CLK_R", "nombre": "CLK R (resistencia del reloj)", "x": -8, "y": 0 },
+    { "id": "VIN+", "nombre": "VIN+ (entrada analógica)", "x": -8, "y": 4 },
+    { "id": "VIN-", "nombre": "VIN− (entrada analógica)", "x": -8, "y": 6 },
+    { "id": "VREF/2", "nombre": "VREF/2 (referencia, la mitad del fondo de escala)", "x": -8, "y": 10, "ayuda": "Sin conectar vale la mitad de VCC · el fondo de escala es el doble de este voltaje" },
+    { "id": "DB7", "nombre": "DB7 (bit más significativo)", "x": 8, "y": -10 },
+    { "id": "DB6", "nombre": "DB6", "x": 8, "y": -8 },
+    { "id": "DB5", "nombre": "DB5", "x": 8, "y": -6 },
+    { "id": "DB4", "nombre": "DB4", "x": 8, "y": -4 },
+    { "id": "DB3", "nombre": "DB3", "x": 8, "y": -2 },
+    { "id": "DB2", "nombre": "DB2", "x": 8, "y": 0 },
+    { "id": "DB1", "nombre": "DB1", "x": 8, "y": 2 },
+    { "id": "DB0", "nombre": "DB0 (bit menos significativo)", "x": 8, "y": 4 },
+    { "id": "INTR", "nombre": "INTR (fin de conversión, activa en bajo)", "x": 8, "y": 8 },
+    { "id": "VCC", "nombre": "VCC (alimentación)", "x": 0, "y": -18 },
+    { "id": "AGND", "nombre": "AGND (tierra analógica)", "x": 0, "y": 18 },
+    { "id": "DGND", "nombre": "DGND (tierra digital)", "x": 2, "y": 18 }
+  ],
+  "props": [],
+  "modelo": {
+    "tipo": "convertidor-ad",
+    "cs": "CS",
+    "rd": "RD",
+    "wr": "WR",
+    "clkin": "CLK_IN",
+    "clkr": "CLK_R",
+    "intr": "INTR",
+    "vinp": "VIN+",
+    "vinn": "VIN-",
+    "agnd": "AGND",
+    "vref2": "VREF/2",
+    "dgnd": "DGND",
+    "vcc": "VCC",
+    "db": ["DB0", "DB1", "DB2", "DB3", "DB4", "DB5", "DB6", "DB7"],
+    "vil": 0.8,
+    "vih": 2,
+    "vtp": 3.1,
+    "vtn": 1.8,
+    "voh": 4.5,
+    "vol": 0.4,
+    "rref": 2200,
+    "r_lo": 250,
+    "r_hi": 5800,
+    "ciclos_inicio": 2,
+    "ciclos_bit": 8,
+    "t_acceso": 1.35e-7,
+    "t_intr": 3e-7
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -20 }, "valor": { "x": 0, "y": 20 } },
+  "rotulos": [
+    { "texto": "CS", "x": -5.2, "y": -10, "tam": 1, "alinear": "izq" },
+    { "texto": "RD", "x": -5.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "WR", "x": -5.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "CLK_IN", "x": -5.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "CLK_R", "x": -5.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "VIN+", "x": -5.2, "y": 4, "tam": 1, "alinear": "izq" },
+    { "texto": "VIN-", "x": -5.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "VREF/2", "x": -5.2, "y": 10, "tam": 1, "alinear": "izq" },
+    { "texto": "DB7", "x": 3.2, "y": -10, "tam": 1, "alinear": "der" },
+    { "texto": "DB6", "x": 3.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "DB5", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "DB4", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "DB3", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "DB2", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "DB1", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "DB0", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "INTR", "x": 5.2, "y": 8, "tam": 1, "alinear": "der" },
+    { "texto": "VCC", "x": 0, "y": -15.2, "tam": 1, "alinear": "abajo" },
+    { "texto": "AGND", "x": 0, "y": 15.2, "tam": 1, "alinear": "arriba" },
+    { "texto": "DGND", "x": 2, "y": 15.2, "tam": 1, "alinear": "arriba" },
+    { "texto": "A/D", "x": 0, "y": -12.4, "tam": 1, "alinear": "centro" }
+  ],
+  "caja": {
+    "titulo": "A/D",
+    "forma": "funcional",
+    "izquierda": ["!CS", "!RD", "!WR", null, "CLK_IN", "CLK_R", null, "VIN+", "VIN-", null, "VREF/2"],
+    "derecha": ["DB7", "DB6", "DB5", "DB4", "DB3", "DB2", "DB1", "DB0", null, "!INTR"],
+    "arriba": ["VCC"],
+    "abajo": ["AGND", "DGND"],
+    "marcas": {
+      "DB7": ["z"],
+      "DB6": ["z"],
+      "DB5": ["z"],
+      "DB4": ["z"],
+      "DB3": ["z"],
+      "DB2": ["z"],
+      "DB1": ["z"],
+      "DB0": ["z"]
+    }
+  },
+  "fuentes": {
+    "ADC0804": "Texas Instruments ADC0801 a ADC0805 (SNOSBI1C) y Renesas/Intersil ADC0803/ADC0804 (FN3094): umbrales de CS, RD y WR de 0.8 V y 2 V, umbrales de CLK IN de 1.8 V y 3.1 V típicos, salidas de 0.4 V a 1.6 mA y 4.5 V a 10 µA, dos resistencias de 2.2 kΩ en VREF/2, 66 periodos de reloj por conversión (64 de aproximación y 2 de arranque, dentro de los 65 a 72 que da la hoja), acceso de 135 ns y de 300 ns de WR o RD a INTR. Las resistencias de salida de 250 Ω y 5.8 kΩ se derivan de VOL con 1.6 mA y de VOH con 360 µA (la hoja no las publica) y el reloj sigue la fórmula f = 1/(R·C·ln[((VCC − VT−)/(VCC − VT+)) · (VT+/VT−)]) de la hoja de TI."
+  },
+  "datos": {
+    "valores": {
+      "*": {
+        "fabricante": "Texas Instruments",
+        "parte": "ADC0804LCN",
+        "hoja": "https://www.ti.com/lit/ds/symlink/adc0804-n.pdf",
+        "aproximada": "Modelo ideal sin el error total de ±1 LSB de la hoja, sin la corriente de entrada conmutada y con el reloj ideal calculado de la R y la C.",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-20",
+            "patillas": {
+              "CS": "1",
+              "RD": "2",
+              "WR": "3",
+              "CLK_IN": "4",
+              "INTR": "5",
+              "VIN+": "6",
+              "VIN-": "7",
+              "AGND": "8",
+              "VREF/2": "9",
+              "DGND": "10",
+              "DB7": "11",
+              "DB6": "12",
+              "DB5": "13",
+              "DB4": "14",
+              "DB3": "15",
+              "DB2": "16",
+              "DB1": "17",
+              "DB0": "18",
+              "CLK_R": "19",
+              "VCC": "20"
+            },
+            "huella": "Package_DIP:DIP-20_W7.62mm",
+            "lcsc": { "numero": "C9639", "sinVerificar": true }
+          }
+        ],
+        "pendiente": {
+          "equivalencias": "KiCad 9.0.0 no trae símbolo del ADC0804 (Analog_ADC solo tiene ADC0800, ADC08060, ADC081C021CIMM y ADC0832); sin equivalencias confirmadas",
+          "ciclos": "La hoja da 66 a 73 periodos por conversión (p. 5) y 64 de aproximación (p. 11) con arranque de 1 a 8 periodos (p. 11): 65 a 72, un periodo menos que el total. No se fija un número único de ciclos de arranque sin decidir (pregunta en preguntas-pendientes.md)"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI ADC0801/02/03/04/05 (SNOSBI1C, nov 2009, rev. jun 2015) p. 3 figura de pines y tabla Pin Functions; Renesas/Intersil ADC0803/ADC0804 (FN3094 Rev 4.00, ago 2002) p. 1 figura Pinout: misma asignación. LCSC C9639 (TI ADC0804LCN, DIP-20) hallado por búsqueda, sin abrir la ficha"
+        },
+        "nota": "Ids de pin propuestos con los nombres de la hoja; el implementador los ajusta a pieza.json. Cifras de umbrales, tiempos y resistencias en parametros-convertidores.json."
+      }
+    }
+  }
+}

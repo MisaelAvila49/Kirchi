@@ -14,7 +14,7 @@ export type TipoSondaOrden = 'osciloscopio' | 'multimetro' | 'voltaje' | 'corrie
 /** Las órdenes de edición: el contrato serializable del asistente, el modo sin ventana y las pruebas. Nunca llevan ids
  * internos: las piezas van por referencia, las patillas por `R1.2` y las redes por nombre. */
 export type Orden = (
-  | { orden: 'colocar'; tipo: string; ref?: string; valor?: string; props?: Record<string, string>; en?: PosMm; rot?: Rotacion; espejo?: boolean }
+  | { orden: 'colocar'; tipo: string; ref?: string; paquete?: string; unidad?: string; valor?: string; props?: Record<string, string>; en?: PosMm; rot?: Rotacion; espejo?: boolean }
   | { orden: 'cablear'; puntos: PosMm[] }
   | { orden: 'conectar'; desde: string; hasta: string; via?: 'auto' | 'cable' | 'etiqueta' }
   | { orden: 'mover'; refs: string[]; a?: PosMm; desplazar?: PosMm }
@@ -131,9 +131,11 @@ function leer(o: Campos, anidada: boolean): Orden {
   let base: Orden
   switch (tipo) {
     case 'colocar': {
-      permitir('tipo', 'ref', 'valor', 'props', 'en', 'rot', 'espejo')
+      permitir('tipo', 'ref', 'paquete', 'unidad', 'valor', 'props', 'en', 'rot', 'espejo')
       const c: Orden = { orden: 'colocar', tipo: texto(o.tipo, 'tipo') }
       if (o.ref !== undefined) c.ref = texto(o.ref, 'ref')
+      if (o.paquete !== undefined) c.paquete = texto(o.paquete, 'paquete')
+      if (o.unidad !== undefined) c.unidad = texto(o.unidad, 'unidad')
       if (o.valor !== undefined) c.valor = valor(o.valor, 'valor')
       if (o.props !== undefined) c.props = props(o.props, 'props')
       if (o.en !== undefined) c.en = pos(o.en, 'en')

@@ -51,15 +51,15 @@ describe('la figura de la captura del osciloscopio', () => {
     expect(l.svg).toContain('Captura a t = 10.00 ms')
   })
 
-  it('el color de cada canal sale del tono elegido, en el tema que corresponde, y nunca de un valor escrito', async () => {
+  it('el color de cada canal sale del tono de la pantalla, en el tema que corresponde, y nunca de un valor escrito', async () => {
     const T = coloresDeTema('claro')
+    // Los colores que guardaron versiones viejas del diálogo no pisan los de la pantalla.
     const por = trazos(await svgDe(op({ colores: { A: 'naranja', B: 'magenta', C: 'canal-c', D: 'canal-d', M: 'gris' } })))
     const colores = new Set(por.map((t) => t.color))
-    expect(colores.has(T.naranja)).toBe(true)
-    expect(colores.has(T.magenta)).toBe(true)
-    expect(colores.has(T['canal-a'])).toBe(false)
-    // Un tono que no es de la lista (un color escrito en un settings.json alterado) cae al de siempre.
-    const raro = coloresDeFigura(op({ colores: { A: '#ff0000' as never } }), 'claro')
+    expect(colores.has(T.naranja)).toBe(false)
+    expect(colores.has(T['canal-a'])).toBe(true)
+    // Un tono que no es de la lista (un color escrito en un .kir alterado) cae al de siempre.
+    const raro = coloresDeFigura(op(), 'claro', { aspecto: { ...ASPECTO_OSCILOSCOPIO, tema: 'claro' }, canales: { A: { lado: 'izquierda', color: '#ff0000' as never } } })
     expect(raro.canal.A).toBe(T['canal-a'])
     // «Tema actual» oscuro usa los colores del oscuro.
     expect(coloresDeFigura(op({ tema: 'app' }), 'oscuro').canal.A).toBe(coloresDeTema('oscuro')['canal-a'])
@@ -163,10 +163,10 @@ describe('el aspecto de la pantalla en la captura exportada', () => {
     const t = trazos(await svgConAspecto(op()))
     expect(t.some((x) => x.color.toLowerCase() === coloresDeTema('claro').negro.toLowerCase() && x.ancho === 3)).toBe(true)
   })
-  it('un tono que el diálogo cambió gana al de la pantalla', async () => {
+  it('un color guardado por una versión vieja del diálogo no gana al de la pantalla', async () => {
     const t = trazos(await svgConAspecto(op({ colores: { ...figuraPorOmision().colores, A: 'naranja' } })))
-    expect(t.some((x) => x.color.toLowerCase() === coloresDeTema('claro').naranja.toLowerCase())).toBe(true)
-    expect(t.some((x) => x.color.toLowerCase() === coloresDeTema('claro').negro.toLowerCase())).toBe(false)
+    expect(t.some((x) => x.color.toLowerCase() === coloresDeTema('claro').naranja.toLowerCase())).toBe(false)
+    expect(t.some((x) => x.color.toLowerCase() === coloresDeTema('claro').negro.toLowerCase())).toBe(true)
   })
   it('la rejilla apagada de la pantalla se respeta aunque el diálogo la ofrezca', async () => {
     const con = trazos(await svgConAspecto(op()))
@@ -232,6 +232,14 @@ describe('el tramo que se puede exportar parte del dato real', () => {
     const f = figuraDeCaptura('XSC1', a, p, op(), 'claro')
     expect(f.eje!.total.min).toBeGreaterThanOrEqual(f.eje!.mapa.dom.min)
     expect(f.eje!.total.min).toBeCloseTo(4e-3, 9)
+  })
+  it('un tramo ya elegido no achica el eje que se puede elegir', () => {
+    const completo = figuraDeCaptura('XSC1', a, pantalla(), op(), 'claro').eje!
+    const asp = { aspecto: ASPECTO_OSCILOSCOPIO, canales: {}, rango: { desde: 2e-3, hasta: 4e-3 } }
+    const f = figuraDeCaptura('XSC1', a, pantalla(), op(), 'claro', undefined, asp).eje!
+    expect(f.mapa.dom.max - f.mapa.dom.min).toBeLessThan(completo.total.max - completo.total.min)
+    expect(f.total).toEqual(completo.total)
+    expect(f.origen).toBeCloseTo(completo.origen!, 12)
   })
   it('sin ningún dato queda el eje de la pantalla', () => {
     const f = figuraDeCaptura('XSC1', a, conVacias(100), op(), 'claro')

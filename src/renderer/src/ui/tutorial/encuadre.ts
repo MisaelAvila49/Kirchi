@@ -17,3 +17,8 @@ export function zonaFueraDeVista(caja: Caja, aPantalla: (p: Punto) => Punto | nu
 export function debeEncuadrar(anterior: string | null, capitulo: string, objetivoFuera: boolean): boolean {
   return anterior !== capitulo || objetivoFuera
 }
+
+/** El rectángulo `r` no cabe entero en el área visible `c` de su panel con desplazamiento. */
+export function sobresaleDelPanel(r: Rect, c: Rect): boolean {
+  return r.y < c.y || r.x < c.x || r.y + r.h > c.y + c.h || r.x + r.w > c.x + c.w
+}

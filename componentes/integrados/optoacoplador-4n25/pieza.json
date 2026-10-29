@@ -2,6 +2,7 @@
   "id": "optoacoplador-4n25",
   "nombre": { "es": "Optoacoplador 4N25", "en": "4N25 optocoupler" },
   "categoria": "integrados",
+  "grupo": "Interfaz y aislamiento",
   "prefijo": "U",
   "buscar": ["4n25", "optoacoplador", "optoaislador", "optocoupler", "opto", "fototransistor", "aislador"],
   "pines": [
@@ -88,7 +89,7 @@
           }
         ],
         "pendiente": {
-          "lcsc": "C5241 es el 4N25M de onsemi, no el 4N25 de Vishay: misma base JEDEC y mismas patillas."
+          "lcsc": "C5241 es el 4N25M de onsemi, no el 4N25 de Vishay: misma base JEDEC y mismos pines."
         },
         "comprobado": {
           "fecha": "2026-10-26",

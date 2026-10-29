@@ -107,17 +107,25 @@
 .gr-zoom-en { display: inline-flex; align-items: center; gap: 6px; color: var(--texto-secundario); white-space: nowrap; }
 .gr-zoom-en select { height: 26px; font-size: 12px; }
 .gr-chip { padding: 2px 10px; border-radius: 12px; background: var(--chip); color: var(--trazo); }
-.gr-grafica { position: relative; }
+.gr-grafica { position: relative; container-type: inline-size; }
 .gr-cuerpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px 20px; align-items: start; min-width: 0; }
 .gr-principal { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .gr-principal > .gr-ayuda { margin: 0; }
 .gr-lado { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .gr-lado-titulo { margin: 0; font-size: 13px; }
-.gr-lectura-caja { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 10px; }
+.gr-lectura-caja { display: flex; flex-direction: column; align-items: stretch; gap: 8px; min-width: 0; }
+/* Tres columnas: la lista de análisis a la izquierda, la gráfica y, a su derecha, las lecturas de los cursores. */
+.gr-cuerpo[data-lectura] { grid-template-columns: minmax(0, 1fr) minmax(11rem, 15rem); }
+.gr-cuerpo[data-lectura] > .gr-lectura-caja { grid-column: 2; grid-row: 1; }
+.gr-cuerpo[data-lectura] > .gr-lado { grid-column: 1 / -1; }
 .gr-tabla-cuerpo { margin-top: 6px; min-width: 0; }
 .gr-lienzo.sobre-eje { cursor: grab; }
 .gr-lienzo.moviendo-eje { cursor: grabbing; }
-@media (max-width: 960px) { .gr-cuerpo { grid-template-columns: minmax(0, 1fr); } }
+/* Con poco ancho las lecturas bajan debajo de la gráfica. */
+@container (max-width: 640px) {
+  .gr-cuerpo, .gr-cuerpo[data-lectura] { grid-template-columns: minmax(0, 1fr); }
+  .gr-cuerpo[data-lectura] > .gr-lectura-caja { grid-column: 1; grid-row: auto; }
+}
 
 /* La ventana de gráficas aparte: la misma página, solo con las pestañas y la gráfica. */
 .ventana-graficas { box-sizing: border-box; min-height: 100%; padding: 12px 16px 20px; background: var(--lienzo); }
@@ -136,6 +144,9 @@ html:has(.ventana-graficas), body:has(.ventana-graficas) { height: auto; min-hei
 .instrumentos-panel .gr-marco, .instrumentos-panel .gr-marco[data-paneles='2'] { flex: 1 1 0; height: auto; min-height: 64px; }
 .instrumentos-panel .gr-ayuda { display: none; }
 .instrumentos-panel .gr-lado { min-height: 0; max-height: 40%; overflow: auto; }
+.instrumentos-panel .gr-cuerpo[data-lectura] > .gr-lectura-caja { min-height: 0; overflow: hidden; }
+.instrumentos-panel .gr-lectura-caja .gr-lectura { min-height: 0; overflow: auto; }
+.instrumentos-panel .gr-lectura-caja .boton { flex: none; }
 
 /* ---------- El aspecto de una gráfica: ventana de gráficas, osciloscopio y diálogo de exportar ---------- */
 .asp-panel { display: flex; flex-direction: column; gap: 2px; min-width: 0; }

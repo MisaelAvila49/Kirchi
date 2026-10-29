@@ -1,0 +1,37 @@
+pieza,parametro,min,tipico,max,unidad,fuente_principal,segunda_fuente
+ADC0804,"tW(WR) ancho minimo de WR",100,,,ns,"TI SNOSBI1C p. 6","Intersil FN3094 p. 3"
+ADC0804,"tACC acceso RD a dato valido (CL=100 pF)",,135,200,ns,"TI SNOSBI1C p. 6","Intersil FN3094 p. 3"
+ADC0804,"t1H t0H RD subida a Z (CL=10 pF RL=10k)",,125,200,ns,"TI SNOSBI1C p. 6","Intersil FN3094 p. 3 (max 250)"
+ADC0804,"tWI tRI flanco bajo de WR o RD a INTR alto",,300,450,ns,"TI SNOSBI1C p. 6","Intersil FN3094 p. 3"
+ADC0804,"Periodos de reloj por conversion",66,,73,1/fCLK,"TI SNOSBI1C p. 5 (6.7, fCLK=640 kHz)","Intersil FN3094 p. 3 (62 a 73)"
+ADC0804,"Tiempo de conversion a 640 kHz",103,,114,us,"TI SNOSBI1C p. 5",
+ADC0804,fCLK,100,640,1460,kHz,"TI SNOSBI1C p. 5 (VCC=5 V)","Intersil FN3094 p. 3 (max 800 a 5 V)"
+ADC0804,"Ciclo de trabajo del reloj",40,,60,%,"TI SNOSBI1C p. 5",
+ADC0804,"Conversiones por segundo en modo libre (640 kHz)",8770,,9708,conv/s,"TI SNOSBI1C p. 5","Intersil FN3094 p. 3 (max 8888)"
+ADC0804,"VIH entradas de control (VCC=5.25 V)",2,,15,V,"TI SNOSBI1C p. 6",
+ADC0804,"VIL entradas de control (VCC=4.75 V)",,,0.8,V,"TI SNOSBI1C p. 6","Intersil FN3094 p. 4"
+ADC0804,"VT+ CLK IN",2.7,3.1,3.5,V,"TI SNOSBI1C p. 6","Intersil FN3094 p. 4"
+ADC0804,"VT- CLK IN",1.5,1.8,2.1,V,"TI SNOSBI1C p. 6","Intersil FN3094 p. 4"
+ADC0804,"VH histeresis CLK IN",0.6,1.3,2.0,V,"TI SNOSBI1C p. 6","Intersil FN3094 p. 4"
+ADC0804,"VOL CLK R (IO=360 uA VCC=4.75 V)",,,0.4,V,"TI SNOSBI1C p. 6",
+ADC0804,"VOH CLK R (IO=-360 uA VCC=4.75 V)",2.4,,,V,"TI SNOSBI1C p. 6",
+ADC0804,"VOL salidas de datos (IOUT=1.6 mA VCC=4.75 V)",,,0.4,V,"TI SNOSBI1C p. 6","Intersil FN3094 p. 4"
+ADC0804,"VOL INTR (IOUT=1.0 mA VCC=4.75 V)",,,0.4,V,"TI SNOSBI1C p. 6",
+ADC0804,"VOH (IO=-360 uA VCC=4.75 V)",2.4,,,V,"TI SNOSBI1C p. 6","Intersil FN3094 p. 4"
+ADC0804,"VOH (IO=-10 uA VCC=4.75 V)",4.5,,,V,"TI SNOSBI1C p. 6",
+ADC0804,"Resistencia de entrada de VREF/2 (pin 9)",0.75,1.1,,kohm,"TI SNOSBI1C p. 5","Intersil FN3094 p. 3 (1.0 min 1.3 typ)"
+ADC0804,"Cada resistor del divisor VCC a VREF/2 a tierra",,2.2,,kohm,"TI SNOSBI1C p. 5 nota 2",
+ADC0804,"Error total sin ajuste (VREF/2=2.500 V)",,,1,LSB,"TI SNOSBI1C p. 5","Intersil FN3094 p. 3"
+ADC0804,"ICC (fCLK=640 kHz VREF/2 NC CS=5 V)",,1.9,2.5,mA,"TI SNOSBI1C p. 6",
+DAC0808,"VIH entradas A1 a A8",2,,,V,"National SNAS539A p. 3 impresa (PDF 4)",
+DAC0808,"VIL entradas A1 a A8",,,0.8,V,"National SNAS539A p. 3 impresa (PDF 4)",
+DAC0808,"Tiempo de asentamiento a 1/2 LSB (todos los bits, TA=25 C)",,150,,ns,"National SNAS539A p. 3 impresa (PDF 4)","Philips MC1408-8: 70 ns tipico"
+DAC0808,"Retardo de propagacion tPLH tPHL",,30,100,ns,"National SNAS539A p. 3 impresa (PDF 4)",
+DAC0808,"Corriente de salida a plena escala (VREF 2.000 V R14 1000 ohm)",1.9,1.99,2.1,mA,"National SNAS539A p. 3 impresa (PDF 4)",
+DAC0808,"Corriente de salida con todos los bits en bajo",,0,4,uA,"National SNAS539A p. 3 impresa (PDF 4)",
+DAC0808,"Exactitud relativa",,,0.19,"% de plena escala","National SNAS539A p. 3 impresa (PDF 4)","Philips MC1408-8 igual"
+DAC0808,ICC,,2.3,22,mA,"National SNAS539A p. 3 impresa (PDF 4)",
+DAC0808,IEE,,-4.3,-13,mA,"National SNAS539A p. 3 impresa (PDF 4)",
+DAC0808,"Capacitor de compensacion minimo con R14=1 kohm",15,,,pF,"National SNAS539A p. 9 impresa (PDF 10)",
+DAC0808,"Capacitor de compensacion minimo con R14=2.5 kohm",37,,,pF,"National SNAS539A p. 9 impresa (PDF 10)",
+DAC0808,"Capacitor de compensacion minimo con R14=5 kohm",75,,,pF,"National SNAS539A p. 9 impresa (PDF 10)",

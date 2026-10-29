@@ -250,7 +250,7 @@ export function generarCarpeta(carpeta, comprobar) {
   const r = generar(actual)
   if (r.errores.length) return { cambia: false, errores: r.errores.map((e) => `${ruta}: ${e}`) }
   const rutaSvg = join(carpeta, 'simbolo.svg')
-  const svgActual = existsSync(rutaSvg) ? readFileSync(rutaSvg, 'utf8') : null
+  const svgActual = existsSync(rutaSvg) ? readFileSync(rutaSvg, 'utf8').replace(/\r\n/g, '\n') : null
   const cambia = r.pieza !== actual || r.svg !== svgActual
   if (cambia && !comprobar) {
     writeFileSync(ruta, r.pieza)

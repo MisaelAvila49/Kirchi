@@ -5,6 +5,7 @@
     "en": "Triac"
   },
   "categoria": "semiconductores",
+  "grupo": "Tiristores",
   "prefijo": "Q",
   "buscar": [
     "triac",

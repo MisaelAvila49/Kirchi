@@ -528,7 +528,9 @@ export default function DialogoExportar(props: Props) {
                   when={notaElegida()}
                   fallback={
                     <>
-                      <p class="editor-nota">{herramienta() === 'seleccionar' ? 'Elige una herramienta de la columna de la izquierda para anotar la imagen. Las anotaciones no se guardan en el circuito.' : `${ayudaHerramienta()}.`}</p>
+                      <Show when={herramienta() !== 'seleccionar'}>
+                        <p class="editor-nota">{`${ayudaHerramienta()}.`}</p>
+                      </Show>
                       <Show when={herramienta() === 'lectura'}>
                         <div class="editor-campo">
                           <span class="editor-rotulo">Mide</span>

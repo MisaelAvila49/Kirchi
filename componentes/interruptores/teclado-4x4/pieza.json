@@ -1,0 +1,343 @@
+{
+  "id": "teclado-4x4",
+  "nombre": {
+    "es": "Teclado matricial 4x4",
+    "en": "4x4 matrix keypad"
+  },
+  "categoria": "interruptores",
+  "grupo": "Bancos y teclados",
+  "prefijo": "KP",
+  "buscar": [
+    "kp",
+    "teclado",
+    "keypad",
+    "teclado matricial",
+    "matriz de teclas",
+    "4x4",
+    "membrana"
+  ],
+  "pines": [
+    {
+      "id": "F1",
+      "nombre": "F1 (fila 1)",
+      "x": -12,
+      "y": -6
+    },
+    {
+      "id": "F2",
+      "nombre": "F2 (fila 2)",
+      "x": -12,
+      "y": -2
+    },
+    {
+      "id": "F3",
+      "nombre": "F3 (fila 3)",
+      "x": -12,
+      "y": 2
+    },
+    {
+      "id": "F4",
+      "nombre": "F4 (fila 4)",
+      "x": -12,
+      "y": 6
+    },
+    {
+      "id": "C1",
+      "nombre": "C1 (columna 1)",
+      "x": -6,
+      "y": 12
+    },
+    {
+      "id": "C2",
+      "nombre": "C2 (columna 2)",
+      "x": -2,
+      "y": 12
+    },
+    {
+      "id": "C3",
+      "nombre": "C3 (columna 3)",
+      "x": 2,
+      "y": 12
+    },
+    {
+      "id": "C4",
+      "nombre": "C4 (columna 4)",
+      "x": 6,
+      "y": 12
+    }
+  ],
+  "props": [],
+  "modelo": {
+    "tipo": "teclado",
+    "filas": [
+      "F1",
+      "F2",
+      "F3",
+      "F4"
+    ],
+    "columnas": [
+      "C1",
+      "C2",
+      "C3",
+      "C4"
+    ],
+    "r_on": 100,
+    "r_off": 100000000
+  },
+  "animacion": {
+    "tipo": "zonas",
+    "zonas": [
+      {
+        "x": -8,
+        "y": -8,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "1"
+      },
+      {
+        "x": -4,
+        "y": -8,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "2"
+      },
+      {
+        "x": 0,
+        "y": -8,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "3"
+      },
+      {
+        "x": 4,
+        "y": -8,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "A"
+      },
+      {
+        "x": -8,
+        "y": -4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "4"
+      },
+      {
+        "x": -4,
+        "y": -4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "5"
+      },
+      {
+        "x": 0,
+        "y": -4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "6"
+      },
+      {
+        "x": 4,
+        "y": -4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "B"
+      },
+      {
+        "x": -8,
+        "y": 0,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "7"
+      },
+      {
+        "x": -4,
+        "y": 0,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "8"
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "9"
+      },
+      {
+        "x": 4,
+        "y": 0,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "C"
+      },
+      {
+        "x": -8,
+        "y": 4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "*"
+      },
+      {
+        "x": -4,
+        "y": 4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "0"
+      },
+      {
+        "x": 0,
+        "y": 4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "#"
+      },
+      {
+        "x": 4,
+        "y": 4,
+        "ancho": 4,
+        "alto": 4,
+        "tecla": "D"
+      }
+    ]
+  },
+  "etiquetas": {
+    "ref": {
+      "x": 0,
+      "y": -11
+    },
+    "valor": {
+      "x": 0,
+      "y": 15
+    }
+  },
+  "rotulos": [
+    {
+      "texto": "1",
+      "x": -6,
+      "y": -6,
+      "tam": 1.8
+    },
+    {
+      "texto": "2",
+      "x": -2,
+      "y": -6,
+      "tam": 1.8
+    },
+    {
+      "texto": "3",
+      "x": 2,
+      "y": -6,
+      "tam": 1.8
+    },
+    {
+      "texto": "A",
+      "x": 6,
+      "y": -6,
+      "tam": 1.8
+    },
+    {
+      "texto": "4",
+      "x": -6,
+      "y": -2,
+      "tam": 1.8
+    },
+    {
+      "texto": "5",
+      "x": -2,
+      "y": -2,
+      "tam": 1.8
+    },
+    {
+      "texto": "6",
+      "x": 2,
+      "y": -2,
+      "tam": 1.8
+    },
+    {
+      "texto": "B",
+      "x": 6,
+      "y": -2,
+      "tam": 1.8
+    },
+    {
+      "texto": "7",
+      "x": -6,
+      "y": 2,
+      "tam": 1.8
+    },
+    {
+      "texto": "8",
+      "x": -2,
+      "y": 2,
+      "tam": 1.8
+    },
+    {
+      "texto": "9",
+      "x": 2,
+      "y": 2,
+      "tam": 1.8
+    },
+    {
+      "texto": "C",
+      "x": 6,
+      "y": 2,
+      "tam": 1.8
+    },
+    {
+      "texto": "*",
+      "x": -6,
+      "y": 6,
+      "tam": 1.8
+    },
+    {
+      "texto": "0",
+      "x": -2,
+      "y": 6,
+      "tam": 1.8
+    },
+    {
+      "texto": "#",
+      "x": 2,
+      "y": 6,
+      "tam": 1.8
+    },
+    {
+      "texto": "D",
+      "x": 6,
+      "y": 6,
+      "tam": 1.8
+    }
+  ],
+  "fuentes": {
+    "*": "Fichas de teclados de membrana (APEM AC3561 y kits genéricos): aislamiento de 100 MΩ a 100 V. La resistencia de contacto de 100 Ω es un valor típico de kits que las fichas no confirman (entre menos de 100 Ω y 500 Ω) y el orden de los pines del conector queda por verificar."
+  },
+  "datos": {
+    "valores": {
+      "*": {
+        "fabricante": "Genérico de kit (sin fabricante)",
+        "parte": "Teclado de membrana 4x4 de 8 hilos",
+        "aproximada": "La resistencia de contacto de 100 Ω es un valor típico de kits sin hoja del fabricante (las fichas dan entre menos de 100 Ω y 500 Ω) y el orden de los pines del conector no está verificado.",
+        "presentaciones": [
+          {
+            "encapsulado": "Conector-teclado-8",
+            "patillas": {},
+            "huella": "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical",
+            "representativa": true
+          }
+        ],
+        "pendiente": {
+          "patillas": "Ninguna fuente consultada da el orden de los 8 pines (filas y columnas). Es costumbre de los ejemplos de Arduino F1 a F4 en 1 a 4 y C1 a C4 en 5 a 8, pero no se verificó con una hoja",
+          "hoja": "El kit genérico no tiene hoja. El único teclado de 4x4 con marca hallado, APEM AC3561, tiene hoja en Farnell que no se pudo abrir",
+          "parte": "Sin fabricante ni número de parte confirmado",
+          "lcsc": "No se buscó"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "Fichas de tienda (Farnell APEM AC3561, ControllerTech, Thingbits, Robojax): aislamiento 100 MΩ a 100 V, conector de 8 pines de 2.54 mm; resistencia de contacto contradictoria entre fichas. Huella PinHeader_1x08_P2.54mm_Vertical de KiCad 9.0.0 (8 pads)"
+        },
+        "nota": "La resistencia de contacto sin hoja del fabricante no se fija; ver parametros-convertidores.json."
+      }
+    }
+  }
+}

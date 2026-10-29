@@ -194,7 +194,7 @@ describe('zoom y desplazamiento de la vista', () => {
   })
 })
 
-import { ajustarDecimalesX, pasoDeEjeX, cambiarAspecto, cambiarRango, agregarEtiqueta, agregarFlecha, agregarTexto, alternarTraza, borrarNota, editarTexto, estiloEje, estiloTitulo, hayLugar, moverNota, type EstadoEditor } from './edicion'
+import { ajustarDecimalesX, pasoDeEjeX, cambiarAspecto, cambiarRango, estadoParaDibujar, agregarEtiqueta, agregarFlecha, agregarTexto, alternarTraza, borrarNota, editarTexto, estiloEje, estiloTitulo, hayLugar, moverNota, type EstadoEditor } from './edicion'
 import { listaDeObjetos } from './objetos'
 import { ASPECTO_OSCILOSCOPIO } from '../../../../../compartido/grafica/aspecto'
 import { MAX_TEXTOS } from '../../../../../compartido/grafica/anotaciones'
@@ -343,5 +343,14 @@ describe('un valor con los decimales de su eje', () => {
   it('«auto» da cuatro cifras significativas y sin formato cae en el SI de siempre', () => {
     expect(textoValorEje(0.0123456, 's', { prefijo: 'm', decimales: 'auto', omision: 2 })).toBe('12.35 ms')
     expect(textoValorEje(0.0123456, 's')).toBe('12.35 ms')
+  })
+})
+
+describe('elegir el tramo con un tramo ya elegido', () => {
+  it('la figura se dibuja con todo el eje mientras se elige, y con el tramo el resto del tiempo', () => {
+    const e = cambiarRango(estado(), { desde: 2, hasta: 4 })
+    expect(estadoParaDibujar(e, true).rango).toBeNull()
+    expect(estadoParaDibujar(e, false)).toBe(e)
+    expect(e.rango).toEqual({ desde: 2, hasta: 4 })
   })
 })

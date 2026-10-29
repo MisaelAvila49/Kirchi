@@ -7,7 +7,7 @@ import { CANALES_ASISTENTE as AS, validarEstado, type ApiAsistente, type EstadoA
 import { CANAL_AL_MINIMIZAR_GRABACION, CANALES_GRABACION as GB, type ApiGrabacion } from '../compartido/grabacion'
 import { CANALES_NGSPICE as NG, type ApiNgspice } from '../compartido/ngspice'
 import { CANALES_PLANTILLAS as PL, type ApiPlantillas } from '../compartido/plantillas'
-import { CANAL_ORDEN_VENTANA, CANAL_TAMAÑO_INTERFAZ, esOrdenVentana, esTamañoInterfaz } from '../compartido/ventana'
+import { CANAL_ORDEN_VENTANA, CANAL_PANTALLA_COMPLETA, CANAL_TAMAÑO_INTERFAZ, esOrdenVentana, esTamañoInterfaz } from '../compartido/ventana'
 import { apiParaVentana } from './apiParaVentana'
 import { abrirSoltadoCon } from './soltado'
 
@@ -200,6 +200,11 @@ const api: ApiKirchi = apiParaVentana(soloGraficas, {
     }
     ipcRenderer.on(CANAL_TAMAÑO_INTERFAZ, oyente)
     return () => ipcRenderer.removeListener(CANAL_TAMAÑO_INTERFAZ, oyente)
+  },
+  alPantallaCompleta: (f) => {
+    const oyente = (_e: unknown, m: unknown) => f(m === true)
+    ipcRenderer.on(CANAL_PANTALLA_COMPLETA, oyente)
+    return () => ipcRenderer.removeListener(CANAL_PANTALLA_COMPLETA, oyente)
   }
 })
 

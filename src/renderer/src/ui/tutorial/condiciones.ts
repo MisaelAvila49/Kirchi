@@ -1,6 +1,7 @@
-import { clavePin, partirClavePin } from '../../conexiones/conexiones'
+import { calcularConexiones, clavePin, partirClavePin, type Conexiones } from '../../conexiones/conexiones'
+import { claveDeNombre, voltajeDeNombre } from '../../conexiones/nombres'
 import { sondasDe, sondasDeInstrumento } from '../../doc/sondas'
-import type { Pieza } from '../../doc/tipos'
+import type { Documento, Etiqueta, Pieza } from '../../doc/tipos'
 import { cajaEnMundo, pinesEnMundo } from '../../piezas/transformar'
 import type { Caja } from '../../piezas/tipos'
 import { leerValor } from '../../valores/valores'
@@ -94,6 +95,8 @@ export const SITIOS = {
   generador: { x: 0, y: -10 },
   capacitor: { x: 40, y: 0 },
   osciloscopio: { x: 28, y: 24 },
+  /** Capítulo 2, al final: el terminal VCC arriba de la resistencia; de su pin baja un cable de 8 unidades. */
+  vcc: { x: 0, y: -12 },
   /** Capítulo 2: el multímetro en serie, a media altura del cable de abajo. */
   serie: { x: 16, y: 4 }
 } as const
@@ -167,6 +170,9 @@ export function medidorConSonda(ctx: CtxTutorial): Pieza | undefined {
   return piezasDe(ctx, 'multimetro').find((p) => sondas.some((s) => s.instrumento === p.id))
 }
 
+/** Hay un medidor rápido (la sonda de tipo medidor de «Medir ▸ Multímetro ▸ Medidor rápido»), sin pieza de por medio. */
+export const medidorRapido = (ctx: CtxTutorial): boolean => Object.values(sondasDe(ctx.doc)).some((s) => s.tipo === 'medidor')
+
 /**
  * Multímetro en serie: dos terminales cableadas (sin la sonda de «Medir») en redes distintas, cada una con un pin de otra pieza y sin que ninguna pieza (salvo multímetros) tenga pines en las dos, o estaría en paralelo.
  */
@@ -209,16 +215,21 @@ export function generadorConectado(ctx: CtxTutorial): boolean {
   })
 }
 
-/** El capacitor de 100 µF forma el RC con la resistencia: un pin en el cable de la resistencia al LED y el otro en la tierra. */
+/** Los tipos de capacitor que sirven para el RC: el de disco (pines 1 y 2) y el electrolítico (+ y −). */
+export const CAPACITORES: Record<string, readonly [string, string]> = { capacitor: ['1', '2'], 'capacitor-electrolitico': ['+', '-'] }
+
+/** El capacitor de 100 µF forma el RC con la resistencia: un pin en el cable de la resistencia al LED y el otro en la tierra, sin importar el giro ni cuál pin va a cuál. */
 export function capacitorEnRC(ctx: CtxTutorial): boolean {
   const led = piezasDe(ctx, 'led')[0]
   const nodo = led ? ctx.con.redDePin.get(clavePin(led.id, 'A')) : undefined
   if (nodo === undefined) return false
   const esTierra = (id: number | undefined) => ctx.con.redes.some((r) => r.id === id && r.tierra)
-  return piezasDe(ctx, 'capacitor').some((c) => {
-    const r1 = ctx.con.redDePin.get(clavePin(c.id, '1')), r2 = ctx.con.redDePin.get(clavePin(c.id, '2'))
-    return mismoValor(valorDe(ctx, c, 'valor'), 100e-6) && ((r1 === nodo && esTierra(r2)) || (r2 === nodo && esTierra(r1)))
-  })
+  return Object.entries(CAPACITORES).some(([tipo, [a, b]]) =>
+    piezasDe(ctx, tipo).some((c) => {
+      const r1 = ctx.con.redDePin.get(clavePin(c.id, a)), r2 = ctx.con.redDePin.get(clavePin(c.id, b))
+      return mismoValor(valorDe(ctx, c, 'valor'), 100e-6) && ((r1 === nodo && esTierra(r2)) || (r2 === nodo && esTierra(r1)))
+    })
+  )
 }
 
 /** Una sonda del osciloscopio puesta en esa entrada, sobre un punto que sí está en una red. */
@@ -230,4 +241,136 @@ export function sondaDeOsciloscopio(ctx: CtxTutorial, entrada: string): boolean 
 export function baseDelOsciloscopio(ctx: CtxTutorial): number | null {
   const o = piezasDe(ctx, 'osciloscopio')[0]
   return o ? valorDe(ctx, o, 'base') : null
+}
+
+
+/* ---------- Capítulos nuevos ---------- */
+
+/** El valor de una propiedad es distinto del que trae la pieza por omisión (el texto guardado difiere del de la definición). */
+export function propCambiada(ctx: CtxTutorial, p: Pieza, propId: string): boolean {
+  const guardado = p.props[propId]
+  const defecto = ctx.lib.get(p.tipo)?.props.find((d) => d.id === propId)?.defecto
+  return guardado !== undefined && guardado !== defecto
+}
+
+/** Hay una sonda de voltaje puesta con «Medir ▸ Sonda ▸ Voltaje». */
+export const sondaDeVoltaje = (ctx: CtxTutorial): boolean => Object.values(sondasDe(ctx.doc)).some((s) => s.tipo === 'voltaje')
+
+/** Un terminal de alimentación cuyo nombre dice `volts` voltios («5V», «+5V», «5 V»). */
+export const terminalDe = (ctx: CtxTutorial, volts: number): boolean =>
+  piezasDe(ctx, 'alimentacion').some((p) => {
+    const v = voltajeDeNombre(textoDe(ctx, p, 'nombre') ?? '')
+    return v !== null && Math.abs(v - volts) < 1e-9
+  })
+
+/** Hay al menos dos etiquetas de red que se llaman igual (así se unen sin cable). */
+export function etiquetasIguales(ctx: CtxTutorial): boolean {
+  const cuenta = new Map<string, number>()
+  for (const e of Object.values(ctx.doc.etiquetas)) {
+    const k = claveDeNombre(e.nombre)
+    if (k !== '') cuenta.set(k, (cuenta.get(k) ?? 0) + 1)
+  }
+  return [...cuenta.values()].some((n) => n >= 2)
+}
+
+export const hayNota = (ctx: CtxTutorial): boolean => Object.keys(ctx.doc.notas).length > 0
+
+/** El notch de la calculadora (doble T pasivo) está en el lienzo: un generador y sus capacitores; no lleva amplificador. */
+export const notchColocado = (ctx: CtxTutorial): boolean => piezasDe(ctx, 'generador').length > 0 && piezasDe(ctx, 'capacitor').length >= 3
+
+/** El texto de una propiedad de un osciloscopio cambió respecto del de omisión (tiempo por división, disparo). */
+export const osciloscopioAjustado = (ctx: CtxTutorial, props: readonly string[]): boolean => piezasDe(ctx, 'osciloscopio').some((o) => props.some((id) => propCambiada(ctx, o, id)))
+
+
+/* ---------- Capítulo 2, final: terminal VCC, etiquetas de red y la copia ---------- */
+
+const NOMBRE_RIEL = 'VCC'
+
+/** Un nombre de terminal que da 5 V: «VCC» (el riel de 5 V por omisión) o un voltaje de 5 («5V», «+5V»). */
+export const nombreDe5V = (nombre: string): boolean => claveDeNombre(nombre) === NOMBRE_RIEL || voltajeDeNombre(nombre) === 5
+
+/**
+ * Las conexiones por contacto: cada etiqueta y cada terminal con un nombre propio, para que dos etiquetas con el mismo nombre no se unan. Sirve para saber qué toca de verdad a qué (la copia de una etiqueta, unida con un cable a la resistencia).
+ */
+export function conexionesFisicas(ctx: CtxTutorial): Conexiones {
+  const etiquetas: Documento['etiquetas'] = {}
+  for (const [id, e] of Object.entries(ctx.doc.etiquetas)) etiquetas[id] = { ...e, nombre: `#${id}` }
+  const piezas: Documento['piezas'] = {}
+  for (const [id, p] of Object.entries(ctx.doc.piezas)) piezas[id] = p.tipo === 'alimentacion' ? { ...p, props: { ...p.props, nombre: `#${id}` } } : p
+  return calcularConexiones({ ...ctx.doc, etiquetas, piezas }, ctx.lib as Map<string, never>)
+}
+
+/** Los pines de la resistencia: el que va al LED y el otro, el que estaba unido a la fuente. Nulo si falta la resistencia o el LED. */
+export function pinLibreDeResistencia(ctx: CtxTutorial): { r: Pieza; pin: string; otro: string } | null {
+  const r = piezasDe(ctx, 'resistencia')[0], led = piezasDe(ctx, 'led')[0]
+  if (!r || !led) return null
+  const a = ctx.con.redDePin.get(clavePin(led.id, 'A'))
+  const alLed = ['1', '2'].find((p) => ctx.con.redDePin.get(clavePin(r.id, p)) === a)
+  if (alLed === undefined) return null
+  const pin = alLed === '1' ? '2' : '1'
+  return { r, pin, otro: alLed }
+}
+
+/** La fuente ya no está y el pin libre de la resistencia quedó solo: sin pin de otra pieza, sin cable y sin etiqueta. */
+export function fuenteYCableBorrados(ctx: CtxTutorial): boolean {
+  if (piezasDe(ctx, 'fuente-dc').length > 0) return false
+  const l = pinLibreDeResistencia(ctx)
+  if (!l) return false
+  const f = conexionesFisicas(ctx)
+  const id = f.redDePin.get(clavePin(l.r.id, l.pin))
+  // Un pin sin nada unido ni siquiera forma una red.
+  if (id === undefined) return true
+  const red = f.redes.find((x) => x.id === id)
+  return !red || (red.pines.length === 1 && red.cables.length === 0 && ![...f.redDeEtiqueta.values()].includes(red.id))
+}
+
+/** El terminal de 5 V (VCC o un voltaje de 5). */
+export const terminalDe5V = (ctx: CtxTutorial): Pieza | undefined => piezasDe(ctx, 'alimentacion').find((p) => nombreDe5V(textoDe(ctx, p, 'nombre') ?? ''))
+
+/** El terminal de 5 V tiene al menos un cable en su pin. */
+export function terminalConCable(ctx: CtxTutorial): boolean {
+  const t = terminalDe5V(ctx)
+  if (!t) return false
+  const f = conexionesFisicas(ctx)
+  const red = f.redes.find((x) => x.id === f.redDePin.get(clavePin(t.id, '1')))
+  return !!red && red.cables.length > 0
+}
+
+const esVcc = (e: Etiqueta): boolean => claveDeNombre(e.nombre) === NOMBRE_RIEL
+
+/** Las etiquetas VCC que tocan el cable del terminal (la original). */
+export function etiquetasEnElTerminal(ctx: CtxTutorial): Etiqueta[] {
+  const t = terminalDe5V(ctx)
+  if (!t) return []
+  const f = conexionesFisicas(ctx)
+  const red = f.redDePin.get(clavePin(t.id, '1'))
+  return Object.values(ctx.doc.etiquetas).filter((e) => esVcc(e) && f.redDeEtiqueta.get(e.id) === red)
+}
+
+/** La etiqueta VCC puesta en el cable del terminal, con su giro distinto del de omisión (se giró con R). */
+export const etiquetaGirada = (ctx: CtxTutorial): boolean => etiquetasEnElTerminal(ctx).some((e) => e.rot !== 0)
+
+/** Dos etiquetas VCC con el mismo giro (distinto del de omisión): la segunda salió de duplicar la primera, que ya estaba girada; una escrita de nuevo nace sin giro. */
+export function etiquetaDuplicada(ctx: CtxTutorial): boolean {
+  const vcc = Object.values(ctx.doc.etiquetas).filter(esVcc)
+  return vcc.some((a) => a.rot !== 0 && vcc.some((b) => b.id !== a.id && b.rot === a.rot))
+}
+
+/** La copia: una etiqueta VCC unida por contacto al pin libre de la resistencia, que no es la del terminal. */
+export function copiaEnLaResistencia(ctx: CtxTutorial): Etiqueta | undefined {
+  const l = pinLibreDeResistencia(ctx), t = terminalDe5V(ctx)
+  if (!l || !t) return undefined
+  const f = conexionesFisicas(ctx)
+  const red = f.redDePin.get(clavePin(l.r.id, l.pin))
+  if (red === undefined || red === f.redDePin.get(clavePin(t.id, '1'))) return undefined
+  return Object.values(ctx.doc.etiquetas).find((e) => esVcc(e) && f.redDeEtiqueta.get(e.id) === red)
+}
+
+/** El LED recibe los 5 V por la etiqueta y vuelve a la tierra, con la vista previa en marcha o pausada. */
+export function ledAlimentadoPorEtiqueta(ctx: CtxTutorial): boolean {
+  const led = piezasDe(ctx, 'led')[0]
+  const l = pinLibreDeResistencia(ctx)
+  if (!led || !l || copiaEnLaResistencia(ctx) === undefined) return false
+  const k = ctx.con.redDePin.get(clavePin(led.id, 'K'))
+  return ctx.con.redes.some((r) => r.id === k && r.tierra) && ctx.fase !== 'detenida'
 }

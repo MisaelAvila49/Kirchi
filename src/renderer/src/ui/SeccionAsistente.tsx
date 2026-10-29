@@ -1,5 +1,5 @@
 import { createEffect, createSignal, Show } from 'solid-js'
-import PistaGlobo from './PistaGlobo'
+import { FilaCarpeta, FilaConfig, GrupoConfig, Interruptor } from './ControlesConfig'
 
 /** Lo que la pestaña muestra del asistente: el interruptor y, si lo hay, el cliente conectado. */
 export interface EstadoAsistente {
@@ -60,25 +60,11 @@ export default function SeccionAsistente(props: PropsAsistente) {
   const estado = () => (props.estado.cliente ? `Conectado: ${props.estado.cliente}` : activo() ? 'Listo. Escríbele al asistente desde tu cliente.' : 'Sin conectar')
   return (
     <>
-      <fieldset class="grupo">
-        <legend>Permiso</legend>
-        <div class="fila">
-          <button
-            type="button"
-            class="interruptor"
-            id="interruptor-asistente"
-            role="switch"
-            aria-checked={activo()}
-            aria-labelledby="rotulo-asistente"
-            aria-describedby="pista-asistente"
-            onClick={() => (setActivo(!activo()), props.onActivar(activo()))}
-          />
-          <label id="rotulo-asistente" for="interruptor-asistente">
-            Permitir que un asistente controle Kirchi
-          </label>
-          <PistaGlobo id="pista-asistente" texto="Kirchi sigue sin conexión. El asistente solo toca el circuito abierto y su carpeta." />
-        </div>
-        <div class="fila">
+      <GrupoConfig titulo="Permiso">
+        <FilaConfig id="rotulo-asistente" nombre="Permitir que un asistente controle Kirchi" pista={{ id: 'pista-asistente', texto: 'Kirchi sigue sin conexión. El asistente solo toca el circuito abierto y su carpeta.' }}>
+          <Interruptor id="interruptor-asistente" etiqueta="rotulo-asistente" describedby="pista-asistente" activo={activo()} onCambiar={(v) => (setActivo(v), props.onActivar(v))} />
+        </FilaConfig>
+        <FilaConfig id="cfg-estado" nombre="Estado">
           <span class="estado" role="status" data-estado={props.estado.cliente ? 'conectado' : activo() ? 'esperando' : 'apagado'}>
             <i aria-hidden="true" />
             {estado()}
@@ -96,26 +82,27 @@ export default function SeccionAsistente(props: PropsAsistente) {
               Desconectar
             </button>
           </Show>
-        </div>
-      </fieldset>
-      <fieldset class="grupo">
-        <legend>Carpeta del asistente</legend>
-        <div class="fila">
-          <span class="carpeta cifra" id="carpeta-asistente" title={carpeta()}>
-            {nombreCarpeta(carpeta())}
-          </span>
-          <button type="button" class="boton" onClick={() => void cambiar()}>
-            Cambiar…
-          </button>
-          <button type="button" class="boton" disabled={!carpeta()} onClick={() => void restablecer()}>
-            Restablecer
-          </button>
-        </div>
-      </fieldset>
-      <fieldset class="grupo">
-        <legend>Conexión</legend>
-        <p class="pista">Sirve con cualquier cliente MCP (Claude Desktop, Claude Code, Cursor, VS Code y otros): pégala en su configuración.</p>
-        <div class="fila">
+        </FilaConfig>
+      </GrupoConfig>
+      <GrupoConfig titulo="Carpeta">
+        <FilaCarpeta
+          id="cfg-carpeta-asistente"
+          nombre="Carpeta del asistente"
+          idCarpeta="carpeta-asistente"
+          carpeta={nombreCarpeta(carpeta())}
+          ruta={carpeta()}
+          personalizada={!!carpeta()}
+          onCambiar={() => void cambiar()}
+          onRestablecer={() => void restablecer()}
+        />
+      </GrupoConfig>
+      <GrupoConfig titulo="Conectar un asistente">
+        <FilaConfig
+          id="cfg-conexion"
+          nombre="Configuración para tu cliente"
+          cap="Pégala en la configuración de tu cliente MCP."
+          pista={{ id: 'pista-conexion', texto: 'Sirve con cualquier cliente MCP (Claude Desktop, Claude Code, Cursor, VS Code y otros): pégala en su configuración.' }}
+        >
           <button type="button" class="boton" onClick={() => void copiar()}>
             Copiar configuración del asistente
           </button>
@@ -124,8 +111,8 @@ export default function SeccionAsistente(props: PropsAsistente) {
               Copiada.
             </span>
           </Show>
-        </div>
-      </fieldset>
+        </FilaConfig>
+      </GrupoConfig>
       <Show when={error()}>
         <p class="secundario nota-dialogo" role="alert">
           {error()}

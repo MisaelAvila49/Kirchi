@@ -1,8 +1,9 @@
 import { aplicar, crear, juntar } from '../../doc/comandos'
 import { coordenadaValida, MOTIVO_FUERA_DEL_MUNDO } from '../../doc/limites'
-import { refDe, siguienteUnidad } from '../../doc/paquetes'
-import { errorDeReferencia } from '../../doc/referencias'
+import { firmaDe, paqueteDe, refDe, siguienteNumero, siguienteUnidad, unidadesDe } from '../../doc/paquetes'
+import { errorDeReferencia, MAX_REFERENCIA } from '../../doc/referencias'
 import type { Pieza, Punto } from '../../doc/tipos'
+import type { PiezaDef } from '../../piezas/tipos'
 import { cuerpoEnMundo, lugarLibre } from '../../editor/colision'
 import { cambiarProp, nuevaPieza, propDelBuscador } from '../../editor/colocar'
 import { cableEnCuerpo } from '../../editor/conflictos'
@@ -28,6 +29,39 @@ function lugarInicial(est: Estado, pieza: Pieza): Punto {
   const arriba = Math.min(...cajas.map((c) => c.minY)), abajo = Math.max(...cajas.map((c) => c.maxY))
   const propia = cuerpoEnMundo({ ...pieza, x: 0, y: 0 }, est.lib.get(pieza.tipo))
   return { x: par(derecha + HUECO_ENTRE_PIEZAS - propia.minX), y: par((arriba + abajo) / 2 - (propia.minY + propia.maxY) / 2) }
+}
+
+/** Paquete y unidad de una pieza nueva que los pide: valida contra lo que ya hay en el paquete y dice por qué no cabe. */
+function unidadPedida(est: Estado, def: PiezaDef, pieza: Pieza, paquete: string | undefined, unidad: string | undefined): { paquete: string; unidad: string } | Rechazo {
+  const { doc, lib } = est
+  const u = unidadesDe(def, pieza.props)
+  if (!u) return rechazo(`${def.id} no tiene unidades: «paquete» y «unidad» no aplican.`)
+  if (unidad !== undefined && !u.nombres.includes(unidad)) return rechazo(`${def.id} no tiene la unidad «${unidad.slice(0, 20)}»: tiene ${u.nombres.join(', ')}.`)
+  const firma = firmaDe(def, pieza.props)
+  const libres = (pq: string) => u.nombres.filter((n) => !Object.values(doc.piezas).some((q) => q.props.paquete === pq && q.props.unidad === n))
+  if (paquete === undefined) {
+    // Sin paquete: la unidad pedida en el primer encapsulado compatible donde esté libre, o en uno nuevo.
+    const compatibles = [...new Set(Object.values(doc.piezas).filter((q) => q.tipo === def.id && paqueteDe(q) && firmaDe(def, q.props) === firma).map((q) => q.props.paquete))]
+    const hueco = compatibles.sort((a, b) => a.localeCompare(b, 'es', { numeric: true })).find((pq) => libres(pq).includes(unidad!))
+    return { paquete: hueco ?? `${def.prefijo}${siguienteNumero(doc, def.prefijo)}`, unidad: unidad! }
+  }
+  if (/\s/.test(paquete)) return rechazo('El paquete no lleva espacios.')
+  if (paquete.length + 1 > MAX_REFERENCIA) return rechazo(`El paquete admite ${MAX_REFERENCIA - 1} caracteres como máximo, con la letra de la unidad.`)
+  const ocupantes = Object.values(doc.piezas).filter((q) => q.props.paquete === paquete)
+  const otro = ocupantes.find((q) => q.tipo !== def.id)
+  if (otro) return rechazo(`El paquete ${paquete} es de otro tipo (${otro.ref} es ${otro.tipo}): un chip no mezcla tipos.`)
+  const distinta = ocupantes.find((q) => firmaDe(def, q.props) !== firma)
+  if (distinta) return rechazo(`El paquete ${paquete} tiene otra familia, entradas o alimentación que la pieza nueva: pon las mismas en «props».`)
+  if (ocupantes.length === 0) {
+    const choca = Object.values(doc.piezas).find((q) => q.ref.toUpperCase() === paquete.toUpperCase() || q.props.paquete?.toUpperCase() === paquete.toUpperCase())
+    if (choca) return rechazo(`Ya hay otra pieza con la referencia ${choca.ref}.`)
+  }
+  const libre = libres(paquete)
+  if (unidad !== undefined) {
+    const en = ocupantes.find((q) => q.props.unidad === unidad)
+    return en ? rechazo(`La unidad ${unidad} de ${paquete} ya está en uso por ${en.ref}.`) : { paquete, unidad }
+  }
+  return libre.length ? { paquete, unidad: libre[0] } : rechazo(`El paquete ${paquete} no tiene unidades libres (${u.nombres.length} de ${u.nombres.length} en uso).`)
 }
 
 export function colocarOrden(est: Estado, o: Colocar): Plan | Rechazo {
@@ -72,8 +106,13 @@ export function colocarOrden(est: Estado, o: Colocar): Plan | Rechazo {
     pieza = r.pieza
   }
 
-  // Una pieza con unidades toma la primera libre de un paquete del mismo tipo y familia (U1B tras U1A), o abre uno nuevo.
-  if (o.ref === undefined) {
+  // Una pieza con unidades toma la que se pide o la primera libre de un paquete del mismo tipo y familia (U1B tras U1A), o abre uno nuevo.
+  if (o.paquete !== undefined || o.unidad !== undefined) {
+    if (o.ref !== undefined) return rechazo('«ref» no se combina con «paquete» ni «unidad»: la referencia sale del paquete y la unidad (U1B).')
+    const su = unidadPedida(est, def, pieza, o.paquete, o.unidad)
+    if ('motivo' in su) return su
+    pieza = { ...pieza, ref: refDe(su.paquete, su.unidad), props: { ...pieza.props, paquete: su.paquete, unidad: su.unidad } }
+  } else if (o.ref === undefined) {
     const su = siguienteUnidad(doc, lib, def.id, pieza.props)
     if (su) pieza = { ...pieza, ref: refDe(su.paquete, su.unidad), props: { ...pieza.props, paquete: su.paquete, unidad: su.unidad } }
   }

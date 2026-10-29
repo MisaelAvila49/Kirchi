@@ -104,7 +104,8 @@ describe('piezas con varias partes', () => {
       { type: 'XFMR', a1: 1, b1: 0, a2: 2, b2: 0, l1: 0.5, l2: 12.5, k: 0.9 }
     ])
     expect(t).toContain('bl0 n1 0 i=(v(n1)-0)/(2.88*(1+9*v(th0)))')
-    expect(t).toContain('cth0 th0 0 0.05')
+    expect(t).toContain('bq0 th0 0 i=0.9*pwr(v(th0),3.333333333)')
+    expect(t).toContain('cth0 th0 0 0.155')
     expect(t).toContain('be1 xm1c 0 v=0.00605*v(w1)')
     expect(t).toContain('.model wa1 csw(it=0.0306 ih=0.0234 ron=1m roff=1e9)')
     expect(t).toContain('.model sf3 sw(vt=1.5 vh=2.5 ron=1e9 roff=1u)')

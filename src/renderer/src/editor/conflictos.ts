@@ -1,5 +1,7 @@
 import { calcularConexiones, type Conexiones } from '../conexiones/conexiones'
-import type { Cable, Documento, Id, Pieza, Punto } from '../doc/tipos'
+import type { Cable, Documento, Etiqueta, Id, Nota, Pieza, Punto } from '../doc/tipos'
+import { cajasSeCruzan } from '../lienzo/apartar'
+import { cajaEtiqueta, cajaNota } from '../lienzo/medidas'
 import type { Caja, PiezaDef } from '../piezas/tipos'
 import { choqueDeGrupo, cuerpoEnMundo, INTENTOS_LUGAR } from './colision'
 import { PASO_REJILLA } from './rutas'
@@ -101,8 +103,31 @@ export function cableEnCuerpo(doc: Documento, lib: Map<string, PiezaDef>, p: Pie
   return null
 }
 
+/** Etiquetas o notas de un fragmento, para que su copia no caiga sobre piezas, cables ni otros textos. */
+export interface TextosAPegar {
+  etiquetas?: Etiqueta[]
+  notas?: Nota[]
+}
+
+/** Algún texto del fragmento, movido a `q`, pisa un cuerpo, otro texto o un cable del documento. */
+function textoEncimado(doc: Documento, lib: Map<string, PiezaDef>, textos: TextosAPegar, q: Punto): boolean {
+  const cajas = [
+    ...(textos.etiquetas ?? []).map((e) => cajaEtiqueta({ ...e, x: e.x + q.x, y: e.y + q.y })),
+    ...(textos.notas ?? []).map((n) => cajaNota({ ...n, x: n.x + q.x, y: n.y + q.y }))
+  ]
+  if (cajas.length === 0) return false
+  const cuerpos = Object.values(doc.piezas).map((p) => cuerpoEnMundo(p, lib.get(p.tipo)))
+  const otros = [...Object.values(doc.etiquetas).map(cajaEtiqueta), ...Object.values(doc.notas).map(cajaNota)]
+  return cajas.some(
+    (c) =>
+      cuerpos.some((b) => cajasSeCruzan(b, c)) ||
+      otros.some((b) => cajasSeCruzan(b, c)) ||
+      Object.values(doc.cables).some((k) => k.puntos.some((_, i) => i > 0 && tramoCruzaCaja(k.puntos[i - 1], k.puntos[i], c)))
+  )
+}
+
 /** Lugar para pegar un fragmento: como `lugarLibre`, avanza en diagonal hasta 20 veces, contando también cables (ni los
- * del documento cruzan lo pegado ni al revés).
+ * del documento cruzan lo pegado ni al revés) y, si se dan, los textos del fragmento.
  * `soloPiezas`: en el último intento solo importan las piezas encimadas. */
 export function lugarParaPegar(
   doc: Documento,
@@ -112,7 +137,8 @@ export function lugarParaPegar(
   en: Punto,
   indice?: Indice,
   /** 0 revisa solo `en` (la plantilla que sigue al ratón no se corre sola). */
-  intentos = INTENTOS_LUGAR
+  intentos = INTENTOS_LUGAR,
+  textos?: TextosAPegar
 ): { en: Punto; libre: boolean; soloPiezas: boolean } {
   const vacio = new Set<Id>()
   for (let k = 0; ; k++) {
@@ -124,7 +150,7 @@ export function lugarParaPegar(
         const pts = c.puntos.map((pt) => ({ x: pt.x + q.x, y: pt.y + q.y }))
         return piezaCruzada(doc, lib, pts, indice) !== null || cableEncimado(doc, pts, () => false, indice) !== null
       })
-    const conPiezas = !!choqueDeGrupo(doc, lib, movidas, vacio, indice)
+    const conPiezas = !!choqueDeGrupo(doc, lib, movidas, vacio, indice) || (!!textos && textoEncimado(doc, lib, textos, q))
     if (!conCables && !conPiezas) return { en: q, libre: true, soloPiezas: false }
     if (k >= intentos) return { en: q, libre: false, soloPiezas: !conCables }
   }

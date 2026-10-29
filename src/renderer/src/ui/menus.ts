@@ -5,7 +5,7 @@ import type { Documento, Pieza } from '../doc/tipos'
 import type { ObjetivoMenu } from '../editor/Editor'
 import { textoDeValor } from '../lienzo/etiquetas'
 import type { PiezaDef } from '../piezas/tipos'
-import { ALINEACIONES, CONTORNOS, FUENTES, NOMBRE_ALINEACION, NOMBRE_CONTORNO, nombreContorno, NOMBRE_FUENTE, NOMBRE_TINTA, textoTam, TINTAS, type Alineacion, type Contorno } from '../doc/formato'
+import { ALINEACIONES, CONTORNOS, FUENTES, NOMBRE_ALINEACION, NOMBRE_CONTORNO, nombreContorno, NOMBRE_FUENTE, NOMBRE_TINTA, textoPt, TINTAS, type Alineacion, type Contorno } from '../doc/formato'
 import type { Fuente, Grosor, Opacidad, Punta, Tinta, Trazo } from '../doc/tipos'
 import type { VistaFigura } from './vistaFigura'
 import type { OrdenFormato, VistaFormato } from './vistaFormato'
@@ -330,7 +330,7 @@ export function menuDeObjetivo(o: ObjetivoMenu, ctx: ContextoMenu): ModeloMenu {
 export function entradasFormato(v: VistaFormato, teclas: (id: string) => string | undefined): EntradaMenu[] {
   const casilla = (id: 'negrita' | 'cursiva' | 'subrayado', texto: string) => item(`formato:${id}`, texto, { atajo: teclas(id), rol: 'casilla', marcado: v[id] })
   const paso = (id: 'tam-mayor' | 'tam-menor', texto: string, a: number | null) =>
-    item(`formato:${id}`, a === null ? texto : `${texto} (${textoTam(a)})`, { atajo: teclas(id), deshabilitado: a === null && v.tam !== 'varios', pista: a === null && v.tam !== 'varios' ? 'Ya está en el extremo de la serie.' : undefined })
+    item(`formato:${id}`, a === null ? texto : `${texto} (${textoPt(a)})`, { atajo: teclas(id), deshabilitado: a === null && v.tam !== 'varios', pista: a === null && v.tam !== 'varios' ? 'Ya está en el extremo de la serie.' : undefined })
   const idAlinear: Record<Alineacion, string> = { izq: 'alinear-izq', centro: 'alinear-centro', der: 'alinear-der', just: 'justificar' }
   return [
     casilla('negrita', 'Negrita'),

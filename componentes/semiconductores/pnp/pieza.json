@@ -2,6 +2,7 @@
   "id": "pnp",
   "nombre": { "es": "Transistor PNP", "en": "PNP transistor" },
   "categoria": "semiconductores",
+  "grupo": "Bipolares y UJT",
   "prefijo": "Q",
   "buscar": ["pnp", "bjt", "transistor", "2n2907", "2n3906", "bc557", "tip32", "tip125", "bd140", "bc327", "2n5401"],
   "pines": [

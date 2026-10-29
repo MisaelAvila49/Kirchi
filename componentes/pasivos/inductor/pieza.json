@@ -2,6 +2,7 @@
   "id": "inductor",
   "nombre": { "es": "Inductor", "en": "Inductor" },
   "categoria": "pasivos",
+  "grupo": "Capacitores e inductores",
   "prefijo": "L",
   "buscar": ["l", "bobina", "inductor"],
   "pines": [
@@ -28,7 +29,7 @@
         "pendiente": { "parte": "depende del valor y del fabricante", "hoja": "depende del fabricante", "lcsc": "depende del valor" },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Huella de KiCad 9 L_Axial_L9.5mm_D4.0mm_P12.70mm (inductor axial de choque); patillas 1 y 2 según la huella y Device:L. Representativa: la huella de KiCad es de un fabricante concreto pero sirve de tamaño típico"
+          "fuente": "Huella de KiCad 9 L_Axial_L9.5mm_D4.0mm_P12.70mm (inductor axial de choque); pines 1 y 2 según la huella y Device:L. Representativa: la huella de KiCad es de un fabricante concreto pero sirve de tamaño típico"
         }
       }
     }

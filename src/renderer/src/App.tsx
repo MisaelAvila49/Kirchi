@@ -12,7 +12,7 @@ import { conTextosFijos } from './plantillas/textosFijos'
 import { conDescripcion, empaquetarPlantilla, fragmentoDeDocumento, fragmentoDeSeleccion, fragmentoParaColocar, vistaDeFragmento } from './plantillas/plantilla'
 import { armar } from './plantillas/armar'
 import type { Armado } from './calculadoras/circuitos'
-import { elegirCalculadora } from './calculadoras/estado'
+import { calculadoraActiva, elegirCalculadora, estadoDeCalculadora } from './calculadoras/estado'
 import type { IdCalculadora } from './calculadoras/catalogo'
 import type { Fragmento } from './editor/portapapeles'
 import Dialogo from './ui/Dialogo'
@@ -38,6 +38,7 @@ import { calcularConexiones, partirClavePin } from './conexiones/conexiones'
 import { registrarAtajosDelEditor } from './editor/atajosEditor'
 import { cuerpoEnMundo } from './editor/colision'
 import { cajaEtiqueta, cajaNota, cursorDeAsa } from './lienzo/medidas'
+import { cajaTransformada } from './piezas/transformar'
 import type { Caja } from './piezas/tipos'
 import { cajaDeCuerpo } from './editor/cajaPieza'
 import BarraFormato from './ui/BarraFormato'
@@ -71,6 +72,7 @@ import AvisoGrabacionLienzo from './ui/AvisoGrabacion'
 import AvisoCambioEnDisco from './ui/AvisoCambioEnDisco'
 import PopoverGrabacion from './ui/PopoverGrabacion'
 import { alElegirSerie, sincronizarSerie } from './valores/serieElegida'
+import { ponerTextoAjuste } from './lienzo/ajusteEnPieza'
 import { textoEnVivo } from './valores/enVivo'
 import { perillasDe, textoPwlDe } from './ui/perillasVista'
 import type { PerillaVista } from './ui/ControlPerilla'
@@ -124,9 +126,11 @@ import PanelPlantillas from './ui/PanelPlantillas'
 import PanelProyecto from './ui/PanelProyecto'
 import { pistaDeEstado, pistaDeSimulacion } from './ui/pista'
 import { SimClient } from './sim/client'
+import { claseDeContactos, contactoDeEvento, contactoEn, palancasCerradas, ayudaDeContactos } from './lienzo/contactos'
+import { TeclasSostenidas } from './sim/teclasSostenidas'
 import { accionDeClic, ControlSimulacion, limitesExcedidos, otraOpcion, type FaseSim } from './sim/control'
 import { paraTexto, type Lectura } from './sim/lectura'
-import { MENSAJE_DETENER_PARA_EDITAR, accionableSeleccionado, anuncioDeFase, LecturaPorCuadro, leeCadaCiclo, leeTrasCambio } from './ui/vistaPrevia'
+import { accionableSeleccionado, anuncioDeFase, LecturaPorCuadro, leeCadaCiclo, leeTrasCambio } from './ui/vistaPrevia'
 import { documentoDeSeleccion, documentoSinInstrumentos, type AlcanceExportar, type AreaMm } from './exportar/seleccion'
 import { aplicarFormatoCsv } from './ui/exportar/csvFormato'
 import { csvDeCaptura } from './ui/osciloscopio/exportarCaptura'
@@ -177,7 +181,7 @@ import Riel, { NOMBRE_PANEL, NOMBRE_PANEL_DERECHO, RielDerecho } from './ui/Riel
 import { vistaInspector, type VistaInspector } from './ui/vistaInspector'
 import { esDeFigura, esDeMenu, esDeMenuDeCinta, esDePagina, FIGURA_DE_COMANDO, ORDEN_DE_PAGINA, type IdComando } from './ui/cinta/comandos'
 import { crearEjecutor, type Acciones } from './ui/cinta/ejecutar'
-import { mismoEstadoCinta, razonDeshabilitado, textoReloj, type EstadoCinta } from './ui/cinta/estado'
+import { mismoEstadoCinta, RAZON_ANALISIS_CON_VISTA_PREVIA, razonDeshabilitado, textoReloj, type EstadoCinta } from './ui/cinta/estado'
 import { DECISIONES } from './ui/cinta/decisiones'
 import { lugarDeTecla } from './ui/cinta/modelo'
 import { Movimiento } from './lienzo/movimiento'
@@ -188,9 +192,11 @@ import type { AvanceSim } from './sim/control'
 import { anuncioDeVelocidad, divisionDeVista, formatearTiempo, intervaloDe, masLenta, masRapida, textoCantidad, textoDelta, VELOCIDAD_INICIAL, type DeltaAvance } from './ui/tiempo/velocidades'
 import DialogoTiempo from './ui/DialogoTiempo'
 import { conAvance } from './ui/tutorial/avance'
+import { pasoSobreDialogo as pasoSobreDialogoDe } from './ui/tutorial/sobreDialogo'
 import { arranqueDeCapitulo } from './ui/tutorial/arranques'
 import { capituloPorId } from './ui/tutorial/capitulos'
 import { crearControlTutorial } from './ui/tutorial/control'
+import { EVENTO_FIGURA } from './ui/exportar/editor/multiple'
 import AcercaDe from './ui/AcercaDe'
 import OfertaTutorial from './ui/tutorial/OfertaTutorial'
 import { aplicarEleccion, reanudar } from './ui/tutorial/reanudar'
@@ -292,6 +298,8 @@ export default function App() {
   const [seccionConfig, setSeccionConfig] = createSignal<PestañaConfig | undefined>(undefined)
   // La serie comercial de los ajustes llega al editor de valores; un cambio desde su conmutador se guarda por aquí.
   createEffect(() => sincronizarSerie(ajustes().serieComercial))
+  // Lo que dice el recuadro del ajuste de las piezas que siguen a Configuración.
+  createEffect(() => ponerTextoAjuste(ajustes().textoAjuste))
   alElegirSerie((s) => cambiarAjustes({ serieComercial: s }))
   onCleanup(() => alElegirSerie(undefined))
   const abrirConfiguracion = (seccion?: PestañaConfig) => (setSeccionConfig(seccion), setDialogo('configuracion'))
@@ -562,6 +570,7 @@ export default function App() {
         arrastrePot = null
         ultimasRedesChips = ''
         soltarSostenido(undefined, true)
+        teclas.soltarTodas()
         setLectura(null)
         movimiento.reiniciar()
         destellos.reiniciar()
@@ -814,6 +823,47 @@ export default function App() {
     if (sostenidos.estaEnclavado(id)) abrirSoltados([sostenidos.soltarId(id)!])
     else accionarPieza(id, 'enclavado')
   }
+  /** Teclas de un teclado matricial que se sostienen (con el ratón o con el teclado de la computadora): cada una escribe su canal. */
+  const teclas = new TeclasSostenidas((id, k, cerrada) => {
+    sim.moverPerilla(id, `tecla:${k}`, cerrada ? 1 : 0)
+    redibujarAccionado()
+    leerPorCuadros()
+  })
+  /** Mueve la palanca `k` de un DIP: el documento (un paso de deshacer) y el canal del motor. */
+  const moverPalanca = (id: Id, k: number, cerrada: boolean) => {
+    if (!editor.cambiarPalanca(id, k, cerrada)) return
+    sim.moverPerilla(id, `estado:${k}`, cerrada ? 1 : 0)
+    redibujarAccionado()
+    leerPorCuadros()
+  }
+  /** El DIP o el teclado bajo el punto: la pieza, su contacto y su clase. */
+  const contactoBajo = (p: Punto) => {
+    if (!sim.activa) return null
+    const o = editor.objetivoMenu(p)
+    if (o.tipo !== 'pieza') return null
+    const pieza = editor.doc.piezas[o.id]
+    const def = pieza ? editor.lib.get(pieza.tipo) : undefined
+    const k = pieza && def ? contactoEn(pieza, def, p) : null
+    const clase = claseDeContactos(def)
+    return k !== null && clase && pieza && def ? { id: o.id, k, clase, pieza, def } : null
+  }
+  /** Alterna la palanca `k` según el documento. */
+  const alternarPalanca = (id: Id, k: number) => {
+    const pieza = editor.doc.piezas[id]
+    const m = editor.lib.get(pieza?.tipo ?? '')?.modelo
+    if (!pieza || m?.tipo !== 'interruptores') return
+    const actual = pieza.props[m.estado] ?? editor.lib.get(pieza.tipo)?.props.find((d) => d.id === m.estado)?.defecto ?? ''
+    moverPalanca(id, k, !palancasCerradas(actual, m.contactos.length)[k])
+  }
+  /** Clic durante la vista previa sobre una palanca o una tecla: la palanca cambia, la tecla se sostiene mientras dura el clic. */
+  const contactoClic = (p: Punto): boolean => {
+    const c = contactoBajo(p)
+    if (!c) return false
+    if (!editor.seleccion.piezas.has(c.id) || editor.seleccion.piezas.size !== 1) editor.seleccionar(seleccionDe('piezas', c.id))
+    if (c.clase === 'palanca') alternarPalanca(c.id, c.k)
+    else teclas.apretar('puntero', c.id, c.k)
+    return true
+  }
   /** Si el fusible `id` está fundido según la última lectura de la vista previa. */
   const fusibleFundido = (id: Id): boolean => {
     const x = lectura()?.piezas.get(id)?.extra
@@ -924,6 +974,7 @@ export default function App() {
 
   /** El formato elegido en el diálogo de exportar el esquema (se cambia ahí mismo sin rehacer el diálogo). */
   const [formatoEsquema, setFormatoEsquema] = createSignal<FormatoExportar>('png')
+  let identidadExportar = ''
   /** Abre el diálogo de exportar el esquema; con algo seleccionado puede abrir ya en «Selección». */
   const abrirExportar = (formato: FormatoExportar, alcance: AlcanceExportar = 'todo') => {
     const caja = construirEscena(editor.doc, editor.lib, editor.con, paletaDeTema('claro', ajustes().colorCables)).caja
@@ -931,8 +982,15 @@ export default function App() {
     // Lo seleccionado se guarda como documento aparte: el diálogo no se entera de lo que se seleccione después.
     const docSeleccion = documentoDeSeleccion(editor.doc, editor.seleccion)
     const hayInstrumentos = documentoSinInstrumentos(editor.doc, editor.lib) !== editor.doc
-    setAlcanceExportar(alcance === 'seleccion' && docSeleccion ? 'seleccion' : 'todo')
-    setAreaExportar(null)
+    // Con el mismo esquema (mismo archivo) se conservan el área y las anotaciones de la vez anterior; con otro, se empieza limpio.
+    const identidad = archivo().ruta ?? archivo().nombre
+    const mismo = identidad === identidadExportar
+    identidadExportar = identidad
+    setAlcanceExportar(alcance === 'seleccion' && docSeleccion ? 'seleccion' : mismo && alcanceExportar() === 'area' ? 'area' : 'todo')
+    if (!mismo) {
+      setAreaExportar(null)
+      setNotasExportar([])
+    }
     setFormatoEsquema(formato)
     setExportando({
       formato,
@@ -1628,6 +1686,7 @@ export default function App() {
   /** Ctrl+\ y el botón Paneles: si el botón enfocado desaparece con el cambio, el foco vuelve al lienzo. */
   const alternarLimpio = (v?: boolean) => {
     setLimpio((a) => v ?? !a)
+    tutorial.registrar(limpio() ? 'limpio-si' : 'limpio-no')
     queueMicrotask(() => {
       if (!document.activeElement || document.activeElement === document.body) lienzo?.enfocar()
     })
@@ -1804,6 +1863,7 @@ export default function App() {
               lienzo?.ponerCursor(cursorDelLienzo())
               return
             }
+            if (contactoClic(p)) return
             if (accionarEn(p)) return
             editor.abajo(p, mods(e))
           },
@@ -1852,6 +1912,7 @@ export default function App() {
               lienzo?.ponerCursor(cursorDelLienzo())
               return
             }
+            if (teclas.soltarVia('puntero')) return
             if (!soltarSostenido('puntero')) editor.arriba(p, mods(e))
           },
           dobleClic: (p, e) => editor.dobleClic(p, mods(e)),
@@ -1893,6 +1954,7 @@ export default function App() {
             arrastrePot = null
             // Perder la captura del puntero (o el foco) suelta el botón que se sostenía.
             soltarSostenido()
+            teclas.soltarVia('puntero')
             editor.cancelarGesto({ soloPuntero: true })
           }
         },
@@ -1908,6 +1970,8 @@ export default function App() {
     // Sin `defer` el efecto reconstruiría la escena al arrancar, cuando ya se dibujó con esta paleta.
     createEffect(on(paleta, (p) => l.ponerPaleta(p), { defer: true }))
     createEffect(on(contrasteAlto, () => l.invalidarEscena(), { defer: true }))
+    // Cambiar el texto del ajuste cambia los textos de las piezas: el reparto guardado del editor y la escena se rehacen.
+    createEffect(on(() => ajustes().textoAjuste, () => (editor.invalidarTextos(), l.invalidarEscena()), { defer: true }))
     // Lo que flota sobre el lienzo (minimapa y, en el lienzo limpio, el nombre y la barra) es reserva: encuadrar lo deja libre.
     l.reservas = () => {
       const c = l.gl.getBoundingClientRect()
@@ -1964,6 +2028,8 @@ export default function App() {
       alCancelarCable: () => tutorial.registrar('cable-cancelado'),
       alBorrarConClicDerecho: () => tutorial.registrar('borrado-clic-derecho')
     })
+    // «Aprende Kirchi»: la rueda y el arrastre de la vista son pasos del capítulo 1.
+    l.alGestoDeVista = (g) => tutorial.registrar(g === 'zoom' ? 'zoom-rueda' : 'desplazar-vista')
     registrarAtajosDelEditor(atajos, editor, { encuadrar: () => (l.encuadrar(), tutorial.registrar('encuadrar')), desplazarVista: (fx, fy) => l.desplazarVista(fx, fy) })
     registrarAtajosDeLaVentana(atajos, {
       hojaDeAtajos: () => setDialogo('atajos'),
@@ -2059,7 +2125,31 @@ export default function App() {
       const via = viaDeTecla(e)
       if (via) soltarSostenido(via)
     }
-    const alPerderFoco = () => void soltarSostenido()
+    const alPerderFoco = () => {
+      soltarSostenido()
+      teclas.soltarTodas()
+    }
+    // Con un DIP o un teclado seleccionado y la vista previa corriendo, sus teclas (1 a 8; 0 a 9, A a D, * y #) mueven sus contactos y
+    // no llegan a los atajos de una sola tecla. Va en la captura de la ventana para tomar la tecla antes que ellos.
+    const alBajarTeclaContacto = (e: KeyboardEvent) => {
+      if (!sim.activa || !teclasLibres()) return
+      if (e.target !== l.gl && e.target !== document.body) return
+      const id = editor.unicaPiezaSeleccionada()
+      const pieza = id ? editor.doc.piezas[id] : undefined
+      const def = pieza ? editor.lib.get(pieza.tipo) : undefined
+      const k = contactoDeEvento(def, e)
+      if (!id || k === null) return
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      if (e.repeat) return
+      if (claseDeContactos(def) === 'palanca') alternarPalanca(id, k)
+      else teclas.apretar(`tecla:${e.key.toUpperCase()}`, id, k)
+    }
+    const alSubirTeclaContacto = (e: KeyboardEvent) => {
+      // Soltar Mayús antes que `#` o `*` deja la tecla con otro carácter: se sueltan todas las del teclado de la computadora.
+      if (e.key === 'Shift') teclas.soltarPrefijo('tecla:')
+      else teclas.soltarVia(`tecla:${e.key.toUpperCase()}`)
+    }
     // Ctrl con +, − y 0 del teclado numérico cambian el tamaño de la interfaz. El menú de la aplicación
     // trae sus aceleradores; esto los atiende si no llegan, y al consumir la tecla el menú no la repite.
     const alTeclaNumerica = (e: KeyboardEvent) => {
@@ -2071,6 +2161,8 @@ export default function App() {
       pedir(orden)
     }
     window.addEventListener('keydown', alTeclaNumerica, true)
+    window.addEventListener('keydown', alBajarTeclaContacto, true)
+    window.addEventListener('keyup', alSubirTeclaContacto, true)
     window.addEventListener('keydown', alBajarTecla)
     window.addEventListener('keyup', alSubirTecla)
     window.addEventListener('blur', alPerderFoco)
@@ -2205,6 +2297,8 @@ export default function App() {
       window.removeEventListener('keydown', alTeclado, true)
       quitarAtajos()
       window.removeEventListener('keydown', alTeclaNumerica, true)
+      window.removeEventListener('keydown', alBajarTeclaContacto, true)
+      window.removeEventListener('keyup', alSubirTeclaContacto, true)
       window.removeEventListener('keydown', alBajarTecla)
       window.removeEventListener('keyup', alSubirTecla)
       window.removeEventListener('blur', alPerderFoco)
@@ -2642,8 +2736,17 @@ export default function App() {
     const f = formato(), e = estado()
     if (!f || !soloTextos(seleccion()) || e.arrastrando || e.herramienta !== 'seleccionar' || pedido() || menu()) return null
     const c = cajaTextosEnPantalla(), a = areaLienzo()
-    return c && a && cajaTocaArea(c, a) ? { vista: f, caja: c, area: a } : null
+    return c && a && cajaTocaArea(c, a) ? { vista: f, caja: c, area: a, obstaculos: piezasEnPantalla() } : null
   }
+  /** Caja de cada pieza (con sus patas) en la ventana, para que la barra de formato no las tape. */
+  const piezasEnPantalla = (): Caja[] =>
+    Object.values(doc().piezas).flatMap((p) => {
+      const def = editor.lib.get(p.tipo)
+      if (!def) return []
+      const c = cajaTransformada(def.geometria.caja, p)
+      const a = enPantalla({ x: c.minX, y: c.minY }), b = enPantalla({ x: c.maxX, y: c.maxY })
+      return [{ minX: Math.min(a.x, b.x), minY: Math.min(a.y, b.y), maxX: Math.max(a.x, b.x), maxY: Math.max(a.y, b.y) }]
+    })
 
   /** Punto de mundo en coordenadas de ventana; depende de la cámara, así lo que flota encima la sigue al hacer zoom o paneo. */
   const enPantalla = (p: Punto): Punto => {
@@ -2657,6 +2760,13 @@ export default function App() {
   const accionSim = () => {
     const a = fase() === 'detenida' ? null : accionableSeleccionado(doc(), editor.lib, seleccion())
     return a?.tipo === 'reponer' && !fusibleFundido(a.id) ? null : a
+  }
+  /** La ayuda de teclas del DIP o del teclado seleccionado mientras la vista previa está activa. */
+  const ayudaContactosSel = () => {
+    if (fase() === 'detenida') return null
+    const id = seleccion().piezas.size === 1 ? [...seleccion().piezas][0] : null
+    const p = id ? doc().piezas[id] : undefined
+    return p ? ayudaDeContactos(editor.lib.get(p.tipo)) : null
   }
   const controlesSim = () => ({
     fase: fase(), onSimular: simularOPausar, onDetener: () => sim.detener(), voltajes: voltajes(), onVoltajes: alternarVoltajes, tecla: teclaDe,
@@ -2674,6 +2784,17 @@ export default function App() {
       cambiarAjustes({ tutorial: { ...t, avance: conAvance(t.avance, id, terminado ? { paso, hecho: true } : { paso }) } })
     },
     alTerminar: (c) => anunciar(`Terminaste el capítulo ${c.numero}: ${c.titulo}.`)
+  })
+  // «Aprende Kirchi»: la pantalla completa (F11) la hace el menú nativo; el proceso principal avisa al entrar y salir.
+  onMount(() => {
+    const quitarCompleta = window.kirchi?.alPantallaCompleta?.((completa) => tutorial.registrar(completa ? 'pantalla-completa-si' : 'pantalla-completa-no'))
+    // El editor de la figura que se exporta avisa de sus pasos (varios elementos elegidos y cambiados a la vez).
+    const deFigura = (ev: Event) => tutorial.registrar(`figura-${(ev as CustomEvent<string>).detail}`)
+    window.addEventListener(EVENTO_FIGURA, deFigura)
+    onCleanup(() => {
+      quitarCompleta?.()
+      window.removeEventListener(EVENTO_FIGURA, deFigura)
+    })
   })
   const vacio = () => numPiezas() === 0 && docVacio(doc())
   const PCT_MIN = zoomAPorcentaje(ZOOM_MIN)
@@ -2800,6 +2921,7 @@ export default function App() {
     if (!mismoCircuito(refsDelOp)) almacen.descartarOp()
     // Un resultado bueno se muestra en Gráficas; un error se queda en la ficha, donde se puede corregir.
     if (c?.estado === 'listo' && !(instrumentos().abierta && instrumentos().pestaña === 'graficas')) setInstrumentos({ abierta: true, pestaña: 'graficas' })
+    if (c?.estado === 'listo' && c.tipo === 'ac') tutorial.registrar('bode-listo')
   }
   /** El error de la última corrida de un análisis mientras su configuración no haya cambiado desde entonces. */
   const errorDeCorrida = (a: AnalisisDoc): string | null => {
@@ -2816,7 +2938,7 @@ export default function App() {
   }
   const puedeEditarAnalisis = () => fase() === 'detenida' && !archivo().soloLectura
   const panelFicha = () => (
-    <Show when={fichaTipo()} fallback={<ElegirAnalisis onElegir={abrirFicha} motivoNoEditable={fase() !== 'detenida' ? MENSAJE_DETENER_PARA_EDITAR : archivo().soloLectura ? PISTA_SOLO_LECTURA : null} />}>
+    <Show when={fichaTipo()} fallback={<ElegirAnalisis onElegir={abrirFicha} motivoNoEditable={fase() !== 'detenida' ? RAZON_ANALISIS_CON_VISTA_PREVIA : archivo().soloLectura ? PISTA_SOLO_LECTURA : null} />}>
       {(t) => (
         <FichaAnalisis
           tipo={t()}
@@ -2832,7 +2954,7 @@ export default function App() {
             return c && !c.ok ? c.error : null
           })()}
           editable={puedeEditarAnalisis()}
-          motivoNoEditable={fase() !== 'detenida' ? MENSAJE_DETENER_PARA_EDITAR : archivo().soloLectura ? PISTA_SOLO_LECTURA : null}
+          motivoNoEditable={fase() !== 'detenida' ? RAZON_ANALISIS_CON_VISTA_PREVIA : archivo().soloLectura ? PISTA_SOLO_LECTURA : null}
           onNuevo={() => nuevoAnalisis(t())}
           onGuardar={(a) => editor.guardarAnalisis(a)}
           onBorrar={(id) => {
@@ -2874,6 +2996,7 @@ export default function App() {
       })
       if (r.ok) {
         registrar(`Se exportó la gráfica de ${e.titulo}.`, 'info')
+        tutorial.registrar('grafica-exportada')
         setGraficaExp(null)
       } else if (!('cancelado' in r)) errorDeArchivo(r.error)
     } catch (err) {
@@ -3057,7 +3180,7 @@ export default function App() {
     const si = !ajustes().numerosPatilla
     cambiarAjustes({ numerosPatilla: si })
     lienzo?.invalidarEscena()
-    anunciar(si ? 'Números de patilla visibles.' : 'Números de patilla ocultos.')
+    anunciar(si ? 'Números de pin visibles.' : 'Números de pin ocultos.')
   }
   const alternarAnimaciones = () => {
     const si = !animaciones()
@@ -3083,6 +3206,7 @@ export default function App() {
     }
     void sim.avanzar(intervaloDe(d, velocidad(), divisionOsc())).then((r) => {
       if (!r) return
+      tutorial.registrar('avanzado')
       const texto = d === 'paso' ? `Un paso de cálculo de ${formatearMedida(r.dt, 's')}` : null
       setUltimoPaso(texto)
       anunciar(`${texto ?? `Avanzó ${formatearMedida(r.dt, 's')}`}: t = ${formatearTiempo(r.t, velocidad())}.`)
@@ -3092,6 +3216,7 @@ export default function App() {
   const retrocederAhora = () => {
     void sim.retroceder().then((r) => {
       if (!r) return anunciar('No hay un avance anterior al que volver.')
+      tutorial.registrar('retrocedido')
       setUltimoPaso(null)
       leerSim()
       lienzo?.invalidarSimulacion()
@@ -3226,6 +3351,11 @@ export default function App() {
     if (b) b.focus()
     else anunciar('No hay un tutorial en marcha. Aprende Kirchi está en la pestaña Ayuda.')
   }
+  const hayDialogoAbierto = () => !!dialogo() || !!pregunta() || !!exportando() || !!capturaExp() || !!graficaExp()
+  /** El paso en curso se dibuja encima del diálogo (la figura que se exporta), o el que viene si este ya se cumplió: así «Siguiente» no queda escondido. Una pregunta siempre tapa al tutorial. */
+  const pasoSobreDialogo = () => {
+    return !pregunta() && pasoSobreDialogoDe(tutorial.estado())
+  }
   const ctxTutorial = (): CtxTutorial => {
     // La cámara entra al cálculo: las zonas del mundo se mueven con el zoom y el desplazamiento.
     void cam()
@@ -3241,7 +3371,12 @@ export default function App() {
       seleccion: seleccion().piezas,
       cursores: cursores() !== null,
       limpio: limpio(),
-      dialogo: dialogo(),
+      voltajes: voltajes(),
+      dialogo: dialogo() ?? (graficaExp() ? 'exportar-grafica' : exportando() ? 'exportar-esquema' : capturaExp() ? 'exportar-captura' : null),
+      izquierdo: ajustes().lateral ? ajustes().panel : null,
+      calculadora: { activa: calculadoraActiva(), tipo: estadoDeCalculadora('filtro').tipo, f0: estadoDeCalculadora('filtro').f0 },
+      // El botón Cursores de la gráfica no es una señal de la ventana: se lee de la pantalla (el globo repasa cada 300 ms).
+      cursoresGrafica: document.querySelector('.barra-instrumento [data-accion="cursores"][aria-pressed="true"]') !== null,
       get centro() {
         return lienzo ? centroDeVista() : { x: 0, y: 0 }
       }
@@ -3515,6 +3650,7 @@ export default function App() {
               carga={cargaSel()}
               simulando={fase() !== 'detenida'}
               accion={accionSim()}
+              ayudaContactos={ayudaContactosSel()}
               pot={potSel()}
               onPot={cambiarPot}
               perillas={perillasSel()}
@@ -3612,7 +3748,7 @@ export default function App() {
 
       </Show>
       <Show when={globo()}>{(g) => <Globo texto={g().texto} lineas={g().lineas} x={g().x} y={g().y} />}</Show>
-      <Show when={barraFormato()}>{(b) => <BarraFormato vista={b().vista} caja={b().caja} area={b().area} onOrden={formatear} teclas={teclaDe} onSalir={() => lienzo?.enfocar()} />}</Show>
+      <Show when={barraFormato()}>{(b) => <BarraFormato vista={b().vista} caja={b().caja} area={b().area} obstaculos={b().obstaculos} onOrden={formatear} teclas={teclaDe} onSalir={() => lienzo?.enfocar()} />}</Show>
       <Show when={buscador()}>
         {(b) => (
           <Buscador
@@ -3911,7 +4047,7 @@ export default function App() {
       </Show>
       <Show when={dialogo() === 'oferta'}>
         <OfertaTutorial
-          onEmpezar={(n) => cerrarOferta(n, () => void empezarCapitulo('primer-circuito', 0))}
+          onEmpezar={(n) => cerrarOferta(n, () => void empezarCapitulo('conoce', 0))}
           onVerTodos={(n) => cerrarOferta(n, () => setDialogo('tutorial'))}
           onAhoraNo={(n) => cerrarOferta(n)}
         />
@@ -3927,9 +4063,10 @@ export default function App() {
         anunciar={anunciar}
         movimientoReducido={movimientoReducido}
         avanzarSolo={ajustes().tutorial.avanzarSolo}
-        oculto={!!dialogo() || !!pregunta() || !!exportando() || !!capturaExp()}
+        oculto={hayDialogoAbierto() && !pasoSobreDialogo()}
         onSalir={() => (tutorial.salir(), lienzo?.enfocar())}
-        alAccion={() => lienzo?.enfocar()}
+        // Con un diálogo abierto (la figura que se exporta) el foco se queda en él.
+        alAccion={() => (hayDialogoAbierto() ? undefined : lienzo?.enfocar())}
       />
       <Show when={dialogo() === 'atajos'}>
         <HojaAtajos

@@ -79,17 +79,14 @@ export const PILAS_POR_OMISION: PilasFuentes = { interfaz: TIPOGRAFIA_POR_OMISIO
 
 const SERIES: readonly CanalOMatematico[] = [...CANALES, MATEMATICO]
 
-/** El tono de un canal: el de las opciones (si es de la lista) o el de siempre. */
-export function tonoDeCanal(op: Pick<OpcionesFigura, 'colores'>, c: CanalOMatematico): TonoFigura {
-  const t = Object.hasOwn(op.colores, c) ? op.colores[c] : undefined
-  return t && (TONOS_FIGURA as readonly string[]).includes(t) ? t : (coloresFiguraPorOmision()[c] as TonoFigura)
-}
+/** El tono de siempre de un canal. */
+export const tonoDeCanal = (c: CanalOMatematico): TonoFigura => coloresFiguraPorOmision()[c] as TonoFigura
 
 /** El tema con que se pinta, para fondo, rejilla y escalas juntos: el del aspecto de la figura (o el de las opciones) y, si es «como la aplicación», el que se ve. */
 export const temaDeFigura = (op: Pick<OpcionesFigura, 'tema'>, actual: Tema, asp?: Pick<AspectoDeCaptura, 'aspecto'>): Tema => temaEfectivo(asp?.aspecto.tema ?? op.tema, actual)
 
 /**
- * Aspecto con que se dibuja la pantalla, el de la propiedad `aspecto`. Un tono cambiado en el diálogo manda sobre el de la pantalla.
+ * Aspecto con que se dibuja la pantalla, el de la propiedad `aspecto`, con lo que cambió el editor.
  */
 export interface AspectoDeCaptura {
   aspecto: AspectoGrafica
@@ -126,12 +123,10 @@ export function conRangosEscritos(a: AjustesOsciloscopio, asp?: Pick<AspectoDeCa
   return ajustados.some((c, i) => c !== a.canales[i]) ? { ...a, canales: ajustados } : a
 }
 
-/** El tono de un canal en la figura: el del diálogo si lo cambió; si no, el que tiene en la pantalla; si no, el de siempre. */
-function tonoFinal(op: Pick<OpcionesFigura, 'colores'>, c: CanalOMatematico, asp?: AspectoDeCaptura): TonoFigura {
-  const deOmision = coloresFiguraPorOmision()[c] as TonoFigura
-  const elDialogo = tonoDeCanal(op, c)
-  const deLaPantalla = asp?.canales[c]?.color ?? null
-  return elDialogo === deOmision && deLaPantalla ? deLaPantalla : elDialogo
+/** El tono de un canal en la figura: el que tiene en la pantalla o eligió el editor; si no, el de siempre. */
+function tonoFinal(c: CanalOMatematico, asp?: AspectoDeCaptura): TonoFigura {
+  const t = asp?.canales[c]?.color
+  return t && (TONOS_FIGURA as readonly string[]).includes(t) ? t : tonoDeCanal(c)
 }
 
 /** Los colores de la pantalla con los tonos de cada canal y el fondo de las opciones. */
@@ -143,7 +138,7 @@ export function coloresDeFigura(op: OpcionesFigura, actual: Tema, asp?: AspectoD
   const canal = { ...base.canal } as Record<CanalOMatematico, string>
   const canalTexto = { ...base.canalTexto } as Record<CanalOMatematico, string>
   for (const c of SERIES) {
-    const tono = tonoFinal(op, c, asp)
+    const tono = tonoFinal(c, asp)
     canal[c] = T[tono]
     canalTexto[c] = T[`${tono}-texto`]
   }
@@ -229,7 +224,7 @@ export function figuraDeCaptura(ref: string, a0: AjustesOsciloscopio, p: Pantall
       marco,
       ox: m,
       oy: m + hCab,
-      tonos: Object.fromEntries(SERIES.map((k) => [k, tonoFinal(op, k, asp)])),
+      tonos: Object.fromEntries(SERIES.map((k) => [k, tonoFinal(k, asp)])),
       ancho: ANCHO_FIGURA,
       alto,
       aspecto: asp?.aspecto,

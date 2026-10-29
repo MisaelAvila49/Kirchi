@@ -4,7 +4,9 @@ import { documentoVacio, type Documento, type Pieza } from '../doc/tipos'
 import { calcularConexiones } from '../conexiones/conexiones'
 import { libreriaDePrueba } from '../prueba/libreria'
 import { construirEscena } from './escena'
-import { numerosDePieza, textosNumerosPatilla } from './numerosPatilla'
+import { ZOOM_100 } from './medidas'
+import { numerosDePieza, TAM_NUMERO_PATILLA, textosNumerosPatilla } from './numerosPatilla'
+import { textosVisibles } from './texto'
 import { PALETA_CLARA } from './paleta'
 
 const lib = libreriaDePrueba().piezas
@@ -49,12 +51,18 @@ describe('números de patilla', () => {
     for (const x of t) {
       expect(x.fuente).toBe('cifras')
       expect(x.color).toBe('valor')
-      expect(x.tamaño).toBeCloseTo(1 / 1.25)
+      expect(x.tamaño).toBeCloseTo(TAM_NUMERO_PATILLA / 1.25)
     }
     for (const pin of def.pines) {
       const x = t.find((q) => q.texto === numerosDePieza(p, def)![pin.id])!
       expect(Math.hypot(x.x - (p.x + pin.x), x.y - (p.y + pin.y))).toBeLessThan(2.5)
     }
+  })
+
+  it('se ven con el zoom al 100 %, no solo al acercarse', () => {
+    const t = textosNumerosPatilla(pieza('nand'), lib.get('nand')!)
+    const cam = { x: 0, y: 0, zoom: ZOOM_100 }
+    expect(textosVisibles(t, cam, 2000, 2000)).toHaveLength(t.length)
   })
 
   it('la escena los dibuja solo si se piden, y no mueve nada más', () => {

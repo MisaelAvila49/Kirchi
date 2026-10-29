@@ -157,24 +157,24 @@ test('arrastrar el asa derecha de una nota cambia solo su ancho', async () => {
   expect((await doc()).notas.n.ancho).toBe(40)
 })
 
-test('el inspector de una nota tiene la sección Texto y rechaza un tamaño de 60 px', async () => {
+test('el inspector de una nota tiene la sección Texto y rechaza un tamaño de 60 pt', async () => {
   await sonda('cargar', { ...VACIO, notas: { n: { id: 'n', x: 0, y: 0, ancho: 24, texto: 'Divisor de voltaje' } } })
   const p = await aPantalla(5, 1.6)
   await page.mouse.click(p.x, p.y)
   const insp = page.locator('aside.inspector')
   // Ficha de texto: la nota abre «Editar la nota» con el texto y el formato como borrador.
   await expect(insp.getByRole('group', { name: 'Editar la nota' })).toBeVisible()
-  const tam = insp.getByLabel('Tamaño (px)', { exact: true })
+  const tam = insp.getByLabel('Tamaño (pt)', { exact: true })
   await tam.fill('60')
   await tam.press('Enter')
-  await expect(insp.locator('.campo-error').filter({ hasText: 'máximo' })).toHaveText('El tamaño máximo es 48 px.')
+  await expect(insp.locator('.campo-error').filter({ hasText: 'máximo' })).toHaveText('El tamaño máximo es 56.7 pt.')
   await tam.press('Escape')
 })
 
-test('la Librería trae las 102 piezas en nueve categorías (con Instrumentos), sin errores de librería', async () => {
+test('la Librería trae las 111 piezas en nueve categorías (con Instrumentos), sin errores de librería', async () => {
   await sonda('cargar', VACIO)
   await page.keyboard.press('Escape')
-  await expect(page.locator('.lateral .panel-cabeza')).toContainText('102 piezas')
+  await expect(page.locator('.lateral .panel-cabeza')).toContainText('111 piezas')
   await expect(page.locator('.categoria-boton:not(.grupo-boton)')).toHaveCount(9)
   expect(await sonda('errores')).toEqual([])
 })

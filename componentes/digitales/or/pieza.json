@@ -105,7 +105,7 @@
           }
         ],
         "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
-        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC4075, pinout p. 3 (texto); KiCad 4xxx:4075 (mismos grupos de patillas)" }
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI CD74HC4075, pinout p. 3 (texto); KiCad 4xxx:4075 (mismos grupos de pines)" }
       },
       "CD4000B|3": {
         "fabricante": "Texas Instruments",
@@ -126,7 +126,7 @@
           }
         ],
         "pendiente": { "lcsc": "no se halló un número LCSC de esta parte" },
-        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 4xxx:4075; TI CD74HC4075 (mismos grupos de patillas)" }
+        "comprobado": { "fecha": "2026-10-26", "fuente": "KiCad 4xxx:4075; TI CD74HC4075 (mismos grupos de pines)" }
       },
       "CD4000B|4": {
         "fabricante": "Texas Instruments",

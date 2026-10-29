@@ -1,0 +1,198 @@
+{
+  "id": "registro-595",
+  "nombre": {
+    "es": "Registro de desplazamiento de 8 bits con almacenamiento y salidas de tres estados (74595)",
+    "en": "8-bit shift register with output storage and 3-state outputs (74595)"
+  },
+  "categoria": "digitales",
+  "grupo": "Registros y búferes",
+  "prefijo": "U",
+  "buscar": [
+    "u",
+    "registro",
+    "register",
+    "desplazamiento",
+    "shift",
+    "almacenamiento",
+    "latch",
+    "tres estados",
+    "8 bits",
+    "74595",
+    "74hc595",
+    "74ls595",
+    "led"
+  ],
+  "pines": [
+    { "id": "SER", "nombre": "SER (entrada serie)", "x": -8, "y": -8 },
+    { "id": "SRCLK", "nombre": "SRCLK (reloj de desplazamiento, flanco de subida)", "x": -8, "y": -6 },
+    { "id": "RCLK", "nombre": "RCLK (reloj de almacenamiento, flanco de subida)", "x": -8, "y": -4 },
+    { "id": "SRCLR", "nombre": "SRCLR (borrado asíncrono del desplazamiento, activo en bajo)", "x": -8, "y": 0 },
+    { "id": "OE", "nombre": "OE (habilitación de salidas, activa en bajo)", "x": -8, "y": 2 },
+    { "id": "QA", "nombre": "QA", "x": 8, "y": -8 },
+    { "id": "QB", "nombre": "QB", "x": 8, "y": -6 },
+    { "id": "QC", "nombre": "QC", "x": 8, "y": -4 },
+    { "id": "QD", "nombre": "QD", "x": 8, "y": -2 },
+    { "id": "QE", "nombre": "QE", "x": 8, "y": 0 },
+    { "id": "QF", "nombre": "QF", "x": 8, "y": 2 },
+    { "id": "QG", "nombre": "QG", "x": 8, "y": 4 },
+    { "id": "QH", "nombre": "QH", "x": 8, "y": 6 },
+    { "id": "QH'", "nombre": "QH' (salida serie)", "x": 8, "y": 10 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "msi",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "nucleo": {
+      "tipo": "desplazamiento",
+      "bits": 8,
+      "reloj": { "senales": ["SRCLK"], "flanco": "subida" },
+      "serie": ["SER"],
+      "borra": { "senal": "!SRCLR", "sincrona": false },
+      "almacen": { "senales": ["RCLK"], "flanco": "subida" }
+    },
+    "salidas": {
+      "QA": "tabla",
+      "QB": "tabla",
+      "QC": "tabla",
+      "QD": "tabla",
+      "QE": "tabla",
+      "QF": "tabla",
+      "QG": "tabla",
+      "QH": "tabla",
+      "QH'": "q7"
+    },
+    "tabla": {
+      "columnas": ["OE", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7"],
+      "salidas": ["QA", "QB", "QC", "QD", "QE", "QF", "QG", "QH"],
+      "filas": ["1 X X X X X X X X > Z Z Z Z Z Z Z Z", "0 X X X X X X X X > a0 a1 a2 a3 a4 a5 a6 a7"]
+    },
+    "retardos": {
+      "74HC": { "vcc": 4.5, "Q*": [1.7e-8, 1.7e-8], "QH'": [1.7e-8, 1.7e-8] },
+      "74LS": { "vcc": 5, "Q*": [1.2e-8, 2.4e-8], "QH'": [1.2e-8, 1.7e-8] }
+    }
+  },
+  "caja": {
+    "titulo": "SRG8",
+    "forma": "funcional",
+    "izquierda": ["SER", "SRCLK", "RCLK", null, "!SRCLR", "!OE"],
+    "derecha": ["QA", "QB", "QC", "QD", "QE", "QF", "QG", "QH", null, "QH'"],
+    "marcas": {
+      "SRCLK": ["dinamico"],
+      "RCLK": ["dinamico"],
+      "QA": ["z"],
+      "QB": ["z"],
+      "QC": ["z"],
+      "QD": ["z"],
+      "QE": ["z"],
+      "QF": ["z"],
+      "QG": ["z"],
+      "QH": ["z"]
+    }
+  },
+  "fuentes": {
+    "74HC": "TI SN74HC595 (SCLS041J): función p. 12 y retardo típico de 17 ns de RCLK a Q y de SRCLK a QH' (p. 8, 4.5 V, CL 50 pF). SRCLR a QH' usa el retardo de SRCLK a QH'; OE activa y desactiva las salidas con el retardo de RCLK a Q.",
+    "74LS": "TI SN74LS595 (SDLS006): función p. 1 (la hoja no trae tabla; nombra SRCK, RCK y G a SRCLK, RCLK y OE) y retardos típicos de RCK a Q (12 ns de subida, 24 de bajada) y de SRCK a QH' (12 y 17) (p. 5, 5 V, TA 25 C). SRCLR a QH' usa el retardo de SRCK a QH'; OE usa el de RCK a Q."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC595N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc595.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0 en el registro de desplazamiento y en el de almacenamiento; el retardo de SRCLR a QH' usa el de SRCLK a QH'.",
+        "equivalencias": { "kicad": "74xx:74HC595" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "SER": "14",
+              "SRCLK": "11",
+              "RCLK": "12",
+              "SRCLR": "10",
+              "OE": "13",
+              "QA": "15",
+              "QB": "1",
+              "QC": "2",
+              "QD": "3",
+              "QE": "4",
+              "QF": "5",
+              "QG": "6",
+              "QH": "7",
+              "QH'": "9"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74HC595N",
+            "lcsc": { "numero": "C78711", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SN74HC595 (SCLS041J, oct 2021), p. 3, Pin Functions; Diodes 74HC595 (DS35492 rev. 4-2, nov 2018), p. 2, Pin Descriptions (Q0 a Q7 = QA a QH, Q7S = QH', MR = SRCLR, SHCP = SRCLK, STCP = RCLK, DS = SER); KiCad 74xx:74HC595 (9.0.0)"
+        }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS595N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls595.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0 en el registro de desplazamiento y en el de almacenamiento. La hoja del LS llama SRCK, RCK y G a lo que la fila llama SRCLK, RCLK y OE.",
+        "equivalencias": { "kicad": "74xx:74LS595" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "SER": "14",
+              "SRCLK": "11",
+              "RCLK": "12",
+              "SRCLR": "10",
+              "OE": "13",
+              "QA": "15",
+              "QB": "1",
+              "QC": "2",
+              "QD": "3",
+              "QE": "4",
+              "QF": "5",
+              "QG": "6",
+              "QH": "7",
+              "QH'": "9"
+            },
+            "alimentacion": { "VCC": "16", "GND": "8" },
+            "parte": "SN74LS595N",
+            "lcsc": { "numero": "C2865449", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SN74LS595 (SDLS006, mar 1988), p. 1, TOP VIEW (activo en el addendum de TI del 18 sep 2026: SN74LS595N y SN74LS595DR); KiCad 74xx:74LS595 (9.0.0)"
+        }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -14 }, "valor": { "x": 0, "y": 14 } },
+  "rotulos": [
+    { "texto": "SER", "x": -5.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "SRCLK", "x": -4.3, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "RCLK", "x": -4.3, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "SRCLR", "x": -5.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "OE", "x": -5.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "QA", "x": 3.2, "y": -8, "tam": 1, "alinear": "der" },
+    { "texto": "QB", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "QC", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "QD", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "QE", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "QF", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "QG", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "QH", "x": 3.2, "y": 6, "tam": 1, "alinear": "der" },
+    { "texto": "QH'", "x": 5.2, "y": 10, "tam": 1, "alinear": "der" },
+    { "texto": "SRG8", "x": 0, "y": -11, "tam": 1, "alinear": "centro" }
+  ]
+}

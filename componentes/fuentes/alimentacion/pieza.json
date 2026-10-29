@@ -2,6 +2,7 @@
   "id": "alimentacion",
   "nombre": { "es": "Alimentación", "en": "Power terminal" },
   "categoria": "fuentes",
+  "grupo": "Alimentación y tierra",
   "prefijo": "PWR",
   "buscar": ["vcc", "vdd", "vee", "+5v", "5v", "+15v", "-15v", "alimentacion", "alimentación", "terminal", "terminal de alimentacion", "terminal de alimentación", "power", "riel", "fuente simetrica", "fuente simétrica"],
   "pines": [{ "id": "1", "nombre": "alimentación", "x": 0, "y": 0 }],

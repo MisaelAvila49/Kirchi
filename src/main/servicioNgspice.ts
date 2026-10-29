@@ -25,14 +25,52 @@ export interface OpcionesLocalizar {
   existe?: (ruta: string) => boolean
 }
 
+/** Las rutas donde se busca el ejecutable, en orden (también para decir dónde se buscó si no está). */
+export function rutasDeNgspice(o: OpcionesLocalizar): string[] {
+  const win = (o.plataforma ?? process.platform) === 'win32'
+  const bases = o.empaquetado ? [join(o.carpetaHerramientas, 'ngspice')] : [join(o.carpetaHerramientas, 'ngspice'), join(o.appPath, 'herramientas', 'ngspice')]
+  const relativas = win ? [join('Spice64', 'bin', 'ngspice_con.exe'), join('bin', 'ngspice_con.exe')] : [join('bin', 'ngspice')]
+  return bases.flatMap((base) => relativas.map((r) => join(base, r)))
+}
+
 /** Dónde está el ejecutable de ngspice, o null: `resources/herramientas/ngspice/` instalado; en desarrollo también `herramientas/ngspice/` de la raíz y, fuera de Windows, el del sistema. */
 export function localizarNgspice(o: OpcionesLocalizar): string | null {
   const existe = o.existe ?? existsSync
   const win = (o.plataforma ?? process.platform) === 'win32'
-  const bases = o.empaquetado ? [join(o.carpetaHerramientas, 'ngspice')] : [join(o.carpetaHerramientas, 'ngspice'), join(o.appPath, 'herramientas', 'ngspice')]
-  const relativas = win ? [join('Spice64', 'bin', 'ngspice_con.exe'), join('bin', 'ngspice_con.exe')] : [join('bin', 'ngspice')]
-  for (const base of bases) for (const r of relativas) if (existe(join(base, r))) return join(base, r)
+  for (const r of rutasDeNgspice(o)) if (existe(r)) return r
   return !o.empaquetado && !win ? 'ngspice' : null
+}
+
+/** Qué hacer en macOS cuando ngspice no arranca: la cuarentena del dmg y la copia temporal de solo lectura (App Translocation) se quitan moviendo la app a Aplicaciones y limpiando sus atributos. */
+export function pistaMac(ruta: string): string {
+  const donde = ruta.includes('/AppTranslocation/') ? 'macOS abrió Kirchi desde una copia temporal de solo lectura. ' : ruta.startsWith('/Volumes/') ? 'Kirchi está abierto desde el dmg. ' : ''
+  return `${donde}En macOS: arrastra Kirchi a Aplicaciones, abre Terminal, escribe xattr -cr /Applications/Kirchi.app y vuelve a abrir Kirchi.`
+}
+
+/** El motivo con la ruta que se intentó y, en macOS, la pista de qué hacer. */
+export function conRuta(motivo: string, ruta: string, plataforma: NodeJS.Platform = process.platform): string {
+  const base = `${motivo} Ruta: ${ruta}.`
+  return plataforma === 'darwin' ? `${base} ${pistaMac(ruta)}` : base
+}
+
+/** El mensaje cuando no hay ejecutable: dónde se buscó. */
+export function motivoSinNgspice(intentadas: readonly string[], plataforma: NodeJS.Platform = process.platform): string {
+  const base = `Kirchi no encontró ngspice: lo buscó en ${intentadas.join(' y ')}. Reinstala Kirchi.`
+  return plataforma === 'darwin' && intentadas.length > 0 ? `${base} ${pistaMac(intentadas[0])}` : base
+}
+
+/** Por qué el sistema no dejó lanzar el ejecutable, con su código (ENOENT, EACCES...). */
+export function motivoDeArranque(e: unknown): string {
+  const err = e as NodeJS.ErrnoException | undefined
+  const codigo = typeof err?.code === 'string' ? err.code : null
+  const texto = err instanceof Error ? err.message : String(e)
+  const porQue = codigo === 'ENOENT' ? 'el archivo no existe' : codigo === 'EACCES' ? 'no tiene permiso de ejecución' : codigo === 'EPERM' ? 'el sistema no lo permite' : null
+  return `No se pudo iniciar ngspice${porQue ? `: ${porQue}` : ''} (${texto}).`
+}
+
+/** Tope de la comprobación de versión. En macOS el primer arranque de un binario descargado pasa por Gatekeeper y XProtect, que pueden tardar. */
+export function limiteDeVerificacion(plataforma: NodeJS.Platform = process.platform): number {
+  return plataforma === 'darwin' ? 30_000 : 15_000
 }
 
 export interface OpcionesServicio {
@@ -49,6 +87,12 @@ export interface OpcionesServicio {
   topesRaw?: TopesRaw
   /** Solo para las pruebas: argumentos que van antes de los fijos (un ejecutable falso es `node guion.js`). */
   argumentosPrevios?: string[]
+  /** El sistema, para los mensajes y los topes (por omisión `process.platform`). */
+  plataforma?: NodeJS.Platform
+  /** Tope de la comprobación de versión (ms); por omisión `limiteDeVerificacion`. */
+  limiteVerificacionMs?: number
+  /** Reintentos inmediatos si la comprobación se agota o el sistema cierra el proceso; por omisión 1 en macOS y 0 en los demás. */
+  reintentosVerificacion?: number
 }
 
 interface Trabajo {
@@ -178,15 +222,20 @@ function leerInicio(ruta: string, maximo: number): string {
   }
 }
 
-/** Por qué falló la comprobación de versión (null si todo bien): no arrancó (falta una biblioteca) o es otra versión. */
-export function motivoDeVersion(salida: string, codigo: number | null): string | null {
+/** Por qué falló la comprobación de versión (null si todo bien): no arrancó (falta una biblioteca, el sistema lo cerró) o es otra versión. */
+export function motivoDeVersion(salida: string, codigo: number | null, señal: NodeJS.Signals | null = null): string | null {
   const otra = `Kirchi necesita ngspice ${VERSION_NGSPICE} y el que está instalado es otra versión.`
   if (new RegExp(`ngspice-${VERSION_NGSPICE}\\b`).test(salida)) return null
   if (/ngspice-\d/.test(salida)) return otra
+  // Lo primero que dijo (en macOS, `dyld: Library not loaded`), para no esconder la causa.
+  const dijo = salida.trim().split(/\r?\n/)[0].slice(0, 200)
+  const conSalida = (t: string) => (dijo ? `${t.slice(0, -1)}: ${dijo}` : t)
+  // Un proceso cerrado por una señal no tiene código: en macOS es lo que hace el sistema con un binario que no pasa su revisión.
+  if (señal) return conSalida(`ngspice se cerró al arrancar: el sistema le mandó la señal ${señal}.`)
   if (codigo !== null && codigo !== 0) {
     // 0xC0000135 (STATUS_DLL_NOT_FOUND), con signo o sin él según la plataforma.
     if (codigo === -1073741515 || codigo === 0xc0000135) return 'ngspice no pudo arrancar: falta una biblioteca del paquete. Reinstala Kirchi.'
-    return `ngspice no pudo arrancar (código ${codigo}).`
+    return conSalida(`ngspice no pudo arrancar (código ${codigo}).`)
   }
   return otra
 }
@@ -204,8 +253,10 @@ export class ServicioNgspice {
   private readonly topes: TopesRaw
   private readonly vivos = new Set<ChildProcess>()
   private readonly carpetas = new Set<string>()
+  private readonly plataforma: NodeJS.Platform
 
   constructor(private readonly o: OpcionesServicio) {
+    this.plataforma = o.plataforma ?? process.platform
     this.limiteMs = o.limiteMs ?? 60_000
     this.limiteSalida = o.limiteSalida ?? 128 * 1024 * 1024
     this.maxEnCola = o.maxEnCola ?? 2
@@ -218,7 +269,7 @@ export class ServicioNgspice {
   /** Comprueba que el ejecutable responde y es la versión 47; devuelve el motivo de falla, o null si sirve. Solo el éxito se recuerda: una falla (un arranque en frío lento) se reintenta en la petición siguiente. */
   verificar(): Promise<string | null> {
     if (this.versionVerificada) return this.versionVerificada
-    const p = this.comprobarVersion()
+    const p = this.comprobarConReintento()
     this.versionVerificada = p
     void p.then((m) => {
       if (m !== null && this.versionVerificada === p) this.versionVerificada = null
@@ -226,28 +277,47 @@ export class ServicioNgspice {
     return p
   }
 
-  private comprobarVersion(): Promise<string | null> {
+  /** Un arranque en frío lento o cerrado por el sistema se reintenta en seguida (en macOS, la segunda vez Gatekeeper ya tiene su veredicto). El motivo lleva la ruta intentada. */
+  private async comprobarConReintento(): Promise<string | null> {
+    let reintentos = this.o.reintentosVerificacion ?? (this.plataforma === 'darwin' ? 1 : 0)
+    for (;;) {
+      const r = await this.comprobarVersion()
+      if (r.motivo === null) return null
+      if (!r.reintentable || reintentos-- <= 0) return conRuta(r.motivo, this.o.ejecutable, this.plataforma)
+    }
+  }
+
+  private comprobarVersion(): Promise<{ motivo: string | null; reintentable: boolean }> {
+    const limite = this.o.limiteVerificacionMs ?? limiteDeVerificacion(this.plataforma)
     return new Promise((resolver) => {
       const dir = mkdtempSync(join(this.tmp, 'kirchi-ngspice-v-'))
       let salida = ''
       let hijo: ChildProcess
       try {
         hijo = spawn(this.o.ejecutable, [...(this.o.argumentosPrevios ?? []), '-n', '-v'], { cwd: dir, env: entornoMinimo(dir), windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32' })
-      } catch {
+      } catch (e) {
         rmSync(dir, { recursive: true, force: true })
-        resolver('No se pudo iniciar ngspice.')
+        resolver({ motivo: motivoDeArranque(e), reintentable: false })
         return
       }
-      const fin = (motivo: string | null) => {
+      let terminado = false
+      const fin = (motivo: string | null, reintentable = false) => {
+        if (terminado) return
+        terminado = true
         clearTimeout(reloj)
         matarArbol(hijo)
-        rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
-        resolver(motivo)
+        resolver({ motivo, reintentable })
+        // Recién matado, en Windows el proceso aún retiene la carpeta: lo que quede lo borra `barrerSobrantes` al siguiente arranque.
+        try {
+          rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+        } catch {
+          /* en uso */
+        }
       }
-      const reloj = setTimeout(() => fin('ngspice no respondió a la comprobación de versión.'), 15_000)
+      const reloj = setTimeout(() => fin(`ngspice no respondió en ${Math.round(limite / 1000)} s a la comprobación de versión.`, true), limite)
       for (const flujo of [hijo.stdout, hijo.stderr]) flujo?.on('data', (d: Buffer) => (salida = (salida + d.toString('utf8')).slice(0, 4096)))
-      hijo.on('error', () => fin('No se pudo iniciar ngspice.'))
-      hijo.on('close', (codigo: number | null) => fin(motivoDeVersion(salida, codigo)))
+      hijo.on('error', (e) => fin(motivoDeArranque(e)))
+      hijo.on('close', (codigo: number | null, señal: NodeJS.Signals | null) => fin(motivoDeVersion(salida, codigo, señal), señal !== null))
     })
   }
 
@@ -373,7 +443,7 @@ export class ServicioNgspice {
             detached: process.platform !== 'win32'
           })
         } catch (e) {
-          rechazar(e)
+          rechazar(new Error(conRuta(motivoDeArranque(e), this.o.ejecutable, this.plataforma)))
           return
         }
         const h: ChildProcess = hijo
@@ -405,7 +475,7 @@ export class ServicioNgspice {
           this.vivos.delete(h)
           if (!cerrado) {
             cerrado = true
-            rechazar(e)
+            rechazar(new Error(conRuta(motivoDeArranque(e), this.o.ejecutable, this.plataforma)))
           }
         })
         h.on('close', cerrar)

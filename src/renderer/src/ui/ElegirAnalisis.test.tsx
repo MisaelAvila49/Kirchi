@@ -28,6 +28,8 @@ describe('la pestaña Análisis sin análisis elegido', () => {
     const b = host.querySelector('button')!
     expect(b.getAttribute('aria-disabled')).toBe('true')
     expect(b.title).toBe('Detén la vista previa para editar.')
+    // El motivo también se ve sin pasar el ratón.
+    expect(host.querySelector('[role="status"]')?.textContent).toBe('Detén la vista previa para editar.')
     b.click()
     expect(pedidos).toEqual([])
   })

@@ -98,7 +98,7 @@ export default function FichaTexto(props: Props) {
           {error() ?? ''}
         </p>
       </div>
-      <ControlesFormato vista={vistaDe(fmt(), props.tipo)} variante="inspector" soloPx onOrden={orden} teclas={props.teclas} clave={props.id} />
+      <ControlesFormato vista={vistaDe(fmt(), props.tipo)} variante="inspector" onOrden={orden} teclas={props.teclas} clave={props.id} />
       <div class="ficha-texto-pie">
         <button type="button" class="boton principal" disabled={!sucio()} onClick={aplicar}>
           Aplicar

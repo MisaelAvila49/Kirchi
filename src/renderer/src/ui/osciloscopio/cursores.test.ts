@@ -29,9 +29,9 @@ describe('cursores del osciloscopio', () => {
   })
 
   it('empiezan a dos y ocho divisiones y a ±2 divisiones del canal', () => {
-    const c = cursoresIniciales(a, 0.01, 'B')
-    expect(c.t![0]).toBeCloseTo(0.012, 12)
-    expect(c.t![1]).toBeCloseTo(0.018, 12)
+    const c = cursoresIniciales(a, 'B')
+    expect(c.t![0]).toBeCloseTo(0.002, 12)
+    expect(c.t![1]).toBeCloseTo(0.008, 12)
     expect(c.v).toEqual([-1, 1])
   })
 
@@ -45,19 +45,19 @@ describe('cursores del osciloscopio', () => {
   })
 
   it('con el teclado: 0.1 división por flecha, una con Shift', () => {
-    const c = { canal: 'B' as const, t: [0.012, 0.018] as [number, number], v: [-1, 1] as [number, number] }
-    expect(moverCursor(c, 't1', 1, false, a).t![0]).toBeCloseTo(0.0121, 12)
+    const c = { canal: 'B' as const, t: [0.002, 0.008] as [number, number], v: [-1, 1] as [number, number] }
+    expect(moverCursor(c, 't1', 1, false, a).t![0]).toBeCloseTo(0.0021, 12)
     expect(moverCursor(c, 'v2', -1, true, a).v![1]).toBeCloseTo(0.5, 12)
   })
 
   it('de la pantalla a tiempo y voltaje, y el cursor que se toma con el ratón', () => {
-    expect(tiempoDeX(250, 1000, 0.01, a)).toBeCloseTo(0.0125, 12)
+    expect(tiempoDeX(250, 1000, a)).toBeCloseTo(0.0025, 12)
     // B con 0.5 V/div y la posición en +1: el centro de la pantalla es −0.5 V.
     expect(voltajeDeY(400, 800, a, 'B')).toBeCloseTo(-0.5, 12)
-    const c = { canal: 'B' as const, t: [0.012, 0.018] as [number, number], v: [-1, 1] as [number, number] }
-    expect(cursorCercano(c, 203, 600, 1000, 800, 0.01, a, 8)).toBe('t1')
-    expect(cursorCercano(c, 500, 500, 1000, 800, 0.01, a, 8)).toBe('v1')
-    expect(cursorCercano(c, 500, 640, 1000, 800, 0.01, a, 8)).toBeNull()
-    expect(ponerCursor(c, 't2', 0.015).t).toEqual([0.012, 0.015])
+    const c = { canal: 'B' as const, t: [0.002, 0.008] as [number, number], v: [-1, 1] as [number, number] }
+    expect(cursorCercano(c, 203, 600, 1000, 800, a, 8)).toBe('t1')
+    expect(cursorCercano(c, 500, 500, 1000, 800, a, 8)).toBe('v1')
+    expect(cursorCercano(c, 500, 640, 1000, 800, a, 8)).toBeNull()
+    expect(ponerCursor(c, 't2', 0.015).t).toEqual([0.002, 0.015])
   })
 })

@@ -36,7 +36,7 @@ export function unirCompartidas(doc: Documento, lib: Map<string, PiezaDef>, con:
       const distintas = conectadas.filter((p) => redDe(p) !== redDe(base))
       if (distintas.length > 0) {
         const patilla = patillasDeUnidad(def, base.props, base.props.unidad)?.[pin] ?? pin
-        for (const p of distintas) errores.push({ texto: `${base.ref} y ${p.ref} comparten la patilla ${patilla} (${pin}) y están en redes distintas.`, piezas: [base.id, p.id] })
+        for (const p of distintas) errores.push({ texto: `${base.ref} y ${p.ref} comparten el pin ${patilla} (${pin}) y están en redes distintas.`, piezas: [base.id, p.id] })
         continue
       }
       for (const p of ordenadas) if (suelta(p)) uniones.push([base.id, pin, p.id, pin])

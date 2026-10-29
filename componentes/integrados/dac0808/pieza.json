@@ -1,0 +1,129 @@
+{
+  "id": "dac0808",
+  "nombre": {
+    "es": "Convertidor digital a analógico de 8 bits (DAC0808)",
+    "en": "8-bit digital-to-analog converter (DAC0808)"
+  },
+  "categoria": "integrados",
+  "grupo": "Conversión y temporización",
+  "prefijo": "U",
+  "buscar": [
+    "u",
+    "dac",
+    "dac0808",
+    "0808",
+    "mc1408",
+    "convertidor",
+    "conversor",
+    "digital analogico",
+    "digital analógico",
+    "d/a",
+    "8 bits"
+  ],
+  "pines": [
+    { "id": "A1", "nombre": "A1 (bit más significativo)", "x": -6, "y": -12 },
+    { "id": "A2", "nombre": "A2", "x": -6, "y": -10 },
+    { "id": "A3", "nombre": "A3", "x": -6, "y": -8 },
+    { "id": "A4", "nombre": "A4", "x": -6, "y": -6 },
+    { "id": "A5", "nombre": "A5", "x": -6, "y": -4 },
+    { "id": "A6", "nombre": "A6", "x": -6, "y": -2 },
+    { "id": "A7", "nombre": "A7", "x": -6, "y": 0 },
+    { "id": "A8", "nombre": "A8 (bit menos significativo)", "x": -6, "y": 2 },
+    { "id": "VREF+", "nombre": "VREF+ (referencia positiva)", "x": -6, "y": 6, "ayuda": "IREF = VREF / R14 entra por este pin · la salida máxima es 255/256 de IREF" },
+    { "id": "VREF-", "nombre": "VREF− (referencia negativa)", "x": -6, "y": 8, "ayuda": "Se lee su voltaje, no toma corriente de referencia · suele ir a tierra por una R15 igual a R14" },
+    { "id": "COMP", "nombre": "COMP (compensación)", "x": -6, "y": 10, "ayuda": "Su capacitor (15, 37 o 75 pF mínimo con R14 de 1, 2.5 o 5 kΩ) no cambia la simulación" },
+    { "id": "IO", "nombre": "IO (salida de corriente)", "x": 6, "y": -12, "ayuda": "Hunde la corriente IREF · código / 256 hacia VEE" },
+    { "id": "VCC", "nombre": "VCC (alimentación positiva)", "x": 0, "y": -20 },
+    { "id": "GND", "nombre": "GND (tierra)", "x": 0, "y": 20 },
+    { "id": "VEE", "nombre": "VEE (alimentación negativa)", "x": 2, "y": 20 }
+  ],
+  "props": [],
+  "modelo": {
+    "tipo": "convertidor-da",
+    "a": ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"],
+    "io": "IO",
+    "gnd": "GND",
+    "vee": "VEE",
+    "vcc": "VCC",
+    "vrefp": "VREF+",
+    "vrefn": "VREF-",
+    "comp": "COMP",
+    "vil": 0.8,
+    "vih": 2,
+    "t_asentamiento": 1.5e-7
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -22 }, "valor": { "x": 0, "y": 22 } },
+  "rotulos": [
+    { "texto": "A1", "x": -3.2, "y": -12, "tam": 1, "alinear": "izq" },
+    { "texto": "A2", "x": -3.2, "y": -10, "tam": 1, "alinear": "izq" },
+    { "texto": "A3", "x": -3.2, "y": -8, "tam": 1, "alinear": "izq" },
+    { "texto": "A4", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "A5", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "A6", "x": -3.2, "y": -2, "tam": 1, "alinear": "izq" },
+    { "texto": "A7", "x": -3.2, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "A8", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "VREF+", "x": -3.2, "y": 6, "tam": 1, "alinear": "izq" },
+    { "texto": "VREF-", "x": -3.2, "y": 8, "tam": 1, "alinear": "izq" },
+    { "texto": "COMP", "x": -3.2, "y": 10, "tam": 1, "alinear": "izq" },
+    { "texto": "IO", "x": 3.2, "y": -12, "tam": 1, "alinear": "der" },
+    { "texto": "VCC", "x": 0, "y": -17.2, "tam": 1, "alinear": "abajo" },
+    { "texto": "GND", "x": 0, "y": 17.2, "tam": 1, "alinear": "arriba" },
+    { "texto": "VEE", "x": 2, "y": 17.2, "tam": 1, "alinear": "arriba" },
+    { "texto": "D/A", "x": 0, "y": -14.4, "tam": 1, "alinear": "centro" }
+  ],
+  "caja": {
+    "titulo": "D/A",
+    "forma": "funcional",
+    "izquierda": ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", null, "VREF+", "VREF-", "COMP"],
+    "derecha": ["IO"],
+    "arriba": ["VCC"],
+    "abajo": ["GND", "VEE"]
+  },
+  "fuentes": {
+    "DAC0808": "National DAC0808 (SNAS539A, copia de Texas Instruments) y Philips MC1508-8/MC1408-8: entradas de 0.8 V y 2 V, IO = IREF · (A1/2 + A2/4 + … + A8/256) con IREF = VREF / R14 (corriente de plena escala de 1.992 mA con 2 mA de referencia) y asentamiento típico de 150 ns a 1/2 LSB (la hoja de Philips da 70 ns)."
+  },
+  "datos": {
+    "valores": {
+      "*": {
+        "fabricante": "Texas Instruments (National Semiconductor)",
+        "parte": "DAC0808LCN",
+        "hoja": "https://www.ti.com/lit/ds/symlink/dac0808.pdf",
+        "aproximada": "Sin el límite de excursión de IO ni la dependencia de VCC y VEE.",
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-16",
+            "patillas": {
+              "GND": "2",
+              "VEE": "3",
+              "IO": "4",
+              "A1": "5",
+              "A2": "6",
+              "A3": "7",
+              "A4": "8",
+              "A5": "9",
+              "A6": "10",
+              "A7": "11",
+              "A8": "12",
+              "VCC": "13",
+              "VREF+": "14",
+              "VREF-": "15",
+              "COMP": "16"
+            },
+            "sinModelo": { "1": "NC" },
+            "huella": "Package_DIP:DIP-16_W7.62mm",
+            "lcsc": { "numero": "C1554785", "sinVerificar": true }
+          }
+        ],
+        "pendiente": {
+          "equivalencias": "KiCad 9.0.0 solo trae Analog_DAC:MC1408_DIP, cuyos nombres de bit están invertidos (A8 en el pin 5 y A1 en el 12) frente a National y Philips; no se usa como equivalencia hasta decidirlo (pregunta en preguntas-pendientes.md)",
+          "lcsc": "C1554785 es DAC0808LCN/NOPB (PDIP-16), no el DAC0808LCN sin sufijo; hallado por búsqueda, sin abrir la ficha"
+        },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "National DAC0808 (SNAS539A, may 1999, copia TI) p. 1 impresa (PDF 2) diagrama DIP: NC 1, GND 2, VEE 3, IO 4, A1 (MSB) 5 a A8 (LSB) 12, VCC 13, VREF(+) 14, VREF(-) 15, COMPENSATION 16; Philips MC1508-8/MC1408-8 (ago 1994) p. 1 paquete F, N: misma asignación"
+        },
+        "nota": "La nota 8 de la hoja dice que el paquete SO tiene otra asignación; aquí solo DIP. Ids de pin propuestos."
+      }
+    }
+  }
+}

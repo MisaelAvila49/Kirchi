@@ -108,23 +108,26 @@ export function siguienteTam(actual: number, dir: 1 | -1): number {
   return [...SERIE_TAM].reverse().find((t) => t < actual - 1e-9) ?? actual
 }
 
-/** Tamaño de letra en px de pantalla al 100 % (96 por pulgada): de 8 a 48, de 1 en 1. El documento sigue guardando mm. */
-export const PX_MIN = 8
-export const PX_MAX = 48
-const MM_POR_PX = 25.4 / 96
-/** De px a mm con un decimal; 8 px es el tamaño por omisión (2 mm) y por eso no se guarda. */
-export const pxAMm = (px: number): number => (px === PX_MIN ? TAM_POR_OMISION : redondearTam(px * MM_POR_PX))
-/** De mm al px entero más cercano. */
-export const mmAPx = (mm: number): number => Math.round(mm / MM_POR_PX)
+/** Tamaño de letra en pt (1 pt = 25.4/72 mm), como en el diálogo de exportar. El documento sigue guardando mm. */
+const MM_POR_PT = 25.4 / 72
+const unDecimal = (n: number): number => Math.round(n * 10) / 10
+/** De mm a pt con un decimal (2 mm, el tamaño por omisión, son 5.7 pt). */
+export const mmAPt = (mm: number): number => unDecimal(mm / MM_POR_PT)
+/** De pt a mm con el decimal que guarda el documento. */
+export const ptAMm = (pt: number): number => redondearTam(pt * MM_POR_PT)
+export const PT_MIN = mmAPt(TAM_MIN)
+export const PT_MAX = mmAPt(TAM_MAX)
+/** «5.7 pt» (el decimal solo si lo hay). */
+export const textoPt = (mm: number): string => `${mmAPt(mm)} pt`
 
-/** «16» o «16 px» → el tamaño en px, o por qué no vale. */
-export function leerPx(texto: string): { px: number } | { error: string } {
-  const m = /^\s*(\d+)\s*(px)?\s*$/.exec(texto)
-  if (!m) return { error: 'Escribe un número entero de px, por ejemplo 16.' }
-  const px = Number(m[1])
-  if (px < PX_MIN) return { error: `El tamaño mínimo es ${PX_MIN} px.` }
-  if (px > PX_MAX) return { error: `El tamaño máximo es ${PX_MAX} px.` }
-  return { px }
+/** «9.5» o «9.5 pt» → el tamaño en pt (un decimal como máximo), o por qué no vale. */
+export function leerPt(texto: string): { pt: number } | { error: string } {
+  const m = /^\s*(\d+(?:\.\d)?)\s*(pt)?\s*$/.exec(texto)
+  if (!m) return { error: 'Escribe el tamaño en pt con un decimal como máximo, por ejemplo 9.5.' }
+  const pt = Number(m[1])
+  if (pt < PT_MIN) return { error: `El tamaño mínimo es ${PT_MIN} pt.` }
+  if (pt > PT_MAX) return { error: `El tamaño máximo es ${PT_MAX} pt.` }
+  return { pt }
 }
 
 /** «12.5 mm» con el decimal solo si lo tiene. */
@@ -146,9 +149,9 @@ export function leerFormato(datos: unknown, tipo: TipoTexto, sujeto: string): { 
         break
       case 'tam':
         if (typeof v !== 'number' || !Number.isFinite(v)) avisos.push(`Se descartó el tamaño «${String(v)}» ${sujeto}: no es un número.`)
-        else if (v < TAM_MIN) avisos.push(`Se descartó el tamaño ${v} mm ${sujeto}: el mínimo es ${TAM_MIN} mm.`)
-        else if (v > TAM_MAX) avisos.push(`Se descartó el tamaño ${v} mm ${sujeto}: el máximo es ${TAM_MAX} mm.`)
-        else if (Math.abs(redondearTam(v) - v) > 1e-9) avisos.push(`Se descartó el tamaño ${v} mm ${sujeto}: lleva un solo decimal.`)
+        else if (v < TAM_MIN) avisos.push(`Se descartó el tamaño ${textoPt(v)} ${sujeto}: el mínimo es ${PT_MIN} pt.`)
+        else if (v > TAM_MAX) avisos.push(`Se descartó el tamaño ${textoPt(v)} ${sujeto}: el máximo es ${PT_MAX} pt.`)
+        else if (Math.abs(redondearTam(v) - v) > 1e-9) avisos.push(`Se descartó el tamaño ${textoPt(v)} ${sujeto}: no es un tamaño válido.`)
         else c.tam = v
         break
       case 'negrita':

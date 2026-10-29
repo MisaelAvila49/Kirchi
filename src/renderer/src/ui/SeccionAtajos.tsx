@@ -1,6 +1,7 @@
 import { createSignal, For, Index, Show } from 'solid-js'
 import { capturarCombinacion, type Atajos } from '../editor/teclado'
 import { agregarTecla, gruposDeConfig, quitarTecla, restaurarComando } from './configAtajos'
+import { GrupoConfig } from './ControlesConfig'
 import { partirCombinacion } from './hojaDeAtajos'
 
 interface Props {
@@ -92,9 +93,8 @@ export default function SeccionAtajos(props: Props) {
     else agregar(id, r.combinacion)
   }
   return (
-    <fieldset class="opciones config-atajos">
-      <legend>Atajos</legend>
-      <input class="campo" type="search" data-autofoco={props.autofoco ? '' : undefined} placeholder="Buscar un comando o una tecla…" aria-label="Buscar un comando o una tecla" value={filtro()} onInput={(e) => setFiltro(e.currentTarget.value)} />
+    <div class="config-atajos">
+      <input class="campo cfg-buscar" type="search" data-autofoco={props.autofoco ? '' : undefined} placeholder="Buscar un comando o una tecla…" aria-label="Buscar un comando o una tecla" value={filtro()} onInput={(e) => setFiltro(e.currentTarget.value)} />
       {/* Anuncia el inicio de la captura a quien usa lector de pantalla; el botón además cambia de texto. */}
       <p class="solo-lectores" role="status" aria-live="polite">
         {anuncio()}
@@ -102,8 +102,7 @@ export default function SeccionAtajos(props: Props) {
       <div class="config-atajos-lista">
         <Index each={grupos()}>
           {(g) => (
-            <section class="hoja-grupo">
-              <h3>{g().nombre}</h3>
+            <GrupoConfig titulo={g().nombre}>
               <Index each={g().filas}>
                 {(f) => (
                   <div class="config-fila">
@@ -172,7 +171,7 @@ export default function SeccionAtajos(props: Props) {
                   </div>
                 )}
               </Index>
-            </section>
+            </GrupoConfig>
           )}
         </Index>
         <Show when={grupos().length === 0}>
@@ -182,6 +181,6 @@ export default function SeccionAtajos(props: Props) {
       <button type="button" class="boton" onClick={() => (props.atajos.restaurar(), setCaptura(null), cambio())}>
         Restaurar todos los atajos
       </button>
-    </fieldset>
+    </div>
   )
 }

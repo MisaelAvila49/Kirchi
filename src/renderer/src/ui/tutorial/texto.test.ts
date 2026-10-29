@@ -34,4 +34,18 @@ describe('texto de un paso', () => {
     expect(Object.keys(GESTOS)).toEqual(['clic', 'doble-clic', 'clic-derecho', 'doble-clic-derecho', 'arrastrar', 'mayus-clic', 'rueda'])
     expect(new Set(Object.values(GESTOS)).size).toBe(7)
   })
+
+  it('un icono es una marca {icono:id|Nombre} con el nombre que se ve al lado; sin nombre queda solo el icono', () => {
+    expect(partirTexto('Elige {icono:voltajes|Medir} o {icono:osciloscopio}.', teclaDe)).toEqual([
+      { tipo: 'texto', texto: 'Elige ' }, { tipo: 'icono', id: 'voltajes', texto: 'Medir' },
+      { tipo: 'texto', texto: ' o ' }, { tipo: 'icono', id: 'osciloscopio', texto: '' }, { tipo: 'texto', texto: '.' }
+    ])
+    // Para el lector de pantalla el icono no dice nada y su nombre queda en el texto.
+    expect(textoLlano('Abre {icono:mediciones|Mediciones}.', teclaDe, (id) => id)).toBe('Abre Mediciones.')
+  })
+
+  it('una tecla fija que no está en la tabla de atajos se escribe con {kbd:tecla}', () => {
+    expect(partirTexto('Pulsa {kbd:F11}.', teclaDe)).toEqual([{ tipo: 'texto', texto: 'Pulsa ' }, { tipo: 'tecla', id: 'F11', tecla: 'F11' }, { tipo: 'texto', texto: '.' }])
+    expect(textoLlano('Pulsa {kbd:F11}.', teclaDe, (id) => id)).toBe('Pulsa F11.')
+  })
 })

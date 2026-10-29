@@ -64,9 +64,9 @@ function validarPresentacion(p: unknown, donde: string, fila: Record<string, unk
     const parecido = ids.find((x) => x.toLowerCase() === minuscula)
     err(`${donde}.encapsulado`, `«${p.encapsulado}» no está en componentes/encapsulados.json${parecido ? `, ¿quisiste decir «${parecido}»?` : ''}`)
   }
-  if (!esObjeto(p.patillas) || !Object.values(p.patillas).every(esPatillas)) err(`${donde}.patillas`, 'debe ser un objeto de id de pin a patilla (o lista de patillas)')
-  if (p.alimentacion !== undefined && (!esObjeto(p.alimentacion) || !Object.values(p.alimentacion).every(esPatillas))) err(`${donde}.alimentacion`, 'debe ser un objeto de red a patilla (o lista de patillas)')
-  if (p.sinModelo !== undefined && (!esObjeto(p.sinModelo) || !Object.values(p.sinModelo).every(esTexto))) err(`${donde}.sinModelo`, 'debe ser un objeto de patilla a texto')
+  if (!esObjeto(p.patillas) || !Object.values(p.patillas).every(esPatillas)) err(`${donde}.patillas`, 'debe ser un objeto de id de pin a número de pin (o lista de números)')
+  if (p.alimentacion !== undefined && (!esObjeto(p.alimentacion) || !Object.values(p.alimentacion).every(esPatillas))) err(`${donde}.alimentacion`, 'debe ser un objeto de red a número de pin (o lista de números)')
+  if (p.sinModelo !== undefined && (!esObjeto(p.sinModelo) || !Object.values(p.sinModelo).every(esTexto))) err(`${donde}.sinModelo`, 'debe ser un objeto de número de pin a texto')
   if (p.unidades !== undefined) {
     const u = p.unidades
     if (!Array.isArray(u) || u.length === 0) err(`${donde}.unidades`, 'debe ser una lista con al menos una unidad')
@@ -76,7 +76,7 @@ function validarPresentacion(p: unknown, donde: string, fila: Record<string, unk
         if (!esObjeto(x)) return void err(c, 'debe ser un objeto')
         cerrar(x, ['nombre', 'patillas'], c, err, 'una unidad')
         if (!esTexto(x.nombre)) err(`${c}.nombre`, 'es obligatorio')
-        if (!esObjeto(x.patillas) || !Object.values(x.patillas).every(esTexto)) err(`${c}.patillas`, 'debe ser un objeto de id de pin a patilla')
+        if (!esObjeto(x.patillas) || !Object.values(x.patillas).every(esTexto)) err(`${c}.patillas`, 'debe ser un objeto de id de pin a número de pin')
       })
       const ok = u.every((x) => esObjeto(x) && esObjeto(x.patillas))
       if (ok) {
@@ -114,13 +114,13 @@ function validarPresentacion(p: unknown, donde: string, fila: Record<string, unk
   const pendientes = esObjeto(fila.pendiente) && fila.pendiente.patillas !== undefined
   const usadas = patillasUsadas(p)
   const repetidas = usadas.filter((x, i) => usadas.indexOf(x) !== i)
-  if (repetidas.length) err(`${donde}`, `usa la patilla ${[...new Set(repetidas)].join(', ')} más de una vez`)
+  if (repetidas.length) err(`${donde}`, `usa el pin ${[...new Set(repetidas)].join(', ')} más de una vez`)
   if (enc?.numerada) {
     const validas = new Set(Array.from({ length: enc.patillas }, (_, i) => String(i + 1)))
     const ajenas = [...new Set(usadas)].filter((x) => !validas.has(x))
-    if (ajenas.length) err(`${donde}`, `${enc.id} no tiene la patilla ${ajenas.join(', ')} (va de 1 a ${enc.patillas})`)
+    if (ajenas.length) err(`${donde}`, `${enc.id} no tiene el pin ${ajenas.join(', ')} (va de 1 a ${enc.patillas})`)
     const faltan = [...validas].filter((x) => !usadas.includes(x))
-    if (!pendientes && faltan.length && !ajenas.length && !repetidas.length) err(`${donde}`, `${enc.id} tiene ${enc.patillas} patillas, ${faltan.length === 1 ? 'falta la' : 'faltan la'} ${faltan.join(' y la ')}`)
+    if (!pendientes && faltan.length && !ajenas.length && !repetidas.length) err(`${donde}`, `${enc.id} tiene ${enc.patillas} pines, ${faltan.length === 1 ? 'falta el' : 'faltan el'} ${faltan.join(' y el ')}`)
   }
 }
 

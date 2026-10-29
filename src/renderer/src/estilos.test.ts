@@ -36,14 +36,14 @@ describe('styles.css', () => {
     for (const d of ['width: auto;', 'field-sizing: content;', 'min-width: 6ch;', 'max-width: 24ch;']) expect(regla).toContain(d)
   })
 
-  it('la nota de la referencia fija (al simular) flota bajo la caja y no ensancha la cabecera del editor', () => {
+  it('la nota de la referencia fija (al simular) queda solo para lectores y no tapa el campo Valor', () => {
     const valores = readFileSync(join(import.meta.dirname, 'ui/valores.css'), 'utf8')
     const i = valores.indexOf('.caja-referencia-envoltura > .en-linea-nota {')
     expect(i).toBeGreaterThanOrEqual(0)
     const regla = valores.slice(i, valores.indexOf('}', i))
     expect(regla).toContain('position: absolute;')
-    expect(regla).toContain('right: 0;')
-    expect(regla).toContain('width: max-content;')
+    expect(regla).toContain('clip: rect(0 0 0 0);')
+    expect(regla).not.toContain('max-content')
   })
 
   it('el tema oscuro redefine los mismos tokens con sus colores', () => {

@@ -1,0 +1,143 @@
+{
+  "id": "registro-164",
+  "nombre": {
+    "es": "Registro de desplazamiento de 8 bits, entrada serie y salida paralela (74164)",
+    "en": "8-bit serial-in parallel-out shift register (74164)"
+  },
+  "categoria": "digitales",
+  "grupo": "Registros y búferes",
+  "prefijo": "U",
+  "buscar": ["u", "registro", "register", "desplazamiento", "shift", "serie", "paralelo", "8 bits", "74164", "74hc164", "74ls164"],
+  "pines": [
+    { "id": "A", "nombre": "A (entrada serie)", "x": -6, "y": -6 },
+    { "id": "B", "nombre": "B (entrada serie)", "x": -6, "y": -4 },
+    { "id": "CLK", "nombre": "CLK (reloj, flanco de subida)", "x": -6, "y": 0 },
+    { "id": "CLR", "nombre": "CLR (borrado asíncrono, activo en bajo)", "x": -6, "y": 2 },
+    { "id": "QA", "nombre": "QA", "x": 6, "y": -6 },
+    { "id": "QB", "nombre": "QB", "x": 6, "y": -4 },
+    { "id": "QC", "nombre": "QC", "x": 6, "y": -2 },
+    { "id": "QD", "nombre": "QD", "x": 6, "y": 0 },
+    { "id": "QE", "nombre": "QE", "x": 6, "y": 2 },
+    { "id": "QF", "nombre": "QF", "x": 6, "y": 4 },
+    { "id": "QG", "nombre": "QG", "x": 6, "y": 6 },
+    { "id": "QH", "nombre": "QH", "x": 6, "y": 8 }
+  ],
+  "props": [
+    { "id": "familia", "nombre": "Familia", "defecto": "74HC", "opciones": ["74HC", "74LS"] },
+    {
+      "id": "alimentacion",
+      "nombre": "Alimentación",
+      "defecto": "5 V",
+      "opciones": ["2 V", "3 V", "3.3 V", "4.5 V", "5 V", "6 V", "9 V", "10 V", "12 V", "15 V", "18 V"]
+    }
+  ],
+  "modelo": {
+    "tipo": "msi",
+    "familia": "familia",
+    "alimentacion": "alimentacion",
+    "nucleo": {
+      "tipo": "desplazamiento",
+      "bits": 8,
+      "reloj": { "senales": ["CLK"], "flanco": "subida" },
+      "serie": ["A", "B"],
+      "borra": { "senal": "!CLR", "sincrona": false }
+    },
+    "salidas": { "QA": "q0", "QB": "q1", "QC": "q2", "QD": "q3", "QE": "q4", "QF": "q5", "QG": "q6", "QH": "q7" },
+    "retardos": { "74HC": { "vcc": 4.5, "Q*": [2.3e-8, 2.3e-8] }, "74LS": { "vcc": 5, "Q*": [1.7e-8, 2.1e-8] } }
+  },
+  "caja": {
+    "titulo": "SRG8",
+    "forma": "funcional",
+    "izquierda": ["A", "B", null, "CLK", "!CLR"],
+    "derecha": ["QA", "QB", "QC", "QD", "QE", "QF", "QG", "QH"],
+    "marcas": { "CLK": ["dinamico"] }
+  },
+  "fuentes": {
+    "74HC": "TI SN74HC164 (SCLS115G): función p. 14 y retardo típico de 23 ns de CLK a Q (p. 8, 4.5 V, CL 50 pF). CLR a Q usa el retardo de CLK a Q.",
+    "74LS": "TI SN74LS164 (TTL Devices, rev. mar 1988): función p. 1 y retardos típicos de CLK a Q (17 ns de subida, 21 de bajada) (p. 5, 5 V, CL 15 pF). CLR a Q usa el retardo de CLK a Q."
+  },
+  "datos": {
+    "por": "familia",
+    "valores": {
+      "74HC": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74HC164N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc164.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0; el retardo de CLR a Q usa el de CLK a Q.",
+        "equivalencias": { "kicad": "74xx:74HC164" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": {
+              "A": "1",
+              "B": "2",
+              "CLR": "9",
+              "CLK": "8",
+              "QA": "3",
+              "QB": "4",
+              "QC": "5",
+              "QD": "6",
+              "QE": "10",
+              "QF": "11",
+              "QG": "12",
+              "QH": "13"
+            },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "parte": "SN74HC164N",
+            "lcsc": { "numero": "C2908", "comprobado": "2026-10-26" }
+          }
+        ],
+        "comprobado": { "fecha": "2026-10-26", "fuente": "TI SN74HC164 (SCLS115G, sep 2015), p. 4, Pin Functions; KiCad 74xx:74HC164 (9.0.0)" }
+      },
+      "74LS": {
+        "fabricante": "Texas Instruments",
+        "parte": "SN74LS164N",
+        "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls164.pdf",
+        "aproximada": "El estado al encender no está definido en la hoja y el modelo arranca en 0; el retardo de CLR a Q usa el de CLK a Q.",
+        "equivalencias": { "kicad": "74xx:74HC164" },
+        "presentaciones": [
+          {
+            "encapsulado": "DIP-14",
+            "patillas": {
+              "A": "1",
+              "B": "2",
+              "CLR": "9",
+              "CLK": "8",
+              "QA": "3",
+              "QB": "4",
+              "QC": "5",
+              "QD": "6",
+              "QE": "10",
+              "QF": "11",
+              "QG": "12",
+              "QH": "13"
+            },
+            "alimentacion": { "VCC": "14", "GND": "7" },
+            "parte": "SN74LS164N"
+          }
+        ],
+        "pendiente": { "lcsc": "no se halló un número LCSC de SN74LS164N" },
+        "comprobado": {
+          "fecha": "2026-10-26",
+          "fuente": "TI SN74LS164 (TTL Devices, mar 1988), p. 1, TOP VIEW; KiCad 74xx:74HC164 (9.0.0, mismo número de pin, otra familia; el símbolo 74LS164 no existe)"
+        }
+      }
+    }
+  },
+  "etiquetas": { "ref": { "x": 0, "y": -12 }, "valor": { "x": 0, "y": 12 } },
+  "rotulos": [
+    { "texto": "A", "x": -3.2, "y": -6, "tam": 1, "alinear": "izq" },
+    { "texto": "B", "x": -3.2, "y": -4, "tam": 1, "alinear": "izq" },
+    { "texto": "CLK", "x": -2.3, "y": 0, "tam": 1, "alinear": "izq" },
+    { "texto": "CLR", "x": -3.2, "y": 2, "tam": 1, "alinear": "izq" },
+    { "texto": "QA", "x": 3.2, "y": -6, "tam": 1, "alinear": "der" },
+    { "texto": "QB", "x": 3.2, "y": -4, "tam": 1, "alinear": "der" },
+    { "texto": "QC", "x": 3.2, "y": -2, "tam": 1, "alinear": "der" },
+    { "texto": "QD", "x": 3.2, "y": 0, "tam": 1, "alinear": "der" },
+    { "texto": "QE", "x": 3.2, "y": 2, "tam": 1, "alinear": "der" },
+    { "texto": "QF", "x": 3.2, "y": 4, "tam": 1, "alinear": "der" },
+    { "texto": "QG", "x": 3.2, "y": 6, "tam": 1, "alinear": "der" },
+    { "texto": "QH", "x": 3.2, "y": 8, "tam": 1, "alinear": "der" },
+    { "texto": "SRG8", "x": 0, "y": -9, "tam": 1, "alinear": "centro" }
+  ]
+}

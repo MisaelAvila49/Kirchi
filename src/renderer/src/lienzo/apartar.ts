@@ -44,7 +44,7 @@ export const ESPACIO_TEXTOS = 1.6
 /** Aire de la caja con que se busca un texto vecino: el de siempre más el hueco. */
 export const AIRE_APRETADO = AIRE_TEXTO + ESPACIO_TEXTOS
 
-/** Bloque apilado: referencia y valor de una pieza uno bajo el otro, del mismo lado y con la misma alineación. */
+/** Bloque apilado: referencia, valor y ajuste de una pieza uno bajo el otro, del mismo lado y con la misma alineación. */
 export const SEPARACION_LINEAS = 1.8
 /** Distancia del bloque al cuerpo de su pieza, en unidades. */
 export const SEPARACION_BLOQUE = 1
@@ -379,11 +379,11 @@ export function etiquetasSinChoques(doc: Documento, lib: Map<string, PiezaDef>, 
         propios.push(cajaTexto(q))
       }
     }
-    // 2. Referencia y valor apilados del lado con más holgura (no si alguno va en el renglón de un rótulo: no lo deja).
-    if (!completo && n === 2 && !locales[ini].local.renglon && !locales[ini + 1].local.renglon) {
+    // 2. Referencia, valor y ajuste apilados del lado con más holgura (no si alguno va en el renglón de un rótulo: no lo deja).
+    if (!completo && n >= 2 && !locales.slice(ini, ini + n).some((t) => t.local.renglon)) {
       const suyo = suyos[ip]
       const primero = candidatoDeTexto(piezas[ip], locales[ini], 0)
-      const bloques = bloquesApilados(suyo, [locales[ini], locales[ini + 1]], ladoDePunto(suyo, primero.x, primero.y))
+      const bloques = bloquesApilados(suyo, locales.slice(ini, ini + n), ladoDePunto(suyo, primero.x, primero.y))
       let mejor = -1
       for (const bloque of bloques) {
         const cajas = bloque.map((q) => cajaTexto(q))
@@ -395,8 +395,8 @@ export function etiquetasSinChoques(doc: Documento, lib: Map<string, PiezaDef>, 
         }
         if (!buenos) continue
         const union: Caja = {
-          minX: Math.min(cajas[0].minX, cajas[1].minX), minY: Math.min(cajas[0].minY, cajas[1].minY),
-          maxX: Math.max(cajas[0].maxX, cajas[1].maxX), maxY: Math.max(cajas[0].maxY, cajas[1].maxY)
+          minX: Math.min(...cajas.map((c) => c.minX)), minY: Math.min(...cajas.map((c) => c.minY)),
+          maxX: Math.max(...cajas.map((c) => c.maxX)), maxY: Math.max(...cajas.map((c) => c.maxY))
         }
         let holgura = 0
         for (const radio of RADIOS_HOLGURA) {
@@ -407,7 +407,7 @@ export function etiquetasSinChoques(doc: Documento, lib: Map<string, PiezaDef>, 
         if (holgura > mejor) {
           mejor = holgura
           decididos.length = 0
-          decididos.push(bloque[0], bloque[1])
+          decididos.push(...bloque)
           completo = true
         }
       }

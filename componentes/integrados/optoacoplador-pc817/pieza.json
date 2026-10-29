@@ -5,6 +5,7 @@
     "en": "PC817 optocoupler"
   },
   "categoria": "integrados",
+  "grupo": "Interfaz y aislamiento",
   "prefijo": "U",
   "buscar": [
     "pc817",
@@ -347,7 +348,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Sharp PC817X p. 2 (patillas) y p. 5, rango B = IC 6.5 a 13.0 mA (X2); Everlight EL817 p. 1. LCSC C5350 = PC817X2NSZW, DIP-4"
+          "fuente": "Sharp PC817X p. 2 (pines) y p. 5, rango B = IC 6.5 a 13.0 mA (X2); Everlight EL817 p. 1. LCSC C5350 = PC817X2NSZW, DIP-4"
         },
         "aproximada": "CTR constante en el nominal del rango, sin variación con la corriente ni la temperatura; la curva VF contra IF sale de un solo punto con N y RS supuestos."
       },
@@ -372,7 +373,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Sharp PC817X p. 2 y p. 5, rango C = IC 10.0 a 20.0 mA (X3); Everlight EL817 p. 1 (patillas)"
+          "fuente": "Sharp PC817X p. 2 y p. 5, rango C = IC 10.0 a 20.0 mA (X3); Everlight EL817 p. 1 (pines)"
         },
         "aproximada": "CTR constante en el nominal del rango, sin variación con la corriente ni la temperatura; la curva VF contra IF sale de un solo punto con N y RS supuestos."
       },
@@ -397,7 +398,7 @@
         },
         "comprobado": {
           "fecha": "2026-10-26",
-          "fuente": "Sharp PC817X p. 2 y p. 5, rango D = IC 15.0 a 30.0 mA (X4); Everlight EL817 p. 1 (patillas)"
+          "fuente": "Sharp PC817X p. 2 y p. 5, rango D = IC 15.0 a 30.0 mA (X4); Everlight EL817 p. 1 (pines)"
         },
         "aproximada": "CTR constante en el nominal del rango, sin variación con la corriente ni la temperatura; la curva VF contra IF sale de un solo punto con N y RS supuestos."
       }

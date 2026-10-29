@@ -5,6 +5,7 @@
     "en": "Bridge rectifier"
   },
   "categoria": "semiconductores",
+  "grupo": "Diodos y LED",
   "prefijo": "BR",
   "buscar": [
     "br",

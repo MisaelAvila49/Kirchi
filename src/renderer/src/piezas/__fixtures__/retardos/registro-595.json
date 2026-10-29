@@ -1,0 +1,132 @@
+{
+ "unidad": "ns",
+ "familias": {
+  "74HC": {
+   "vcc": 4.5,
+   "cl_pF": 50,
+   "documento": "TI SN74HC595 (SCLS041J)",
+   "paginas": "8",
+   "caminos": [
+    {
+     "de": "SRCLK",
+     "a": "QH'",
+     "tPLH": {
+      "tip": 17,
+      "max": 32
+     },
+     "tPHL": {
+      "tip": 17,
+      "max": 32
+     }
+    },
+    {
+     "de": "RCLK",
+     "a": "QA a QH",
+     "tPLH": {
+      "tip": 17,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 17,
+      "max": 30
+     }
+    },
+    {
+     "de": "SRCLR",
+     "a": "QH'",
+     "tPHL": {
+      "tip": 18,
+      "max": 35
+     }
+    },
+    {
+     "de": "OE",
+     "a": "QA a QH (activacion)",
+     "tPLH": {
+      "tip": 15,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 15,
+      "max": 30
+     }
+    },
+    {
+     "de": "OE",
+     "a": "QA a QH (desactivacion)",
+     "tPLH": {
+      "tip": 23,
+      "max": 40
+     },
+     "tPHL": {
+      "tip": 23,
+      "max": 40
+     }
+    }
+   ]
+  },
+  "74LS": {
+   "vcc": 5,
+   "documento": "TI SN74LS595 (SDLS006)",
+   "paginas": "5",
+   "caminos": [
+    {
+     "de": "SRCK",
+     "a": "QH'",
+     "tPLH": {
+      "tip": 12,
+      "max": 18
+     },
+     "tPHL": {
+      "tip": 17,
+      "max": 25
+     }
+    },
+    {
+     "de": "RCK",
+     "a": "QA a QH",
+     "tPLH": {
+      "tip": 12,
+      "max": 18
+     },
+     "tPHL": {
+      "tip": 24,
+      "max": 35
+     }
+    },
+    {
+     "de": "G",
+     "a": "QA a QH (activacion)",
+     "tPLH": {
+      "tip": 20,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 25,
+      "max": 38
+     }
+    },
+    {
+     "de": "G",
+     "a": "QA a QH (desactivacion)",
+     "tPLH": {
+      "tip": 20,
+      "max": 30
+     },
+     "tPHL": {
+      "tip": 25,
+      "max": 38
+     }
+    },
+    {
+     "de": "SRCLR",
+     "a": "QH'",
+     "tPHL": {
+      "tip": 24,
+      "max": 35
+     }
+    }
+   ]
+  }
+ }
+}

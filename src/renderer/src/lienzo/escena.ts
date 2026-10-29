@@ -21,6 +21,7 @@ import { TOKEN_DE_TINTA, type Paleta, type RGBA, type Token } from './paleta'
 import { colocarRenglon, normalizar } from './reparto'
 import { claveTramo, cruces, tramoConSaltos } from './saltos'
 import { claveDeEscena, geometriaDeEscena } from './capas'
+import { dibujarContactos } from './contactos'
 import { colorDeVoltaje, type VoltajesDeCables } from './voltajes'
 import type { LecturaMedidor } from '../sim/medidor'
 
@@ -194,6 +195,8 @@ export function dibujarPieza(t: EscritorTrazos, tri: EscritorTriangulos | null, 
   dibujarOrientada(t, tri, p, clave === null ? geometriaOrientada(def, p.rot, p.espejo, estaAccionada(p, def)) : orientadaConCapas(def, p, simulando, clave), color, ancho)
   const v = geometriaDeVariante(def, p)
   if (v) dibujarOrientada(t, tri, p, varianteOrientada(v, p.rot, p.espejo), color, ancho)
+  // Las palancas de un DIP y las teclas pulsadas de un teclado no están en el símbolo: se dibujan según su estado.
+  if (def.animacion?.tipo === 'zonas') dibujarContactos(t, tri, p, def, color, ancho)
 }
 
 function dibujarOrientada(t: EscritorTrazos, tri: EscritorTriangulos | null, p: Pieza, g: GeometriaOrientada, color: RGBA, ancho: number): void {
@@ -272,12 +275,12 @@ export interface OpcionesEscena {
   numerosPatilla?: boolean
 }
 
-/** Simulando, el valor de un termistor o fotorresistencia con resistencia visible se parte: aquí queda lo fijo (anclado a la
+/** Simulando, el ajuste de un termistor o fotorresistencia con resistencia visible se parte: aquí queda lo fijo (anclado a la
  * izquierda donde empezaba la línea) y la capa de la vista previa escribe la resistencia del motor detrás. */
 function conResistenciaViva(p: Pieza, def: PiezaDef, doc: Documento, suyas: readonly Texto[]): readonly Texto[] {
   const vivas = partesVivas(p, def)
   if (!vivas) return suyas
-  const i = textosLocales(p, def, doc).findIndex((t) => t.cual === 'valor')
+  const i = textosLocales(p, def, doc).findIndex((t) => t.cual === 'ajuste')
   const t = suyas[i]
   if (!t) return suyas
   const w = anchoTexto(t.texto, t.tamaño)
