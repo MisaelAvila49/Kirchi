@@ -88,7 +88,7 @@
         "fabricante": "Texas Instruments",
         "parte": "SN74LS47N",
         "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls47.pdf",
-        "equivalencias": { "kicad": "74xx:74LS47" },
+        "equivalencias": { "kicad": "74xx:74LS47", "proteus": ["74LS47", "7447"] },
         "presentaciones": [
           {
             "encapsulado": "DIP-16",

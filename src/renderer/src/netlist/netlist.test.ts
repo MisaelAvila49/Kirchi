@@ -35,6 +35,16 @@ describe('compilarNetlist', () => {
     expect(r.sinModelo).toEqual(['U1'])
   })
 
+  it('una caja sin equivalencia impide compilar con su motivo y no entra a la lista de sin modelo', () => {
+    const d = divisor()
+    expect(compilar(d).errores).toEqual([])
+    d.piezas.u2 = { id: 'u2', tipo: 'sin-equivalencia', ref: 'U2', x: 60, y: 40, rot: 0, espejo: false, props: { nombre: 'XYZ' } }
+    const r = compilar(d)
+    expect(r.netlist).toBeNull()
+    expect(r.sinModelo).toEqual([])
+    expect(r.errores).toEqual(['U2 no tiene equivalencia en Kirchi: reemplázala para simular.'])
+  })
+
   it('los circuitos con piezas que sí tienen modelo siguen compilando', () => {
     for (const d of [divisor(), ledConBateria()]) {
       const r = compilar(d)

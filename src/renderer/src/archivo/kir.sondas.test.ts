@@ -18,7 +18,7 @@ const crudo = (datos: unknown, formato = 5) =>
 
 describe('sondas en el .kir (formato 5)', () => {
   it('sin sondas, el archivo es el de antes', () => {
-    expect(FORMATO_ACTUAL).toBe(8)
+    expect(FORMATO_ACTUAL).toBe(9)
     expect(formatoDe(base())).toBe(1)
     expect(formatoDe({ ...base(), sondas: {} })).toBe(1)
     expect(serializarDocumento({ ...base(), sondas: {} })).toBe(serializarDocumento(base()))

@@ -289,12 +289,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": {
-      "kicad": "Isolator:PC817",
-      "sinVerificar": [
-        "kicad"
-      ]
-    },
+    "equivalencias": { "kicad": "Isolator:PC817", "ltspice": ["Optos\\PC817A", "Optos\\PC817B"], "falstad": "407", "sinVerificar": ["falstad"] },
     "valores": {
       "PC817A": {
         "fabricante": "Sharp",

@@ -76,7 +76,7 @@
         "parte": "CD4013BE",
         "hoja": "https://www.ti.com/lit/ds/symlink/cd4013b.pdf",
         "aproximada": "SET (PRE) y RESET (CLR) son activos en alto y el biestable cambia en el flanco de subida; el modelo tiene PRE y CLR activos en bajo.",
-        "equivalencias": { "kicad": "4xxx:4013" },
+        "equivalencias": { "kicad": "4xxx:4013", "proteus": "4013" },
         "presentaciones": [
           {
             "encapsulado": "DIP-14",

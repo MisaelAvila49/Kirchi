@@ -33,14 +33,15 @@ export const REGLAS: readonly ReglaFormato[] = [
   { formato: 6, nombre: 'modelo SPICE propio', aplica: (d) => algunaPieza(d, (p) => !!p.spice && Object.keys(p.spice).length > 0) },
   { formato: 7, nombre: 'análisis de ngspice', aplica: (d) => hayAnalisis(d) },
   // También del 8: las posiciones fuera de la rejilla (Alt) se escriben con decimales y una versión anterior las rechazaría.
-  { formato: 8, nombre: 'medidor rápido y posiciones libres', aplica: (d) => hayMedidores(d) || hayPosicionesLibres(d) }
+  { formato: 8, nombre: 'medidor rápido y posiciones libres', aplica: (d) => hayMedidores(d) || hayPosicionesLibres(d) },
+  { formato: 9, nombre: 'pines propios e informe de importación', aplica: (d) => d.importacion !== undefined || algunaPieza(d, (p) => !!p.pines && p.pines.length > 0) }
 ]
 
 /** Números que ya tienen dueño aunque su regla aún no exista: una prueba impide que una regla los use por error. */
 export const RESERVADOS: Readonly<Record<number, string>> = {
-  9: 'bloques',
-  10: 'protoboard',
-  11: 'microcontroladores'
+  10: 'bloques',
+  11: 'protoboard',
+  12: 'microcontroladores'
 }
 
 /** El formato que necesita el documento: el mayor de las reglas que aplican, o 1 (el de antes). */

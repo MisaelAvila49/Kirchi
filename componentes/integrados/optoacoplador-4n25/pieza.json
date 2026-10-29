@@ -72,7 +72,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Isolator:4N25" },
+    "equivalencias": { "kicad": "Isolator:4N25", "falstad": "407", "sinVerificar": ["falstad"] },
     "valores": {
       "4N25": {
         "fabricante": "Vishay",

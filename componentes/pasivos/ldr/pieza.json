@@ -39,7 +39,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Device:R_Photo" },
+    "equivalencias": { "kicad": "Device:R_Photo", "falstad": "374", "sinVerificar": ["falstad"] },
     "valores": {
       "GL5516": {
         "fabricante": "Senba Optical & Electronic",

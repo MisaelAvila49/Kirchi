@@ -256,3 +256,21 @@
   .aviso-grabacion { animation: aviso-grabacion-entra 160ms ease-out; }
 }
 @keyframes aviso-grabacion-entra { from { opacity: 0; transform: translate(-50%, 8px); } }
+
+/* Informe de una importación: tarjetas de tono (diálogo en fila, Proyecto en columna) que resaltan sus piezas en el lienzo. */
+.dialogo.importacion { width: min(720px, 100%); }
+.dialogo.importacion p { margin: 0 0 10px; }
+.tarjetas-informe { display: flex; flex-direction: column; gap: 8px; }
+.tarjetas-informe.en-fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.tarjeta-informe { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: 100%; padding: 10px 11px; border: 2px solid transparent; border-radius: 8px; background: var(--t-suave); color: var(--trazo); font: 400 12px/1.4 var(--fuente-interfaz); text-align: left; cursor: pointer; }
+.tarjeta-informe strong { color: var(--t-texto); font-weight: 700; }
+.tarjeta-informe span { overflow-wrap: anywhere; }
+.tarjeta-informe:hover, .tarjeta-informe[data-resaltada] { border-color: var(--t); }
+.tarjeta-informe:focus-visible { outline: 2px solid var(--seleccion); outline-offset: 2px; }
+.informe-importacion { display: flex; flex-direction: column; gap: 8px; margin: 0 0 10px; }
+.informe-importacion h3 { margin: 0; font-size: 12px; font-weight: 700; }
+.informe-importacion .boton { align-self: flex-start; }
+@media (forced-colors: active) {
+  .tarjeta-informe { border-color: ButtonText; }
+  .tarjeta-informe:hover, .tarjeta-informe[data-resaltada] { border-color: Highlight; outline: 1px solid Highlight; }
+}

@@ -20,7 +20,7 @@
   "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } },
   "datos": {
     "por": ["familia", "entradas"],
-    "equivalencias": { "ltspice": "Digital\\nor", "falstad": "153", "sinVerificar": ["ltspice"] },
+    "equivalencias": { "ltspice": "Digital\\nor", "falstad": "153", "proteus": ["NOR", "NOR_3"], "sinVerificar": ["ltspice"] },
     "valores": {
       "74HC|2": {
         "fabricante": "Texas Instruments",

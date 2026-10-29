@@ -1,7 +1,7 @@
 import { Sostenidos } from './sim/sostenidos'
 import { haySondasDeCorriente, hayMedidores } from './doc/sondas'
 import { Histeresis } from './ui/histeresis'
-import { batch, createEffect, createMemo, createSignal, Match, on, onCleanup, onMount, Show, Switch, untrack } from 'solid-js'
+import { batch, createEffect, createMemo, createSignal, For, Match, on, onCleanup, onMount, Show, Switch, untrack } from 'solid-js'
 import { aplicarParche, MAX_RECIENTES, type Ajustes, type PanelDerecho, type PanelLateral as Panel, type PestañaCinta } from '../../compartido/ajustes'
 import type { FormatoExportar, Recuperable } from '../../compartido/archivos'
 import { ordenDeTeclaNumerica } from '../../compartido/ventana'
@@ -124,6 +124,10 @@ import PanelMediciones, { type FilaMultimetro } from './ui/PanelMediciones'
 import PanelCalculadoras from './ui/PanelCalculadoras'
 import PanelPlantillas from './ui/PanelPlantillas'
 import PanelProyecto from './ui/PanelProyecto'
+import DialogoImportacion from './ui/DialogoImportacion'
+import { informeVivo, tituloDeImportacion, type TarjetaInforme } from './ui/informeVivo'
+import type { Informe } from './importar/informe'
+import type { Resaltado } from './lienzo/superposicion'
 import { pistaDeEstado, pistaDeSimulacion } from './ui/pista'
 import { SimClient } from './sim/client'
 import { claseDeContactos, contactoDeEvento, contactoEn, palancasCerradas, ayudaDeContactos } from './lienzo/contactos'
@@ -194,6 +198,7 @@ import DialogoTiempo from './ui/DialogoTiempo'
 import { conAvance } from './ui/tutorial/avance'
 import { pasoSobreDialogo as pasoSobreDialogoDe } from './ui/tutorial/sobreDialogo'
 import { arranqueDeCapitulo } from './ui/tutorial/arranques'
+import { EJEMPLO_IMPORTAR, NOMBRE_EJEMPLO_IMPORTAR } from './ui/tutorial/ejemploImportar'
 import { capituloPorId } from './ui/tutorial/capitulos'
 import { crearControlTutorial } from './ui/tutorial/control'
 import { EVENTO_FIGURA } from './ui/exportar/editor/multiple'
@@ -237,6 +242,8 @@ interface KirchiProbe {
   cuentas(): { avisos: number; nombres: number }
   /** Ids seleccionados por colección. */
   seleccion(): Record<string, string[]>
+  /** Lo que el informe de importación resalta ahora en el lienzo, o null. */
+  resaltado(): Resaltado | null
   /** El archivo abierto (ruta, nombre, solo lectura) y si tiene cambios sin guardar. */
   archivo(): EstadoArchivo & { sinGuardar: boolean }
   /** La vista previa: su fase y la última lectura por red (id → V) y por pieza (id → V, I, P). */
@@ -289,7 +296,9 @@ export default function App() {
   const [doc, setDoc] = createSignal(editor.doc, { equals: false })
   const [cam, setCam] = createSignal<Camera>({ x: 0, y: 0, zoom: ZOOM_INICIAL })
   const [vista, setVista] = createSignal({ ancho: 0, alto: 0 })
-  const [buscador, setBuscador] = createSignal<{ x: number; y: number; en: Punto } | null>(null)
+  /** `reemplazar`: el buscador elige la pieza que sustituye a esa en vez de colocar una. */
+  const [buscador, setBuscador] = createSignal<{ x: number; y: number; en: Punto; reemplazar?: Id } | null>(null)
+  const [reemplazo, setReemplazo] = createSignal<{ id: Id; tipo: string; nombre: string; avisos: string[] } | null>(null)
   const [pedido, setPedido] = createSignal<PedidoTexto | PedidoCampos | null>(null)
   const [sinWebgl, setSinWebgl] = createSignal(false)
   const [menu, setMenu] = createSignal<MenuAbierto | null>(null)
@@ -446,6 +455,11 @@ export default function App() {
   let arrastrePot: { id: Id; desde: Punto; pos0: number; eje: { x: number; y: number; largo: number }; gesto: string } | null = null
   let nArrastresPot = 0
   let restoRueda = 0
+  /** El informe de la importación que se acaba de abrir, mientras su diálogo está a la vista. */
+  const [informeAbierto, setInformeAbierto] = createSignal<Informe | null>(null)
+  /** La tarjeta del informe que el ratón o el foco señalan: su contenido se resalta en el lienzo. */
+  const [tarjetaResaltada, setTarjetaResaltada] = createSignal<TarjetaInforme | null>(null)
+  let resaltado: Resaltado | null = null
   const control = new ControlArchivo({
     api,
     editor,
@@ -471,7 +485,8 @@ export default function App() {
       hecho: (e) => {
         if (e === 'guardado') conservadoFrenteAlDisco = false
         tutorial.registrar(e)
-      }
+      },
+      alImportar: (informe) => setInformeAbierto(informe)
     }
   })
   // Vista previa: el control arma la netlist y habla con el worker; la interfaz lee a 10 Hz mientras está activa.
@@ -1534,10 +1549,26 @@ export default function App() {
   }
 
   /** Abre el buscador con el punto de colocación `en` (mundo). */
-  const abrirBuscador = (en: Punto) => {
+  const abrirBuscador = (en: Punto, reemplazar?: Id) => {
     if (!lienzo) return
     const s = lienzo.aPantalla(en)
-    setBuscador({ x: s.x, y: s.y, en })
+    setBuscador({ x: s.x, y: s.y, en, ...(reemplazar ? { reemplazar } : {}) })
+  }
+
+  /** Elegida la pieza que sustituye a otra: si todos los pines casan se cambia; si no, se pregunta antes con la lista. */
+  const elegirReemplazo = (id: Id, tipo: string) => {
+    setBuscador(null)
+    const antes = editor.avisosDeReemplazo(id, tipo)
+    if ('motivo' in antes) anunciar(antes.motivo)
+    else if (antes.avisos.length === 0) aplicarReemplazo(id, tipo)
+    else setReemplazo({ id, tipo, nombre: editor.lib.get(tipo)?.nombre.es ?? tipo, avisos: antes.avisos })
+    lienzo?.enfocar()
+  }
+  const aplicarReemplazo = (id: Id, tipo: string) => {
+    setReemplazo(null)
+    const motivo = editor.reemplazarPieza(id, tipo)
+    if (motivo) anunciar(motivo)
+    lienzo?.enfocar()
   }
 
   /** Menú del clic derecho para lo que hay en `p` (mundo), abierto junto al cursor (x, y de ventana). */
@@ -1786,6 +1817,9 @@ export default function App() {
       case 'colocar-aqui':
         if (o) abrirBuscador(o.en)
         break
+      case 'reemplazar':
+        if (o?.tipo === 'pieza') abrirBuscador(o.en, o.id)
+        break
       case 'pegar-aqui':
         editor.pegar()
         break
@@ -1823,7 +1857,7 @@ export default function App() {
             return e
           },
           // Simulando, un botón presionado o un interruptor cerrado se resalta con su dibujo accionado.
-          superposicion: (anim, esc) => construirSuperposicion(sim.activa ? sim.documentoVisible() : editor.docVista, editor.lib, { ...editor.estado(), zoom: lienzo?.cam.zoom, textoResaltado: editor.textoResaltado(), banderas: esc?.banderas, guiaTutorial }, paleta(), anim, esc?.saltos),
+          superposicion: (anim, esc) => construirSuperposicion(sim.activa ? sim.documentoVisible() : editor.docVista, editor.lib, { ...editor.estado(), zoom: lienzo?.cam.zoom, textoResaltado: editor.textoResaltado(), banderas: esc?.banderas, guiaTutorial, resaltado }, paleta(), anim, esc?.saltos),
           simulacion: (esc) => {
             const l = lectura()
             if (!l) return capaDePuntoDeOperacion(esc)
@@ -2091,7 +2125,7 @@ export default function App() {
       )
     )
     // Con un menú, un diálogo o una pregunta abiertos las teclas son suyas.
-    const teclasLibres = () => !menu() && !dialogo() && !pregunta() && !exportando() && !capturaExp() && !dialogoTiempo()
+    const teclasLibres = () => !menu() && !dialogo() && !pregunta() && !reemplazo() && !exportando() && !capturaExp() && !dialogoTiempo()
     // Esc durante un avance lo deja en pausa donde va, antes que cualquier otra cosa.
     const alEscDuranteAvance = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || !sim.avance) return
@@ -2200,6 +2234,7 @@ export default function App() {
       atajos: () => atajos.lista().map((c) => c.id),
       cursor: () => ({ ...editor.cursor }),
       cuentas: () => ({ avisos: cuentas.avisos, nombres: cuentas.nombres }),
+      resaltado: () => (resaltado ? JSON.parse(JSON.stringify(resaltado)) : null),
       seleccion: () => Object.fromEntries(Object.entries(editor.seleccion).map(([k, v]) => [k, [...v]])),
       archivo: () => ({ ...control.estado, sinGuardar: editor.historial.sinGuardar }),
       simulacion: () => {
@@ -3351,7 +3386,7 @@ export default function App() {
     if (b) b.focus()
     else anunciar('No hay un tutorial en marcha. Aprende Kirchi está en la pestaña Ayuda.')
   }
-  const hayDialogoAbierto = () => !!dialogo() || !!pregunta() || !!exportando() || !!capturaExp() || !!graficaExp()
+  const hayDialogoAbierto = () => !!dialogo() || !!pregunta() || !!reemplazo() || !!exportando() || !!capturaExp() || !!graficaExp()
   /** El paso en curso se dibuja encima del diálogo (la figura que se exporta), o el que viene si este ya se cumplió: así «Siguiente» no queda escondido. Una pregunta siempre tapa al tutorial. */
   const pasoSobreDialogo = () => {
     return !pregunta() && pasoSobreDialogoDe(tutorial.estado())
@@ -3372,7 +3407,8 @@ export default function App() {
       cursores: cursores() !== null,
       limpio: limpio(),
       voltajes: voltajes(),
-      dialogo: dialogo() ?? (graficaExp() ? 'exportar-grafica' : exportando() ? 'exportar-esquema' : capturaExp() ? 'exportar-captura' : null),
+      dialogo: dialogo() ?? (graficaExp() ? 'exportar-grafica' : exportando() ? 'exportar-esquema' : capturaExp() ? 'exportar-captura' : informeAbierto() ? 'importacion' : null),
+      resaltada: tarjetaResaltada()?.clase ?? null,
       izquierdo: ajustes().lateral ? ajustes().panel : null,
       calculadora: { activa: calculadoraActiva(), tipo: estadoDeCalculadora('filtro').tipo, f0: estadoDeCalculadora('filtro').f0 },
       // El botón Cursores de la gráfica no es una señal de la ventana: se lee de la pantalla (el globo repasa cada 300 ms).
@@ -3416,6 +3452,43 @@ export default function App() {
     guiaTutorial = vacia ? null : g
     lienzo?.invalidarSuperposicion()
   })
+  // Lo que señala una tarjeta del informe de importación, dibujado en la superposición del lienzo.
+  createEffect(() => {
+    const t = tarjetaResaltada()
+    resaltado = t ? { tono: t.tono, piezas: t.piezas, cables: t.cables, etiquetas: t.etiquetas } : null
+    lienzo?.invalidarSuperposicion()
+  })
+  const tarjetasInforme = createMemo(() => {
+    const d = doc()
+    return d.importacion ? informeVivo(d, d.importacion, (tipo) => editor.lib.get(tipo)?.nombre.es ?? tipo) : []
+  })
+  // Una tarjeta que ya no existe (se reemplazó la última pieza, se ocultó el informe) no deja nada resaltado.
+  createEffect(() => {
+    const t = tarjetaResaltada()
+    if (t && !tarjetasInforme().some((x) => x.clase === t.clase)) setTarjetaResaltada(null)
+  })
+  /** Lleva la vista a lo que marcan las tarjetas dadas. */
+  const encuadrarTarjetas = (ts: TarjetaInforme[]) => {
+    const cajas = ts.flatMap((t) => [
+      ...t.piezas.flatMap((id) => {
+        const p = editor.doc.piezas[id]
+        return p ? [cuerpoEnMundo(p, editor.lib.get(p.tipo))] : []
+      }),
+      ...t.etiquetas.flatMap((id) => {
+        const e = editor.doc.etiquetas[id]
+        return e ? [{ minX: e.x - 4, minY: e.y - 4, maxX: e.x + 4, maxY: e.y + 4 }] : []
+      })
+    ])
+    if (cajas.length === 0) return
+    lienzo?.encuadrarCaja({ minX: Math.min(...cajas.map((c) => c.minX)), minY: Math.min(...cajas.map((c) => c.minY)), maxX: Math.max(...cajas.map((c) => c.maxX)), maxY: Math.max(...cajas.map((c) => c.maxY)) })
+  }
+  const cerrarInforme = (ver: boolean) => {
+    setInformeAbierto(null)
+    setTarjetaResaltada(null)
+    cambiarAjustes({ panelDerecho: 'proyecto', inspector: true })
+    if (ver) encuadrarTarjetas(tarjetasInforme())
+    lienzo?.enfocar()
+  }
   const areaDelLienzo = () => {
     const r = lienzo?.gl.getBoundingClientRect()
     return r ? { x: r.left, y: r.top, w: r.width, h: r.height } : null
@@ -3713,6 +3786,23 @@ export default function App() {
                     archivo={{ nombre: archivo().nombre, sinGuardar: estado().sinGuardar, soloLectura: archivo().soloLectura }}
                     plegado={ajustes().proyectoPlegado}
                     onPlegado={(proyectoPlegado) => cambiarAjustes({ proyectoPlegado })}
+                    informe={
+                      doc().importacion
+                        ? {
+                            titulo: tituloDeImportacion(doc().importacion!),
+                            tarjetas: tarjetasInforme(),
+                            resaltada: tarjetaResaltada()?.clase ?? null,
+                            onResaltar: setTarjetaResaltada,
+                            onEncuadrar: (t) => encuadrarTarjetas([t]),
+                            onOcultar: () => {
+                              setTarjetaResaltada(null)
+                              const m = editor.ocultarInforme()
+                              if (m) registrar(m)
+                              lienzo?.enfocar()
+                            }
+                          }
+                        : undefined
+                    }
                   />
                 </PanelLateral>
               </Match>
@@ -3756,14 +3846,29 @@ export default function App() {
             recientes={ajustes().recientes}
             x={b().x}
             y={b().y}
-            onElegir={(id, v) => elegir(b().en, id, v)}
-            plantillas={itemsPlantillas()}
+            onElegir={(id, v) => (b().reemplazar ? elegirReemplazo(b().reemplazar!, id) : elegir(b().en, id, v))}
+            plantillas={b().reemplazar ? undefined : itemsPlantillas()}
             onElegirPlantilla={(i) => colocarPlantilla(i, b().en)}
             onCerrar={() => {
               setBuscador(null)
               lienzo?.enfocar()
             }}
           />
+        )}
+      </Show>
+      <Show when={reemplazo()} keyed>
+        {(r) => (
+          <Dialogo titulo="¿Reemplazar la pieza?" clase="pregunta" onCerrar={() => (setReemplazo(null), lienzo?.enfocar())}>
+            <For each={r.avisos}>{(a) => <p>{a}</p>}</For>
+            <div class="dialogo-botones">
+              <button type="button" class="boton" onClick={() => (setReemplazo(null), lienzo?.enfocar())}>
+                Cancelar
+              </button>
+              <button type="button" class="boton principal" data-autofoco onClick={() => aplicarReemplazo(r.id, r.tipo)}>
+                Reemplazar por {r.nombre}
+              </button>
+            </div>
+          </Dialogo>
         )}
       </Show>
       {/* keyed: cada pedido monta su editor, con sus campos y su foco. */}
@@ -4017,6 +4122,11 @@ export default function App() {
           )
         }
       </Show>
+      <Show when={informeAbierto()} keyed>
+        {(inf) => (
+          <DialogoImportacion informe={inf} tarjetas={tarjetasInforme()} resaltada={tarjetaResaltada()?.clase ?? null} onResaltar={setTarjetaResaltada} onEncuadrar={(t) => encuadrarTarjetas([t])} onCerrar={cerrarInforme} />
+        )}
+      </Show>
       <Show when={dialogo() === 'tutorial'}>
         <SelectorTutorial avance={ajustes().tutorial.avance} onElegir={(id, desde) => void empezarCapitulo(id, desde)} onCerrar={() => setDialogo(null)} />
       </Show>
@@ -4065,6 +4175,7 @@ export default function App() {
         avanzarSolo={ajustes().tutorial.avanzarSolo}
         oculto={hayDialogoAbierto() && !pasoSobreDialogo()}
         onSalir={() => (tutorial.salir(), lienzo?.enfocar())}
+        onBoton={(id) => id === 'abrir-ejemplo' && void control.importarTexto(NOMBRE_EJEMPLO_IMPORTAR, EJEMPLO_IMPORTAR)}
         // Con un diálogo abierto (la figura que se exporta) el foco se queda en él.
         alAccion={() => (hayDialogoAbierto() ? undefined : lienzo?.enfocar())}
       />

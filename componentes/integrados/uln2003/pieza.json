@@ -811,7 +811,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Transistor_Array:ULN2003A", "proteus": "ULN2003A", "sinVerificar": ["proteus"] },
+    "equivalencias": { "kicad": "Transistor_Array:ULN2003A", "proteus": "ULN2003A" },
     "valores": {
       "ULN2003A": {
         "fabricante": "Texas Instruments",

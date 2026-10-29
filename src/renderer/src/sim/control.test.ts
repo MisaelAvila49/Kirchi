@@ -324,6 +324,15 @@ describe('ControlSimulacion', () => {
     expect(c.fase).toBe('detenida')
   })
 
+  it('con una caja sin equivalencia no arranca y el Registro da su motivo', async () => {
+    const d = divisor()
+    d.piezas.u2 = { id: 'u2', tipo: 'sin-equivalencia', ref: 'U2', x: 60, y: 40, rot: 0, espejo: false, props: { nombre: 'XYZ' } }
+    const { c, registro, motores } = armar(d)
+    expect(await c.iniciar()).toBe(false)
+    expect(registro).toEqual([['error', 'U2 no tiene equivalencia en Kirchi: reemplázala para simular.']])
+    expect(motores).toHaveLength(0)
+  })
+
   it('los errores del netlist van al Registro y un circuito vacío solo avisa', async () => {
     const d = divisor()
     delete d.piezas.p_g

@@ -42,5 +42,5 @@
     "CMOS": "Criterio de Kirchi, el de una punta lógica de laboratorio: enciende la luz roja (H) con la punta sobre el 70 % de la alimentación y la verde (L) bajo el 30 %, los umbrales de entrada de un CMOS. Entre los dos la punta queda al aire y ninguna luz enciende: un divisor de 1 MΩ y 1 MΩ la deja en la mitad de la alimentación. Dos comparadores (el amplificador del motor con salida de 0.1 V a cada riel) manejan cada LED con 470 Ω. Con pulsos rápidos las dos luces encienden a medias, como en la punta real.",
     "TTL": "Criterio de Kirchi, el de una punta lógica de laboratorio: enciende la luz roja (H) con la punta sobre 2.0 V y la verde (L) bajo 0.8 V con una alimentación de 5 V, los umbrales de entrada de un TTL (VIH y VIL de un 74LS). Los umbrales son fracciones fijas de la alimentación (40 % y 16 %), así que valen 2.0 V y 0.8 V con 5 V. Al aire la punta queda en 1.4 V, entre los dos umbrales, con un divisor de 2.57 MΩ y 1 MΩ. Dos comparadores (el amplificador del motor con salida de 0.1 V a cada riel) manejan cada LED con 470 Ω."
   },
-  "datos": { "valores": { "*": { "virtual": true, "nota": "Instrumento, sin encapsulado" } } }
+  "datos": { "equivalencias": { "falstad": "M", "proteus": "LOGICPROBE (BIG)" }, "valores": { "*": { "virtual": true, "nota": "Instrumento, sin encapsulado" } } }
 }

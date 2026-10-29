@@ -72,7 +72,7 @@
   ],
   "datos": {
     "por": "modelo",
-    "equivalencias": { "falstad": "165", "proteus": "NE555", "sinVerificar": ["proteus"] },
+    "equivalencias": { "ltspice": "Misc\\NE555", "falstad": "165", "proteus": ["NE555", "555"] },
     "valores": {
       "NE555": {
         "fabricante": "Texas Instruments",

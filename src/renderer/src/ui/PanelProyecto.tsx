@@ -1,3 +1,5 @@
+import TarjetasInforme from './TarjetasInforme'
+import type { TarjetaInforme } from './informeVivo'
 import { createEffect, createMemo, createSignal, For, Index, on, onCleanup, Show, untrack, type JSX } from 'solid-js'
 import type { Conexiones } from '../conexiones/conexiones'
 import type { Documento, Id } from '../doc/tipos'
@@ -30,6 +32,15 @@ interface Props {
   /** Secciones plegadas («piezas», «paquetes», «redes», «alimentaciones», «cat:<categoría>»): se recuerdan en los ajustes. */
   plegado: readonly string[]
   onPlegado(plegado: string[]): void
+  /** El informe de la importación que creó el circuito, si el documento lo trae. */
+  informe?: {
+    titulo: string
+    tarjetas: TarjetaInforme[]
+    resaltada: TarjetaInforme['clase'] | null
+    onResaltar(t: TarjetaInforme | null): void
+    onEncuadrar(t: TarjetaInforme): void
+    onOcultar(): void
+  }
 }
 
 /** La clave de plegado de una categoría de piezas. */
@@ -192,6 +203,19 @@ export default function PanelProyecto(props: Props) {
           <span>{estadoArchivo()}</span>
         </div>
       </div>
+      <Show when={props.informe}>
+        {(inf) => (
+          <section class="informe-importacion" aria-labelledby="proyecto-informe">
+            <h3 id="proyecto-informe">{inf().titulo}</h3>
+            <div class="tarjetas-informe">
+              <TarjetasInforme tarjetas={inf().tarjetas} resaltada={inf().resaltada} onResaltar={inf().onResaltar} onEncuadrar={inf().onEncuadrar} />
+            </div>
+            <button type="button" class="boton" onClick={() => inf().onOcultar()}>
+              Ocultar el informe
+            </button>
+          </section>
+        )}
+      </Show>
       <SpriteSimbolos defs={defsUsadas()} prefijo="proyecto-simbolo" />
       <input class="campo" type="search" placeholder="Filtrar…" aria-label="Filtrar piezas y redes" value={filtro()} onInput={(e) => setFiltro(e.currentTarget.value)} />
       <section class="categoria" aria-labelledby="proyecto-piezas">

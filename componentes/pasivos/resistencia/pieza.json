@@ -17,7 +17,7 @@
   "limites": { "potencia": "potencia", "quema": { "factor": 2, "durante": 0.5 } },
   "datos": {
     "por": "potencia",
-    "equivalencias": { "kicad": "Device:R", "ltspice": "res", "falstad": "r", "proteus": "RES", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": ["Device:R", "Device:R_Small"], "ltspice": ["res", "Misc\\EuropeanResistor"], "falstad": "r", "proteus": ["RES", "RESISTOR"] },
     "valores": {
       "0.125 W": {
         "presentaciones": [

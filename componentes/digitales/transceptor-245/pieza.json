@@ -143,7 +143,7 @@
         "fabricante": "Texas Instruments",
         "parte": "SN74LS245N",
         "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls245.pdf",
-        "equivalencias": { "kicad": "74xx:74LS245" },
+        "equivalencias": { "kicad": "74xx:74LS245", "proteus": "74LS245" },
         "presentaciones": [
           {
             "encapsulado": "DIP-20",

@@ -13,7 +13,7 @@ export const INTERVALO_DIARIO_MS = 1000
 /** Pasado esto (en caracteres escritos desde la última base), la base se rehace con el documento entero. */
 export const LIMITE_DIARIO = 8 * 2 ** 20
 
-const COLECCIONES: readonly ColeccionDoc[] = ['piezas', 'cables', 'etiquetas', 'notas', 'alimentaciones', 'figuras', 'sondas', 'analisis']
+const COLECCIONES: readonly ColeccionDoc[] = ['piezas', 'cables', 'etiquetas', 'notas', 'alimentaciones', 'figuras', 'sondas', 'analisis', 'importacion']
 
 /** Un elemento en el diario: colección, id y su estado final (null si se borró). */
 export type EntradaDiario = [ColeccionDoc, Id, unknown]
@@ -150,6 +150,11 @@ export function recuperar(base: Uint8Array, texto: string): Recuperado {
     }
     for (const e of obj.c as EntradaDiario[]) {
       // La tabla de alimentaciones, las figuras y las sondas pueden no estar en la base (un documento sin rieles cambiados, figuras ni sondas).
+      if (e[0] === 'importacion') {
+        if (e[2] === null) delete (datos as Record<string, unknown>).importacion
+        else (datos as Record<string, unknown>).importacion = e[2]
+        continue
+      }
       const col = (datos[e[0]] ??= {})
       if (e[2] === null) delete col[e[1]]
       else col[e[1]] = e[2]

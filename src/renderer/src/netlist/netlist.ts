@@ -15,6 +15,7 @@ import { entradasAlAire, entradasTrasContactos, esModeloDigital, textoEntradasAl
 import type { ParametrosLogicos } from './familias'
 import { avisosDeMultimetros } from './multimetros'
 import { esModeloInstrumento } from '../piezas/validarInstrumentos'
+import { ID_SIN_EQUIVALENCIA, textoSinEquivalencia } from '../piezas/sinEquivalencia'
 import { repartirMemoria } from '../instrumentos/memoria'
 import { armarInstrumento, COLUMNA_MULTIMETRO, RANGO_OHM_INICIAL, sinInstrumentos, sinRejilla, type ArmadoInstrumento, type InstrumentosNetlist, type ModeloInstrumento, type SondaMotor, type SondaPorArmar } from './instrumentos'
 import { medidoresDe } from '../doc/sondas'
@@ -621,7 +622,9 @@ export interface Pendiente {
 
 export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con: Conexiones, opciones: OpcionesNetlist = {}): ResultadoNetlist {
   const piezas = Object.values(doc.piezas).sort(porId)
-  const sinModelo = piezas.filter((p) => !lib.get(p.tipo)?.modelo).map((p) => p.ref).sort()
+  const sinModeloP = piezas.filter((p) => !lib.get(p.tipo)?.modelo)
+  const cajas = sinModeloP.filter((p) => p.tipo === ID_SIN_EQUIVALENCIA)
+  const sinModelo = sinModeloP.filter((p) => p.tipo !== ID_SIN_EQUIVALENCIA).map((p) => p.ref).sort()
   const instrumentos = sinInstrumentos()
   const sondasPorArmar: SondaPorArmar[] = []
   const nodoDeRed = new Map<number, number>()
@@ -640,7 +643,9 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
   const nulo = (): ResultadoNetlist => ({
     netlist: null, nodoDeRed, piezaDeElemento: [], potenciometros: new Map(), tipoDeElemento: [], umbrales, redDigital, digitales, temporizadores, displays, manejoDeRed, canalDe, relojesAdc, convertidores, instrumentos, puertos: [], potencias: [], compuestos, sinModelo, errores, avisos
   })
-  if (sinModelo.length) return nulo()
+  // Una caja sin equivalencia no genera elementos: el motivo va como error y no hay netlist.
+  for (const p of cajas) errores.push(textoSinEquivalencia(p.ref))
+  if (sinModelo.length || cajas.length) return nulo()
   // Un canal por perilla en vivo, con el valor del documento: moverla escribe al canal y no reconstruye la netlist.
   const canales: CanalMotor[] = []
   for (const p of piezas) {

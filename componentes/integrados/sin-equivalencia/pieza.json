@@ -1,0 +1,17 @@
+{
+  "id": "sin-equivalencia",
+  "nombre": { "es": "Pieza sin equivalencia", "en": "Part without equivalent" },
+  "categoria": "integrados",
+  "prefijo": "U",
+  "buscar": ["u", "sin equivalencia", "pieza ajena", "caja gris", "importada"],
+  "oculta": true,
+  "pines": [
+    { "id": "1", "nombre": "1", "x": -6, "y": 0 },
+    { "id": "2", "nombre": "2", "x": 6, "y": 0 }
+  ],
+  "props": [
+    { "id": "nombre", "nombre": "Nombre original", "defecto": "Pieza", "texto": true },
+    { "id": "origen", "nombre": "Programa de origen", "defecto": "Otro", "texto": true }
+  ],
+  "etiquetas": { "ref": { "x": 0, "y": -6 }, "valor": { "x": 0, "y": 6 } }
+}

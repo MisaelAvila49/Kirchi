@@ -15,7 +15,7 @@
   ],
   "modelo": { "tipo": "L", "a": "1", "b": "2", "prop": "valor", "rserie": "dcr" },
   "datos": {
-    "equivalencias": { "kicad": "Device:L", "ltspice": "ind", "falstad": "l", "proteus": "INDUCTOR", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": ["Device:L", "Device:L_Small"], "ltspice": ["ind", "ind2"], "falstad": "l", "proteus": "INDUCTOR", "sinVerificar": ["proteus"] },
     "valores": {
       "*": {
         "presentaciones": [

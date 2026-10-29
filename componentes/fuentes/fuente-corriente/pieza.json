@@ -15,7 +15,7 @@
   "modelo": { "tipo": "I", "a": "entrada", "b": "salida", "prop": "corriente" },
   "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
   "datos": {
-    "equivalencias": { "kicad": "Simulation_SPICE:IDC", "ltspice": "current", "falstad": "i", "proteus": "ISOURCE", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": "Simulation_SPICE:IDC", "ltspice": "current", "falstad": "i", "proteus": "ISOURCE", "sinVerificar": ["proteus"] },
     "valores": {
       "*": { "virtual": true, "nota": "Fuente ideal de corriente del simulador." }
     }

@@ -371,7 +371,7 @@ describe('.kir: tabla de alimentaciones (formato 2)', () => {
   const viejo = (piezas: Record<string, unknown>) => zip({ 'manifest.json': manif(1), 'circuito.json': JSON.stringify({ piezas, cables: {}, etiquetas: {}, notas: {} }) })
 
   it('el formato actual es 7 (análisis); un archivo de formato 2 se abre y se puede editar', () => {
-    expect(FORMATO_ACTUAL).toBe(8)
+    expect(FORMATO_ACTUAL).toBe(9)
     const d = completo()
     d.piezas.t1 = terminal('t1', 'PWR1', { nombre: 'VCC' })
     const r = leerKir(zip({ 'manifest.json': manif(2), 'circuito.json': serializarDocumento(d) }))

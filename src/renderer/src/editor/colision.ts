@@ -1,6 +1,7 @@
 import type { Documento, Id, Pieza, Punto } from '../doc/tipos'
 import { CAJA_DESCONOCIDA, desplazarCaja } from '../lienzo/medidas'
 import { cajaTransformada } from '../piezas/transformar'
+import { defDe } from '../piezas/sinEquivalencia'
 import type { Caja, PiezaDef } from '../piezas/tipos'
 import type { Indice } from './indice'
 import { PASO_REJILLA } from './rutas'
@@ -44,7 +45,7 @@ export function cuerpoEnMundo(p: Pieza, def: PiezaDef | undefined, margen = 0): 
     const c = desplazarCaja(CAJA_DESCONOCIDA, p.x, p.y)
     return { minX: c.minX - margen, minY: c.minY - margen, maxX: c.maxX + margen, maxY: c.maxY + margen }
   }
-  return cajaTransformada(cuerpoLocal(def), p, margen)
+  return cajaTransformada(cuerpoLocal(defDe(p, def)), p, margen)
 }
 
 const cruzan = (a: Caja, b: Caja) => a.minX < b.maxX - EPS && b.minX < a.maxX - EPS && a.minY < b.maxY - EPS && b.minY < a.maxY - EPS

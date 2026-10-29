@@ -1,5 +1,23 @@
 # Historial de cambios
 
+## 2.2.0
+
+Kirchi abre circuitos de Falstad, LTspice, netlists SPICE, KiCad y Proteus, con un informe de lo convertido, lo aproximado y lo que no tiene equivalencia, y un capítulo del tutorial para aprenderlo.
+
+### Nuevo
+
+- Abrir (Ctrl+O) y arrastrar a la ventana aceptan circuitos de otros programas: el texto que exportan Falstad y CircuitJS (.txt), esquemas de LTspice (.asc), netlists SPICE (.cir, .net, .sp), esquemas de KiCad 7 a 9 (.kicad_sch, con sus hojas) y proyectos de Proteus 8 (.pdsprj). El programa de origen se reconoce por el contenido del archivo, el circuito se abre como documento nuevo sin guardar y el original no se modifica.
+- Cada pieza se busca en las equivalencias de la librería. Si no hay una exacta pero el tipo existe (transistor, diodo, amplificador, compuerta), se usa la pieza más cercana y se marca como modelo aproximado. Si no hay nada parecido, queda una caja gris con los pines del original, que se reemplaza con clic derecho › «Reemplazar por…» conservando sus cables.
+- Al abrir aparece el informe de importación, con tarjetas para lo aproximado, lo que no tiene equivalencia, las redes unidas con etiqueta y los análisis convertidos. Después queda en Proyecto: al pasar el ratón o el foco por una tarjeta se resaltan sus piezas en el lienzo, y un clic las encuadra. El informe se guarda con el archivo hasta que se oculta.
+- Se conservan los instrumentos y los análisis del original: sondas de voltaje y de corriente, generadores de pulso y senoidales, fuentes de CD, multímetros y osciloscopios virtuales, y los análisis de punto de operación, barrido de CD, transitorio, CA y Fourier. En Proteus, las gráficas analógicas pasan a análisis transitorio con sus trazas, y los potenciómetros conservan la posición de su cursor.
+- El tutorial tiene un quinto capítulo, «Importar», que abre un circuito de ejemplo, recorre el informe y reemplaza una pieza sin equivalencia.
+- El asistente tiene la herramienta `importar`, que convierte un circuito de su carpeta y devuelve el informe.
+- Los archivos que guardan una caja gris o un informe de importación usan el formato 9. Una versión anterior de Kirchi los abre en solo lectura.
+
+### Diseño
+
+- Las piezas traen sus equivalencias de KiCad, LTspice, Falstad y Proteus, verificadas contra archivos y librerías reales.
+
 ## 2.1.0
 
 Nueve piezas nuevas (111 en total) con convertidores A/D y D/A, interruptores DIP, teclados y registros de desplazamiento, el ajuste de las perillas en su propio recuadro, cuatro tipos nuevos en la calculadora de amplificadores, un tutorial que recorre todo Kirchi, Configuración reordenada y modelos más fieles del TL431, el foco y el comparador.

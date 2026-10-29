@@ -127,9 +127,10 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Transistor_BJT:Q_NPN_BCE", "ltspice": "npn", "falstad": "t", "proteus": "NPN", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": ["Transistor_BJT:Q_NPN_BCE", "Transistor_BJT:Q_NPN_CBE", "Transistor_BJT:Q_NPN_EBC", "Transistor_BJT:Q_NPN_ECB", "Device:Q_NPN_ECB", "Simulation_SPICE:NPN"], "ltspice": "npn", "falstad": "t", "proteus": "NPN", "sinVerificar": ["proteus"] },
     "valores": {
       "2N2222": {
+        "equivalencias": { "proteus": "2N2222" },
         "fabricante": "onsemi",
         "parte": "P2N2222AG",
         "hoja": "https://www.onsemi.com/pdf/datasheet/p2n2222a-d.pdf",
@@ -164,7 +165,7 @@
         "fabricante": "onsemi",
         "parte": "BC547B",
         "hoja": "https://www.onsemi.com/pdf/datasheet/bc546-d.pdf",
-        "equivalencias": { "kicad": "Transistor_BJT:BC547" },
+        "equivalencias": { "kicad": "Transistor_BJT:BC547", "proteus": "BC547" },
         "presentaciones": [
           {
             "encapsulado": "TO-92",

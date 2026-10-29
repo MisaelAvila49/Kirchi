@@ -28,6 +28,7 @@ import { avisosDelCircuito, enumerar, MAX_FILAS, plural, type Aviso } from './pr
 import { conexionesDeRed, esRedVisible } from './redes'
 import { soloFiguras, vistaFigura, type VistaFigura } from './vistaFigura'
 import { soloTextos, vistaFormato, type VistaFormato } from './vistaFormato'
+import { defDe } from '../piezas/sinEquivalencia'
 
 export interface CampoProp {
   id: string
@@ -458,7 +459,7 @@ export function vistaInspector(
   const [idPieza] = sel.piezas
   if (idPieza) {
     const p = doc.piezas[idPieza]
-    const def = p ? lib.get(p.tipo) : undefined
+    const def = p ? defDe(p, lib.get(p.tipo)) : undefined
     if (!p || !def) return { tipo: 'desconocida', id: idPieza, ref: p?.ref ?? '', tipoPieza: p?.tipo ?? '' }
     // Una lista de una sola opción no deja elegir nada (la salida «Voltaje» de la fuente PWL); el modelo que se muestra sí se ve.
     const props = def.props.filter((d) => d.opciones?.length !== 1 || d.mostrar).map((d): CampoProp => {

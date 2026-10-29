@@ -10,6 +10,7 @@ import { avisosAbsolutosEstaticos } from '../sim/absolutos'
 import type { PiezaDef } from '../piezas/tipos'
 import { ordenRef } from './listaDeRedes'
 import { aplicarUniones, unirCompartidas } from '../netlist/paquetes'
+import { ID_SIN_EQUIVALENCIA, pinesDe, textoSinEquivalencia } from '../piezas/sinEquivalencia'
 
 /** Algo que impediría simular; `piezas` son las que menciona, para seleccionarlas y centrarlas. */
 export interface Aviso {
@@ -71,7 +72,11 @@ export function avisosDelCircuito(doc: Documento, conDoc: Conexiones, lib: Map<s
     anotarFuente(fuentes, p, m)
   }
 
-  for (const p of piezas) if (!lib.get(p.tipo)?.modelo) avisos.push({ texto: `${p.ref} todavía no tiene modelo eléctrico.`, piezas: [p.id] })
+  for (const p of piezas) {
+    if (lib.get(p.tipo)?.modelo) continue
+    // La caja de una importación dice qué hacer; el aviso genérico no la nombra.
+    avisos.push({ texto: p.tipo === ID_SIN_EQUIVALENCIA ? textoSinEquivalencia(p.ref) : `${p.ref} todavía no tiene modelo eléctrico.`, piezas: [p.id] })
+  }
 
   // Las piezas digitales: su familia y su alimentación (las mismas oraciones que la netlist).
   for (const p of modeladas) {
@@ -104,7 +109,7 @@ export function avisosDelCircuito(doc: Documento, conDoc: Conexiones, lib: Map<s
     const m = def.modelo!
     for (const id of pinesQueDebenConectarse(m)) {
       const red = con.redes[con.redDePin.get(clavePin(p.id, id)) ?? -1]
-      if (red && red.pines.length === 1 && !red.tierra) avisos.push({ texto: `El pin ${def.pines.find((x) => x.id === id)?.nombre ?? id} de ${p.ref} no está conectado a nada.`, piezas: [p.id] })
+      if (red && red.pines.length === 1 && !red.tierra) avisos.push({ texto: `El pin ${pinesDe(p, def).find((x) => x.id === id)?.nombre ?? id} de ${p.ref} no está conectado a nada.`, piezas: [p.id] })
     }
   }
 

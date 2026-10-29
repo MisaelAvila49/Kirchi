@@ -18,7 +18,7 @@
   "etiquetas": { "ref": { "x": 8, "y": -5 }, "valor": { "x": 0, "y": 5 } },
   "datos": {
     "por": "familia",
-    "equivalencias": { "falstad": "180" },
+    "equivalencias": { "falstad": "180", "proteus": "TRIBUFFER" },
     "valores": {
       "74HC": {
         "fabricante": "Texas Instruments",
@@ -45,7 +45,7 @@
         "fabricante": "Texas Instruments",
         "parte": "SN74LS125AN",
         "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls125a.pdf",
-        "equivalencias": { "kicad": "74xx:74LS125" },
+        "equivalencias": { "kicad": "74xx:74LS125", "proteus": "74125" },
         "presentaciones": [
           {
             "encapsulado": "DIP-14",

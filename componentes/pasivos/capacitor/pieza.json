@@ -15,7 +15,7 @@
   ],
   "modelo": { "tipo": "C", "a": "1", "b": "2", "prop": "valor", "rserie": "esr" },
   "datos": {
-    "equivalencias": { "kicad": "Device:C", "ltspice": "cap", "falstad": "c", "proteus": "CAP", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": ["Device:C", "Device:C_Small"], "ltspice": "cap", "falstad": "c", "proteus": ["CAP", "CAPACITOR"] },
     "valores": {
       "*": {
         "presentaciones": [

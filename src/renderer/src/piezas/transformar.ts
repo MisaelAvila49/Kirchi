@@ -1,4 +1,5 @@
 import type { Pieza, Rotacion } from '../doc/tipos'
+import { defDe, pinesDe } from './sinEquivalencia'
 import type { Caja, PiezaDef } from './tipos'
 
 const fin = (a: number, b: number): [number, number] => [a + 0, b + 0]
@@ -25,7 +26,7 @@ export function destransformar(tx: number, ty: number, rot: Rotacion, espejo: bo
 }
 
 export function pinesEnMundo(p: Pieza, def: PiezaDef): { id: string; x: number; y: number }[] {
-  return def.pines.map((pin) => {
+  return pinesDe(p, def).map((pin) => {
     const [x, y] = transformar(pin.x, pin.y, p.rot, p.espejo)
     return { id: pin.id, x: p.x + x, y: p.y + y }
   })
@@ -37,7 +38,7 @@ export function girar(rot: Rotacion, sentido: 1 | -1): Rotacion {
 
 /** Caja del símbolo ya girada, reflejada y desplazada a la posición de la pieza, ampliada `margen` por lado. */
 export function cajaEnMundo(p: Pieza, def: PiezaDef, margen = 0): Caja {
-  return cajaTransformada(def.geometria.caja, p, margen)
+  return cajaTransformada(defDe(p, def).geometria.caja, p, margen)
 }
 
 /** Una caja en coordenadas del símbolo llevada al mundo con la orientación y posición de la pieza. */

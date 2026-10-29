@@ -6,6 +6,7 @@ import { libreriaDePrueba } from '../prueba/libreria'
 import { FLOTANTES_TRAZO } from './buffers'
 import { construirEscena } from './escena'
 import { MAX_TRAMOS_FIGURAS } from './figuras'
+import { emDeTam } from './medidas'
 import { mezclar, PALETA_CLARA } from './paleta'
 
 const lib = libreriaDePrueba().piezas
@@ -318,5 +319,36 @@ describe('el punto de conexión de las etiquetas (B1)', () => {
     expect(conectada.some((s) => s[0] === s[2] && s[1] === s[3] && s[4] >= 1)).toBe(true)
     const suelta = cerca(escena(conEtiqueta(40, 10)), 40, 10, 0.6)
     expect(suelta.filter((s) => Math.abs(Math.hypot(s[0] - 40, s[1] - 10) - 0.55) < 1e-6).length).toBeGreaterThanOrEqual(12)
+  })
+})
+
+describe('construirEscena con una caja sin equivalencia', () => {
+  it('escribe la referencia, el nombre original y el nombre de cada pin', () => {
+    const caja: Pieza = {
+      id: 'x', tipo: 'sin-equivalencia', ref: 'X1', x: 0, y: 0, rot: 0, espejo: false, props: { nombre: 'LM13700' },
+      pines: [
+        { id: 'a', nombre: 'IABC', numero: '1', lado: 'izq' },
+        { id: 'b', nombre: 'OUT', numero: '2', lado: 'der' }
+      ]
+    }
+    const todos = escena(doc([caja])).textos
+    const textos = todos.map((t) => t.texto)
+    // Con 1 mm de alto el lienzo los omite a zoom normal: el nombre y los pines tienen que quedar más grandes.
+    expect(todos.find((t) => t.texto === 'IABC')!.tamaño).toBeGreaterThan(emDeTam(1))
+    expect(todos.find((t) => t.texto === 'LM13700')!.tamaño).toBeGreaterThan(emDeTam(1))
+    expect(textos).toEqual(expect.arrayContaining(['X1', 'LM13700', 'IABC', 'OUT', '1', '2']))
+  })
+
+  it('con pines numerados por su número, cada número aparece una sola vez', () => {
+    const caja: Pieza = {
+      id: 'x', tipo: 'sin-equivalencia', ref: 'X1', x: 0, y: 0, rot: 0, espejo: false, props: { nombre: 'LM13700' },
+      pines: [
+        { id: 'a', nombre: '3', numero: '3', lado: 'izq' },
+        { id: 'b', nombre: '4', numero: '4', lado: 'izq' }
+      ]
+    }
+    const textos = escena(doc([caja])).textos.map((t) => t.texto)
+    expect(textos.filter((t) => t === '3')).toHaveLength(1)
+    expect(textos.filter((t) => t === '4')).toHaveLength(1)
   })
 })

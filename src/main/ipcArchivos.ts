@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { app, BrowserWindow, dialog, ipcMain, session, shell, type FileFilter, type IpcMainEvent, type IpcMainInvokeEvent } from 'electron'
-import { CANALES, nombreDeRuta } from '../compartido/archivos'
+import { CANALES, EXTENSIONES_IMPORTABLES, nombreDeRuta } from '../compartido/archivos'
 import { CANALES_PLANTILLAS as PL } from '../compartido/plantillas'
 import type { ControlCierre } from './cierre'
 import { conLimite, ErrorPdf, LIMITE_PDF_MS, peticionPdfPermitida } from './pdf'
@@ -22,6 +22,11 @@ const FILTROS: Record<TipoGuardar, FileFilter> = {
   pdf: { name: 'Documento PDF', extensions: ['pdf'] },
   csv: { name: 'Datos separados por comas (CSV)', extensions: ['csv'] }
 }
+const FILTROS_ABRIR: FileFilter[] = [
+  { name: 'Circuitos de Kirchi y de otros programas', extensions: ['kir', ...EXTENSIONES_IMPORTABLES] },
+  FILTROS.kir,
+  { name: 'Circuitos de otros programas', extensions: EXTENSIONES_IMPORTABLES }
+]
 const TITULOS: Record<TipoGuardar, string> = {
   kir: 'Guardar circuito', png: 'Exportar como PNG', svg: 'Exportar como SVG', pdf: 'Exportar como PDF', csv: 'Exportar los datos como CSV'
 }
@@ -30,7 +35,7 @@ const TITULOS: Record<TipoGuardar, string> = {
 export function dialogosDe(win: BrowserWindow): Dialogos {
   return {
     abrir: async (carpeta) => {
-      const r = await dialog.showOpenDialog(win, { title: 'Abrir circuito', ...(carpeta ? { defaultPath: carpeta } : {}), filters: [FILTROS.kir], properties: ['openFile'] })
+      const r = await dialog.showOpenDialog(win, { title: 'Abrir circuito', ...(carpeta ? { defaultPath: carpeta } : {}), filters: FILTROS_ABRIR, properties: ['openFile'] })
       return r.canceled ? null : (r.filePaths[0] ?? null)
     },
     guardar: async (tipo, sugerida) => {

@@ -85,7 +85,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Transistor_FET:Q_NMOS_GDS", "ltspice": "nmos", "falstad": "f", "proteus": "NMOS", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": ["Transistor_FET:Q_NMOS_GDS", "Transistor_FET:Q_NMOS_GSD", "Device:Q_NMOS_GDS", "Simulation_SPICE:NMOS"], "ltspice": ["nmos", "nmos4"], "falstad": "f", "proteus": "NMOS", "sinVerificar": ["proteus"] },
     "valores": {
       "2N7000": {
         "fabricante": "onsemi",

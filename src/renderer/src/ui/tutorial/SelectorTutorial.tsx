@@ -14,7 +14,7 @@ interface Props {
 export default function SelectorTutorial(props: Props) {
   return (
     <Dialogo titulo="Aprende Kirchi" clase="tutorial-selector" onCerrar={props.onCerrar}>
-      <p class="tutorial-selector-intro">Cuatro capítulos para conocer Kirchi, cada uno con su propio circuito. Los pasos se hacen en la aplicación real.</p>
+      <p class="tutorial-selector-intro">Cinco capítulos para conocer Kirchi, cada uno con su propio circuito. Los pasos se hacen en la aplicación real.</p>
       <ol class="tutorial-capitulos">
         <For each={CAPITULOS}>
           {(c) => {

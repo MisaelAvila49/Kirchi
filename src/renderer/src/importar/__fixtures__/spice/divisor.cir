@@ -1,0 +1,6 @@
+Divisor resistivo de prueba
+V1 in 0 DC 12
+R1 in out 10k
+R2 out 0 5k
+.op
+.end

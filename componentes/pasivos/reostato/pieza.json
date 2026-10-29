@@ -19,7 +19,7 @@
   "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 3 } },
   "animacion": { "tipo": "cursor", "prop": "posicion", "desde": -2.5, "hasta": 2.5, "codo": -3.3 },
   "datos": {
-    "equivalencias": { "kicad": "Device:R_Potentiometer", "falstad": "174", "proteus": "POT-LIN", "sinVerificar": ["proteus"] },
+    "equivalencias": { "kicad": "Device:R_Potentiometer", "falstad": "174", "proteus": ["POT-LIN", "POT", "POT-HG"], "sinVerificar": ["proteus"] },
     "valores": {
       "*": {
         "fabricante": "Bourns",

@@ -13,7 +13,7 @@
   "modelo": { "tipo": "interruptor", "a": "1", "b": "2", "prop": "presionado", "cerrado": "sí", "momentaneo": true },
   "etiquetas": { "ref": { "x": 0, "y": -4 } },
   "datos": {
-    "equivalencias": { "kicad": "Switch:SW_Push", "falstad": "s", "proteus": "BUTTON", "sinVerificar": ["proteus"] },
+    "equivalencias": { "kicad": "Switch:SW_Push", "falstad": "s", "proteus": "BUTTON" },
     "valores": {
       "*": {
         "presentaciones": [

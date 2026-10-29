@@ -70,6 +70,7 @@ import type { AnalisisDoc } from '../../../compartido/analisis/config'
 import { destinoDeSonda, esDeOtraRed, imanDeSonda, MOTIVO_CONVERTIR_CORRIENTE, MOTIVO_CORRIENTE_AC, MOTIVO_MEDIDOR_DE_CORRIENTE, MOTIVO_SONDA_SIN_CABLE, siguienteDeSonda, tocaAlgo, type DestinoSonda } from './sondas'
  './etiquetaEnTramo'
 import { banderaEn, banderasDelDocumento, type Bandera } from '../lienzo/sondas'
+import { defDe, pinesDe } from '../piezas/sinEquivalencia'
 
 export type Herramienta = 'seleccionar' | 'colocar' | 'cablear' | 'etiqueta' | 'nota' | 'figura'
 
@@ -684,7 +685,7 @@ export class Editor {
         const c = cajaTexto(t)
         if (p.x < c.minX || p.x > c.maxX || p.y < c.minY || p.y > c.maxY) continue
         const pz = this.doc.piezas[id]
-        const def = pz ? this.lib.get(pz.tipo) : undefined
+        const def = pz ? defDe(pz, this.lib.get(pz.tipo)) : undefined
         const cual = pz && def ? textosLocales(pz, def, this.doc)[i]?.cual : undefined
         if (cual) return { pieza: id, cual, texto: t }
       }
@@ -728,7 +729,7 @@ export class Editor {
     const a = this.arrastreTexto!
     if (!a.movio && Math.hypot(p.x - a.inicio.x, p.y - a.inicio.y) < this.tolerancia) return
     const pz = this.doc.piezas[a.pieza]
-    const def = pz ? this.lib.get(pz.tipo) : undefined
+    const def = pz ? defDe(pz, this.lib.get(pz.tipo)) : undefined
     if (!pz || !def) return
     a.movio = true
     const centro = { x: p.x - a.agarre.x, y: p.y - a.agarre.y }
@@ -778,7 +779,7 @@ export class Editor {
     const a = this.arrastreTexto
     if (a) {
       const pz = this.doc.piezas[a.pieza]
-      const def = pz ? this.lib.get(pz.tipo) : undefined
+      const def = pz ? defDe(pz, this.lib.get(pz.tipo)) : undefined
       if (!pz || !def) return null
       const locales = textosLocales(pz, def, this.doc)
       const i = locales.findIndex((t) => t.cual === a.cual)
@@ -789,7 +790,7 @@ export class Editor {
     if (!b) return null
     const i = (() => {
       const pz = this.doc.piezas[b.pieza]
-      const def = pz ? this.lib.get(pz.tipo) : undefined
+      const def = pz ? defDe(pz, this.lib.get(pz.tipo)) : undefined
       return pz && def ? textosLocales(pz, def, this.doc).findIndex((t) => t.cual === b.cual) : -1
     })()
     if (this.colocados?.doc !== this.doc) this.colocados = { doc: this.doc, textos: etiquetasSinChoques(this.doc, this.lib) }
@@ -824,7 +825,8 @@ export class Editor {
   nombrePin(g: Golpe | null): string | null {
     if (g?.tipo !== 'pin') return null
     const p = this.doc.piezas[g.piezaId]
-    const pin = p ? this.lib.get(p.tipo)?.pines.find((x) => x.id === g.pinId) : undefined
+    const d = p && this.lib.get(p.tipo)
+    const pin = p && d ? pinesDe(p, d).find((x) => x.id === g.pinId) : undefined
     return p && pin ? `${p.ref} · ${pin.nombre}` : null
   }
 
@@ -832,7 +834,8 @@ export class Editor {
   ayudaPin(g: Golpe | null): string[] | null {
     if (g?.tipo !== 'pin') return null
     const p = this.doc.piezas[g.piezaId]
-    const pin = p ? this.lib.get(p.tipo)?.pines.find((x) => x.id === g.pinId) : undefined
+    const d = p && this.lib.get(p.tipo)
+    const pin = p && d ? pinesDe(p, d).find((x) => x.id === g.pinId) : undefined
     return p && pin?.ayuda ? [`${p.ref} · ${pin.nombre}`, ...pin.ayuda.split(' · ')] : null
   }
 
@@ -1585,7 +1588,7 @@ export class Editor {
       const d = Math.hypot(pin.x - o.en.x, pin.y - o.en.y)
       if (!mejor || d < mejor.d) mejor = { id: pin.id, d }
     }
-    return mejor ? { pieza: p, pinId: mejor.id, nombre: def.pines.find((x) => x.id === mejor!.id)?.nombre ?? mejor.id } : undefined
+    return mejor ? { pieza: p, pinId: mejor.id, nombre: pinesDe(p, def).find((x) => x.id === mejor!.id)?.nombre ?? mejor.id } : undefined
   }
 
   /** Red de un cable, o la del pin de la pieza más cercano al punto del clic. */
@@ -2945,6 +2948,39 @@ export class Editor {
     const actual = id ? this.posicionPot(id) : null
     if (!id || actual === null) return
     this.cambiarPosicionPot(id, actual + dir * (fino ? PASO_POT_FINO : PASO_POT))
+  }
+
+  /** Lo que diría cambiar una pieza por otra, sin aplicarlo: los avisos listan los pines sin pareja (vacío si todos casan). */
+  avisosDeReemplazo(id: Id, tipo: string): { avisos: string[] } | { motivo: string } {
+    const motivo = this.nucleo.editable()
+    if (motivo) return { motivo }
+    const plan = this.nucleo.planDeReemplazo(id, tipo)
+    return 'motivo' in plan ? { motivo: plan.motivo } : { avisos: plan.avisos }
+  }
+
+  /** Cambia una pieza por otra de la librería en un solo paso de deshacer y deja la nueva elegida. Devuelve el porqué si no se pudo, o null. */
+  reemplazarPieza(id: Id, tipo: string): string | null {
+    const r = this.nucleo.reemplazar(id, tipo)
+    if (!r.ok) {
+      this.ganchos.registrar(r.motivo)
+      return r.motivo
+    }
+    for (const a of r.avisos) this.ganchos.registrar(a)
+    const nueva = Object.values(r.creados)[0]
+    if (nueva) this.seleccion = seleccionDe('piezas', nueva)
+    this.avisar()
+    return null
+  }
+
+  /** Quita el informe de importación del documento, deshacible. Devuelve el porqué si no se pudo, o null. */
+  ocultarInforme(): string | null {
+    const informe = this.doc.importacion
+    if (!informe) return null
+    const motivo = this.nucleo.editable()
+    if (motivo) return motivo
+    this.ejecutar({ nombre: 'ocultar el informe de importación', cambios: [{ col: 'importacion', id: 'informe', antes: informe }] })
+    this.avisar()
+    return null
   }
 
   /** Crea o cambia un análisis de ngspice del documento: un paso por cambio, ninguno si no cambia nada. Devuelve el porqué

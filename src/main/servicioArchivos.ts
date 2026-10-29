@@ -2,11 +2,12 @@ import { existsSync, lstatSync, mkdirSync, readdirSync, realpathSync, renameSync
 import { dirname, join, resolve, sep } from 'node:path'
 import {
   cambiarExtension, esRutaKir, extension, FORMATOS_ARCHIVO_EXPORTAR, LARGO_MAXIMO_RUTA, LIMITE_EXPORTAR, LIMITE_KIR, LIMITE_RENGLON, nombreDeRuta, NOMBRE_NUEVO, rutaKirDeArgumentos,
-  type BaseDiario, type DatosRecuperacion, type FormatoArchivoExportar, type Recuperable, type ResultadoAbrir, type ResultadoGuardar
+  type ArchivoLeido, type BaseDiario, type DatosRecuperacion, type FormatoArchivoExportar, type Recuperable, type ResultadoAbrir, type ResultadoGuardar
 } from '../compartido/archivos'
 import type { CarpetasDialogo, TipoCarpeta } from '../compartido/ajustes'
 import { EXTENSION_PLANTILLA, MAX_CATEGORIAS, MAX_POR_CATEGORIA, motivoNombreInvalido, type ListaPlantillas, type ResultadoBorrarCategoria, type ResultadoLeerPlantilla, type ResultadoPlantilla } from '../compartido/plantillas'
 import { agregarReciente, CARPETA_RESPALDOS, clasificarRuta, claveRuta, leerKirDelDisco, Permisos, quitarReciente, respaldar, rutaDeInterfaz, rutaValida } from './archivos'
+import { leerHojasKicad } from './hojasKicad'
 import { escribirAtomico } from './escritura'
 import { ErrorPdf, htmlParaPdf, paginaValida, svgValido } from './pdf'
 import { buscarRecuperables, descartarRecuperacion, DiarioLleno, leerRecuperacion, Sesion } from './recuperacion'
@@ -160,7 +161,7 @@ export class ServicioArchivos {
 
   /** Abre una ruta ya de confianza (línea de órdenes) o validada por quien llama. No se conecta a IPC: la interfaz entra por `abrirReciente` o `abrirSoltado`. Si ya no existe, sale de Recientes. */
   abrirRuta(ruta: unknown): ResultadoAbrir {
-    const l = leerKirDelDisco(ruta)
+    const l = leerKirDelDisco(ruta, undefined, true)
     if (!l.ok) {
       let recientes = this.d.recientes()
       if (rutaValida(ruta, this.plataforma) && recientes.some((r) => claveRuta(r, this.plataforma) === claveRuta(ruta, this.plataforma))) {
@@ -170,12 +171,22 @@ export class ServicioArchivos {
       return { ok: false, error: l.error, recientes }
     }
     const r = ruta as string
-    this.permisosKir.permitir(r)
-    return { ok: true, archivo: { ruta: r, nombre: nombreDeRuta(r), bytes: l.bytes }, recientes: this.anotarReciente(r) }
+    // Un importable no se sobrescribe: se guarda como documento nuevo con otro nombre.
+    if (esRutaKir(r)) this.permisosKir.permitir(r)
+    const archivo: ArchivoLeido = { ruta: r, nombre: nombreDeRuta(r), bytes: l.bytes }
+    // Un esquema jerárquico de KiCad trae sus hojas, leídas solo de su carpeta.
+    if (extension(r) === 'kicad_sch') {
+      const h = leerHojasKicad(r, l.bytes)
+      if (Object.keys(h.anexos).length > 0) archivo.anexos = h.anexos
+      if (h.avisos.length > 0) archivo.avisosAnexos = h.avisos
+    }
+    return { ok: true, archivo, recientes: this.anotarReciente(r) }
   }
 
   /** Un `.kir` que llega del sistema (doble clic, segunda instancia, `open-file`). Pasa por las mismas comprobaciones que Abrir y su carpeta pasa a ser la siguiente sugerencia. Zip, límites de descompresión y versión los comprueba la interfaz con `leerKir`. */
   async abrirExterno(ruta: unknown): Promise<ResultadoAbrir> {
+    // La asociación de archivos es solo de .kir; los de otros programas entran por Abrir o al soltarlos.
+    if (typeof ruta !== 'string' || !esRutaKir(ruta)) return { ok: false, error: 'Solo se abren circuitos .kir.', recientes: this.d.recientes() }
     return this.abrirDelSistema(ruta)
   }
 

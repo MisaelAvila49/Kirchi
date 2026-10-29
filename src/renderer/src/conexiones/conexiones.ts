@@ -3,6 +3,7 @@ import { pinesEnMundo } from '../piezas/transformar'
 import type { PiezaDef } from '../piezas/tipos'
 import { claveDeNombre } from './nombres'
 import { UnionFind } from './unionFind'
+import { pinesDe } from '../piezas/sinEquivalencia'
 
 export interface Red {
   id: number
@@ -64,6 +65,11 @@ function primeroMayor(a: number[], v: number): number {
 function cajaDeClaves(doc: Documento, lib: Map<string, PiezaDef>) {
   let margen = 0
   for (const d of lib.values()) for (const pin of d.pines) margen = Math.max(margen, Math.abs(pin.x), Math.abs(pin.y))
+  // Los pines de una caja sin equivalencia viven en la pieza y pueden salirse del margen de la librería.
+  for (const id in doc.piezas) {
+    const p = doc.piezas[id], d = p.pines && lib.get(p.tipo)
+    if (d) for (const pin of pinesDe(p, d)) margen = Math.max(margen, Math.abs(pin.x), Math.abs(pin.y))
+  }
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
   const ver = (x: number, y: number, m = 0) => {
     if (x - m < minX) minX = x - m

@@ -1,0 +1,13 @@
+* falstad-rc: parte del reposo (uic), como Falstad y como Kirchi
+V1 ent 0 PULSE(-2.5 7.5 0 1n 1n 5m 10m)
+R1 ent sal 1k
+C1 sal 0 1u
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 10u 30m uic
+wrdata salida.txt v(ent) v(sal)
+.endc
+.end

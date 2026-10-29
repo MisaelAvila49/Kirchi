@@ -12,7 +12,7 @@ Armas el circuito, pulsas F5 y lo ves funcionar. Gratis, sin internet, sin cuent
 [![Descargar para Windows, macOS y Linux](https://img.shields.io/badge/Releases-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-22252A?style=for-the-badge&logo=github&logoColor=white)](../../releases/latest)
 
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-2.1.0-0E7C66.svg)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-2.2.0-0E7C66.svg)](CHANGELOG.md)
 ![Plataformas](https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
 
 <img src="docs/imagenes/portada.jpg" alt="Un 555 astable con las cuatro señales de su osciloscopio" width="100%">
@@ -63,6 +63,8 @@ Kirchi es un simulador de circuitos de escritorio para estudiar electrónica: di
 **Análisis con ngspice 47.** Punto de operación, barrido de CD, transitorio, CA y Bode, Fourier y barrido de parámetro. Gráficas con cursores, trazas una contra otra (X-Y) y rangos que puedes escribir.
 
 **Para la entrega.** Exporta a PNG, SVG y PDF con fondo blanco o tema oscuro, solo la selección o un área, y anotaciones que no ensucian tu circuito. Graba la ventana en video MP4, con o sin micrófono.
+
+**Importar.** Abre circuitos de Falstad, LTspice, netlists SPICE, KiCad y Proteus como documento nuevo, con un informe de lo convertido y una caja gris para lo que no tiene equivalencia.
 
 **Para aprender.** Tutorial «Aprende Kirchi» de cinco capítulos, quince plantillas listas para simular y seis calculadoras (divisor, LED, filtros, 555 astable y monoestable, amplificador) que muestran la ecuación con tus valores y generan el circuito.
 

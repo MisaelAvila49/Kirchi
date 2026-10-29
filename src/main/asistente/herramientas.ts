@@ -4,6 +4,8 @@ import { plantillasIncluidas } from '../../renderer/src/plantillas/almacen'
 import type { EntradaAnalisis } from '../../renderer/src/edicion/analisisDoc'
 import { catalogo, datosDePieza } from '../../renderer/src/edicion/catalogo'
 import { patillasDeUnidad, paqueteDe } from '../../renderer/src/doc/paquetes'
+import { calcularConexiones } from '../../renderer/src/conexiones/conexiones'
+import { escribirKir } from '../../renderer/src/archivo/kir'
 import { describir } from '../../renderer/src/edicion/describir'
 import { resolverPerilla, valorDePerilla } from '../../renderer/src/edicion/perillas'
 import { validarOrden } from '../../renderer/src/edicion/ordenes'
@@ -19,6 +21,7 @@ import type { AjustesAsistente } from './ajustes'
 import type { RegistroPuente } from './registroPuente'
 import { calcular, IDS_CALCULADORAS, resumenDeCampos, SERIES_COMERCIALES } from './calculadoras'
 import { analisisPedido, figuraDeAnalisis, PREAJUSTES_GRAFICA, soloLasPedidas, type PreajusteGrafica } from './grafica'
+import type { ResultadoImportar } from '../../renderer/src/importar/importar'
 import { medirResultado } from './medidas'
 import type { PlantillasUsuario } from './plantillasUsuario'
 
@@ -58,6 +61,8 @@ export interface DepsHerramientas {
   /** Imprime un SVG a PDF y devuelve los bytes; sin él `exportar_grafica` no genera PDF. */
   pdf?(svg: string, anchoMm: number, altoMm: number): Promise<Uint8Array>
   /** Cuánto se espera a que una ventana nueva cargue el circuito que se le pidió abrir, y cada cuánto se pregunta. */
+  /** Convierte un archivo ajeno fuera del hilo principal (con tiempo límite); sin él se convierte aquí mismo, como en las pruebas. */
+  importar?(nombre: string, bytes: Uint8Array): Promise<ResultadoImportar>
   esperaApertura?: { totalMs: number; pasoMs: number }
 }
 
@@ -218,6 +223,12 @@ export const HERRAMIENTAS: Herramienta[] = [
   },
   { nombre: 'deshacer', descripcion: 'Deshace el último paso del circuito.', entrada: circuitoEntrada, lectura: false },
   { nombre: 'rehacer', descripcion: 'Rehace el último paso deshecho.', entrada: circuitoEntrada, lectura: false },
+  {
+    nombre: 'importar',
+    descripcion: 'Importa un circuito de Falstad, LTspice, SPICE, KiCad o Proteus de la carpeta del asistente y devuelve el informe de lo convertido. Con «abrir», además lo deja como circuito abierto (un .kir nuevo en la carpeta, que se abre en una ventana si hay una conectada).',
+    entrada: { archivo: z.string().describe('Nombre del archivo en la carpeta del asistente, con su extensión (divisor.cir)'), abrir: z.boolean().optional() },
+    lectura: false
+  },
   {
     nombre: 'guardar_archivo',
     descripcion: 'Guarda una copia del circuito con otro nombre en la carpeta del asistente. Los archivos de la carpeta ya se guardan solos después de cada cambio; el circuito de la ventana lo guarda el usuario.',
@@ -509,6 +520,8 @@ export class Herramientas {
         if (!r.ok) return falla(r.motivo)
         return datos({ ok: true, nombre: r.nombre, ...(await this.abrirEnVentana(r.nombre)) })
       }
+      case 'importar':
+        return this.importar(a)
       case 'guardar_archivo': {
         const d = await this.destino(a)
         if (d && 'ventana' in d) return this.enVentana(d.ventana, nombre, a, d.ruta)
@@ -678,6 +691,38 @@ export class Herramientas {
       }
     }
     return datos(r)
+  }
+
+  /** Convierte un archivo de otro programa; con `abrir` lo guarda como .kir nuevo (nunca encima de uno) y lo abre. */
+  private async importar(a: Argumentos): Promise<Respuesta> {
+    if (typeof a.archivo !== 'string') return falla('Indica el nombre del archivo a importar.')
+    const l = this.carpeta.leerAjeno(a.archivo)
+    if (!l.ok) return falla(l.motivo)
+    // Diferido: el convertidor trae todos los lectores y no hace falta hasta la primera importación.
+    const r = this.deps.importar
+      ? await this.deps.importar(a.archivo, l.bytes)
+      : (await import('../../renderer/src/importar/importar')).importarBytes(a.archivo, l.bytes, this.deps.lib)
+    if (!r.ok) {
+      if (r.detalle) this.deps.registro?.error(`importar ${a.archivo}: ${r.detalle}`)
+      return falla(r.motivo)
+    }
+    const resumen = {
+      informe: r.informe,
+      avisos: r.avisos,
+      piezas: Object.keys(r.doc.piezas).length,
+      redes: calcularConexiones(r.doc, this.deps.lib).redes.length
+    }
+    if (a.abrir !== true) return datos(resumen)
+    const base = a.archivo.replace(/\.[^.]*$/, '')
+    let nombre = ''
+    for (let n = 1; n <= 99 && !nombre; n++) {
+      const candidato = n === 1 ? base : `${base}-${n}`
+      const e = this.carpeta.escribir(candidato, escribirKir(r.doc, this.deps.version))
+      if (e.ok) nombre = e.nombre
+      else if (!e.existe) return falla(e.motivo)
+    }
+    if (!nombre) return falla('No se encontró un nombre libre para el circuito importado: usa otro archivo.')
+    return datos({ ...resumen, circuito: nombre, ...(await this.abrirEnVentana(nombre)) })
   }
 
   /** Abre en una ventana nueva de Kirchi un archivo recién creado, si hay una ventana unida. */

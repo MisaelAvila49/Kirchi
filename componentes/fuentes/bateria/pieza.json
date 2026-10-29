@@ -16,7 +16,7 @@
   "modelo": { "tipo": "V", "a": "+", "b": "-", "prop": "voltaje", "rserie": "rint" },
   "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
   "datos": {
-    "equivalencias": { "kicad": "Device:Battery", "ltspice": "battery", "falstad": "v", "proteus": "BATTERY", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": "Device:Battery", "ltspice": "battery", "falstad": "v", "proteus": "BATTERY", "sinVerificar": ["ltspice"] },
     "valores": {
       "*": {
         "pendiente": {

@@ -1,0 +1,11 @@
+Amplificador de emisor comun
+Vcc vcc 0 DC 12
+Vb b1 0 DC 0.7
+Rc vcc c 2.2k
+Re e 0 470
+Rb b1 b 1k
+Q1 c b e 2N3904
+.model 2N3904 NPN(IS=6.7f BF=416 VAF=74 CJE=4.5p)
+.dc Vb 0.5 0.9 0.01
+.plot dc i(Vcc) v(c)
+.end

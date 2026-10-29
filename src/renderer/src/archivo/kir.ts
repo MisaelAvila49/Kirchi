@@ -5,7 +5,9 @@ import { leerFigura, MAX_FIGURAS } from '../doc/figuras'
 import { esDeInstrumento, haySondas, leerSonda, MAX_SONDAS, nombreDeSonda } from '../doc/sondas'
 import { coordenadaValida, LIMITE_COORDENADA } from '../doc/limites'
 import { limpiarTexto } from '../doc/limpiar'
-import { documentoVacio, type Documento, type Pieza } from '../doc/tipos'
+import { documentoVacio, type Documento, type Pieza, type PinPropio } from '../doc/tipos'
+import { validarInforme } from '../importar/informe'
+import { ID_SIN_EQUIVALENCIA, MAX_PINES_CAJA } from '../piezas/sinEquivalencia'
 import { leerSpice } from '../doc/spice'
 import { invarianteDePaquete, PROPS_DE_DOCUMENTO } from '../doc/paquetes'
 import { hayAnalisis, leerAnalisis, MAX_ANALISIS } from '../doc/analisis'
@@ -15,16 +17,17 @@ import { formatoDe } from './formatos'
 import { requisitosDe, requisitosLeidos } from './requisitos'
 import { formatearValor, leerValor } from '../valores/valores'
 
-/** Formatos: 2 alimentaciones, 3 textos de pieza, 4 figuras, 5 sondas, 6 `spice` propio, 7 análisis, 8 medidores rápidos.
+/** Formatos: 2 alimentaciones, 3 textos de pieza, 4 figuras, 5 sondas, 6 `spice` propio, 7 análisis, 8 medidores rápidos, 9 pines propios de una pieza sin
+ * equivalencia e informe de importación.
  * Solo un circuito que use la novedad sube de formato (así una versión anterior lo abre en solo lectura); sin ella los
  * bytes no cambian. */
-export const FORMATO_ACTUAL = 8
+export const FORMATO_ACTUAL = 9
 /** Tamaño máximo descomprimido de cada entrada que se lee. */
 export const LIMITE_BYTES = 64 * 2 ** 20
 /** Conversor de un formato al siguiente; los avisos de lo que cambió se agregan a `avisos`. */
 export type Migracion = (datos: unknown, avisos: string[]) => unknown
 /** Conversores: MIGRACIONES[n] lleva datos del formato n al n + 1. */
-const MIGRACIONES: Record<number, Migracion> = { 1: voltajesATabla, 2: (datos) => datos, 3: (datos) => datos, 4: (datos) => datos, 5: (datos) => datos, 6: (datos) => datos, 7: (datos) => datos }
+const MIGRACIONES: Record<number, Migracion> = { 1: voltajesATabla, 2: (datos) => datos, 3: (datos) => datos, 4: (datos) => datos, 5: (datos) => datos, 6: (datos) => datos, 7: (datos) => datos, 8: (datos) => datos }
 export const FECHA_FIJA = new Date(2026, 0, 1)
 
 export type Lectura = { ok: true; doc: Documento; soloLectura: boolean; avisos: string[]; requiere: string[] } | { ok: false; error: string }
@@ -186,7 +189,7 @@ type Constructor = (x: any, avisos: string[]) => Resultado
 
 /** Nombre de la colección en plural, para «Se descartaron las piezas: …». */
 const PLURAL: Record<keyof Documento, string> = {
-  piezas: 'las piezas', cables: 'los cables', etiquetas: 'las etiquetas de red', notas: 'las notas', alimentaciones: 'los rieles de alimentación', figuras: 'las figuras', sondas: 'las sondas', analisis: 'los análisis'
+  piezas: 'las piezas', cables: 'los cables', etiquetas: 'las etiquetas de red', notas: 'las notas', alimentaciones: 'los rieles de alimentación', figuras: 'las figuras', sondas: 'las sondas', analisis: 'los análisis', importacion: 'el informe de importación'
 }
 const textoDe = (v: unknown): string | null => (typeof v === 'string' && limpiarTexto(v).trim() ? limpiarTexto(v).trim() : null)
 /** Sujeto del aviso de un elemento descartado: su referencia o su nombre si los trae; si no, «una pieza». */
@@ -218,6 +221,34 @@ function coleccion(datos: any, nombre: keyof Documento, construir: Constructor, 
     else out[id] = r.valor
   }
   return out
+}
+
+/** Tope de los textos de un pin propio. */
+const MAX_TEXTO_PIN = 24
+
+/** Los pines de una caja sin equivalencia: el pin que no vale se descarta con un aviso, el resto se queda. */
+function leerPinesPropios(v: unknown, ref: string, avisos: string[]): PinPropio[] | null {
+  if (!Array.isArray(v)) {
+    avisos.push(`Se descartaron los pines de ${ref}: la lista está dañada.`)
+    return null
+  }
+  const pines: PinPropio[] = []
+  const vistos = new Set<string>()
+  let malos = 0
+  for (const q of v.slice(0, MAX_PINES_CAJA)) {
+    const id = typeof q?.id === 'string' ? q.id : ''
+    const nombre = typeof q?.nombre === 'string' ? limpiarTexto(q.nombre).slice(0, MAX_TEXTO_PIN) : ''
+    const numero = typeof q?.numero === 'string' ? limpiarTexto(q.numero).slice(0, MAX_TEXTO_PIN) : undefined
+    if (!ID.test(id) || ID_RESERVADO.has(id) || vistos.has(id) || !nombre || (q.numero !== undefined && numero === undefined) || (q.lado !== 'izq' && q.lado !== 'der')) {
+      malos++
+      continue
+    }
+    vistos.add(id)
+    pines.push({ id, nombre, ...(numero ? { numero } : {}), lado: q.lado })
+  }
+  malos += Math.max(0, v.length - MAX_PINES_CAJA)
+  if (malos > 0) avisos.push(`Se descartaron ${malos === 1 ? 'un pin' : `${malos} pines`} de ${ref}: no ${malos === 1 ? 'es válido' : 'son válidos'}.`)
+  return pines
 }
 
 const pieza: Constructor = (p, avisos) => {
@@ -264,7 +295,13 @@ const pieza: Constructor = (p, avisos) => {
       avisos.push(`Se descartó ${cuantos} de ${textoDe(p.ref) ?? p.id}: no es válido.`)
     }
   }
-  return { valor: { id: p.id, tipo: p.tipo, ref: limpiarTexto(p.ref), x: p.x, y: p.y, rot: p.rot, espejo: p.espejo, props, ...(textos ? { textos } : {}), ...(spice ? { spice } : {}) } }
+  // Pines propios: solo los lleva la pieza sin equivalencia; en otra pieza no significan nada.
+  let pines: PinPropio[] | null = null
+  if (Object.hasOwn(p, 'pines')) {
+    if (p.tipo === ID_SIN_EQUIVALENCIA) pines = leerPinesPropios(p.pines, textoDe(p.ref) ?? p.id, avisos)
+    else avisos.push(`Se descartaron los pines de ${textoDe(p.ref) ?? p.id}: solo los lleva una pieza sin equivalencia.`)
+  }
+  return { valor: { id: p.id, tipo: p.tipo, ref: limpiarTexto(p.ref), x: p.x, y: p.y, rot: p.rot, espejo: p.espejo, props, ...(textos ? { textos } : {}), ...(spice ? { spice } : {}), ...(pines && pines.length > 0 ? { pines } : {}) } }
 }
 
 const cable: Constructor = (c) => {
@@ -473,5 +510,10 @@ function validarDocumento(datos: any, avisos: string[]): Documento {
   if (Object.keys(sondas).length > 0) d.sondas = sondas
   const analisis = coleccion(conTopeDeAnalisis(datos, avisos), 'analisis', (x) => leerAnalisis(x), avisos)
   if (Object.keys(analisis).length > 0) d.analisis = analisis
+  if (Object.hasOwn(datos ?? {}, 'importacion')) {
+    const informe = validarInforme(datos.importacion)
+    if (informe) d.importacion = informe
+    else avisos.push('Se descartó el informe de importación: no es válido.')
+  }
   return d
 }

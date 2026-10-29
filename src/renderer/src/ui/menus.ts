@@ -4,6 +4,7 @@ import { unidadesDe } from '../doc/paquetes'
 import type { Documento, Pieza } from '../doc/tipos'
 import type { ObjetivoMenu } from '../editor/Editor'
 import { textoDeValor } from '../lienzo/etiquetas'
+import { ID_SIN_EQUIVALENCIA } from '../piezas/sinEquivalencia'
 import type { PiezaDef } from '../piezas/tipos'
 import { ALINEACIONES, CONTORNOS, FUENTES, NOMBRE_ALINEACION, NOMBRE_CONTORNO, nombreContorno, NOMBRE_FUENTE, NOMBRE_TINTA, textoPt, TINTAS, type Alineacion, type Contorno } from '../doc/formato'
 import type { Fuente, Grosor, Opacidad, Punta, Tinta, Trazo } from '../doc/tipos'
@@ -86,7 +87,7 @@ export function pedidoDeAccion(id: AccionMenu): PedidoMedir | null {
 export type AccionMenu =
   | 'editar-valor' | 'girar' | 'girar-izq' | 'espejo-x' | 'espejo-y' | 'cortar' | 'copiar' | 'duplicar' | 'guardar-plantilla' | 'exportar-seleccion' | 'borrar'
   | 'derivar' | 'editar-texto'
-  | 'colocar-aqui' | 'pegar-aqui' | 'etiqueta' | 'tierra' | 'nota' | 'encuadrar' | 'agrupar-encapsulados'
+  | 'colocar-aqui' | 'reemplazar' | 'pegar-aqui' | 'etiqueta' | 'tierra' | 'nota' | 'encuadrar' | 'agrupar-encapsulados'
   | 'nuevo' | 'abrir' | 'recientes' | 'guardar' | 'guardar-como' | 'exportar' | 'configuracion'
   | `reciente:${number}` | 'olvidar-recientes' | `exportar:${FormatoExportar}`
   | 'formato' | `formato:${string}`
@@ -245,7 +246,7 @@ export function menuDeObjetivo(o: ObjetivoMenu, ctx: ContextoMenu): ModeloMenu {
         // «Editar» es el doble clic: abre el editor de referencia y valor.
         antes: [entradaEditar('etiqueta'), orden('panel-inspector')],
         // Lo que el último grupo de Inicio ofrece de la selección también está aquí.
-        propias: p && def && unidadesDe(def, p.props) ? [orden('agrupar-encapsulados')] : def?.modelo?.tipo === 'osciloscopio' ? [orden('franja-osciloscopio'), orden('panel-mediciones'), orden('franja-registro')] : def?.modelo?.tipo === 'multimetro' ? [orden('panel-mediciones')] : [],
+        propias: p?.tipo === ID_SIN_EQUIVALENCIA && !varios ? [item('reemplazar', 'Reemplazar por…', { icono: 'pieza' })] : p && def && unidadesDe(def, p.props) ? [orden('agrupar-encapsulados')] : def?.modelo?.tipo === 'osciloscopio' ? [orden('franja-osciloscopio'), orden('panel-mediciones'), orden('franja-registro')] : def?.modelo?.tipo === 'multimetro' ? [orden('panel-mediciones')] : [],
         borrar: eliminar(ctx)
       })
     }

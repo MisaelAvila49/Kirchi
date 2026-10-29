@@ -117,7 +117,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Transistor_BJT:Q_PNP_BCE", "ltspice": "pnp", "falstad": "t", "proteus": "PNP", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": ["Transistor_BJT:Q_PNP_BCE", "Transistor_BJT:Q_PNP_CBE", "Transistor_BJT:Q_PNP_EBC", "Transistor_BJT:Q_PNP_ECB", "Device:Q_PNP_ECB", "Simulation_SPICE:PNP"], "ltspice": "pnp", "falstad": "t", "proteus": "PNP", "sinVerificar": ["proteus"] },
     "valores": {
       "2N2907": {
         "fabricante": "onsemi",

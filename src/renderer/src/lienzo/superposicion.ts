@@ -53,7 +53,21 @@ export interface EstadoVisual {
   sondaArrastrada?: { id: Id; x: number; y: number; valida: boolean } | null
   /** Tutorial: las piezas esperadas (sombra translúcida, en su giro) y los cables esperados (punteados). */
   guiaTutorial?: GuiaTutorial | null
+  /** Piezas, cables y etiquetas que una tarjeta del informe de importación pide ver: se pintan en el tono de la tarjeta y todo lo demás se atenúa. Sin animación. */
+  resaltado?: Resaltado | null
 }
+
+export interface Resaltado {
+  tono: 'ocre' | 'rojo' | 'azul' | 'verdeazul'
+  piezas: readonly Id[]
+  cables: readonly Id[]
+  etiquetas: readonly Id[]
+}
+
+/** Cuánto se vela lo que no se resalta. */
+export const ALFA_VELO = 0.7
+/** Del tono de una tarjeta al color del lienzo que más se le parece. */
+const COLOR_DE_TONO = { ocre: 'corriente', rojo: 'invalido', azul: 'seleccion', verdeazul: 'cable' } as const
 
 export interface GuiaTutorial {
   piezas: readonly { tipo: string; x: number; y: number; rot: Pieza['rot']; props?: Readonly<Record<string, string>> }[]
@@ -131,6 +145,27 @@ export function construirSuperposicion(doc: Documento, lib: Map<string, PiezaDef
   const cajaPieza = (p: Pieza) => {
     const def = lib.get(p.tipo)
     return def ? cajaDeSeleccion(p, def, MARGEN_CAJA) : desplazarCaja(CAJA_DESCONOCIDA, p.x, p.y)
+  }
+
+  const r = ev.resaltado
+  if (r) {
+    const c = paleta[COLOR_DE_TONO[r.tono]]
+    const G = 1e6
+    const velo = conAlfa(paleta.lienzo, ALFA_VELO)
+    tri.triangulo(-G, -G, G, -G, G, G, velo)
+    tri.triangulo(-G, -G, G, G, -G, G, velo)
+    const relleno = conAlfa(c, 0.18)
+    for (const id of r.piezas) {
+      const p = doc.piezas[id]
+      if (!p) continue
+      const cj = cajaPieza(p)
+      tri.triangulo(cj.minX, cj.minY, cj.maxX, cj.minY, cj.maxX, cj.maxY, relleno)
+      tri.triangulo(cj.minX, cj.minY, cj.maxX, cj.maxY, cj.minX, cj.maxY, relleno)
+      dibujarPieza(t, null, p, lib.get(p.tipo), c)
+      rectangulo(t, cj, ANCHO_TRAZO, c)
+    }
+    for (const id of r.cables) if (doc.cables[id]) dibujarCable(t, doc.cables[id], c, saltos)
+    for (const id of r.etiquetas) if (doc.etiquetas[id]) t.polilinea(formaEtiqueta(doc.etiquetas[id]), ANCHO_TRAZO, c)
   }
 
   // Un arrastre que se encimaría pinta lo que se mueve en color inválido.

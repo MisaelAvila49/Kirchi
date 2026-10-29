@@ -105,7 +105,7 @@
         "fabricante": "Texas Instruments",
         "parte": "SN74LS138N",
         "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls138.pdf",
-        "equivalencias": { "kicad": "74xx:74LS138" },
+        "equivalencias": { "kicad": "74xx:74LS138", "proteus": "74LS138" },
         "presentaciones": [
           {
             "encapsulado": "DIP-16",

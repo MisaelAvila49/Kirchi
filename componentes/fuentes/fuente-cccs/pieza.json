@@ -75,12 +75,7 @@
     }
   },
   "datos": {
-    "equivalencias": {
-      "ltspice": "f",
-      "sinVerificar": [
-        "ltspice"
-      ]
-    },
+    "equivalencias": { "ltspice": "f", "falstad": "215", "sinVerificar": ["falstad"] },
     "valores": {
       "*": {
         "virtual": true,

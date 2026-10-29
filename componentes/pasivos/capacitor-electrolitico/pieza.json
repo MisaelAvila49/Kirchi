@@ -17,7 +17,7 @@
   "modelo": { "tipo": "C", "a": "+", "b": "-", "prop": "valor", "rserie": "esr" },
   "limites": { "voltaje": { "prop": "voltaje", "aviso": 1, "inverso": 1 }, "quema": { "factor": 1, "durante": 0.5 } },
   "datos": {
-    "equivalencias": { "kicad": "Device:C_Polarized", "ltspice": "polcap", "falstad": "209", "proteus": "CAP-ELEC", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": "Device:C_Polarized", "ltspice": ["polcap", "Misc\\EuropeanPolcap"], "falstad": "209", "proteus": ["CAP-ELEC", "CAP-POL"], "sinVerificar": ["proteus"] },
     "valores": {
       "*": {
         "presentaciones": [

@@ -1,6 +1,6 @@
 # Guía de uso
 
-Esta guía recorre lo básico de Kirchi. Dentro de la aplicación, el tutorial «Aprende Kirchi» (menú Ayuda) recorre Kirchi paso a paso, en cuatro capítulos que se pueden hacer por separado: Conoce Kirchi, Tu primer circuito, Medir y Analizar y exportar. En los pasos «Mira» un marco señala una zona y se avanza con «Siguiente»; en los pasos «Haz» la aplicación comprueba lo que hiciste.
+Esta guía recorre lo básico de Kirchi. Dentro de la aplicación, el tutorial «Aprende Kirchi» (menú Ayuda) recorre Kirchi paso a paso, en cinco capítulos que se pueden hacer por separado: Conoce Kirchi, Tu primer circuito, Medir, Analizar y exportar e Importar. En los pasos «Mira» un marco señala una zona y se avanza con «Siguiente»; en los pasos «Haz» la aplicación comprueba lo que hiciste.
 
 ## La ventana
 
@@ -136,10 +136,24 @@ Un asistente de IA (Claude Desktop, Claude Code o cualquier cliente MCP) puede t
 
 1. Abre Configuración › Asistente y activa «Permitir que un asistente controle Kirchi».
 2. Pulsa «Copiar configuración del asistente» y pega el texto en la configuración del cliente; el estado de la pestaña dice «Listo. Escríbele al asistente desde tu cliente.» Con el instalador de Windows lleva la ruta completa de Kirchi y con la Microsoft Store el alias `kirchi`.
-3. Escríbele directo en tu cliente, en palabras. Puede colocar piezas, cablear, cambiar valores, simular, leer mediciones, usar plantillas y calculadoras, correr y guardar análisis con trazas por pin, y exportar la imagen o la gráfica.
+3. Escríbele directo en tu cliente, en palabras. Puede colocar piezas, cablear, cambiar valores, simular, leer mediciones, usar plantillas y calculadoras, importar un circuito de Falstad, LTspice, SPICE, KiCad o Proteus que dejes en su carpeta, correr y guardar análisis con trazas por pin, y exportar la imagen o la gráfica.
 
 Mientras trabaja, la fila de título muestra qué asistente está conectado y un botón para desconectarlo. Cada paso suyo se deshace con Ctrl+Z y queda en el Registro. Un circuito nuevo del asistente se abre en su propia ventana, y lo que tengas abierto se edita ahí a la vista. Sus archivos están en la carpeta del asistente (Documentos\Kirchi\Asistente), que puedes cambiar o restablecer en la misma pestaña, y se guardan solos después de cada cambio. Si un archivo abierto cambia fuera de Kirchi, un aviso ofrece «Recargar» o «Conservar el mío». Si desconectas, el asistente no vuelve hasta que apagues y enciendas el permiso.
 
 ## Archivos
 
 Los circuitos se guardan como `.kir`, que se abren con doble clic desde el explorador. Kirchi mantiene respaldos y un diario para recuperar el trabajo tras un cierre inesperado. **Exportar imagen** (Inicio › Archivo) genera SVG, PNG y PDF, con fondo blanco por omisión y la opción de exportar solo la selección.
+
+## Importar circuitos de otros programas
+
+Kirchi abre circuitos hechos en otros programas. Los formatos aceptados son el texto que exportan Falstad y CircuitJS (`.txt`), los esquemas de LTspice (`.asc`), los netlists SPICE (`.cir`, `.net`, `.sp`), los esquemas de KiCad 7 a 9 (`.kicad_sch`) y los proyectos de Proteus 8 (`.pdsprj`). El programa de origen se reconoce por el contenido del archivo, no por su extensión.
+
+Para importar, usa Abrir (`Ctrl+O`) o arrastra el archivo a la ventana. El circuito se abre como un documento nuevo sin guardar y el archivo original no se modifica. Los esquemas de KiCad con varias hojas se leen completos: Kirchi busca las hojas en la carpeta del archivo principal.
+
+Al abrir aparece el informe de importación, que después queda en Proyecto. Sus tarjetas separan lo aproximado (una pieza parecida con otro modelo), lo que no tiene equivalencia, las redes unidas con etiqueta y los análisis convertidos. Al pasar el ratón por una tarjeta, o darle el foco con el teclado, se resaltan sus piezas en el lienzo, y un clic las encuadra. El informe se guarda con el archivo hasta que lo ocultas.
+
+Lo que no tiene una pieza equivalente queda como una caja gris con los pines del original. Para cambiarla, haz clic derecho sobre ella y elige «Reemplazar por…»: la pieza nueva conserva los cables de la caja.
+
+Se conservan los instrumentos y los análisis del original: sondas de voltaje y de corriente, generadores de pulso y senoidales, fuentes de CD, multímetros y osciloscopios virtuales, y los análisis de punto de operación, barrido de CD, transitorio, CA y Fourier. En Proteus, las gráficas analógicas pasan a un análisis transitorio con sus trazas, y los potenciómetros conservan la posición de su cursor. Los cables se trazan de nuevo con el enrutador de Kirchi, así que no siguen el recorrido del original. Todo lo que no se pudo convertir queda anotado en el informe.
+
+El asistente también puede importar: la herramienta `importar` convierte un circuito de su carpeta y devuelve el informe (véase la sección Asistente).

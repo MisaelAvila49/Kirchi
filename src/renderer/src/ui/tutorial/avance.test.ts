@@ -7,7 +7,7 @@ describe('avance del tutorial', () => {
   it('sin avance, cada capítulo se empieza con sus pasos', () => {
     const n = CAPITULO_1.pasos.length
     expect(resumenDeCapitulo(CAPITULO_1, {})).toMatchObject({ estado: 'nuevo', etiqueta: 'Sin empezar', accion: 'Empezar', fraccion: 0, total: n })
-    expect(CAPITULOS.map((c) => resumenDeCapitulo(c, {}).total)).toEqual([11, 19, 20, 25])
+    expect(CAPITULOS.map((c) => resumenDeCapitulo(c, {}).total)).toEqual([11, 19, 20, 25, 7])
     for (const c of CAPITULOS) expect(resumenDeCapitulo(c, {}), c.id).toMatchObject({ estado: 'nuevo', accion: 'Empezar' })
   })
 
@@ -59,9 +59,9 @@ describe('avance del tutorial', () => {
     expect(siguienteCapitulo([{ ...CAPITULOS[1], pasos: [] }], {})).toBeUndefined()
   })
 
-  it('son cuatro capítulos con ids propios y 31 minutos en total', () => {
-    expect(CAPITULOS.map((c) => c.numero)).toEqual([1, 2, 3, 4])
-    expect(CAPITULOS.map((c) => c.id)).toEqual(['conoce', 'circuito', 'medir-senales', 'analizar'])
-    expect(minutosTotales()).toBe(31)
+  it('son cinco capítulos con ids propios y 35 minutos en total', () => {
+    expect(CAPITULOS.map((c) => c.numero)).toEqual([1, 2, 3, 4, 5])
+    expect(CAPITULOS.map((c) => c.id)).toEqual(['conoce', 'circuito', 'medir-senales', 'analizar', 'importar'])
+    expect(minutosTotales()).toBe(35)
   })
 })

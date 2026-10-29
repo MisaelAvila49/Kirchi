@@ -68,6 +68,10 @@ export interface ArchivoLeido {
   ruta: string
   nombre: string
   bytes: Uint8Array
+  /** Hojas que cita un esquema jerárquico de KiCad, por el nombre con que las cita (solo las leídas de su carpeta). */
+  anexos?: Record<string, Uint8Array>
+  /** Hojas que no se pudieron leer, con su motivo. */
+  avisosAnexos?: string[]
 }
 
 export type ResultadoAbrir =
@@ -173,6 +177,11 @@ export function extension(ruta: string): string {
 }
 
 export const esRutaKir = (ruta: string): boolean => extension(ruta) === 'kir'
+
+/** Extensiones de circuitos de otros programas que Abrir convierte (Falstad, LTspice, SPICE, KiCad, Proteus). */
+export const EXTENSIONES_IMPORTABLES = ['asc', 'cir', 'net', 'sp', 'spi', 'txt', 'kicad_sch', 'pdsprj']
+
+export const esRutaImportable = (ruta: string): boolean => EXTENSIONES_IMPORTABLES.includes(extension(ruta))
 
 /** «practica-3.kir» → «practica-3.png»; sin extensión, se agrega. */
 export function cambiarExtension(nombre: string, ext: string): string {

@@ -6,6 +6,7 @@ import { rotulosDePieza, textoEnPieza, textosLocales, type Texto } from '../lien
 import { textosManuales } from '../lienzo/textosManuales'
 import { ANCHO_CABLE, cajaEtiqueta, cajaNota } from '../lienzo/medidas'
 import type { Caja, PiezaDef } from '../piezas/tipos'
+import { defDe } from '../piezas/sinEquivalencia'
 
 /** Versión de referencia de `etiquetasSinChoques` antes de acelerarla: cubetas en un Map de arreglos, un objeto por
  * candidato y cada consulta contra todos los obstáculos. Lenta a propósito: las pruebas exigen que la rápida dé lo mismo.
@@ -177,7 +178,7 @@ export function etiquetasSinChoquesReferencia(doc: Documento, lib: Map<string, P
     }
   const piezas = Object.values(doc.piezas).sort(porId)
   piezas.forEach((p, i) => {
-    const def = lib.get(p.tipo)
+    const def = defDe(p, lib.get(p.tipo))
     const cuerpo = cuerpoEnMundo(p, def)
     agregarCaja(cuerpo, i)
     cuerpos.agregar(cuerpo.minX, cuerpo.minY, cuerpo.maxX, cuerpo.maxY, i)

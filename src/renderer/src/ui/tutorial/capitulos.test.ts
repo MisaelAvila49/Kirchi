@@ -11,6 +11,7 @@ import { CAPITULO_1 } from './capitulo1'
 import { CAPITULO_2 } from './capitulo2'
 import { CAPITULO_3 } from './capitulo3'
 import { CAPITULO_4 } from './capitulo4'
+import { CAPITULO_5 } from './capitulo5'
 import { CAPITULOS } from './capitulos'
 import { primerPasoPendiente } from './reanudar'
 import { partirTexto, textoLlano } from './texto'
@@ -24,15 +25,16 @@ const pieza = (id: string, tipo: string, x: number, y: number, rot: Pieza['rot']
 const vacio = () => documentoVacio()
 const inicio = (id: string): Documento => structuredClone(arranqueDeCapitulo(id)!)
 
-describe('los cuatro capítulos: forma y textos', () => {
+describe('los cinco capítulos: forma y textos', () => {
   const pasos = CAPITULOS.flatMap((c) => c.pasos.map((p) => ({ c, p })))
 
-  it('hay cuatro capítulos con ids propios, numerados y con su descripción', () => {
+  it('hay cinco capítulos con ids propios, numerados y con su descripción', () => {
     expect(CAPITULOS.map((c) => [c.numero, c.id, c.titulo])).toEqual([
       [1, 'conoce', 'Conoce Kirchi'],
       [2, 'circuito', 'Tu primer circuito'],
       [3, 'medir-senales', 'Medir'],
-      [4, 'analizar', 'Analizar y exportar']
+      [4, 'analizar', 'Analizar y exportar'],
+      [5, 'importar', 'Importar']
     ])
     for (const c of CAPITULOS) expect(c.descripcion.split('. ').length, c.id).toBeLessThanOrEqual(2)
   })
@@ -447,5 +449,56 @@ describe('capítulo 4: Analizar y exportar', () => {
     expect(CAPITULO_2.documentoNuevo).toBe(true)
     expect(CAPITULO_4.documentoNuevo).toBe(true)
     expect(arranqueDeCapitulo('analizar')).toBeUndefined()
+  })
+})
+
+describe('capítulo 5: Importar', () => {
+  const informe = { origen: { formato: 'spice', nombre: 'amplificador.cir' }, sinEquivalencia: [{ id: 'x1' }] } as unknown as NonNullable<Documento['importacion']>
+  const conInforme = (): Documento => {
+    const d = vacio()
+    d.importacion = informe
+    d.piezas.x1 = pieza('x1', 'sin-equivalencia', 0, 0)
+    return d
+  }
+
+  it('abrir el ejemplo se cumple cuando sale el diálogo del informe y trae su botón en el globo', () => {
+    const p = CAPITULO_5.pasos.find((q) => q.id === 'abrir-ejemplo')!
+    expect(p.boton).toEqual({ id: 'abrir-ejemplo', texto: 'Abrir el ejemplo' })
+    expect(hecho(CAPITULO_5, 'abrir-ejemplo', ctx(vacio()))).toBe(false)
+    expect(hecho(CAPITULO_5, 'abrir-ejemplo', ctx(vacio(), { dialogo: 'importacion' }))).toBe(true)
+  })
+
+  it('«Entendido» se cumple al cerrar el diálogo con Proyecto a la vista', () => {
+    expect(hecho(CAPITULO_5, 'entendido', ctx(conInforme(), { dialogo: 'importacion', derecho: 'proyecto' }))).toBe(false)
+    expect(hecho(CAPITULO_5, 'entendido', ctx(conInforme(), { dialogo: null, derecho: 'inspector' }))).toBe(false)
+    expect(hecho(CAPITULO_5, 'entendido', ctx(conInforme(), { dialogo: null, derecho: 'proyecto' }))).toBe(true)
+  })
+
+  it('señalar la tarjeta ocre se cumple solo con esa tarjeta resaltada', () => {
+    expect(hecho(CAPITULO_5, 'resaltar', ctx(conInforme(), { resaltada: 'sinEquivalencia' }))).toBe(false)
+    expect(hecho(CAPITULO_5, 'resaltar', ctx(conInforme(), { resaltada: 'aproximadas' }))).toBe(true)
+  })
+
+  it('reemplazar se cumple cuando la caja gris ya no está y el informe sigue en el documento', () => {
+    expect(hecho(CAPITULO_5, 'reemplazar', ctx(conInforme()))).toBe(false)
+    const d = conInforme()
+    delete d.piezas.x1
+    d.piezas.u2 = pieza('u2', 'amp-op', 0, 0)
+    expect(hecho(CAPITULO_5, 'reemplazar', ctx(d))).toBe(true)
+    expect(hecho(CAPITULO_5, 'reemplazar', ctx(vacio()))).toBe(false)
+  })
+
+  it('parte de un lienzo vacío y el ejemplo produce aproximadas, una caja gris y un análisis', async () => {
+    expect(CAPITULO_5.documentoNuevo).toBe(true)
+    expect(arranqueDeCapitulo('importar')).toBeUndefined()
+    const { importarBytes } = await import('../../importar/importar')
+    const { EJEMPLO_IMPORTAR, NOMBRE_EJEMPLO_IMPORTAR } = await import('./ejemploImportar')
+    const r = importarBytes(NOMBRE_EJEMPLO_IMPORTAR, new TextEncoder().encode(EJEMPLO_IMPORTAR), lib)
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      expect(r.informe.aproximadas).toHaveLength(1)
+      expect(r.informe.sinEquivalencia).toHaveLength(1)
+      expect(r.informe.analisis).toHaveLength(1)
+    }
   })
 })

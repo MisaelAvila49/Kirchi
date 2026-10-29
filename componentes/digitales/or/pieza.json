@@ -20,7 +20,7 @@
   "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } },
   "datos": {
     "por": ["familia", "entradas"],
-    "equivalencias": { "ltspice": "Digital\\or", "falstad": "152", "sinVerificar": ["ltspice"] },
+    "equivalencias": { "ltspice": "Digital\\or", "falstad": "152", "proteus": ["OR", "OR_3", "OR_4", "OR_5", "OR_6", "OR_7"], "sinVerificar": ["ltspice"] },
     "valores": {
       "74HC|2": {
         "fabricante": "Texas Instruments",
@@ -47,7 +47,7 @@
         "fabricante": "Texas Instruments",
         "parte": "SN74LS32N",
         "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls32.pdf",
-        "equivalencias": { "kicad": "74xx:74LS32" },
+        "equivalencias": { "kicad": "74xx:74LS32", "proteus": "74LS32" },
         "presentaciones": [
           {
             "encapsulado": "DIP-14",

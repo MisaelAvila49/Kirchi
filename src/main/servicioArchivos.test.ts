@@ -109,6 +109,17 @@ describe('ServicioArchivos: abrir', () => {
     expect(s.abrirReciente(42)).toMatchObject({ ok: false })
   })
 
+  it('abrir y soltar leen un circuito de otro programa, lo anotan en Recientes con su ruta y no lo dejan sobrescribir', () => {
+    const { s, recientes } = servicio()
+    const ruta = join(dir, 'filtro.asc')
+    writeFileSync(ruta, 'Version 4')
+    const r = s.abrirSoltado(ruta)
+    expect(r).toMatchObject({ ok: true, archivo: { nombre: 'filtro.asc' } })
+    expect(recientes()).toEqual([ruta])
+    expect(s.abrirRuta(join(dir, 'foto.png'))).toMatchObject({ ok: false })
+    expect(s.guardar(ruta, kir(1))).toMatchObject({ ok: false })
+  })
+
   it('un archivo soltado se abre por su propio canal, sin pasar por Recientes', () => {
     const { s } = servicio()
     const ruta = join(dir, 'p.kir')
@@ -649,5 +660,59 @@ describe('ServicioArchivos: diario y recuperación', () => {
     await s.abrirRespaldos()
     expect(carpetas).toEqual([join(datos, 'respaldos')])
     expect(existsSync(join(datos, 'respaldos'))).toBe(true)
+  })
+
+  describe('esquema jerárquico de KiCad', () => {
+    const esquema = (...hojas: string[]) =>
+      `(kicad_sch (version 20250114)
+${hojas.map((h) => `(sheet (at 0 0) (size 5 5) (property "Sheetname" "H" (at 0 0 0)) (property "Sheetfile" "${h}" (at 0 0 0)))`).join('\n')}
+)`
+
+    it('abrir lee las hojas citadas, también las de una subcarpeta y las de hojas dentro de hojas', () => {
+      mkdirSync(join(dir, 'sub'))
+      writeFileSync(join(dir, 'padre.kicad_sch'), esquema('uno.kicad_sch', 'sub/dos.kicad_sch'))
+      writeFileSync(join(dir, 'uno.kicad_sch'), esquema())
+      writeFileSync(join(dir, 'sub', 'dos.kicad_sch'), esquema('tres.kicad_sch'))
+      writeFileSync(join(dir, 'sub', 'tres.kicad_sch'), esquema())
+      const { s } = servicio()
+      const r = s.abrirRuta(join(dir, 'padre.kicad_sch'))
+      if (!r.ok) throw new Error('no abrió')
+      expect(Object.keys(r.archivo.anexos ?? {}).sort()).toEqual(['sub/dos.kicad_sch', 'tres.kicad_sch', 'uno.kicad_sch'])
+      expect(r.archivo.avisosAnexos).toBeUndefined()
+    })
+
+    it('una cita con .., ruta absoluta o ruta de red se rechaza con aviso y no se lee', () => {
+      const fuera = mkdtempSync(join(tmpdir(), 'kirchi-fuera-'))
+      try {
+        writeFileSync(join(fuera, 'secreto.kicad_sch'), esquema())
+        mkdirSync(join(dir, 'carpeta'))
+        writeFileSync(join(dir, 'carpeta', 'padre.kicad_sch'), esquema('../../' + fuera.split(/[\\/]/).pop() + '/secreto.kicad_sch', join(fuera, 'secreto.kicad_sch'), '\\\\servidor\\r\\x.kicad_sch', 'sub/../../a.kicad_sch'))
+        const r = servicio().s.abrirRuta(join(dir, 'carpeta', 'padre.kicad_sch'))
+        if (!r.ok) throw new Error('no abrió')
+        expect(r.archivo.anexos).toBeUndefined()
+        expect(r.archivo.avisosAnexos).toHaveLength(4)
+      } finally {
+        rmSync(fuera, { recursive: true, force: true })
+      }
+    })
+
+    it('una hoja que falta o un ciclo entre hojas no rompen la apertura', () => {
+      writeFileSync(join(dir, 'a.kicad_sch'), esquema('b.kicad_sch', 'falta.kicad_sch'))
+      writeFileSync(join(dir, 'b.kicad_sch'), esquema('a.kicad_sch'))
+      const r = servicio().s.abrirRuta(join(dir, 'a.kicad_sch'))
+      if (!r.ok) throw new Error('no abrió')
+      expect(Object.keys(r.archivo.anexos ?? {}).sort()).toEqual(['b.kicad_sch'])
+      expect(r.archivo.avisosAnexos).toEqual([expect.stringContaining('falta.kicad_sch')])
+    })
+
+    it('se leen como máximo 64 hojas', () => {
+      const nombres = Array.from({ length: 70 }, (_, i) => `h${i}.kicad_sch`)
+      writeFileSync(join(dir, 'padre.kicad_sch'), esquema(...nombres))
+      for (const n of nombres) writeFileSync(join(dir, n), esquema())
+      const r = servicio().s.abrirRuta(join(dir, 'padre.kicad_sch'))
+      if (!r.ok) throw new Error('no abrió')
+      expect(Object.keys(r.archivo.anexos ?? {})).toHaveLength(64)
+      expect(r.archivo.avisosAnexos).toHaveLength(6)
+    })
   })
 })

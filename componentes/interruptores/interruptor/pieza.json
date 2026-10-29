@@ -12,7 +12,7 @@
   "props": [{ "id": "estado", "nombre": "Estado", "defecto": "abierto", "opciones": ["abierto", "cerrado"] }],
   "modelo": { "tipo": "interruptor", "a": "1", "b": "2", "prop": "estado", "cerrado": "cerrado" },
   "datos": {
-    "equivalencias": { "kicad": "Switch:SW_SPST", "falstad": "s", "proteus": "SWITCH", "sinVerificar": ["proteus"] },
+    "equivalencias": { "kicad": "Switch:SW_SPST", "falstad": "s", "proteus": "SWITCH" },
     "valores": {
       "*": {
         "pendiente": {

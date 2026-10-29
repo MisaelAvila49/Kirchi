@@ -510,3 +510,61 @@ test('capítulo 3 con el flujo completo: cada lectura enmarcada al simular y el 
   await expect.poll(() => cumplido(page), { timeout: 5000 }).toBe(true)
   await app.close()
 })
+
+const CAPTURAS_IMPORTAR = process.env.KIRCHI_CAPTURAS_TUTORIAL
+
+test('capítulo 5: Importar abre el ejemplo, lee el informe, resalta la tarjeta ocre y reemplaza la caja gris', async () => {
+  const { app, page } = await abrir()
+  const captura = async (nombre: string) => {
+    if (!CAPTURAS_IMPORTAR) return
+    await page.waitForTimeout(250)
+    await page.screenshot({ path: `${CAPTURAS_IMPORTAR}/${nombre}.png` })
+  }
+  await empezar(page, 'importar', 7)
+  expect(Object.keys((await sonda(page, 'doc')).piezas)).toHaveLength(0)
+
+  // Mira: Abrir y los formatos que acepta.
+  await mirar(page, 2, 7)
+
+  // Haz: el botón del globo importa el ejemplo y sale el informe.
+  await captura('paso2-abrir-ejemplo')
+  await globo(page).getByRole('button', { name: 'Abrir el ejemplo' }).click()
+  await expect(page.getByRole('dialog', { name: 'Importado de SPICE' })).toBeVisible()
+  await siguiente(page, 3, 7)
+
+  // Mira: las tarjetas, con el marco y el globo sobre el diálogo.
+  await expect(page.locator('.tutorial-globo.sobre-dialogo')).toBeVisible()
+  await captura('paso3-tarjetas')
+  await mirar(page, 4, 7)
+
+  // Haz: Entendido cierra el diálogo y abre Proyecto.
+  await page.getByRole('button', { name: 'Entendido' }).click()
+  await siguiente(page, 5, 7)
+
+  // Haz: el ratón por la tarjeta ocre resalta las piezas aproximadas.
+  const tarjeta = page.locator('.panel-proyecto .tarjeta-informe[data-clase="aproximadas"]')
+  await tarjeta.hover()
+  await expect.poll(() => sonda(page, 'resaltado')).toMatchObject({ tono: 'ocre' })
+  await captura('paso5-tarjeta-ocre')
+  await siguiente(page, 6, 7)
+
+  // Haz: clic derecho en la caja gris, Reemplazar por… y un amp op.
+  await page.mouse.move(5, 5)
+  await captura('paso6-reemplazar')
+  const caja = Object.values((await sonda(page, 'doc')).piezas as Record<string, any>).find((p) => p.tipo === 'sin-equivalencia')
+  const c = await sonda(page, 'aPantalla', caja.x, caja.y)
+  await page.mouse.click(c.x, c.y, { button: 'right' })
+  await page.getByRole('menuitem', { name: 'Reemplazar por…' }).click()
+  await page.locator('.buscador-campo').fill('amp op')
+  await page.keyboard.press('Enter')
+  await page.getByRole('dialog', { name: '¿Reemplazar la pieza?' }).getByRole('button', { name: /^Reemplazar por/ }).click()
+  await expect(page.locator('.panel-proyecto .tarjeta-informe[data-clase="sinEquivalencia"]')).toContainText('Todas reemplazadas')
+  await expect(page.locator('.panel-proyecto .tarjeta-informe[data-clase="sinEquivalencia"]')).toHaveAttribute('data-tono', 'verdeazul')
+  await siguiente(page, 7, 7)
+
+  // Mira: guardar crea un .kir nuevo.
+  await marco(page)
+  await captura('paso7-guardar')
+  await expect(globo(page).getByRole('button', { name: 'Terminar' })).toBeVisible()
+  await app.close()
+})

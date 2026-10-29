@@ -204,7 +204,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Device:Q_NJFET_DSG", "ltspice": "njf", "falstad": "j", "proteus": "NJF", "sinVerificar": ["ltspice", "falstad", "proteus"] },
+    "equivalencias": { "kicad": ["Device:Q_NJFET_DSG", "Simulation_SPICE:NJFET"], "ltspice": "njf", "falstad": "j", "proteus": "NJF", "sinVerificar": ["proteus"] },
     "valores": {
       "2N5457": {
         "fabricante": "Central Semiconductor",

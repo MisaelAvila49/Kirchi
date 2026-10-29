@@ -1,0 +1,15 @@
+Inversor con amplificador operacional en linea
+.subckt opamp inp inn out vcc vee
+Rin inp inn 1meg
+E1 int 0 inp inn 100k
+Ro int out 75
+.ends opamp
+Vs in 0 AC 1 SIN(0 1 1k)
+Vcc vcc 0 DC 15
+Vee vee 0 DC -15
+R1 in inv 10k
+Rf inv out 47k
+X1 0 inv out vcc vee opamp
+.ac dec 20 10 100k
+.probe v(out)
+.end

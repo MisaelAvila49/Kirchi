@@ -70,14 +70,14 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Device:D", "ltspice": "diode", "falstad": "d", "proteus": "DIODE", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": ["Device:D", "Simulation_SPICE:D", "Simulation_SPICE:DIODE"], "ltspice": "diode", "falstad": "d", "proteus": "DIODE" },
     "valores": {
       "Genérico": { "virtual": true, "nota": "Diodo de siempre de Kirchi, sin pieza física" },
       "1N4148": {
         "fabricante": "Vishay",
         "parte": "1N4148",
         "hoja": "https://www.vishay.com/docs/81857/1n4148.pdf",
-        "equivalencias": { "kicad": "Diode:1N4148" },
+        "equivalencias": { "kicad": "Diode:1N4148", "proteus": "1N4148" },
         "presentaciones": [
           {
             "encapsulado": "DO-35",

@@ -17,9 +17,9 @@ const ctxDe = (id: string): CtxTutorial => {
 }
 
 describe('circuitos de arranque: cada capítulo se puede hacer solo', () => {
-  it('Conoce Kirchi y Medir traen el suyo; Tu primer circuito y Analizar parten de un lienzo vacío', () => {
+  it('Conoce Kirchi y Medir traen el suyo; Tu primer circuito y Analizar e Importar parten de un lienzo vacío', () => {
     expect(CAPITULOS.filter((c) => c.arranque).map((c) => c.id)).toEqual(['conoce', 'medir-senales'])
-    expect(CAPITULOS.filter((c) => c.documentoNuevo).map((c) => c.id)).toEqual(['circuito', 'analizar'])
+    expect(CAPITULOS.filter((c) => c.documentoNuevo).map((c) => c.id)).toEqual(['circuito', 'analizar', 'importar'])
     for (const c of CAPITULOS) expect(arranqueDeCapitulo(c.id) !== undefined, c.id).toBe(!!c.arranque)
     // Ningún capítulo necesita lo que dejó otro: cada uno trae su circuito o empieza vacío.
     for (const c of CAPITULOS) expect(!!c.arranque || !!c.documentoNuevo, c.id).toBe(true)

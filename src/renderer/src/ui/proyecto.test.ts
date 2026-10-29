@@ -164,6 +164,15 @@ describe('avisos', () => {
     ])
   })
 
+  it('la caja sin equivalencia avisa con su enlace, sin el aviso genérico, y no lo da el circuito sin ella', () => {
+    const d = divisor()
+    expect(avisos(d)).toEqual([])
+    d.piezas.u2 = { id: 'u2', tipo: 'sin-equivalencia', ref: 'U2', x: 60, y: 40, rot: 0, espejo: false, props: { nombre: 'XYZ' } }
+    const a = avisos(d)
+    expect(a).toContainEqual({ texto: 'U2 no tiene equivalencia en Kirchi: reemplázala para simular.', piezas: ['u2'] })
+    expect(a.some((x) => x.texto.includes('modelo eléctrico'))).toBe(false)
+  })
+
   it('un LED directo sobre la batería da el aviso con las dos piezas; con resistencia no', () => {
     const d = ledConBateria()
     expect(avisos(d)).toEqual([])

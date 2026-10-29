@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { closeSync, constants, copyFileSync, fstatSync, mkdirSync, openSync, readdirSync, readSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { isAbsolute, join, normalize, win32 } from 'node:path'
-import { cambiarExtension, esRutaKir, extension, LARGO_MAXIMO_RUTA, LIMITE_KIR, MAX_ARCHIVOS_RECIENTES, nombreDeRuta } from '../compartido/archivos'
+import { cambiarExtension, esRutaImportable, esRutaKir, extension, LARGO_MAXIMO_RUTA, LIMITE_KIR, MAX_ARCHIVOS_RECIENTES, nombreDeRuta } from '../compartido/archivos'
 
 export const CARPETA_RESPALDOS = 'respaldos'
 /** Versiones anteriores que se conservan de cada archivo al guardar encima. */
@@ -46,10 +46,10 @@ export function rutaDeInterfaz(ruta: unknown): ruta is string {
 }
 
 /** Lee un `.kir` con todas las comprobaciones antes de leer un byte. El tamaño se mide sobre el archivo ya abierto, así que uno que crece entre medias no pasa del límite. */
-export function leerKirDelDisco(ruta: unknown, limite = LIMITE_KIR): Leido {
+export function leerKirDelDisco(ruta: unknown, limite = LIMITE_KIR, conImportables = false): Leido {
   if (!rutaValida(ruta)) return { ok: false, error: 'La ruta del archivo no es válida.' }
   const nombre = nombreDeRuta(ruta)
-  if (!esRutaKir(ruta)) return { ok: false, error: `Solo se abren circuitos .kir; ${nombre} no lo es.` }
+  if (!esRutaKir(ruta) && !(conImportables && esRutaImportable(ruta))) return { ok: false, error: `Solo se abren circuitos .kir; ${nombre} no lo es.` }
   // Antes de abrir, que sea un archivo regular: abrir una FIFO para leer bloquea el proceso principal
   // hasta que alguien escriba. Y en POSIX se abre sin bloquear, por si se cambia entre medias.
   try {

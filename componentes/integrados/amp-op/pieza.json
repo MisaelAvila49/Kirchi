@@ -137,19 +137,13 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": {
-      "kicad": "Simulation_SPICE:OPAMP",
-      "ltspice": "OpAmps\\opamp",
-      "falstad": "a",
-      "proteus": "OPAMP",
-      "sinVerificar": ["ltspice", "proteus"]
-    },
+    "equivalencias": { "kicad": "Simulation_SPICE:OPAMP", "ltspice": ["OpAmps\\opamp", "Opamps\\UniversalOpamp2"], "falstad": "a", "proteus": "OPAMP", "sinVerificar": ["ltspice", "proteus"] },
     "valores": {
       "LM741": {
         "fabricante": "Texas Instruments",
         "parte": "LM741CN/NOPB",
         "hoja": "https://www.ti.com/lit/ds/symlink/lm741.pdf",
-        "equivalencias": { "kicad": "Amplifier_Operational:LM741" },
+        "equivalencias": { "kicad": "Amplifier_Operational:LM741", "ltspice": "OpAmps\\LM741" },
         "presentaciones": [
           {
             "encapsulado": "DIP-8",
@@ -168,7 +162,7 @@
         "fabricante": "Texas Instruments",
         "parte": "TL081CP",
         "hoja": "https://www.ti.com/lit/ds/symlink/tl081.pdf",
-        "equivalencias": { "kicad": "Amplifier_Operational:TL081" },
+        "equivalencias": { "kicad": "Amplifier_Operational:TL081", "proteus": "TL081" },
         "presentaciones": [
           {
             "encapsulado": "DIP-8",
@@ -273,7 +267,6 @@
         "fabricante": "Texas Instruments",
         "parte": "TLV9002IDR",
         "hoja": "https://www.ti.com/lit/ds/symlink/tlv9002.pdf",
-        "equivalencias": { "kicad": "Device:Opamp_Dual" },
         "presentaciones": [
           {
             "encapsulado": "SOIC-8",

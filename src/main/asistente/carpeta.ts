@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { EXTENSION_PLANTILLA, motivoNombreInvalido } from '../../compartido/plantillas'
 import { leerKirDelDisco, respaldar } from '../archivos'
@@ -7,6 +7,7 @@ import { escribirAtomico } from '../escritura'
 /** Documentos/Kirchi/Asistente: lo único del disco que el asistente toca. */
 export const CARPETA_ASISTENTE = ['Kirchi', 'Asistente'] as const
 export const MAX_ARCHIVOS_LISTADOS = 500
+const MAX_BYTES_AJENO = 8 * 2 ** 20
 
 export type RutaDeNombre = { ok: true; ruta: string; nombre: string } | { ok: false; motivo: string }
 export type Lectura = { ok: true; bytes: Uint8Array } | { ok: false; motivo: string }
@@ -71,6 +72,24 @@ export class CarpetaAsistente {
     if (!r.ok) return r
     const l = leerKirDelDisco(r.ruta)
     return l.ok ? l : { ok: false, motivo: l.error }
+  }
+
+  /** Los bytes de un archivo de otro programa (.cir, .asc, .kicad_sch...) por nombre completo, con las mismas reglas de nombre que los .kir. */
+  leerAjeno(nombre: unknown): Lectura {
+    const motivo = motivoNombreInvalido(nombre)
+    if (motivo) return { ok: false, motivo }
+    const raiz = resolve(this.raiz)
+    const ruta = resolve(raiz, nombre as string)
+    if (dirname(ruta) !== raiz) return { ok: false, motivo: 'El archivo debe estar en la carpeta del asistente, sin subcarpetas.' }
+    try {
+      const st = lstatSync(ruta)
+      if (st.isSymbolicLink()) return { ok: false, motivo: 'No se admiten enlaces simbólicos.' }
+      if (!st.isFile()) return { ok: false, motivo: `${nombre as string} no es un archivo.` }
+      if (st.size > MAX_BYTES_AJENO) return { ok: false, motivo: `${nombre as string} es demasiado grande para importarlo.` }
+      return { ok: true, bytes: new Uint8Array(readFileSync(ruta)) }
+    } catch {
+      return { ok: false, motivo: `No se encontró ${nombre as string} en la carpeta del asistente.` }
+    }
   }
 
   /** La fecha de modificación del archivo en el disco (ms), o null si no existe. */

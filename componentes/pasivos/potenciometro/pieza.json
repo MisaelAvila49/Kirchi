@@ -22,7 +22,7 @@
     "lineal": "Una recta: la fracción del giro es la fracción del valor."
   },
   "datos": {
-    "equivalencias": { "kicad": "Device:R_Potentiometer", "falstad": "174", "proteus": "POT-LIN", "sinVerificar": ["proteus"] },
+    "equivalencias": { "kicad": "Device:R_Potentiometer", "falstad": "174", "proteus": ["POT-LIN", "POT", "POT-HG"], "sinVerificar": ["proteus"] },
     "valores": {
       "*": {
         "fabricante": "Bourns",

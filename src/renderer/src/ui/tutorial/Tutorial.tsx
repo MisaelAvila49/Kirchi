@@ -41,6 +41,8 @@ interface Props {
   /** Hay un diálogo o un menú encima: el tutorial se esconde mientras tanto. */
   oculto: boolean
   onSalir(): void
+  /** El botón propio de un paso (`PasoDef.boton`). */
+  onBoton?(id: string): void
   /** Tras un botón del globo el foco vuelve al lienzo: las teclas del paso (R, F5) solo valen ahí. */
   alAccion(): void
 }
@@ -351,6 +353,13 @@ export default function Tutorial(props: Props) {
                   </p>
                   <Show when={fuera()}>
                     <p class="tutorial-pista tutorial-fuera">Colócalo sobre la sombra, con el mismo giro.</p>
+                  </Show>
+                  <Show when={paso()!.boton}>
+                    {(b) => (
+                      <button type="button" class="boton tutorial-boton-paso" data-boton-paso={b().id} onClick={() => props.onBoton?.(b().id)}>
+                        {b().texto}
+                      </button>
+                    )}
                   </Show>
                   <Show when={paso()!.pista}>
                     <p class="tutorial-pista">

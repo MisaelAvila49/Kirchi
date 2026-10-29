@@ -21,6 +21,7 @@ import { colocarOrden } from './operaciones/colocar'
 import { moverOrden } from './operaciones/mover'
 import { agruparOrden, unidadOrden } from './operaciones/paquetes'
 import { propiedadOrden } from './operaciones/propiedad'
+import { reemplazarPieza } from './operaciones/reemplazar'
 import { transformarOrden } from './operaciones/transformar'
 import { analisisOrden } from './operaciones/analisis'
 import { nombrarOrden } from './operaciones/nombrar'
@@ -180,6 +181,22 @@ export class NucleoEdicion implements Estado {
       default:
         return { motivo: `La orden «${orden.orden}» todavía no está disponible.` }
     }
+  }
+
+  /** Lo que haría cambiar una pieza por otra de la librería, sin aplicarlo: los avisos dicen los pines sin pareja. */
+  planDeReemplazo(id: Id, tipo: string, props?: Record<string, string>): Plan | Rechazo {
+    return reemplazarPieza(this, id, tipo, props)
+  }
+
+  /** Cambia una pieza por otra en un solo paso de deshacer, con sus cables pasados a la nueva. */
+  reemplazar(id: Id, tipo: string, props?: Record<string, string>): Resultado {
+    const motivo = this.editable()
+    if (motivo) return { ok: false, motivo }
+    const plan = this.planDeReemplazo(id, tipo, props)
+    if (esRechazo(plan)) return { ok: false, motivo: plan.motivo }
+    const r = this.ejecutar(plan.cmd)
+    if (!r.ok) return { ok: false, motivo: plan.verbo ? `${plan.verbo}: ${r.motivo}.` : r.motivo }
+    return { ok: true, creados: plan.creados, avisos: [...plan.avisos, ...r.avisos] }
   }
 
   deshacer(): boolean {

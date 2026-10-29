@@ -29,7 +29,8 @@ describe('contrato de patillas', () => {
   })
 
   it('el archivo guardado cubre todas las piezas base de la librería', () => {
-    const sinGuardar = [...lib.keys()].filter((tipo) => !(tipo in guardado) && !/-\d+$/.test(tipo))
+    // La caja gris de una importación no tiene patillas propias: las trae cada instancia.
+    const sinGuardar = [...lib.keys()].filter((tipo) => !(tipo in guardado) && !/-\d+$/.test(tipo) && tipo !== 'sin-equivalencia')
     expect(sinGuardar).toEqual([])
   })
 

@@ -24,8 +24,9 @@ describe('librería', () => {
     ])
   })
 
+  // La caja gris de una importación no se simula a propósito.
   it('toda pieza de la Librería tiene modelo eléctrico', () => {
-    expect([...libreriaDePrueba().piezas.values()].filter((d) => !d.modelo).map((d) => d.id)).toEqual([])
+    expect([...libreriaDePrueba().piezas.values()].filter((d) => !d.modelo && d.id !== 'sin-equivalencia').map((d) => d.id)).toEqual([])
   })
 
   it('la resistencia mide 8 de largo y sus pines caen en la rejilla principal', () => {

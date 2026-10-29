@@ -16,7 +16,7 @@
   "etiquetas": { "valor": { "x": 0, "y": 4 } },
   "animacion": { "tipo": "sonido", "frecuencia": "frecuencia", "onda": "triangular" },
   "datos": {
-    "equivalencias": { "kicad": "Device:Buzzer", "proteus": "BUZZER", "sinVerificar": ["proteus"] },
+    "equivalencias": { "kicad": "Device:Buzzer", "proteus": "BUZZER" },
     "valores": {
       "*": {
         "presentaciones": [

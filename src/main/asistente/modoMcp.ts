@@ -1,3 +1,4 @@
+/// <reference types="electron-vite/node" />
 import { createReadStream, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
@@ -14,6 +15,8 @@ import { Herramientas } from './herramientas'
 import { libreriaSinVentana } from './libreria'
 import { plantillasDeUsuario } from './plantillasUsuario'
 import { PuenteVentana } from './puenteVentana'
+import { importarEnWorker } from './importarEnWorker'
+import importarWorker from './importarWorker?nodeWorker'
 import { rasterizarPng } from './rasterizador'
 import { crearRegistroPuente } from './registroPuente'
 import { crearServidor } from './servidor'
@@ -73,8 +76,10 @@ export async function iniciarModoMcp(opciones: { datos: string | null }): Promis
       ultimoMotivo = m
     }
   })
+  const lib = libreriaSinVentana()
   const herramientas = new Herramientas({
-    lib: libreriaSinVentana(),
+    lib,
+    importar: (nombre, bytes) => importarEnWorker(nombre, bytes, lib, () => importarWorker({})),
     wasm: bytesDelMotor(),
     version: app.getVersion(),
     dirDatos,

@@ -70,7 +70,7 @@
         "fabricante": "Texas Instruments",
         "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls47.pdf",
         "aproximada": "Las salidas tienen resistencia interna a la alimentación y niveles de TTL.",
-        "equivalencias": { "kicad": "74xx:74LS48" },
+        "equivalencias": { "kicad": "74xx:74LS48", "proteus": "74LS48" },
         "presentaciones": [
           {
             "encapsulado": "DIP-16",
@@ -94,7 +94,7 @@
         "parte": "SN74LS47N",
         "hoja": "https://www.ti.com/lit/ds/symlink/sn74ls47.pdf",
         "aproximada": "Las salidas son de colector abierto y de 15 V; necesitan resistencias de colector.",
-        "equivalencias": { "kicad": "74xx:74LS47" },
+        "equivalencias": { "kicad": "74xx:74LS47", "proteus": "74LS47" },
         "presentaciones": [
           {
             "encapsulado": "DIP-16",

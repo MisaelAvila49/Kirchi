@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cambiarExtension, carpetaDeRuta, esRutaKir, extension, nombreDeRuta, rutaKirDeArgumentos, rutasKirDeArgumentos } from './archivos'
+import { cambiarExtension, carpetaDeRuta, esRutaImportable, esRutaKir, extension, nombreDeRuta, rutaKirDeArgumentos, rutasKirDeArgumentos } from './archivos'
 
 describe('rutas', () => {
   it('nombre, carpeta y extensión con separadores de Windows y de Unix', () => {
@@ -59,5 +59,12 @@ describe('rutas', () => {
       expect(rutasKirDeArgumentos([exe])).toEqual([])
       expect(rutasKirDeArgumentos(['x.kir'])).toEqual([])
     })
+  })
+})
+
+describe('esRutaImportable', () => {
+  it('reconoce las extensiones de otros programas sin importar mayúsculas y no los .kir ni otros', () => {
+    for (const r of ['a.asc', 'B.CIR', 'c.net', 'd.sp', 'e.spi', 'f.txt', 'g.kicad_sch', 'h.pdsprj']) expect(esRutaImportable(r)).toBe(true)
+    for (const r of ['a.kir', 'a.png', 'asc', '.asc']) expect(esRutaImportable(r)).toBe(false)
   })
 })

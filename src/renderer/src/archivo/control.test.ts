@@ -9,6 +9,7 @@ import { Diario } from './diario'
 import { escribirKir, FORMATO_ACTUAL, leerKir } from './kir'
 import { strToU8, zipSync } from 'fflate'
 import type { PiezaDef } from '../piezas/tipos'
+import { readFileSync } from 'node:fs'
 import { libreriaSinDom } from '../prueba/pasoVista'
 
 const pieza = { id: 'p1', tipo: 'resistencia', ref: 'R1', x: 0, y: 0, rot: 0 as const, espejo: false, props: {} }
@@ -32,7 +33,7 @@ function apiFalsa() {
   const api: ApiArchivos = {
     abrir: async () => (o.abrir ? leer(o.abrir) : { ok: false, cancelado: true }),
     abrirReciente: async (r) => leer(r),
-    abrirSoltado: async (f) => (f.name.endsWith('.kir') && !f.name.startsWith('sin-ruta') ? leer(`/disco/${f.name}`) : null),
+    abrirSoltado: async (f) => ((f.name.endsWith('.kir') || f.name.endsWith('.cir')) && !f.name.startsWith('sin-ruta') ? leer(`/disco/${f.name}`) : null),
     inicial: async () => o.inicial,
     rutaGuardar: async (s) => {
       llamadas.push(`rutaGuardar ${s}`)
@@ -94,6 +95,7 @@ function armar(respuestas: { guardar?: Respuesta; recuperar?: RespuestaRecuperar
   const preguntas: string[] = []
   let cargados = 0
   const hechos: string[] = []
+  const informes: unknown[] = []
   const diario = new Diario({ anotar: (r) => a.api.diarioAnotar(r), nuevaBase: (d) => a.api.diarioBase(escribirKir(d, '0.0.1'), { ruta: null, nombre: 'x', sucio: true }) }, () => editor.doc)
   editor.historial.suscribir(diario.alCambiar)
   const c = new ControlArchivo({
@@ -114,14 +116,78 @@ function armar(respuestas: { guardar?: Respuesta; recuperar?: RespuestaRecuperar
       cargado: () => cargados++,
       recientes: () => undefined,
       estado: () => undefined,
-      hecho: (e) => hechos.push(e)
+      hecho: (e) => hechos.push(e),
+      alImportar: (i) => informes.push(i)
     }
   })
   const editar = () => editor.historial.ejecutar(crear('crear', 'piezas', { ...pieza, id: `p${Math.random().toString(36).slice(2, 8)}` }))
-  return { ...a, c, editor, registro, niveles, errores, preguntas, editar, hechos, cargados: () => cargados }
+  return { ...a, c, editor, registro, niveles, errores, preguntas, editar, hechos, informes, cargados: () => cargados }
 }
 
+const fixtureSpice = (n: string) => new Uint8Array(readFileSync(new URL(`../importar/__fixtures__/spice/${n}`, import.meta.url)))
+
 describe('ControlArchivo', () => {
+  it('abrir un .cir lo convierte en documento nuevo sin ruta y sin guardar, con su informe', async () => {
+    const t = armar({}, true, libreriaSinDom())
+    t.disco.set('/disco/divisor.cir', fixtureSpice('divisor.cir'))
+    t.o.abrir = '/disco/divisor.cir'
+    await t.c.abrir()
+    expect(t.errores).toEqual([])
+    expect(t.c.estado).toEqual({ ruta: null, nombre: 'divisor.kir', soloLectura: false })
+    expect(Object.keys(t.editor.doc.piezas).length).toBeGreaterThan(0)
+    expect(t.editor.historial.sinGuardar).toBe(true)
+    expect(t.niveles[0]).toBe('info')
+    expect(t.informes).toHaveLength(1)
+  })
+
+  it('un archivo que no se puede importar da error con su motivo y no reemplaza el documento', async () => {
+    const t = armar({}, true, libreriaSinDom())
+    t.disco.set('/disco/raro.txt', new TextEncoder().encode('nada que ver'))
+    t.o.abrir = '/disco/raro.txt'
+    await t.c.abrir()
+    expect(t.errores[0]).toMatch(/^No se pudo importar raro\.txt: /)
+    expect(t.c.estado.nombre).toBe('sin título.kir')
+  })
+
+  it('una conversión que lanza se muestra como error y no reemplaza el documento', async () => {
+    const t = armar({}, true, new Map())
+    t.disco.set('/disco/divisor.cir', fixtureSpice('divisor.cir'))
+    t.o.abrir = '/disco/divisor.cir'
+    await t.c.abrir()
+    expect(t.errores[0]).toMatch(/^No se pudo importar divisor\.cir: /)
+    expect(t.c.estado.nombre).toBe('sin título.kir')
+  })
+
+  it('registra a lo más 200 avisos de una importación y dice cuántos faltan', async () => {
+    const t = armar({}, true, libreriaSinDom())
+    const texto = ['* muchos nodos', 'V1 1 0 5', 'R1 1 0 1k', ...Array.from({ length: 300 }, (_, i) => `Z${i} 1 0 raro`), '.end'].join('\n')
+    t.disco.set('/disco/muchos.cir', new TextEncoder().encode(texto))
+    t.o.abrir = '/disco/muchos.cir'
+    await t.c.abrir()
+    expect(t.registro.length).toBeGreaterThan(100)
+    expect(t.registro.length).toBeLessThanOrEqual(205)
+    expect(t.registro.some((r) => /^y \d+ avisos más\.$/.test(r))).toBe(true)
+  })
+
+  it('soltar acepta un importable y el mensaje para otros nombra los formatos', async () => {
+    const t = armar({}, true, libreriaSinDom())
+    await t.c.soltar([new File(['x'], 'foto.png')])
+    expect(t.errores[0]).toBe('Kirchi abre circuitos .kir y de Falstad, LTspice, SPICE, KiCad y Proteus; se ignoró foto.png.')
+    t.disco.set('/disco/f.cir', fixtureSpice('divisor.cir'))
+    await t.c.soltar([new File(['x'], 'f.cir')])
+    expect(t.c.estado.nombre).toBe('f.kir')
+  })
+
+  it('guardar un importado pide ruta aunque ya tenga nombre', async () => {
+    const t = armar({}, true, libreriaSinDom())
+    t.disco.set('/disco/divisor.cir', fixtureSpice('divisor.cir'))
+    t.o.abrir = '/disco/divisor.cir'
+    await t.c.abrir()
+    t.o.guardarComo = '/disco/divisor.kir'
+    expect(await t.c.guardar()).toBe(true)
+    expect(t.llamadas).toContain('rutaGuardar divisor.kir')
+  })
+
   it('avisa una vez en el Registro de lo que el archivo usa y la librería no tiene', async () => {
     const recortada = new Map([...libreriaSinDom()].filter(([t]) => t !== 'resistencia'))
     const t = armar({}, true, recortada)
@@ -324,7 +390,7 @@ describe('ControlArchivo', () => {
     await t.c.soltar([new File(['x'], 'foto.png'), new File(['x'], 'd.kir')])
     expect(t.c.estado.ruta).toBe('/disco/d.kir')
     await t.c.soltar([new File(['x'], 'foto.png')])
-    expect(t.errores).toEqual(['Solo se abren circuitos .kir; se ignoró foto.png.'])
+    expect(t.errores).toEqual(['Kirchi abre circuitos .kir y de Falstad, LTspice, SPICE, KiCad y Proteus; se ignoró foto.png.'])
     // Un File sin ruta en el disco (armado en la página): el preload devuelve null y se dice.
     await t.c.soltar([new File(['x'], 'sin-ruta.kir')])
     expect(t.errores.at(-1)).toBe('No se pudo abrir sin-ruta.kir: no viene de una carpeta del equipo.')

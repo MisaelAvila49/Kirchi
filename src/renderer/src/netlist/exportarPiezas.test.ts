@@ -40,7 +40,8 @@ function revisar(cuerpo: string): void {
 }
 
 describe('el exportador cubre las 111 piezas de la librería y sus compuertas de más entradas', () => {
-  const tipos = [...lib.keys()].sort()
+  // La caja gris de una importación no tiene modelo ni exportación: sus pines son los de la pieza ajena.
+  const tipos = [...lib.keys()].filter((t) => t !== 'sin-equivalencia').sort()
 
   it('la librería tiene las 111 piezas', () => {
     expect(tipos.filter((t) => !lib.get(t)!.oculta)).toHaveLength(111)

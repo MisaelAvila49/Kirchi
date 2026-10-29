@@ -21,7 +21,7 @@
   "animacion": { "tipo": "giro", "vueltasMax": 2 },
   "limites": { "voltaje": { "prop": "voltaje", "aviso": 1.5 }, "quema": { "factor": 2, "durante": 0.5 } },
   "datos": {
-    "equivalencias": { "kicad": "Motor:Motor_DC", "proteus": "MOTOR", "sinVerificar": ["proteus"] },
+    "equivalencias": { "kicad": "Motor:Motor_DC", "falstad": "415", "proteus": "MOTOR", "sinVerificar": ["falstad"] },
     "valores": {
       "*": {
         "pendiente": {

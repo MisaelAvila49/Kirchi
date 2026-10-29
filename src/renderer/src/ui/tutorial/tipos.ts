@@ -36,6 +36,8 @@ export interface CtxTutorial {
   calculadora?: { activa: string; tipo?: string; f0?: string }
   /** El botón Cursores de la gráfica de una corrida está encendido (se lee del DOM). */
   cursoresGrafica?: boolean
+  /** La clase de la tarjeta del informe de importación que el ratón o el foco señalan ahora. */
+  resaltada?: string | null
 }
 
 /** Dónde pone el foco el paso: un control de la interfaz (por selector), una zona del lienzo (mundo) o nada. */
@@ -70,6 +72,8 @@ export interface PasoDef {
   resumen: string
   /** Texto del globo. `{tecla:id}` se cambia por la tecla vigente del comando (la que el usuario tenga configurada). */
   texto: string
+  /** Un botón del globo que hace la acción del paso por el usuario (abrir el ejemplo); la aplicación la atiende por su id. */
+  boton?: { id: string; texto: string }
   /** Lo que se dice al cumplirse el paso (con el ✓ delante). */
   cumplido: string
   /** Ayuda opcional, un renglón más abajo del texto. */

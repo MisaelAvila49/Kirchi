@@ -58,14 +58,15 @@ export function licenciaPermitida(expresion) {
 /** Paquetes de node_modules que Vite mete dentro de out/main (los externos no cuentan), según un empaquetado de esbuild del mismo punto de entrada. */
 export async function paquetesDelProcesoPrincipal() {
   const r = await build({
-    entryPoints: [join(RAIZ, 'src', 'main', 'index.ts')],
+    // El trabajador de importación es otro punto de entrada de Vite (`?nodeWorker`): se cuenta aparte.
+    entryPoints: [join(RAIZ, 'src', 'main', 'index.ts'), join(RAIZ, 'src', 'main', 'asistente', 'importarWorker.ts')],
     bundle: true,
     write: false,
     metafile: true,
     platform: 'node',
     format: 'esm',
     outdir: join(RAIZ, 'out', 'comprobacion'),
-    external: ['electron'],
+    external: ['electron', '*?nodeWorker'],
     loader: { '.wasm': 'empty', '.svg': 'empty' },
     logLevel: 'silent'
   })

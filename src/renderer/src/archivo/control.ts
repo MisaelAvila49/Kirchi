@@ -1,9 +1,11 @@
-import { esRutaKir, NOMBRE_NUEVO, nombreDeRuta, type ApiArchivos, type ArchivoLeido, type Recuperable, type ResultadoAbrir } from '../../../compartido/archivos'
+import { cambiarExtension, esRutaImportable, esRutaKir, NOMBRE_NUEVO, nombreDeRuta, type ApiArchivos, type ArchivoLeido, type Recuperable, type ResultadoAbrir } from '../../../compartido/archivos'
 import { documentoVacio, type Documento } from '../doc/tipos'
 import type { Historial } from '../doc/historial'
 import { recuperar, type Diario } from './diario'
 import { escribirKir, leerKir } from './kir'
 import { faltantesDe } from './requisitos'
+import { importarBytes } from '../importar/importar'
+import { recortarAvisos, resumenDeInforme, type Informe } from '../importar/informe'
 import type { PiezaDef } from '../piezas/tipos'
 
 /** El archivo del documento abierto. */
@@ -61,6 +63,8 @@ export interface InterfazArchivo {
   /** Algo ocurrió de verdad en el disco o el documento (guardar, nuevo, abrir reciente). Lo escucha el tutorial para
    * cumplir sus pasos. */
   hecho?(e: 'guardado' | 'nuevo' | 'reciente'): void
+  /** Se abrió un circuito de otro programa: la interfaz muestra el informe de lo que se convirtió. */
+  alImportar?(informe: Informe): void
 }
 
 export interface DependenciasArchivo {
@@ -153,6 +157,14 @@ export class ControlArchivo {
     }, false)
   }
 
+  /** Importa un texto que la aplicación trae (el ejemplo del tutorial) como si se hubiera abierto desde el disco. */
+  importarTexto(nombre: string, texto: string): Promise<boolean> {
+    return this.una(async () => {
+      if (!(await this.puedeReemplazar())) return false
+      return this.cargarImportado({ ruta: '', nombre, bytes: new TextEncoder().encode(texto) })
+    }, false)
+  }
+
   abrir(): Promise<void> {
     return this.una(async () => {
       if (this.sinApi()) return
@@ -190,12 +202,12 @@ export class ControlArchivo {
     }, undefined)
   }
 
-  /** Archivos soltados en la ventana: se abre el primer `.kir`; si no hay ninguno, se dice. */
+  /** Archivos soltados en la ventana: se abre el primer `.kir` o circuito de otro programa; si no hay ninguno, se dice. */
   soltar(archivos: readonly File[]): Promise<void> {
     if (this.sinApi()) return Promise.resolve()
-    const kir = archivos.find((f) => esRutaKir(f.name))
+    const kir = archivos.find((f) => esRutaKir(f.name) || esRutaImportable(f.name))
     if (!kir) {
-      if (archivos.length) this.d.ui.error(`Solo se abren circuitos .kir; se ignoró ${archivos[0].name}.`)
+      if (archivos.length) this.d.ui.error(`Kirchi abre circuitos .kir y de Falstad, LTspice, SPICE, KiCad y Proteus; se ignoró ${archivos[0].name}.`)
       return Promise.resolve()
     }
     // Se entrega el File: el preload saca la ruta y la página nunca la nombra (null: no tiene ruta).
@@ -220,7 +232,32 @@ export class ControlArchivo {
     return this.cargarLeido(r.archivo)
   }
 
+  /** Convierte un circuito de otro programa y lo abre como documento nuevo, sin ruta y sin guardar. */
+  private cargarImportado(a: ArchivoLeido): boolean {
+    let r: ReturnType<typeof importarBytes>
+    try {
+      r = importarBytes(a.nombre, a.bytes, this.d.lib ?? new Map(), undefined, a.anexos)
+    } catch (e) {
+      r = { ok: false, motivo: 'ocurrió un error inesperado al convertirlo.', detalle: e instanceof Error ? e.message : String(e) }
+    }
+    if (!r.ok) {
+      this.d.ui.error(`No se pudo importar ${a.nombre}: ${r.motivo}`)
+      if (r.detalle) this.d.ui.registrar(`Detalle técnico de ${a.nombre}: ${r.detalle}`)
+      return false
+    }
+    this.d.editor.cargar(r.doc, { sucio: true })
+    this.poner({ ruta: null, nombre: cambiarExtension(a.nombre, 'kir'), soloLectura: false })
+    this.nuevaBase(escribirKir(this.d.editor.doc, this.d.version), true)
+    this.d.ui.registrar(resumenDeInforme(r.informe), 'info')
+    for (const aviso of recortarAvisos(r.avisos)) this.d.ui.registrar(aviso)
+    for (const aviso of recortarAvisos(a.avisosAnexos ?? [])) this.d.ui.registrar(`Hoja no leída, ${aviso}`)
+    this.d.ui.cargado()
+    this.d.ui.alImportar?.(r.informe)
+    return true
+  }
+
   private cargarLeido(a: ArchivoLeido): boolean {
+    if (!esRutaKir(a.nombre)) return this.cargarImportado(a)
     const l = leerKir(a.bytes)
     if (!l.ok) {
       this.d.ui.error(`No se pudo abrir ${a.nombre}: ${l.error.charAt(0).toLowerCase()}${l.error.slice(1)}`)

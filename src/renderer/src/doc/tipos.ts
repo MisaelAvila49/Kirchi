@@ -1,4 +1,5 @@
 import type { AnalisisDoc } from '../../../compartido/analisis/config'
+import type { Informe } from '../importar/informe'
 export type Id = string
 
 /** Coordenadas enteras en unidades de rejilla fina: 1 = 1.25 mm. */
@@ -31,6 +32,16 @@ export interface Pieza {
   /** Modelo «Personalizado»: parámetros SPICE propios en lugar de los de la lista (`doc/spice.ts`). Sin el campo se usa el
    * modelo. */
   spice?: Record<string, number>
+  /** Pines de una «Pieza sin equivalencia» (la caja gris de una importación); solo vale con `tipo === 'sin-equivalencia'`. */
+  pines?: PinPropio[]
+}
+
+/** Un pin de la caja gris: el nombre y el número del original y el lado en que se dibuja. */
+export interface PinPropio {
+  id: string
+  nombre: string
+  numero?: string
+  lado: 'izq' | 'der'
 }
 
 export interface Cable {
@@ -162,12 +173,14 @@ export interface Documento {
   sondas?: Record<Id, Sonda>
   /** Análisis de ngspice configurados; sin el campo (o vacío), no hay ninguno y el archivo queda como antes de que existieran. */
   analisis?: Record<Id, AnalisisDoc>
+  /** Lo que hizo la importación que creó este circuito; sin el campo, el circuito no viene de otro programa. */
+  importacion?: Informe
 }
 
 /** Lo que se dibuja y se selecciona. */
 export type Coleccion = 'piezas' | 'cables' | 'etiquetas' | 'notas' | 'figuras' | 'sondas'
-/** Todo lo que guarda el documento: lo dibujado y la tabla de alimentaciones. */
-export type ColeccionDoc = Coleccion | 'alimentaciones' | 'analisis'
+/** Todo lo que guarda el documento: lo dibujado, la tabla de alimentaciones y el informe de importación (un solo elemento, id `informe`). */
+export type ColeccionDoc = Coleccion | 'alimentaciones' | 'analisis' | 'importacion'
 
 export const MM_POR_UNIDAD = 1.25
 

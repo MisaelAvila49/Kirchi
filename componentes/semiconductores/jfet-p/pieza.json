@@ -150,7 +150,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Device:Q_PJFET_DGS", "ltspice": "pjf", "falstad": "j", "proteus": "PJF", "sinVerificar": ["ltspice", "falstad", "proteus"] },
+    "equivalencias": { "kicad": ["Device:Q_PJFET_DGS", "Simulation_SPICE:PJFET"], "ltspice": "pjf", "falstad": "j", "proteus": "PJF", "sinVerificar": ["ltspice", "proteus"] },
     "valores": {
       "2N5460": {
         "fabricante": "Central Semiconductor",

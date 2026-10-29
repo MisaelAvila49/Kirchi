@@ -52,7 +52,7 @@
         "fabricante": "Kingbright",
         "parte": "SC39-11SRWA",
         "hoja": "https://www.kingbrightusa.com/images/catalog/SPEC/sc39-11srwa.pdf",
-        "equivalencias": { "kicad": "Display_Character:SC39-11SRWA" },
+        "equivalencias": { "kicad": "Display_Character:SC39-11SRWA", "proteus": "7SEG-COM-CATHODE", "sinVerificar": ["proteus"] },
         "presentaciones": [
           {
             "encapsulado": "Display-10",
@@ -70,7 +70,7 @@
         "fabricante": "Kingbright",
         "parte": "SC39-11GWA",
         "hoja": "https://www.kingbrightusa.com/images/catalog/SPEC/sc39-11gwa.pdf",
-        "equivalencias": { "kicad": "Display_Character:SC39-11GWA" },
+        "equivalencias": { "kicad": "Display_Character:SC39-11GWA", "proteus": "7SEG-COM-CAT-GRN" },
         "presentaciones": [
           {
             "encapsulado": "Display-10",
@@ -106,7 +106,7 @@
         "fabricante": "Kingbright",
         "parte": "SA39-11SRWA",
         "hoja": "https://www.kingbrightusa.com/images/catalog/SPEC/sa39-11srwa.pdf",
-        "equivalencias": { "kicad": "Display_Character:SA39-11SRWA" },
+        "equivalencias": { "kicad": "Display_Character:SA39-11SRWA", "proteus": "7SEG-COM-ANODE", "sinVerificar": ["proteus"] },
         "presentaciones": [
           {
             "encapsulado": "Display-10",
@@ -124,7 +124,7 @@
         "fabricante": "Kingbright",
         "parte": "SA39-11GWA",
         "hoja": "https://www.kingbrightusa.com/images/catalog/SPEC/sa39-11gwa.pdf",
-        "equivalencias": { "kicad": "Display_Character:SA39-11GWA" },
+        "equivalencias": { "kicad": "Display_Character:SA39-11GWA", "proteus": "7SEG-COM-AN-GRN" },
         "presentaciones": [
           {
             "encapsulado": "Display-10",

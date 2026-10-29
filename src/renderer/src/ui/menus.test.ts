@@ -225,6 +225,14 @@ describe('menús del clic derecho', () => {
     expect(idsDe(menuDeObjetivo({ tipo: 'vacio', en }, ctx()))).not.toContain('exportar-seleccion')
   })
 
+  it('«Reemplazar por…» solo está en el menú de una caja sin equivalencia', () => {
+    const doc = ejemplo()
+    doc.piezas.caja = { id: 'caja', tipo: 'sin-equivalencia', ref: 'X1', x: 0, y: 0, rot: 0, espejo: false, props: { nombre: 'LM13700' } }
+    const ids = (m: ModeloMenu) => items(m.entradas).map((e) => e.id)
+    expect(ids(menuDeObjetivo({ tipo: 'pieza', id: 'caja', en }, ctx({ doc })))).toContain('reemplazar')
+    expect(ids(menuDeObjetivo({ tipo: 'pieza', id: 'r', en }, ctx()))).not.toContain('reemplazar')
+  })
+
   it('todas las entradas de los menús de objetivo llevan icono R1', () => {
     const icono = (m: ModeloMenu) => Object.fromEntries(items(m.entradas).map((e) => [e.id, e.icono ?? null]))
     expect(icono(menuDeObjetivo({ tipo: 'pieza', id: 'r', en }, ctx()))).toEqual({

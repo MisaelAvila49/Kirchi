@@ -16,12 +16,20 @@ export interface Comando {
 }
 
 /** Tipo de los elementos de una colección. */
-export type Item<C extends ColeccionDoc> = NonNullable<Documento[C]>[Id]
+/** Las colecciones de elementos con id; `importacion` es un solo valor y se maneja aparte. */
+export type ColeccionDeItems = Exclude<ColeccionDoc, 'importacion'>
+export type Item<C extends ColeccionDeItems> = NonNullable<Documento[C]>[Id]
 
 export function aplicar(doc: Documento, cmd: Comando): Documento {
   const nuevo: Documento = { ...doc }
   const copiadas = new Set<ColeccionDoc>()
   for (const c of cmd.cambios) {
+    // El informe de importación no es una tabla: es un solo valor del documento.
+    if (c.col === 'importacion') {
+      if (c.despues === undefined) delete nuevo.importacion
+      else nuevo.importacion = c.despues as Documento['importacion']
+      continue
+    }
     if (!copiadas.has(c.col)) {
       ;(nuevo as unknown as Record<ColeccionDoc, Record<Id, unknown>>)[c.col] = { ...doc[c.col] }
       copiadas.add(c.col)
@@ -56,19 +64,19 @@ export function fusionar(a: Comando, b: Comando): Comando {
   return { nombre: a.nombre, grupo: a.grupo, cambios: cambios.filter((c) => c.antes !== undefined || c.despues !== undefined) }
 }
 
-export const crear = <C extends ColeccionDoc>(nombre: string, col: C, item: Item<C>, grupo?: string): Comando => ({
+export const crear = <C extends ColeccionDeItems>(nombre: string, col: C, item: Item<C>, grupo?: string): Comando => ({
   nombre,
   grupo,
   cambios: [{ col, id: item.id, despues: item }]
 })
 
-export const borrar = <C extends ColeccionDoc>(nombre: string, col: C, item: Item<C>, grupo?: string): Comando => ({
+export const borrar = <C extends ColeccionDeItems>(nombre: string, col: C, item: Item<C>, grupo?: string): Comando => ({
   nombre,
   grupo,
   cambios: [{ col, id: item.id, antes: item }]
 })
 
-export const modificar = <C extends ColeccionDoc>(nombre: string, col: C, antes: Item<C>, despues: Item<C>, grupo?: string): Comando => ({
+export const modificar = <C extends ColeccionDeItems>(nombre: string, col: C, antes: Item<C>, despues: Item<C>, grupo?: string): Comando => ({
   nombre,
   grupo,
   cambios: [{ col, id: antes.id, antes, despues }]

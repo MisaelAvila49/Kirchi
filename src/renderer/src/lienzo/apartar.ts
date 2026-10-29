@@ -8,6 +8,7 @@ import { textosManuales } from './textosManuales'
 import { Cubetas, hipotenusa } from './cubetas'
 import { ANCHO_CABLE, anchoTexto, cajaEtiqueta, cajaNota, TAM_ETIQUETA } from './medidas'
 import type { Token } from './paleta'
+import { defDe } from '../piezas/sinEquivalencia'
 
 /** Aire alrededor de cada texto, en unidades, para que no quede pegado a un cable o a un cuerpo. */
 export const AIRE_TEXTO = 0.2
@@ -191,7 +192,7 @@ const ACEPTABLE = 1, SABIDO = 2, LIBRE = 4
 export function etiquetasSinChoques(doc: Documento, lib: Map<string, PiezaDef>, listas: ListasDelDocumento = listasDe(doc)): Map<Id, Texto[]> {
   // Cuántas cajas lleva cada rejilla, para no hacer crecer sus arreglos de a poco.
   const piezas = listas.piezas.slice().sort(porId)
-  const defs = piezas.map((p) => lib.get(p.tipo))
+  const defs = piezas.map((p) => defDe(p, lib.get(p.tipo)))
   // Los textos de cada pieza y los que se movieron a mano: esos quedan donde se pusieron, no se
   // reparten, y son obstáculos fijos para todos los demás textos, también los de su pieza.
   const localesDe: (TextoDePieza[] | null)[] = []

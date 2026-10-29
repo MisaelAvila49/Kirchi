@@ -1,0 +1,18 @@
+* spice-transistor
+Vcc vcc 0 DC 12
+Vb b1 0 DC 0.7
+Rc vcc c 2.2k
+Re e 0 470
+Rb b1 b 1k
+Q1 c b e 2N3904
+* El importador sustituye el modelo del archivo por el 2N3904 de la librería (mismos parámetros que Q2N3904 de engine/referencias/modelos.lib).
+.model 2N3904 NPN(IS=7.791e-15 BF=500 NF=1 VAF=100 IKF=0.01887 ISE=2.086e-13 NE=1.5 BR=5 RB=3.402 RC=0.9771 RE=0.5144 CJE=7.102e-12 VJE=0.75 MJE=0.33 TF=4.099e-10 CJC=7.223e-12 VJC=0.75 MJC=0.33 TR=2.5e-7)
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+op
+wrdata salida.txt v(c) v(b) v(e)
+.endc
+.end

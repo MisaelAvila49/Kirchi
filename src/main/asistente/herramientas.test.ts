@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { leerKir } from '../../renderer/src/archivo/kir'
 import { documentoVacio } from '../../renderer/src/doc/tipos'
@@ -541,5 +542,55 @@ describe('chips con varias unidades con el asistente', () => {
     expect(Object.keys(pq.compartidas).length).toBeGreaterThan(0)
     for (const comp of Object.values(pq.compartidas) as { piezas: string[] }[]) expect(comp.piezas).toEqual(['U1A', 'U1B'])
     hu.cerrar()
+  })
+})
+
+describe('importar un circuito de otro programa', () => {
+  const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '../../renderer/src/importar/__fixtures__/spice/divisor.cir')
+  const carpeta = () => join(base, 'Asistente')
+
+  it('devuelve el informe sin abrir nada', async () => {
+    mkdirSync(carpeta(), { recursive: true })
+    copyFileSync(FIXTURE, join(carpeta(), 'divisor-spice.cir'))
+    const r = await h.llamar('importar', { archivo: 'divisor-spice.cir' })
+    expect(r.isError, texto(r)).toBeUndefined()
+    const x = json(r)
+    expect(x.piezas).toBeGreaterThanOrEqual(3)
+    expect(x.informe.origen.formato).toBe('spice')
+    expect(x.circuito).toBeUndefined()
+    expect(existsSync(join(carpeta(), 'divisor-spice.kir'))).toBe(false)
+  })
+
+  it('con abrir deja un circuito con las piezas que se puede leer, y no pisa uno existente', async () => {
+    const r = json(await h.llamar('importar', { archivo: 'divisor-spice.cir', abrir: true }))
+    expect(r.circuito).toBe('divisor-spice.kir')
+    const piezas = json(await h.llamar('leer_circuito', { circuito: r.circuito })).piezas
+    expect(piezas).toHaveLength(r.piezas)
+    expect(json(await h.llamar('importar', { archivo: 'divisor-spice.cir', abrir: true })).circuito).toBe('divisor-spice-2.kir')
+  })
+
+  it('un archivo de más de 8 MB se rechaza sin leerlo', async () => {
+    writeFileSync(join(carpeta(), 'enorme.cir'), Buffer.alloc(8 * 2 ** 20 + 1, 'x'))
+    const r = await h.llamar('importar', { archivo: 'enorme.cir' })
+    expect(r.isError).toBe(true)
+    expect(texto(r)).toContain('demasiado grande')
+  })
+
+  it('con convertidor externo usa su resultado y registra el detalle técnico de una falla', async () => {
+    const errores: string[] = []
+    const hx = new Herramientas(deps({ importar: async () => ({ ok: false, motivo: 'No se pudo convertir.', detalle: 'boom' }), registro: { error: (t: string) => errores.push(t) } as never }))
+    const r = await hx.llamar('importar', { archivo: 'divisor-spice.cir' })
+    expect(texto(r)).toContain('No se pudo convertir.')
+    expect(errores.join(' ')).toContain('boom')
+    hx.cerrar()
+  })
+
+  it('un archivo inexistente, una ruta o un formato desconocido dan su motivo', async () => {
+    expect(texto(await h.llamar('importar', { archivo: 'nada.cir' }))).toContain('No se encontró')
+    expect((await h.llamar('importar', { archivo: '../x.cir' })).isError).toBe(true)
+    writeFileSync(join(carpeta(), 'raro.txt'), 'esto no es un circuito')
+    const r = await h.llamar('importar', { archivo: 'raro.txt' })
+    expect(r.isError).toBe(true)
+    expect(texto(r)).toContain('no parece ser de otro programa')
   })
 })

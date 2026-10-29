@@ -40,7 +40,7 @@ function variantes(tipo: string): Record<string, string>[] {
 }
 
 describe.skipIf(!hay)('ngspice acepta la netlist exportada de cada pieza', () => {
-  it.each([...lib.keys()].filter((t) => t !== 'tierra').sort())('%s', async (tipo) => {
+  it.each([...lib.keys()].filter((t) => t !== 'tierra' && t !== 'sin-equivalencia').sort())('%s', async (tipo) => {
     let corridas = 0
     for (const props of variantes(tipo)) {
       const d = conEtiquetas(lib, armar(tipo, props))

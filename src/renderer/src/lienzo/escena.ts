@@ -24,6 +24,7 @@ import { claveDeEscena, geometriaDeEscena } from './capas'
 import { dibujarContactos } from './contactos'
 import { colorDeVoltaje, type VoltajesDeCables } from './voltajes'
 import type { LecturaMedidor } from '../sim/medidor'
+import { defDe } from '../piezas/sinEquivalencia'
 
 /** Trazos y rellenos de las figuras de dibujo: una capa aparte que el lienzo pone debajo de todo lo demás. */
 export interface CapaFiguras {
@@ -191,6 +192,7 @@ export function dibujarPieza(t: EscritorTrazos, tri: EscritorTriangulos | null, 
     rectangulo(t, desplazarCaja(CAJA_DESCONOCIDA, p.x, p.y), ancho, color)
     return
   }
+  def = defDe(p, def)
   const clave = claveDeEscena(def, p, simulando)
   dibujarOrientada(t, tri, p, clave === null ? geometriaOrientada(def, p.rot, p.espejo, estaAccionada(p, def)) : orientadaConCapas(def, p, simulando, clave), color, ancho)
   const v = geometriaDeVariante(def, p)
@@ -315,7 +317,7 @@ export function construirEscena(doc: Documento, lib: Map<string, PiezaDef>, con:
   const conSondas = haySondas(doc)
   const entradas = conSondas ? rotulosDeEntradas(doc, lib, con) : null
   for (const p of listas.piezas) {
-    const def = lib.get(p.tipo)
+    const def = defDe(p, lib.get(p.tipo))
     dibujarPieza(t, tri, p, def, paleta.pieza, ANCHO_TRAZO, opciones.simulando)
     if (def) {
       const suyas = etiquetas.get(p.id)

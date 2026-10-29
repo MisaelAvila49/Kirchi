@@ -40,7 +40,7 @@ describe('reglas de formato', () => {
     expect(REGLAS.map((r) => r.nombre).every((n) => n.length > 0)).toBe(true)
   })
   it('los números reservados no los usa ninguna regla', () => {
-    expect(RESERVADOS).toEqual({ 9: 'bloques', 10: 'protoboard', 11: 'microcontroladores' })
+    expect(RESERVADOS).toEqual({ 10: 'bloques', 11: 'protoboard', 12: 'microcontroladores' })
     for (const r of REGLAS) expect(Object.keys(RESERVADOS)).not.toContain(String(r.formato))
   })
 })

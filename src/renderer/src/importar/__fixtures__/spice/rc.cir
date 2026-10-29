@@ -1,0 +1,7 @@
+Filtro RC con pulso
+Vp ent 0 PULSE(0 5 1m 10u 10u 4m 10m)
+R1 ent sal 1k
+C1 sal 0 1u
+.tran 10u 30m
+.print tran v(sal) v(ent)
+.end

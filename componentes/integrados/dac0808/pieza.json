@@ -83,6 +83,7 @@
     "DAC0808": "National DAC0808 (SNAS539A, copia de Texas Instruments) y Philips MC1508-8/MC1408-8: entradas de 0.8 V y 2 V, IO = IREF · (A1/2 + A2/4 + … + A8/256) con IREF = VREF / R14 (corriente de plena escala de 1.992 mA con 2 mA de referencia) y asentamiento típico de 150 ns a 1/2 LSB (la hoja de Philips da 70 ns)."
   },
   "datos": {
+    "equivalencias": { "kicad": "Analog_DAC:DAC0808_DIP" },
     "valores": {
       "*": {
         "fabricante": "Texas Instruments (National Semiconductor)",

@@ -77,7 +77,7 @@
   },
   "datos": {
     "por": "familia",
-    "equivalencias": { "kicad": "Device:D_Zener", "ltspice": "zener", "falstad": "z", "proteus": "ZENER", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": "Device:D_Zener", "ltspice": "zener", "falstad": "z", "proteus": "ZENER", "sinVerificar": ["proteus"] },
     "valores": {
       "1N47xxA": {
         "fabricante": "Vishay",

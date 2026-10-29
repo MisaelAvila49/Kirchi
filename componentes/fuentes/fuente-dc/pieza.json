@@ -14,7 +14,7 @@
   "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
   "rotulos": [{ "texto": "−", "x": 0, "y": 0.85, "tam": 1.6 }],
   "datos": {
-    "equivalencias": { "kicad": "Simulation_SPICE:VDC", "ltspice": "voltage", "falstad": "v", "proteus": "BATTERY", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": "Simulation_SPICE:VDC", "ltspice": "voltage", "falstad": "v", "proteus": ["BATTERY", "VSOURCE"] },
     "valores": {
       "*": { "virtual": true, "nota": "Fuente ideal de voltaje continuo del simulador." }
     }

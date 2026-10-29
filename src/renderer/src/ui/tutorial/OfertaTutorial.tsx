@@ -9,7 +9,7 @@ interface Props {
   onAhoraNo(noVolver: boolean): void
 }
 
-/** La oferta del primer arranque: un recorrido corto por la ventana (capítulo 1), el selector de los cuatro o nada por ahora. */
+/** La oferta del primer arranque: un recorrido corto por la ventana (capítulo 1), el selector de los cinco o nada por ahora. */
 export default function OfertaTutorial(props: Props) {
   const [noVolver, setNoVolver] = createSignal(true)
   const primero = capituloPorId('conoce')

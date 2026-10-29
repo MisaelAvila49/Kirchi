@@ -74,13 +74,7 @@
     }
   },
   "datos": {
-    "equivalencias": {
-      "kicad": "Simulation_SPICE:GSOURCE",
-      "ltspice": "g",
-      "sinVerificar": [
-        "ltspice"
-      ]
-    },
+    "equivalencias": { "kicad": "Simulation_SPICE:GSOURCE", "ltspice": "g", "falstad": "213", "sinVerificar": ["falstad"] },
     "valores": {
       "*": {
         "virtual": true,

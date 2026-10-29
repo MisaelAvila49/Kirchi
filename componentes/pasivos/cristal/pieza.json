@@ -128,7 +128,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Device:Crystal", "ltspice": "Misc\\crystal", "falstad": "412", "proteus": "CRYSTAL", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": "Device:Crystal", "ltspice": "Misc\\crystal", "falstad": "412", "proteus": "CRYSTAL", "sinVerificar": ["ltspice"] },
     "valores": {
       "32.768 kHz": {
         "presentaciones": [

@@ -13,6 +13,8 @@ const PERMITIDOS = [
   'editor/', // edita los cables
   'edicion/', // las operaciones de edición ejecutan lo mismo que los gestos
   'sinVentana/', // el modo sin ventana lee las redes de un documento y compila su netlist
+  'importar/cables.ts', // traza los cables del documento que arma la importación
+  'importar/convertir.ts', // ubica las sondas de corriente sobre los cables que acaba de trazar
   'plantillas/', // copia cables al armar y colocar
   'exportar/', // dibuja el circuito en SVG, PNG y PDF
   'prueba/', // circuitos de prueba y oráculos

@@ -56,7 +56,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Device:Thermistor_NTC" },
+    "equivalencias": { "kicad": "Device:Thermistor_NTC", "falstad": "350", "sinVerificar": ["falstad"] },
     "valores": {
       "10 kΩ": {
         "fabricante": "Vishay",

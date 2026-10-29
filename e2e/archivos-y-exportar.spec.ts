@@ -363,7 +363,7 @@ test('soltar un archivo: el File real da su ruta en el preload; uno armado en la
   await page.locator('#__elegir').setInputFiles(foto)
   await soltar('real')
   await verFranja(page, 'Registro')
-  await expect(page.locator('.registro')).toContainText('Solo se abren circuitos .kir; se ignoró foto.jpg.')
+  await expect(page.locator('.registro')).toContainText('Kirchi abre circuitos .kir y de Falstad, LTspice, SPICE, KiCad y Proteus; se ignoró foto.jpg.')
   // El real sí.
   await page.locator('#__elegir').setInputFiles(ruta)
   await soltar('real')

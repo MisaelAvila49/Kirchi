@@ -139,9 +139,9 @@ export interface AjustesTutorial {
 export const MAX_CAPITULOS_TUTORIAL = 12
 export const MAX_PASO_TUTORIAL = 99
 /**
- * Los capítulos que existen (`ui/tutorial/capitulos.ts`; una prueba los compara): el avance de cualquier otro id se descarta. Los ids de los cinco capítulos de antes (`primer-circuito`, `medir`, `senales`, `archivo`, `trucos`) no están aquí a propósito: sus pasos ya no son los mismos, así que su avance se descarta sin error y los cuatro capítulos nuevos empiezan sin empezar.
+ * Los capítulos que existen (`ui/tutorial/capitulos.ts`; una prueba los compara): el avance de cualquier otro id se descarta. Los ids de los cinco capítulos de antes (`primer-circuito`, `medir`, `senales`, `archivo`, `trucos`) no están aquí a propósito: sus pasos ya no son los mismos, así que su avance se descarta sin error y los capítulos nuevos empiezan sin empezar.
  */
-export const IDS_CAPITULOS_TUTORIAL: readonly string[] = ['conoce', 'circuito', 'medir-senales', 'analizar']
+export const IDS_CAPITULOS_TUTORIAL: readonly string[] = ['conoce', 'circuito', 'medir-senales', 'analizar', 'importar']
 export const tutorialPorOmision = (): AjustesTutorial => ({ ofertaVista: false, avanzarSolo: true, avance: {} })
 
 /** Los tres diálogos de archivo que recuerdan su última carpeta (las plantillas no: tienen carpeta fija). */

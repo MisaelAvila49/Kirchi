@@ -720,6 +720,7 @@ export function validarPieza(texto: string, ruta: string): Validacion {
 
   if (d?.caja !== undefined) validarCaja(d.caja, (id) => pines.some((p) => p.id === id), err)
   if (d?.grupo !== undefined && !esTexto(d.grupo)) err('grupo', 'debe ser un texto')
+  if (d?.oculta !== undefined && d.oculta !== true) err('oculta', 'solo admite true')
 
   if (errores.length) return { ok: false, errores }
   return {
@@ -734,7 +735,8 @@ export function validarPieza(texto: string, ruta: string): Validacion {
       ...(fuentes ? { fuentes } : {}),
       ...(datos ? { datos } : {}),
       ...(d.caja !== undefined ? { caja: d.caja } : {}),
-      ...(d.grupo !== undefined ? { grupo: d.grupo } : {})
+      ...(d.grupo !== undefined ? { grupo: d.grupo } : {}),
+      ...(d.oculta === true ? { oculta: true as const } : {})
     }
   }
 }

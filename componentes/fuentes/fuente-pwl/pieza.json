@@ -17,7 +17,7 @@
   "modelo": { "tipo": "pwl", "a": "+", "b": "-", "puntos": "puntos", "repetir": "repetir", "modo": "modo" },
   "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
   "datos": {
-    "equivalencias": { "kicad": "Simulation_SPICE:VPWL", "ltspice": "voltage", "sinVerificar": ["ltspice"] },
+    "equivalencias": { "kicad": "Simulation_SPICE:VPWL", "ltspice": "voltage" },
     "valores": {
       "*": { "virtual": true, "nota": "Fuente ideal de voltaje que sigue los puntos escritos, unidos con rectas." }
     }

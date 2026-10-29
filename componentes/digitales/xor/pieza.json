@@ -20,13 +20,13 @@
   "etiquetas": { "ref": { "x": 0, "y": -5 }, "valor": { "x": 0, "y": 5 } },
   "datos": {
     "por": ["familia", "entradas"],
-    "equivalencias": { "ltspice": "Digital\\xor", "falstad": "154", "sinVerificar": ["ltspice"] },
+    "equivalencias": { "ltspice": "Digital\\xor", "falstad": "154", "proteus": "XOR", "sinVerificar": ["ltspice"] },
     "valores": {
       "74HC|2": {
         "fabricante": "Texas Instruments",
         "parte": "SN74HC86N",
         "hoja": "https://www.ti.com/lit/ds/symlink/sn74hc86.pdf",
-        "equivalencias": { "kicad": "74xx:74HC86" },
+        "equivalencias": { "kicad": "74xx:74HC86", "proteus": "74HC386" },
         "presentaciones": [
           {
             "encapsulado": "DIP-14",

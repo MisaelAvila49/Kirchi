@@ -65,7 +65,7 @@
   },
   "datos": {
     "por": "modelo",
-    "equivalencias": { "kicad": "Transistor_FET:Q_PMOS_GSD", "ltspice": "pmos", "falstad": "f", "proteus": "PMOS", "sinVerificar": ["ltspice", "proteus"] },
+    "equivalencias": { "kicad": ["Transistor_FET:Q_PMOS_GSD", "Transistor_FET:Q_PMOS_GDS", "Device:Q_PMOS_GDS", "Simulation_SPICE:PMOS"], "ltspice": ["pmos", "pmos4"], "falstad": "f", "proteus": "PMOS", "sinVerificar": ["ltspice", "proteus"] },
     "valores": {
       "BS250": {
         "fabricante": "Diodes Incorporated",
