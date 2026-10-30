@@ -83,7 +83,8 @@ const TABLA: Record<string, SimboloLtspice> = {
     pines: [p('GND', -112, -96), p('TRIG', -112, -32), p('OUT', -112, 32), p('RESET', -112, 96), p('CV', 112, 96), p('THR', 112, 32), p('DIS', 112, -32), p('VCC', 112, -96)],
     medido: true
   },
-  universalopamp2: opamp([p('In+', -32, -16), p('In−', -32, 16), p('V+', 0, -32), p('V−', 0, 32), p('OUT', 32, 0)], true)
+  // En R0 lleva In− arriba y V+ arriba: un Wien y un rectificador reales colocados como M180 dejan la red RC y la entrada en In+.
+  universalopamp2: opamp([p('In+', -32, 16), p('In−', -32, -16), p('V+', 0, -32), p('V−', 0, 32), p('OUT', 32, 0)], true)
 }
 
 const GENERICOS_OPAMP = new Set(['opamp', 'opamp2', 'universalopamp', 'universalopamp2'])

@@ -36,9 +36,16 @@ export function aplicarValor(def: PiezaDef, p: PiezaAjena, props: Record<string,
   const crudo = p.valor ?? p.props.dc
   switch (m?.tipo) {
     case 'R': case 'C': case 'L': case 'I':
-      if (crudo !== undefined && omision !== undefined && numeroDeValor(crudo, formato) === null) props[m.prop] = omision
+      // Una fuente solo de CA (`iin 1 0 ac`) no da corriente en CD.
+      if (m.tipo === 'I' && crudo === undefined && p.props.ac !== undefined) props[m.prop] = '0'
+      else if (crudo !== undefined && omision !== undefined && numeroDeValor(crudo, formato) === null) props[m.prop] = omision
       else if (crudo !== undefined) props[m.prop] = valorKirchi(crudo, p.ref, avisos, formato)
       else if (omision !== undefined) props[m.prop] = omision
+      // La condición inicial del elemento (`ic=` de SPICE o LTspice, el estado guardado de Falstad).
+      if ((m.tipo === 'C' || m.tipo === 'L') && m.ic !== undefined) {
+        const ic = p.props.ic ?? /(?:^|\s)ic=(\S+)/i.exec(p.props.spiceLine ?? '')?.[1]
+        if (ic !== undefined && numeroDeValor(ic, formato) !== null) props[m.ic] = valorKirchi(ic, p.ref, avisos, formato)
+      }
       break
     case 'V':
       if (crudo !== undefined) props[m.prop] = valorKirchi(crudo, p.ref, avisos, formato)

@@ -70,7 +70,7 @@ describe('rc.asc', () => {
     ])
   })
   it('lee .tran y deja el comentario como texto del dibujo', () => {
-    expect(c.directivas).toEqual([{ tipo: 'analisis', analisis: 'tran', parametros: { paso: 0.02 }, trazas: [] }])
+    expect(c.directivas).toEqual([{ tipo: 'analisis', analisis: 'tran', parametros: { fin: 0.02 }, trazas: [] }])
     expect(c.dibujo!.textos).toEqual([{ texto: 'Carga de un RC', x: 40, y: 256 }])
   })
 })
@@ -81,7 +81,7 @@ describe('inversor.asc', () => {
     expect(pieza(c, 'U1').tipo).toBe('Opamps/UniversalOpamp2')
     expect(claseDe('ltspice', pieza(c, 'U1'))).toBe('amp-op')
     expect(pieza(c, 'U1').pines.map((p) => [p.nombre, p.x, p.y])).toEqual([
-      ['In+', 224, 112], ['In−', 224, 144], ['V+', 256, 96], ['V−', 256, 160], ['OUT', 288, 128]
+      ['In+', 224, 112], ['In−', 224, 144], ['V+', 256, 160], ['V−', 256, 96], ['OUT', 288, 128]
     ])
   })
   it('conecta entrada inversora, realimentación y salida', () => {
@@ -215,10 +215,10 @@ describe('tabla de símbolos', () => {
       }
     }
   })
-  it('amp-op: In+ arriba del In−, V+ arriba y OUT a la derecha', () => {
+  it('amp-op: In+ arriba del In−, V+ arriba y OUT a la derecha; el UniversalOpamp2 lleva In− arriba', () => {
     expect(en('Opamps/opamp', 0)).toEqual([[-32, 48], [-32, 80], [0, 32], [0, 96], [32, 64]])
     expect(en('Opamps\\\\LM741', 0)).toEqual(en('Opamps/opamp', 0))
-    expect(en('Opamps/UniversalOpamp2', 0)).toEqual([[-32, -16], [-32, 16], [0, -32], [0, 32], [32, 0]])
+    expect(en('Opamps/UniversalOpamp2', 0)).toEqual([[-32, 16], [-32, -16], [0, -32], [0, 32], [32, 0]])
   })
   it('mosfet: el nmos tiene el drenaje arriba y el pmos la fuente arriba', () => {
     expect(en('nmos', 0)).toEqual([[48, 0], [0, 80], [48, 96]])

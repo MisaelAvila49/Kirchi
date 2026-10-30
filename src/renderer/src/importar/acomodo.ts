@@ -116,23 +116,41 @@ interface Ajuste {
   costo: number
 }
 
+/** Pines de alimentación: su terminal se pone junto al pin, así que pesan poco al elegir el giro. Si pesaran igual, un amp-op
+ * con V− arriba en el origen (Proteus) se reflejaría y dejaría «+» arriba. */
+const ALIMENTACION_DE_PIN = /^(v[+-]|vcc|vdd|vee|vss|gnd)$/i
+const PESO_ALIMENTACION = 0.05
+const pesoDe = (q: { id: string; nombre: string }): number => (ALIMENTACION_DE_PIN.test(q.id) || ALIMENTACION_DE_PIN.test(q.nombre) ? PESO_ALIMENTACION : 1)
+
 /** El giro y reflejo que dejan los pines de la pieza más cerca de los deseados (a esa escala), y dónde poner la pieza. */
 function mejorOrientacion(el: ElementoAcomodo, escala: number): Ajuste {
   const metas = el.def.pines.filter((q) => el.deseados?.has(q.id))
+  // Con solo pines de alimentación, todos pesan igual.
+  const pesos = metas.map(pesoDe)
+  if (pesos.every((w) => w < 1)) pesos.fill(1)
+  const total = pesos.reduce((s, w) => s + w, 0)
   let mejor: Ajuste | null = null
   for (const o of ORIENTACIONES) {
     let sx = 0, sy = 0
-    const lugares = metas.map((q) => {
+    const lugares = metas.map((q, i) => {
       const [tx, ty] = transformar(q.x, q.y, o.rot, o.espejo)
       const d = el.deseados!.get(q.id)!
-      sx += d.x * escala - tx
-      sy += d.y * escala - ty
-      return { tx, ty, d }
+      sx += pesos[i]! * (d.x * escala - tx)
+      sy += pesos[i]! * (d.y * escala - ty)
+      return { tx, ty, d, w: pesos[i]! }
     })
-    const x = lugares.length ? par(sx / lugares.length) : 0
-    const y = lugares.length ? par(sy / lugares.length) : 0
-    let costo = o.espejo ? 0.01 : 0
-    for (const l of lugares) costo += (l.tx + x - l.d.x * escala) ** 2 + (l.ty + y - l.d.y * escala) ** 2
+    const x = lugares.length ? par(sx / total) : 0
+    const y = lugares.length ? par(sy / total) : 0
+    // El giro se elige por la forma, no por el tamaño: el símbolo del origen (un NE555 de LTspice) puede medir el doble que el
+    // de Kirchi, así que se compara con el original escalado al tamaño que mejor le queda.
+    const ct = { x: 0, y: 0 }, cd = { x: 0, y: 0 }
+    for (const l of lugares) (ct.x += l.w * l.tx), (ct.y += l.w * l.ty), (cd.x += l.w * l.d.x), (cd.y += l.w * l.d.y)
+    const t = lugares.map((l) => ({ x: l.tx - ct.x / total, y: l.ty - ct.y / total, w: l.w }))
+    const d = lugares.map((l) => ({ x: l.d.x - cd.x / total, y: l.d.y - cd.y / total }))
+    let td = 0, dd = 0, tt = 0
+    t.forEach((a, i) => ((td += a.w * (a.x * d[i]!.x + a.y * d[i]!.y)), (dd += a.w * (d[i]!.x ** 2 + d[i]!.y ** 2)), (tt += a.w * (a.x ** 2 + a.y ** 2))))
+    const s = dd > 1e-12 ? Math.max(0, td / dd) : 0
+    let costo = (o.espejo ? 0.01 : 0) + (tt - 2 * s * td + s * s * dd) / Math.max(tt, 1e-9)
     if (!mejor || costo < mejor.costo - 1e-9) mejor = { ...o, x, y, costo }
   }
   return mejor!
@@ -190,7 +208,7 @@ function desplazar(els: ElementoAcomodo[], dx: number, dy: number): void {
 
 /** Con posiciones: cada pieza va donde mejor deja sus pines; si algo choca, todo el esquema se ensancha (la forma se
  * conserva) y, si aún así queda algo, esa pieza se aparta lo mínimo. */
-function conPosiciones(els: ElementoAcomodo[], lib: Map<string, PiezaDef>): void {
+function conPosiciones(els: ElementoAcomodo[], lib: Map<string, PiezaDef>): number {
   const colocar = (escala: number): Set<number> => {
     for (const e of els) {
       const a = mejorOrientacion(e, escala)
@@ -211,6 +229,7 @@ function conPosiciones(els: ElementoAcomodo[], lib: Map<string, PiezaDef>): void
     apartar(els, i, lib)
     malos = conflictos(els, lib)
   }
+  return escogida
 }
 
 const esFuente = (d: PiezaDef): boolean => ['V', 'I', 'senoidal', 'pulso', 'generador', 'pwl', 'alimentacion'].includes(d.modelo?.tipo ?? '')
@@ -323,13 +342,21 @@ function aparte(sueltos: ElementoAcomodo[], resto: ElementoAcomodo[], lib: Map<s
   columna(sinRed, 'der')
 }
 
+/** Cómo quedó el origen en Kirchi: un punto del origen, ya proyectado, va a `escala` veces su lugar más el desplazamiento. */
+export interface Encuadre {
+  escala: number
+  dx: number
+  dy: number
+}
+
 /** Escribe `x`, `y`, `rot` y `espejo` de cada pieza. Con posiciones del origen las respeta; sin ellas arma capas. Al final el
  * conjunto queda en positivo, a 8 unidades del borde. */
-export function acomodar(els: ElementoAcomodo[], tierras: Set<number>, lib: Map<string, PiezaDef>): void {
+export function acomodar(els: ElementoAcomodo[], tierras: Set<number>, lib: Map<string, PiezaDef>): Encuadre {
   const posicionados = els.filter((e) => e.deseados && e.deseados.size > 0)
+  let escala = 1
   if (posicionados.length === 0) enCapas(els, tierras, lib)
   else {
-    conPosiciones(posicionados, lib)
+    escala = conPosiciones(posicionados, lib)
     const sueltos = els.filter((e) => !posicionados.includes(e))
     if (sueltos.length) {
       aparte(sueltos, posicionados, lib)
@@ -338,5 +365,7 @@ export function acomodar(els: ElementoAcomodo[], tierras: Set<number>, lib: Map<
     }
   }
   const c = cajaTotal(els, lib)
-  if (c) desplazar(els, par(8 - c.minX), par(8 - c.minY))
+  const dx = c ? par(8 - c.minX) : 0, dy = c ? par(8 - c.minY) : 0
+  if (c) desplazar(els, dx, dy)
+  return { escala, dx, dy }
 }

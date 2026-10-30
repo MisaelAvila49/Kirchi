@@ -318,8 +318,8 @@ mod tests {
     }
 
     fn corrientes(tr: &mut Transient, ia: f64, ib: f64) {
-        tr.set_element(0, Element::I { a: 0, b: 1, amps: ia }).unwrap();
-        tr.set_element(1, Element::I { a: 0, b: 2, amps: ib }).unwrap();
+        tr.set_element(0, Element::I { a: 0, b: 1, amps: ia, wave: None }).unwrap();
+        tr.set_element(1, Element::I { a: 0, b: 2, amps: ib, wave: None }).unwrap();
     }
 
     /// Mueve el campo y espera a que el rotor se asiente; devuelve (ángulo de salida, velocidad de salida).
@@ -421,7 +421,7 @@ mod tests {
 
     fn mitad(tr: &mut Transient, cual: usize, amps: f64) {
         for k in 0..4 {
-            tr.set_element(k, Element::I { a: 0, b: k + 1, amps: if k == cual { amps } else { 0.0 } }).unwrap();
+            tr.set_element(k, Element::I { a: 0, b: k + 1, amps: if k == cual { amps } else { 0.0 }, wave: None }).unwrap();
         }
     }
 

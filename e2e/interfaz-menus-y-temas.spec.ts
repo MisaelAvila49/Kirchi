@@ -42,9 +42,9 @@ test.afterAll(async () => {
   await app?.close()
 })
 
-test('la ventana abre en claro, con los paneles y la librería de 111 piezas', async () => {
+test('la ventana abre en claro, con los paneles y la librería de 113 piezas', async () => {
   expect(await page.evaluate(() => document.documentElement.dataset.tema)).toBe('claro')
-  await expect(page.locator('.lateral .panel-cabeza')).toContainText('111 piezas')
+  await expect(page.locator('.lateral .panel-cabeza')).toContainText('113 piezas')
   await expect(page.locator('aside.inspector h2')).toHaveText('Sin selección')
 })
 

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { NetlistMotor } from '../netlist/netlist'
-import { PASO_MAX, PASO_MIN, PASO_VISTA, pasoDeVistaPrevia } from './lectura'
+import { PASO_MAX, PASO_MIN, PASO_VISTA, pasoDeSimulacion, pasoDeVistaPrevia, topesDeVistaPrevia } from './lectura'
 import { ASTABLE_555, CONTADOR, correr, cruces, formaRelativa, iniciarMotor, netlistDe, netlistDeArchivo, periodoMedio, RC_CUADRADA, RECTIFICADOR_LED, trazaPorPasos } from '../prueba/pasoVista'
 
 beforeAll(iniciarMotor)
@@ -32,6 +32,15 @@ describe('pasoDeVistaPrevia', () => {
     // Los tramos largos no lo acortan y un solo punto es una constante.
     expect(pasoDeVistaPrevia(con(tramos([[0, 0], [1e-3, 5], [2e-3, 0]])))).toBe(PASO_VISTA)
     expect(pasoDeVistaPrevia(con(tramos([[0, 3]])))).toBe(PASO_VISTA)
+  })
+  it('las fuentes de corriente con onda acotan el paso como las de voltaje', () => {
+    const iSeno = (freq: number) => ({ type: 'I', a: 1, b: 0, amps: 0, wave: { kind: 'sine', offset: 0, amp: 1e-3, freq, phase: 0, continua: true } }) as const
+    const iPulso = { type: 'I', a: 1, b: 0, amps: 0, wave: { kind: 'pulse', low: 0, high: 1e-3, freq: 0.1, rise: 1e-9, fall: 1e-9, width: 1, phase: 0, continua: true } } as const
+    expect(pasoDeVistaPrevia(con(iSeno(60)))).toBeCloseTo(pasoDeVistaPrevia(con(seno(60))), 12)
+    expect(1 / (100 * pasoDeVistaPrevia(con(iSeno(100))))).toBeGreaterThanOrEqual(200)
+    expect(pasoDeSimulacion(con(iSeno(2000)))).toBeCloseTo(pasoDeSimulacion(con(seno(2000))), 12)
+    expect(topesDeVistaPrevia(con(iPulso)).fuentes).toHaveLength(1)
+    expect(pasoDeVistaPrevia(con(iPulso))).toBeCloseTo(0.5e4 * 1e-9, 15)
   })
   it('una base de tiempo lo acota a 500 pasos por pantalla', () => {
     expect(pasoDeVistaPrevia(con(seno(0.05)), [1e-3])).toBeCloseTo((10 * 1e-3) / 500, 15)

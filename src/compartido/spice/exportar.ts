@@ -360,6 +360,9 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
     }
   }
 
+  /** El `IC=` de un capacitor o un inductor (solo vale con `uic` en el transitorio). */
+  const condicionInicial = (e: Campos): string => (e.ic === undefined ? '' : ` ic=${f(num(e, 'ic'))}`)
+
   const sondaDeElemento = new Map<number, string>()
 
   for (k = 0; k < netlist.elements.length; k++) {
@@ -378,14 +381,14 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
       }
       case 'C': {
         const [a, b] = [nodo(e, 'a'), nodo(e, 'b')]
-        cuerpo.push(`c${k} ${a} ${b} ${f(positivo(e, 'farads'))}`)
+        cuerpo.push(`c${k} ${a} ${b} ${f(positivo(e, 'farads'))}${condicionInicial(e)}`)
         sondaDeElemento.set(k, `@c${k}[i]`)
         nombreDeElemento(`c${k}`)
         break
       }
       case 'L': {
         const [a, b] = [nodo(e, 'a'), nodo(e, 'b')]
-        cuerpo.push(`l${k} ${a} ${b} ${f(positivo(e, 'henries'))}`)
+        cuerpo.push(`l${k} ${a} ${b} ${f(positivo(e, 'henries'))}${condicionInicial(e)}`)
         sondaDeElemento.set(k, `@l${k}[i]`)
         nombreDeElemento(`l${k}`)
         break
@@ -400,7 +403,7 @@ export function exportarSpice(netlist: NetlistMotor, opciones: OpcionesExportar 
       }
       case 'I': {
         const [a, b] = [nodo(e, 'a'), nodo(e, 'b')]
-        cuerpo.push(`i${k} ${a} ${b} dc ${f(num(e, 'amps'))}`)
+        cuerpo.push(`i${k} ${a} ${b} ${typeof e.wave === 'object' && e.wave !== null ? onda(e.wave as Onda) : `dc ${f(num(e, 'amps'))}`}`)
         break
       }
       case 'D': {

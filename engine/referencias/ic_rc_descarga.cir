@@ -1,0 +1,12 @@
+* Capacitor de 10 uF cargado a 5 V que se descarga por 1 kohm
+R1 1 0 1k
+C1 1 0 10u ic=5
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 10u 20m 0 20u uic
+wrdata salida.txt v(1)
+.endc
+.end

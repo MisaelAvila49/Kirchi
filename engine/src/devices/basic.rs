@@ -66,11 +66,13 @@ pub struct Capacitor {
     ua: U,
     ub: U,
     q: usize,
+    /// Voltaje inicial de `a` a `b`.
+    ic: Option<f64>,
 }
 
 impl Capacitor {
-    pub fn new(a: usize, b: usize, farads: f64) -> Self {
-        Self { a, b, farads, ua: None, ub: None, q: 0 }
+    pub fn new(a: usize, b: usize, farads: f64, ic: Option<f64>) -> Self {
+        Self { a, b, farads, ua: None, ub: None, q: 0, ic }
     }
 }
 
@@ -89,7 +91,12 @@ impl Device for Capacitor {
         if c.mode == Mode::Pred {
             c.s0[q] = c.s1[q];
         } else {
-            c.s0[q] = self.farads * (volt(c.x, self.ua) - volt(c.x, self.ub));
+            // Con `ic`, el instante 0 trae esa carga (`uic` de ngspice); las demás iteraciones leen el voltaje.
+            let v = match self.ic {
+                Some(ic) if c.mode == Mode::InitTran => ic,
+                _ => volt(c.x, self.ua) - volt(c.x, self.ub),
+            };
+            c.s0[q] = self.farads * v;
             init_charge(c, q);
         }
         let (geq, ceq) = integrate(c, self.farads, q);
@@ -119,11 +126,13 @@ pub struct Inductor {
     ub: U,
     br: usize,
     flux: usize,
+    /// Corriente inicial de `a` a `b`.
+    ic: Option<f64>,
 }
 
 impl Inductor {
-    pub fn new(a: usize, b: usize, henries: f64) -> Self {
-        Self { a, b, henries, ua: None, ub: None, br: 0, flux: 0 }
+    pub fn new(a: usize, b: usize, henries: f64, ic: Option<f64>) -> Self {
+        Self { a, b, henries, ua: None, ub: None, br: 0, flux: 0, ic }
     }
 }
 
@@ -143,7 +152,11 @@ impl Device for Inductor {
         if c.mode == Mode::Pred {
             c.s0[f] = c.s1[f];
         } else {
-            c.s0[f] = self.henries * c.x[self.br];
+            let i = match self.ic {
+                Some(ic) if c.mode == Mode::InitTran => ic,
+                _ => c.x[self.br],
+            };
+            c.s0[f] = self.henries * i;
             init_charge(c, f);
         }
         let (req, veq) = integrate(c, self.henries, f);
@@ -240,19 +253,22 @@ impl Device for VSource {
     }
 }
 
-/// Fuente de corriente: `amps` circulan de `a` hacia `b` por dentro de ella.
+/// Fuente de corriente: `amps` (o su onda) circulan de `a` hacia `b` por dentro de ella.
 #[derive(Clone)]
 pub struct ISource {
     a: usize,
     b: usize,
     amps: f64,
+    wave: Option<Wave>,
+    /// Lo que entregó en la última carga, para la lectura.
+    ultima: f64,
     ua: U,
     ub: U,
 }
 
 impl ISource {
-    pub fn new(a: usize, b: usize, amps: f64) -> Self {
-        Self { a, b, amps, ua: None, ub: None }
+    pub fn new(a: usize, b: usize, amps: f64, wave: Option<Wave>) -> Self {
+        Self { a, b, amps, ultima: amps, wave, ua: None, ub: None }
     }
 }
 
@@ -266,22 +282,42 @@ impl Device for ISource {
         self.ub = a.ext(self.b);
     }
     fn load(&mut self, c: &mut Ctx) -> bool {
-        stamp_i(c.rhs, self.ua, self.ub, c.src * self.amps);
+        let i = self.wave.as_ref().map_or(self.amps, |w| w.during(c.t, c.h));
+        self.ultima = i;
+        stamp_i(c.rhs, self.ua, self.ub, c.src * i);
         false
     }
     fn linear(&self) -> bool {
         true
     }
     fn reading(&self, _x: &[f64], _s0: &[f64]) -> Reading {
-        Reading { i: self.amps, ..Reading::default() }
+        Reading { i: self.ultima, ..Reading::default() }
+    }
+    fn next_break(&self, t: f64) -> f64 {
+        self.wave.as_ref().map_or(f64::INFINITY, |w| w.next_edge(t))
+    }
+    fn tiene_quiebres(&self) -> bool {
+        self.wave.is_some()
     }
     fn tiene_dinamica(&self) -> bool {
-        false
+        self.wave.as_ref().is_some_and(|w| !matches!(w, Wave::Dc { .. }))
     }
     fn set(&mut self, e: &Element) -> bool {
-        match *e {
-            Element::I { a, b, amps } if a == self.a && b == self.b => {
-                self.amps = amps;
+        self.set_en(e, 0.0)
+    }
+    /// Una onda nueva con `continua` sigue desde el punto del ciclo en que iba la anterior en `t`.
+    fn set_en(&mut self, e: &Element, t: f64) -> bool {
+        match e {
+            Element::I { a, b, amps, wave } if *a == self.a && *b == self.b => {
+                let mut w = wave.clone();
+                if let Some(w) = w.as_mut().filter(|w| w.continua()) {
+                    if let (Some(u), Some(f)) = (self.wave.as_ref().and_then(|v| v.ciclo(t)), w.frecuencia()) {
+                        w.con_fase((u - f * t).rem_euclid(1.0));
+                    }
+                }
+                self.amps = *amps;
+                self.wave = w;
+                self.ultima = *amps;
                 true
             }
             _ => false,

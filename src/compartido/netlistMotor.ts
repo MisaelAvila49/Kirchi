@@ -65,12 +65,15 @@ export type SalidaMsi = { tipo: 'directa'; fuente: FuenteMsi; negada?: boolean }
 
 export type ElementoMotor =
   | { type: 'R'; a: number; b: number; ohms: number }
-  | { type: 'C'; a: number; b: number; farads: number }
-  | { type: 'L'; a: number; b: number; henries: number }
+  /** `ic`: voltaje inicial de `a` a `b`; sin él, parte descargado. */
+  | { type: 'C'; a: number; b: number; farads: number; ic?: number }
+  /** `ic`: corriente inicial de `a` a `b`; sin ella, parte en 0. */
+  | { type: 'L'; a: number; b: number; henries: number; ic?: number }
   | { type: 'V'; a: number; b: number; wave: Onda }
   /** Diodo; el zener lleva además su resistencia en serie, su ruptura y su capacitancia. */
   | { type: 'D'; a: number; b: number; is: number; n: number; rs?: number; bv?: number; ibv?: number; nbv?: number; cjo?: number; vj?: number; m?: number; tt?: number; fc?: number }
-  | { type: 'I'; a: number; b: number; amps: number }
+  /** Con `wave`, la corriente sigue la onda (en amperes) y `amps` no cuenta. */
+  | { type: 'I'; a: number; b: number; amps: number; wave?: Onda }
   | { type: 'Q'; c: number; b: number; e: number; pnp: boolean; model: Parametros; euler?: boolean }
   | { type: 'M'; d: number; g: number; s: number; pmos: boolean; model: Parametros }
   | { type: 'OA'; p: number; n: number; out: number; vp: number; vn: number; model: Parametros; euler?: boolean }

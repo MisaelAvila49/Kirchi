@@ -132,6 +132,30 @@ describe('rangos de los valores contra el motor de verdad (las tablas de rangos.
     }
   })
 
+  it('las fuentes de corriente con onda y la condición inicial de C y L', () => {
+    const i = (wave: object) => ({ type: 'I', a: 1, b: 0, amps: 0, wave }) as unknown as ElementoMotor
+    const c = (ic: number) => ({ type: 'C', a: 1, b: 0, farads: 1e-6, ic }) as ElementoMotor
+    const l = (ic: number) => ({ type: 'L', a: 1, b: 0, henries: 1e-3, ic }) as ElementoMotor
+    const casos: [ElementoMotor, boolean][] = [
+      [i({ kind: 'sine', offset: 0, amp: 1e-3, freq: 1e3 }), true],
+      [i({ kind: 'sine', offset: 0, amp: 1e7, freq: 1e3 }), false],
+      [i({ kind: 'pulse', low: 0, high: 1e-3, freq: 1e3, rise: 1e-9, fall: 1e-9, width: 1e-4 }), true],
+      [i({ kind: 'pulse', low: 0, high: 1e-3, freq: 1e10, rise: 1e-9, fall: 1e-9, width: 1e-4 }), false],
+      [c(5), true],
+      [c(2e6), false],
+      [c(-2e6), false],
+      [c(Infinity), false],
+      [l(0.1), true],
+      [l(2e6), false]
+    ]
+    for (const [e, ok] of casos) {
+      expect(errorDeRango(e, 'X1') === null, JSON.stringify(e)).toBe(ok)
+      if (Number.isFinite((e as { ic?: number }).ic ?? 0)) expect(elMotorLaAcepta(e), JSON.stringify(e)).toBe(ok)
+    }
+    expect(errorDeRango(c(2e6), 'C1')).toContain('C1: su voltaje inicial')
+    expect(errorDeRango(l(2e6), 'L2')).toContain('L2: su corriente inicial')
+  })
+
   it('la fuente por tramos, la resistencia de EXT, la tabla del termistor y las terminales de PASOS', () => {
     const pwl = (puntos: [number, number][]) => ({ type: 'V', a: 1, b: 0, wave: { kind: 'pwl', puntos } }) as ElementoMotor
     const largo = Array.from({ length: 1001 }, (_, i) => [i, 0] as [number, number])

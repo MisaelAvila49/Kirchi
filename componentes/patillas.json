@@ -37,6 +37,8 @@
   "fuente-cccs": ["+","-","C+","C-"],
   "fuente-ccvs": ["+","-","C+","C-"],
   "fuente-corriente": ["entrada","salida"],
+  "fuente-corriente-ac": ["entrada","salida"],
+  "fuente-corriente-pulso": ["entrada","salida"],
   "fuente-dc": ["+","-"],
   "fuente-pulso": ["+","-"],
   "fuente-pwl": ["+","-"],

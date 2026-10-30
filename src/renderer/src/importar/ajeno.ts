@@ -51,15 +51,27 @@ export interface TerminalAjena {
 export interface DibujoAjeno {
   cables: PuntoAjeno[][]
   uniones: PuntoAjeno[]
-  etiquetas: { nombre: string; x: number; y: number }[]
+  /** `giro`: hacia dónde crece la etiqueta, en grados antihorarios, si el origen lo dice. */
+  etiquetas: { nombre: string; x: number; y: number; giro?: number }[]
   terminales: TerminalAjena[]
   textos: { texto: string; x: number; y: number }[]
 }
 
 export type InstrumentoAjeno =
   | { tipo: 'sonda'; magnitud: 'voltaje' | 'corriente'; nombre: string; red?: string; x?: number; y?: number }
-  | { tipo: 'generador'; forma: 'pulso' | 'senoidal' | 'cd' | 'otra'; nombre: string; red: string; referencia?: string; parametros: Record<string, number | string> }
-  | { tipo: 'virtual'; clase: 'voltimetro' | 'amperimetro' | 'osciloscopio'; nombre: string; redes: string[] }
+  | { tipo: 'generador'; forma: 'pulso' | 'senoidal' | 'cd' | 'otra'; nombre: string; red: string; referencia?: string; parametros: Record<string, number | string>; x?: number; y?: number }
+  | {
+      tipo: 'virtual'
+      clase: 'voltimetro' | 'amperimetro' | 'osciloscopio'
+      nombre: string
+      redes: string[]
+      /** Dónde estaba el instrumento (o la gráfica) en el origen. */
+      x?: number
+      y?: number
+      /** Una gráfica del origen vuelta osciloscopio: el tiempo que muestra y el rango de su eje vertical. */
+      ventana?: [number, number]
+      rangoY?: [number, number]
+    }
 
 export type DirectivaAjena =
   | { tipo: 'analisis'; analisis: 'op' | 'dc' | 'tran' | 'ac' | 'fourier'; parametros: Record<string, number | string>; trazas: string[]; nombre?: string }

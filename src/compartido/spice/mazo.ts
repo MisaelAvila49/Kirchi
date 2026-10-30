@@ -203,6 +203,11 @@ function fuenteDeVoltaje(netlist: NetlistMotor, k: number, que: string): string 
   return `v${k}`
 }
 
+/** Algún capacitor o inductor trae condición inicial: ngspice solo la respeta con `uic`. */
+function conCondicionesIniciales(netlist: NetlistMotor): boolean {
+  return netlist.elements.some((e) => (e.type === 'C' || e.type === 'L') && e.ic !== undefined)
+}
+
 /** Arma el mazo de ngspice de una petición ya validada: netlist, opciones, tarjeta de análisis, sondas y escritura del `raw` ASCII. */
 export function armarMazo(p: PeticionAnalisis, opciones: OpcionesExportar = {}): Mazo {
   const a = p.analisis
@@ -219,7 +224,7 @@ export function armarMazo(p: PeticionAnalisis, opciones: OpcionesExportar = {}):
       tarjeta = 'op'
       break
     case 'tran':
-      tarjeta = `tran ${numero(a.paso)} ${numero(a.fin)} ${numero(a.inicio ?? 0)} ${numero(a.maximo ?? a.paso)}${a.uic ? ' uic' : ''}`
+      tarjeta = `tran ${numero(a.paso)} ${numero(a.fin)} ${numero(a.inicio ?? 0)} ${numero(a.maximo ?? a.paso)}${a.uic || conCondicionesIniciales(p.netlist) ? ' uic' : ''}`
       break
     case 'ac':
       tarjeta = `ac ${a.barrido} ${numero(a.puntos)} ${numero(a.desde)} ${numero(a.hasta)}`

@@ -17,7 +17,8 @@ describe('divisor.kicad_sch', () => {
   it('lee versión, unidades, piezas, valores y propiedades de simulación', () => {
     expect(c.formato).toBe('kicad')
     expect(c.version).toBe('9')
-    expect(c.unidadesPorMm).toBe(1)
+    // 100 mil del origen son una celda de 2.5 mm de Kirchi.
+    expect(c.unidadesPorMm! * 2.5).toBeCloseTo(2.54)
     expect(c.piezas.map((p) => p.ref)).toEqual(['V1', 'R1', 'R2'])
     expect(pieza(c, 'R1')).toMatchObject({ tipo: 'Device:R', valor: '10k', x: 76.2, y: 40.64, giro: 0 })
     expect(pieza(c, 'R1').props.Footprint).toBe('Resistor_SMD:R_0805_2012Metric')
@@ -40,7 +41,7 @@ describe('divisor.kicad_sch', () => {
     expect(c.piezas.some((p) => p.ref.startsWith('#'))).toBe(false)
     expect(c.dibujo!.terminales).toEqual([{ nombre: 'GND', tipo: 'tierra', x: 50.8, y: 66.04, giro: 0 }])
     expect(c.dibujo!.cables).toHaveLength(6)
-    expect(c.dibujo!.etiquetas).toEqual([{ nombre: 'out', x: 76.2, y: 48.895 }])
+    expect(c.dibujo!.etiquetas).toEqual([{ nombre: 'out', x: 76.2, y: 48.895, giro: 0 }])
   })
   it('sin avisos y con clases que el convertidor reconoce', () => {
     expect(c.avisos).toEqual([])

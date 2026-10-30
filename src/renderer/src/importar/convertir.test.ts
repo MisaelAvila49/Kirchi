@@ -239,7 +239,7 @@ describe('instrumentos y análisis', () => {
     expect(violaciones(doc, lib)).toEqual([])
   })
 
-  it('un osciloscopio y un voltímetro virtuales se miden con sondas en sus redes', () => {
+  it('un osciloscopio virtual se une a sus redes por etiquetas junto a sus entradas y un voltímetro se mide con sondas', () => {
     const a = rc()
     a.instrumentos = [{ tipo: 'virtual', clase: 'osciloscopio', nombre: 'Osc', redes: ['ent', 'sal'] }, { tipo: 'virtual', clase: 'voltimetro', nombre: 'VM', redes: ['sal', '0'] }]
     a.directivas = []
@@ -248,8 +248,29 @@ describe('instrumentos y análisis', () => {
     const osc = Object.values(doc.piezas).find((p) => p.tipo === 'osciloscopio')!
     const mm = Object.values(doc.piezas).find((p) => p.tipo === 'multimetro')!
     const sondas = Object.values(doc.sondas ?? {})
-    expect(sondas.filter((s) => s.instrumento === osc.id).map((s) => s.entrada).sort()).toEqual(['A', 'B'])
+    expect(sondas.filter((s) => s.instrumento === osc.id)).toEqual([])
+    const con = calcularConexiones(doc, lib)
+    const redDe = (ref: string, pin: string) => con.redDePin.get(clavePin(Object.values(doc.piezas).find((p) => p.ref === ref)!.id, pin))
+    expect(redDe(osc.ref, 'A')).toBeDefined()
+    expect(redDe(osc.ref, 'A')).toBe(redDe('R1', '1'))
+    expect(redDe(osc.ref, 'B')).toBe(redDe('R1', '2'))
+    expect(redDe(osc.ref, 'A')).not.toBe(redDe(osc.ref, 'B'))
     expect(sondas.filter((s) => s.instrumento === mm.id).map((s) => s.entrada).sort()).toEqual(['+', 'COM'])
+    sinChoques(doc)
+    expect(violaciones(doc, lib)).toEqual([])
+  })
+})
+
+describe('osciloscopio de una gráfica', () => {
+  it('toma la base del tiempo de la gráfica, la escala de su rango y un canal por traza', () => {
+    const a = divisor(true)
+    a.instrumentos = [{ tipo: 'virtual', clase: 'osciloscopio', nombre: 'GRAFICA', redes: ['in', 'out'], x: 70, y: 60, ventana: [0, 50], rangoY: [-0.2, 1.2] }]
+    const { c, doc } = importar(a)
+    const osc = Object.values(doc.piezas).find((p) => p.tipo === 'osciloscopio')!
+    expect(osc.props).toMatchObject({ a_on: 'encendido', b_on: 'encendido', base: '5', a_vdiv: '200m', b_vdiv: '200m', a_pos: '-2.4' })
+    expect(osc.props.c_on).toBeUndefined()
+    expect(c.avisos).toContain('La gráfica GRAFICA pasó a un osciloscopio y a un análisis transitorio.')
+    expect(Object.values(doc.sondas ?? {})).toEqual([])
     sinChoques(doc)
     expect(violaciones(doc, lib)).toEqual([])
   })
@@ -420,5 +441,32 @@ describe('verificador de redes con alimentaciones del mismo voltaje', () => {
     const a = dosRieles('3')
     const { doc } = importar(a)
     expect(problemasDeRedes(a, doc, lib)).toEqual([])
+  })
+})
+
+describe('fuente de CD de un riel con nombre', () => {
+  const circuito = (trazas: string[]): CircuitoAjeno => ({
+    formato: 'spice',
+    nombre: 'riel',
+    unidadesPorMm: 1,
+    piezas: [
+      { ref: 'V1', tipo: 'V', valor: '5', props: { dc: '5' }, pines: [{ nombre: '+', numero: '1' }, { nombre: '−', numero: '2' }] },
+      { ref: 'R1', tipo: 'R', valor: '1k', props: {}, pines: [{ nombre: '1', numero: '1' }, { nombre: '2', numero: '2' }] }
+    ],
+    redes: [{ nombre: 'vcc', pines: [{ ref: 'V1', pin: '+' }, { ref: 'R1', pin: '1' }] }, { nombre: '0', pines: [{ ref: 'V1', pin: '−' }, { ref: 'R1', pin: '2' }] }],
+    dibujo: { cables: [], uniones: [], etiquetas: [{ nombre: 'vcc', x: 0, y: 0 }], terminales: [], textos: [] },
+    instrumentos: [],
+    directivas: [{ tipo: 'analisis', analisis: 'tran', parametros: { paso: 1e-6, fin: 1e-3 }, trazas }],
+    avisos: []
+  })
+  const tipos = (trazas: string[]): string[] => {
+    const gen = idSecuencial()
+    return Object.values(armarDocumento(convertir(circuito(trazas), lib, gen), lib, gen).doc.piezas).map((p) => p.tipo)
+  }
+  it('sin que nada la cite pasa a ser el voltaje del riel', () => {
+    expect(tipos([])).not.toContain('fuente-dc')
+  })
+  it('la que un análisis grafica por su corriente (.probe i(v1)) se queda como pieza', () => {
+    expect(tipos(['i(V1)'])).toContain('fuente-dc')
   })
 })

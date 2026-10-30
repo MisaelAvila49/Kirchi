@@ -27,7 +27,7 @@ const filas = (): { id: string; clave: string; fila: FilaDatos }[] =>
   piezas().flatMap((d) => Object.entries(d.datos?.valores ?? {}).map(([clave, fila]) => ({ id: d.id, clave, fila })))
 
 describe('datos de las piezas', () => {
-  it('las 111 piezas de la Librería traen la clave datos', () => {
+  it('las piezas de la Librería traen la clave datos', () => {
     expect(piezas().filter((d) => !d.datos).map((d) => d.id)).toEqual([])
   })
 

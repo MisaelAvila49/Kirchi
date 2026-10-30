@@ -5,6 +5,7 @@ import type { Cable, Documento, Etiqueta, Pieza, Punto } from '../doc/tipos'
 import { colisiona, cuerpoEnMundo } from '../editor/colision'
 import { cableEnCuerpo, piezaCruzada } from '../editor/conflictos'
 import { enrutar, rutaLibre } from '../editor/enrutar'
+import { giroDeEtiqueta } from '../editor/etiquetaEnTramo'
 import { pinesEnMundo } from '../piezas/transformar'
 import type { PiezaDef } from '../piezas/tipos'
 
@@ -131,8 +132,11 @@ export function cablear(doc: Documento, lib: Map<string, PiezaDef>, redes: RedPa
     return false
   }
 
+  const inicio = performance.now()
   const etiquetar = (nombre: string, p: Punto): void => {
-    const e: Etiqueta = { id: gen('e'), nombre, x: p.x, y: p.y, rot: 0 }
+    // Sin tiempo (esquemas de miles de pines) va horizontal: buscar su lado libre en cada una costaría más que el trazo.
+    const sinTiempo = performance.now() - inicio > presupuestoMs
+    const e: Etiqueta = { id: gen('e'), nombre, x: p.x, y: p.y, rot: sinTiempo ? 0 : giroDeEtiqueta(doc, lib, p, nombre) }
     doc.etiquetas[e.id] = e
     res.etiquetas.push(e)
   }
@@ -140,7 +144,6 @@ export function cablear(doc: Documento, lib: Map<string, PiezaDef>, redes: RedPa
   const lista = redes.map((r) => ({ r, pos: posiciones(r) })).filter((x) => x.pos.length > 0)
   lista.sort((a, b) => Number(a.r.tierra) - Number(b.r.tierra) || extension(a.pos.map((x) => x.p)) - extension(b.pos.map((x) => x.p)))
 
-  const inicio = performance.now()
   let sinTiempo = 0
   for (const { r, pos } of lista) {
     const esTierraPieza = (x: { pieza: Pieza }): boolean => lib.get(x.pieza.tipo)?.modelo?.tipo === 'tierra'

@@ -56,6 +56,8 @@ export interface ContextoAnalisis {
   /** Piezas con una fuente de voltaje: la entrada de un barrido de CD o de CA, en orden de referencia. */
   fuentes: FuenteAnalisis[]
   barribles: PiezaBarrible[]
+  /** Referencias de los capacitores e inductores con condición inicial (el transitorio parte de ellas). */
+  condicionesIniciales: string[]
   redes: RedAnalisis[]
   corrientes: CorrienteAnalisis[]
   /** Nodo de la netlist de cada red del documento. */
@@ -108,6 +110,8 @@ export function armarContexto(doc: Documento, lib: Map<string, PiezaDef>, con: C
   const vistoFuente = new Set<Id>()
   const vistoBarrible = new Set<Id>()
   const vistoCorriente = new Set<Id>()
+  const condicionesIniciales: string[] = []
+  const vistoIc = new Set<Id>()
   r.netlist.elements.forEach((e, k) => {
     const id = r.piezaDeElemento[k]
     if (id === undefined || !doc.piezas[id]) return
@@ -117,6 +121,10 @@ export function armarContexto(doc: Documento, lib: Map<string, PiezaDef>, con: C
       const clase: ClaseFuente = lib.get(pieza.tipo)?.modelo?.tipo === 'alimentacion' ? 'riel' : pieza.tipo === 'generador' ? 'generador' : e.wave.kind === 'dc' ? 'continua' : 'senal'
       fuentes.push({ id, ref: ref(id), clase })
       if (clase === 'riel') rieles.add(e.a !== 0 ? e.a : e.b)
+    }
+    if ((e.type === 'C' || e.type === 'L') && e.ic !== undefined && !vistoIc.has(id)) {
+      vistoIc.add(id)
+      condicionesIniciales.push(ref(id))
     }
     const b = r.potenciometros.has(id) ? null : barribleDe(e)
     if (b && !vistoBarrible.has(id)) {
@@ -132,6 +140,7 @@ export function armarContexto(doc: Documento, lib: Map<string, PiezaDef>, con: C
   fuentes.sort(porRef)
   barribles.sort(porRef)
   corrientes.sort(porRef)
+  condicionesIniciales.sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
 
   const todas = nombresDeRedes(doc, con)
   const redes: RedAnalisis[] = []
@@ -166,5 +175,5 @@ export function armarContexto(doc: Documento, lib: Map<string, PiezaDef>, con: C
     sondas: Array.from(sondas, (s, i) => s ?? { nombre: `Sonda ${i + 1}`, tipo: 'd' as const }),
     pieza: (id: Id) => doc.piezas[id]?.ref ?? 'una pieza que ya no está'
   }
-  return { ok: true, ctx: { netlist: r.netlist, piezaDeElemento: r.piezaDeElemento, nombres, fuentes, barribles, redes, corrientes, nodoDeRed: r.nodoDeRed, avisos: r.avisos } }
+  return { ok: true, ctx: { netlist: r.netlist, piezaDeElemento: r.piezaDeElemento, nombres, fuentes, barribles, condicionesIniciales, redes, corrientes, nodoDeRed: r.nodoDeRed, avisos: r.avisos } }
 }

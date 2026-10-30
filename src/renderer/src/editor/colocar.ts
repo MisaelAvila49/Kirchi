@@ -5,6 +5,9 @@ import { anchoNotaAuto } from '../lienzo/medidas'
 import { MAX_TEXTO_PROP, type PiezaDef, type PropDef } from '../piezas/tipos'
 import { leerValor } from '../valores/valores'
 
+/** Mayor condición inicial (V o A) que acepta el motor, la misma de las fuentes. */
+const IC_MAX = 1e6
+
 /** La propiedad que se muestra y se edita como «valor»: la primera sin `opciones` ni `texto`. */
 export const propNumerica = (def: PiezaDef): PropDef | undefined => def.props.find((p) => !p.opciones && !p.texto && !p.ajuste)
 /** Propiedad que llena el valor del buscador («r 4k7») o un chip de valores comunes: la numérica o, en un terminal de
@@ -63,9 +66,13 @@ export function cambiarProp(p: Pieza, def: PiezaDef, propId: string, texto: stri
     return listo
   }
   if (prop.opciones) return prop.opciones.includes(t) ? listo : { error: `Elige una opción: ${prop.opciones.join(', ')}.` }
+  if (prop.opcional && t === '') return listo
   const v = leerValor(t)
   if (!v) return { error: `«${t}» no es un valor válido.` }
   if (v.unidad && prop.unidad && v.unidad !== prop.unidad) return { error: `Se esperaba un valor en ${prop.unidad}.` }
+  // La condición inicial de un capacitor o inductor tiene el mismo tope que una fuente; el motor rechaza más.
+  const m = def.modelo
+  if ((m?.tipo === 'C' || m?.tipo === 'L') && m.ic === propId && !(Math.abs(v.valor) <= IC_MAX)) return { error: `${prop.nombre} admite hasta ${IC_MAX.toLocaleString('en-US')} ${prop.unidad}.` }
   return listo
 }
 

@@ -60,6 +60,14 @@ describe('inspector: series y catálogo', () => {
     expect(campo('resistencia', 'valor').comunes).toBeUndefined()
     expect(campo('zener', 'voltaje').catalogo).toBe(true)
   })
+  it('la condición inicial es un campo opcional vacío, siempre en «Más ajustes», con su lista de comunes', () => {
+    const c = campo('capacitor', 'vinicial')
+    expect(c).toMatchObject({ texto: '', opcional: true, unidad: 'V', lectura: null })
+    expect(c.comunes?.length).toBeGreaterThan(0)
+    expect(campo('inductor', 'iinicial')).toMatchObject({ texto: '', opcional: true, unidad: 'A' })
+    const todos = [campo('capacitor', 'valor'), campo('capacitor', 'esr'), c]
+    expect(repartirCampos(todos, (x) => !!x.opcional)).toEqual({ vistos: todos.slice(0, 2), mas: [c] })
+  })
   it('un transistor lleva la tabla de modelos; una resistencia no', () => {
     expect(campo('npn', 'modelo').tabla?.columnas).toEqual(['Bf', 'Ic máx'])
     expect(campo('resistencia', 'valor').tabla).toBeUndefined()

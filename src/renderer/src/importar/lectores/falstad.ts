@@ -356,6 +356,11 @@ export function leerFalstad(texto: string, nombre: string): CircuitoAjeno {
     }
 
     const ref = referencia(codigo)
+    // Falstad guarda el voltaje del capacitor y la corriente del inductor al momento de guardar: es su condición inicial.
+    if (codigo === 'c' || codigo === 'l') {
+      const estado = num(par[1])
+      if (estado !== undefined && Math.abs(estado) > 1e-12) props.ic = String(Number(estado.toPrecision(6)))
+    }
     if (generadores.length && generadores[generadores.length - 1]!.ref === '' && (codigo === 'v' || codigo === 'R')) generadores[generadores.length - 1]!.ref = ref
     el.mira = mira ?? pines.map((q) => ({ x: q.x as number, y: q.y as number }))
     piezas.push({

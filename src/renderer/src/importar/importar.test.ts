@@ -2,6 +2,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { calcularConexiones, clavePin } from '../conexiones/conexiones'
 import { idSecuencial } from '../doc/ids'
 import { colisiona } from '../editor/colision'
 import { violaciones } from '../editor/conflictos'
@@ -64,11 +65,29 @@ describe('importarBytes con los ejemplos', () => {
     expect(informe.analisis).toEqual([{ nombre: 'Respuesta en frecuencia importada', de: expect.stringMatching(/^CA de /) }])
   })
 
-  it('el osciloscopio de Falstad se mide con sondas del instrumento y crea el transitorio', () => {
+  it('el osciloscopio de Falstad lleva etiquetas de red en sus entradas y crea el transitorio', () => {
     const { doc } = importar('falstad', 'osciloscopio.txt')
     const osc = Object.values(doc.piezas).find((p) => p.tipo === 'osciloscopio')!
-    expect(Object.values(doc.sondas ?? {}).filter((s) => s.instrumento === osc.id)).toHaveLength(2)
+    const con = calcularConexiones(doc, lib)
+    const redes = ['A', 'B'].map((pin) => con.redDePin.get(clavePin(osc.id, pin)))
+    expect(redes.every((r) => r !== undefined && con.redes[r]!.pines.length > 1)).toBe(true)
     expect(Object.values(doc.analisis ?? {}).map((a) => a.config.tipo)).toEqual(['tran'])
+  })
+
+  it('la gráfica analógica de Proteus pasa a un osciloscopio con su base, su escala y las redes de sus sondas', () => {
+    const ruta = join(process.cwd(), 'PruebasManualesKirchi', 'importar', 'proteus', 'New Project.pdsprj')
+    if (!existsSync(ruta)) return
+    const r = importarBytes('New Project.pdsprj', readFileSync(ruta), lib, idSecuencial())
+    if (!r.ok) throw new Error(r.motivo)
+    const osc = Object.values(r.doc.piezas).find((p) => p.tipo === 'osciloscopio')!
+    expect(osc.props).toMatchObject({ a_on: 'encendido', b_on: 'encendido', base: '5', a_vdiv: '200m' })
+    expect(osc.props.c_on).toBeUndefined()
+    const con = calcularConexiones(r.doc, lib)
+    const nombreDeRed = (pin: string) => con.redes[con.redDePin.get(clavePin(osc.id, pin))!]?.nombre
+    expect([nombreDeRed('A'), nombreDeRed('B')].sort()).toEqual(['N3', 'Salida'])
+    expect(r.avisos.join(' ')).toContain('La gráfica ANALOGUE ANALYSIS pasó a un osciloscopio y a un análisis transitorio.')
+    expect(Object.values(r.doc.analisis ?? {}).map((a) => a.config.tipo)).toContain('tran')
+    expect(Object.values(r.doc.sondas ?? {}).filter((s) => s.instrumento === osc.id)).toEqual([])
   })
 
   it('rechaza lo que no es de otro programa y lo que todavía no se lee', () => {

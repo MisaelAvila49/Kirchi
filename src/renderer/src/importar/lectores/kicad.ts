@@ -1,7 +1,10 @@
-import type { CircuitoAjeno, DibujoAjeno, PiezaAjena, PinAjeno, RedAjena, TerminalAjena } from '../ajeno'
+import type { CircuitoAjeno, DibujoAjeno, InstrumentoAjeno, PiezaAjena, PinAjeno, RedAjena, TerminalAjena } from '../ajeno'
+import { numeroSpice } from './spice'
 import { unirPuntosEnCables } from './segmentos'
 import { ErrorSexpr, esLista, hijo, hijos, leerSexpr, numeros, texto, type Nodo } from './sexpr'
 
+/** Los pines de KiCad van cada 100 mil (2.54 mm): así caen en la rejilla de 2.5 mm de Kirchi. */
+const UNIDADES_POR_MM = 2.54 / 2.5
 /** Primera versión de archivo de KiCad 7; antes de ella el formato es otro. */
 const VERSION_MIN = 20230121
 const VERSION_KICAD8 = 20231120
@@ -51,7 +54,7 @@ interface HojaLeida {
   simbolos: SimboloHoja[]
   cables: [number, number, number, number][]
   uniones: [number, number][]
-  etiquetas: { nombre: string; x: number; y: number; tipo: 'local' | 'global' | 'jerarquica' }[]
+  etiquetas: { nombre: string; x: number; y: number; giro?: number; tipo: 'local' | 'global' | 'jerarquica' }[]
   hojas: { nombre: string; archivo: string; pines: { nombre: string; x: number; y: number }[] }[]
   textos: { texto: string; x: number; y: number }[]
   buses: number
@@ -185,7 +188,7 @@ function leerHoja(raiz: Nodo[]): { hoja: HojaLeida; version?: number; generador?
   for (const [k, tipo] of [['label', 'local'], ['global_label', 'global'], ['hierarchical_label', 'jerarquica']] as const)
     for (const e of hijos(esquema, k)) {
       const at = numeros(e, 'at')
-      if (typeof e[1] === 'string' && at && Number.isFinite(at[0]) && Number.isFinite(at[1])) hoja.etiquetas.push({ nombre: e[1], x: at[0] as number, y: at[1] as number, tipo })
+      if (typeof e[1] === 'string' && at && Number.isFinite(at[0]) && Number.isFinite(at[1])) hoja.etiquetas.push({ nombre: e[1], x: at[0] as number, y: at[1] as number, ...(Number.isFinite(at[2]) ? { giro: at[2] as number } : {}), tipo })
     }
   for (const sh of hijos(esquema, 'sheet')) {
     const p = propiedades(sh)
@@ -258,6 +261,43 @@ function limites(h: HojaLeida): { min: number; max: number } {
   return min === Infinity ? { min: 0, max: 0 } : { min, max }
 }
 
+/** Nombres de los parámetros `Sim.Params` de KiCad en los de SPICE que usa el convertidor. */
+const PARAMETROS_SIM: Record<string, Record<string, string>> = {
+  SIN: { dc: 'vo', ampl: 'va', f: 'freq', td: 'td', theta: 'theta', phase: 'phi' },
+  PULSE: { y1: 'v1', y2: 'v2', td: 'td', tr: 'tr', tf: 'tf', tw: 'pw', per: 'per' },
+  EXP: { y1: 'v1', y2: 'v2', td1: 'td1', tau1: 'tau1', td2: 'td2', tau2: 'tau2' }
+}
+
+/** Fuente de voltaje o corriente con onda (`Sim.Type` SIN, PULSE, PWL o EXP): sus parámetros como los lee el convertidor. */
+export function generadorDeSim(ref: string, props: Record<string, string>): InstrumentoAjeno | null {
+  const dispositivo = props['Sim.Device']?.toUpperCase()
+  const tipo = props['Sim.Type']?.toUpperCase()
+  if ((dispositivo !== 'V' && dispositivo !== 'I') || !tipo) return null
+  const valores: Record<string, string> = {}
+  for (const m of (props['Sim.Params'] ?? '').matchAll(/([A-Za-z_]\w*)\s*=\s*("[^"]*"|\S+)/g)) valores[m[1]!.toLowerCase()] = m[2]!.replace(/^"|"$/g, '')
+  const parametros: Record<string, number | string> = {}
+  if (tipo === 'PWL') {
+    const n = (valores.pwl ?? '').split(/[\s,]+/).filter(Boolean).map((x) => numeroSpice(x))
+    if (n.length < 2 || n.length % 2 !== 0 || n.some((x) => x === null)) return null
+    const pares: [number, number][] = []
+    for (let i = 0; i < n.length; i += 2) pares.push([n[i]!, n[i + 1]!])
+    if (pares[0]![0] > 0) pares.unshift([0, pares[0]![1]])
+    parametros.forma = 'pwl'
+    parametros.puntos = pares.filter((q, i) => i === 0 || q[0] > pares[i - 1]![0]).map(([t, v]) => `${t} ${v}`).join(', ')
+    if (dispositivo === 'I') parametros.corriente = 1
+    return { tipo: 'generador', forma: 'otra', nombre: ref, red: '', parametros }
+  }
+  const mapa = PARAMETROS_SIM[tipo]
+  if (!mapa) return null
+  for (const [k, destino] of Object.entries(mapa)) {
+    const v = valores[k]
+    if (v !== undefined) parametros[destino] = numeroSpice(v) ?? v
+  }
+  if (tipo === 'EXP') parametros.forma = 'exp'
+  if (dispositivo === 'I') parametros.corriente = 1
+  return { tipo: 'generador', forma: tipo === 'PULSE' ? 'pulso' : tipo === 'SIN' ? 'senoidal' : 'otra', nombre: ref, red: '', parametros }
+}
+
 export function leerKicad(contenido: string, nombre: string, hojas: Record<string, string> = {}): CircuitoAjeno {
   const avisos: string[] = []
   const raiz = leerHoja(leerSexpr(contenido))
@@ -320,7 +360,7 @@ export function leerKicad(contenido: string, nombre: string, hojas: Record<strin
       const p = pt(e.x, e.y)
       u.unir(p, e.tipo === 'global' ? `G|${e.nombre}` : e.tipo === 'jerarquica' ? `${id}|H|${e.nombre}` : `${id}|N|${e.nombre}`)
       nombres.push({ clave: p, nombre: e.tipo === 'global' || id === '' ? e.nombre : `${id}${e.nombre}`, rango: e.tipo === 'global' ? 1 : e.tipo === 'local' ? (id === '' ? 2 : 3) : 4 })
-      dibujo.etiquetas.push({ nombre: e.nombre, x: e.x + dx, y: e.y })
+      dibujo.etiquetas.push({ nombre: e.nombre, x: e.x + dx, y: e.y, ...(e.giro !== undefined ? { giro: e.giro } : {}) })
     }
     for (const t of h.textos) dibujo.textos.push({ texto: t.texto, x: t.x + dx, y: t.y })
 
@@ -452,15 +492,20 @@ export function leerKicad(contenido: string, nombre: string, hojas: Record<strin
     redes.push(red)
   }
 
+  const instrumentos = piezas.flatMap((p) => {
+    const g = generadorDeSim(p.ref, p.props)
+    return g ? [g] : []
+  })
+
   return {
     formato: 'kicad',
     ...(versionTexto ? { version: versionTexto } : {}),
     nombre,
-    unidadesPorMm: 1,
+    unidadesPorMm: UNIDADES_POR_MM,
     piezas: piezas.map(({ hoja: _hoja, claves: _claves, ...p }) => p),
     redes,
     dibujo,
-    instrumentos: [],
+    instrumentos,
     directivas: [],
     avisos
   }

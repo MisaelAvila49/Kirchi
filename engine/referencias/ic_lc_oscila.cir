@@ -1,0 +1,13 @@
+* Inductor de 10 mH con 10 mA iniciales frente a un capacitor de 1 uF y 5 ohm de pérdidas: oscila amortiguado
+R1 1 2 5
+L1 2 0 10m ic=10m
+C1 1 0 1u
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 2u 3m 0 2u uic
+wrdata salida.txt v(1) v(2)
+.endc
+.end

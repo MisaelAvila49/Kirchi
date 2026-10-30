@@ -26,17 +26,17 @@ export interface Fragmento {
 
 const abajo = (v: number) => Math.floor(v / PASO_REJILLA) * PASO_REJILLA + 0
 
-/** Sondas del documento que van con lo seleccionado, si su punto cae sobre un cable, etiqueta o pin (con `lib`) que
- * también va: una sonda sobre algo que se queda no mediría nada en la copia. Una de instrumento cuyo instrumento no va
- * también viaja: al pegar se intenta unirla al original. */
-function sondasQueViajan(doc: Documento, sel: Seleccion, piezas: Pieza[], cables: Cable[], etiquetas: Etiqueta[], lib?: Map<string, PiezaDef>): Sonda[] {
+/** Sondas que van con lo seleccionado: la elegida misma, o la que cae sobre un cable o pin (con `lib`) que también va.
+ * Una etiqueta sola no se lleva la sonda de su punto. Una de instrumento cuyo instrumento no va también viaja: al pegar
+ * se intenta unirla al original. */
+function sondasQueViajan(doc: Documento, sel: Seleccion, piezas: Pieza[], cables: Cable[], lib?: Map<string, PiezaDef>): Sonda[] {
   const todas = Object.values(doc.sondas ?? {})
   if (todas.length === 0) return []
   const pines = new Set<string>()
   if (lib) for (const p of piezas) { const def = lib.get(p.tipo); if (def) for (const q of pinesEnMundo(p, def)) pines.add(`${q.x},${q.y}`) }
   const toca = (s: Sonda) =>
-    pines.has(`${s.x},${s.y}`) || etiquetas.some((e) => e.x === s.x && e.y === s.y) || cables.some((c) => c.puntos.some((q, i) => i > 0 && enTramo(c.puntos[i - 1], q, s.x, s.y)))
-  return todas.filter((s) => (!esDeInstrumento(s) || doc.piezas[s.instrumento] !== undefined) && toca(s))
+    pines.has(`${s.x},${s.y}`) || cables.some((c) => c.puntos.some((q, i) => i > 0 && enTramo(c.puntos[i - 1], q, s.x, s.y)))
+  return todas.filter((s) => (!esDeInstrumento(s) || doc.piezas[s.instrumento] !== undefined) && (sel.sondas.has(s.id) || toca(s)))
 }
 
 export function copiar(doc: Documento, sel: Seleccion, lib?: Map<string, PiezaDef>): Fragmento | null {
@@ -45,7 +45,8 @@ export function copiar(doc: Documento, sel: Seleccion, lib?: Map<string, PiezaDe
   const etiquetas = [...sel.etiquetas].map((id) => doc.etiquetas[id]).filter(Boolean)
   const notas = [...sel.notas].map((id) => doc.notas[id]).filter(Boolean)
   const figuras = [...sel.figuras].map((id) => doc.figuras?.[id]).filter((f): f is Figura => !!f)
-  const anclas: Punto[] = [...piezas, ...etiquetas, ...notas, ...cables.flatMap((c) => c.puntos), ...figuras.flatMap((f) => [{ x: f.x1, y: f.y1 }, { x: f.x2, y: f.y2 }])]
+  const elegidas = [...sel.sondas].map((id) => doc.sondas?.[id]).filter((x): x is Sonda => !!x)
+  const anclas: Punto[] = [...piezas, ...etiquetas, ...notas, ...elegidas, ...cables.flatMap((c) => c.puntos), ...figuras.flatMap((f) => [{ x: f.x1, y: f.y1 }, { x: f.x2, y: f.y2 }])]
   if (anclas.length === 0) return null
   let minX = Infinity, minY = Infinity
   for (const p of anclas) {
@@ -54,7 +55,7 @@ export function copiar(doc: Documento, sel: Seleccion, lib?: Map<string, PiezaDe
   }
   const ox = abajo(minX)
   const oy = abajo(minY)
-  const sondas = sondasQueViajan(doc, sel, piezas, cables, etiquetas, lib)
+  const sondas = sondasQueViajan(doc, sel, piezas, cables, lib)
   return {
     origen: { x: ox, y: oy },
     piezas: piezas.map((p) => ({ ...p, x: p.x - ox, y: p.y - oy, props: { ...p.props } })),

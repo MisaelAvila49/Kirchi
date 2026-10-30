@@ -3,7 +3,7 @@ import { clavePin, nombreDeTerminal, partirClavePin, porId, type Conexiones } fr
 import { rielDeTerminal } from './alimentaciones'
 import { corrienteNominal } from '../sim/sobrecorriente'
 import type { Documento, Id, Pieza } from '../doc/tipos'
-import type { ExtrasDiodo, ModeloDef, PiezaDef } from '../piezas/tipos'
+import type { ExtrasDiodo, ModeloDef, OndaDeCorriente, PiezaDef } from '../piezas/tipos'
 import { UnionFind } from '../conexiones/unionFind'
 import { PASO_MIN, PASOS_MINIMOS } from '../sim/lectura'
 import { problemaDeSpice } from '../doc/spice'
@@ -195,7 +195,7 @@ export function numericasDelModelo(m: ModeloDef): { prop: string; positiva: ((re
       return [{ prop: m.voltaje, positiva: valor }]
     case 'V':
     case 'I':
-      return [{ prop: m.prop, positiva: null }, ...(m.tipo === 'V' && m.rserie ? [{ prop: m.rserie, positiva: null }] : [])]
+      return [{ prop: m.prop, positiva: null }, ...(m.tipo === 'V' && m.rserie ? [{ prop: m.rserie, positiva: null }] : []), ...(m.tipo === 'I' && m.onda ? [{ prop: m.onda.frecuencia, positiva: frecuencia }] : [])]
     case 'compuesto':
       return propiedadesDeCompuesto(m).map((prop) => ({ prop, positiva: null }))
     case 'alimentacion':
@@ -212,7 +212,7 @@ export function numericasDelModelo(m: ModeloDef): { prop: string; positiva: ((re
 
 /** Tiempos de una fuente de pulso: null si ninguno se tocó (la cuadrada de siempre); si no, subida, bajada, ancho de
  * meseta (propiedad o ciclo) y fase del retardo; o el error con la referencia como sujeto. */
-function tiemposDePulso(p: Pieza, def: PiezaDef, m: Extract<ModeloDef, { tipo: 'pulso' }>, freq: number, duty: number): { subida: number; bajada: number; ancho: number; fase: number } | string | null {
+function tiemposDePulso(p: Pieza, def: PiezaDef, m: { ancho?: string; subida?: string; bajada?: string; retardo?: string }, freq: number, duty: number): { subida: number; bajada: number; ancho: number; fase: number } | string | null {
   const leidos: Record<'ancho' | 'subida' | 'bajada' | 'retardo', number> = { ancho: 0, subida: 0, bajada: 0, retardo: 0 }
   const nombres = { ancho: 'El ancho', subida: 'La subida', bajada: 'La bajada', retardo: 'El retardo' }
   for (const k of ['ancho', 'subida', 'bajada', 'retardo'] as const) {
@@ -243,6 +243,15 @@ export function leerPropiedad(p: Pieza, def: PiezaDef, prop: string, positiva: (
   if (v.unidad && propDef?.unidad && v.unidad !== propDef.unidad) return { ok: false, error: `La unidad «${texto}» de ${p.ref} no es compatible: se esperaba ${propDef.unidad}.` }
   if (positiva && !(v.valor > 0)) return { ok: false, error: positiva(p.ref) }
   return { ok: true, valor: v.valor }
+}
+
+/** La condición inicial de un capacitor o un inductor: null si la propiedad está vacía (parte como siempre), o el error con la referencia como sujeto. */
+function leerCondicionInicial(p: Pieza, def: PiezaDef, prop: string | undefined): { ok: true; valor: number | null } | { ok: false; error: string } {
+  if (prop === undefined) return { ok: true, valor: null }
+  const texto = (p.props[prop] ?? def.props.find((d) => d.id === prop)?.defecto ?? '').trim()
+  if (texto === '') return { ok: true, valor: null }
+  const r = leerPropiedad(p, def, prop, null)
+  return r.ok ? { ok: true, valor: r.valor } : { ok: false, error: `La condición inicial «${texto}» de ${p.ref} no es válida.` }
 }
 
 const terminalesHechos = new WeakMap<ModeloDef, string[]>()
@@ -834,6 +843,12 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
       errores.push(error.error)
       continue
     }
+    const inicial = m.tipo === 'C' || m.tipo === 'L' ? leerCondicionInicial(p, def, m.ic) : null
+    if (inicial && !inicial.ok) {
+      errores.push(inicial.error)
+      continue
+    }
+    const ic = inicial?.ok && inicial.valor !== null ? { ic: inicial.valor } : {}
     if ('rserie' in m && m.rserie && valores[1] < 0) {
       errores.push(`La resistencia en serie de ${p.ref} no puede ser negativa.`)
       continue
@@ -895,20 +910,26 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
         dos((a, b) => ({ type: 'R', a, b, ohms: valores[0] }))
         break
       case 'C':
-        if (m.rserie && valores[1] > 0) enSerie(p, m.tipo, ids, redes, valores[1], 'ultima', (a, b) => ({ type: 'C', a, b, farads: valores[0] }))
-        else dos((a, b) => ({ type: 'C', a, b, farads: valores[0] }))
+        if (m.rserie && valores[1] > 0) enSerie(p, m.tipo, ids, redes, valores[1], 'ultima', (a, b) => ({ type: 'C', a, b, farads: valores[0], ...ic }))
+        else dos((a, b) => ({ type: 'C', a, b, farads: valores[0], ...ic }))
         break
       case 'L':
-        if (m.rserie && valores[1] > 0) enSerie(p, m.tipo, ids, redes, valores[1], 'ultima', (a, b) => ({ type: 'L', a, b, henries: valores[0] }))
-        else dos((a, b) => ({ type: 'L', a, b, henries: valores[0] }))
+        if (m.rserie && valores[1] > 0) enSerie(p, m.tipo, ids, redes, valores[1], 'ultima', (a, b) => ({ type: 'L', a, b, henries: valores[0], ...ic }))
+        else dos((a, b) => ({ type: 'L', a, b, henries: valores[0], ...ic }))
         break
       case 'V':
         if (m.rserie && valores[1] > 0) enSerie(p, m.tipo, ids, redes, valores[1], 'primera', (a, b) => ({ type: 'V', a, b, wave: { kind: 'dc', v: valores[0] } }))
         else dos((a, b) => ({ type: 'V', a, b, wave: { kind: 'dc', v: valores[0] } }))
         break
-      case 'I':
-        dos((a, b) => ({ type: 'I', a, b, amps: valores[0] }))
+      case 'I': {
+        if (!m.onda) {
+          dos((a, b) => ({ type: 'I', a, b, amps: valores[0] }))
+          break
+        }
+        const onda = ondaDeCorriente(p, def, m.onda, valores[0], valores[1])
+        if (onda) dos((a, b) => ({ type: 'I', a, b, amps: 0, wave: onda }))
         break
+      }
       case 'foco': {
         const [v, w] = valores
         dos((a, b) => ({ type: 'LAMP', a, b, rfrio: (v * v) / w / (1 + m.k), k: m.k, pnom: w, tau: m.tau }))
@@ -936,19 +957,8 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
         dos((a, b) => ({ type: 'V', a, b, wave: { kind: 'sine', offset: 0, amp: valores[0], freq: valores[1] } }))
         break
       case 'pulso': {
-        const texto = p.props[m.ciclo] ?? def.props.find((d) => d.id === m.ciclo)?.defecto ?? ''
-        const duty = leerCiclo(texto)
-        if (duty === null) errores.push(`El ciclo de trabajo «${texto}» de ${p.ref} no es válido.`)
-        else {
-          const t = tiemposDePulso(p, def, m, valores[1], duty)
-          if (typeof t === 'string') errores.push(t)
-          else {
-            avisarFrecuencia(valores[1])
-            // Sin tiempos propios (un .kir de antes) es la cuadrada de siempre; con ellos, un pulso de SPICE.
-            if (t === null) dos((a, b) => ({ type: 'V', a, b, wave: { kind: 'square', low: 0, high: valores[0], freq: valores[1], duty } }))
-            else dos((a, b) => ({ type: 'V', a, b, wave: { kind: 'pulse', low: 0, high: valores[0], freq: valores[1], rise: t.subida, fall: t.bajada, width: t.ancho, phase: t.fase, continua: true } }))
-          }
-        }
+        const onda = ondaDePulso(p, def, m, valores[0], valores[1])
+        if (onda) dos((a, b) => ({ type: 'V', a, b, wave: onda }))
         break
       }
     }
@@ -1222,6 +1232,32 @@ export function compilarNetlist(doc: Documento, lib: Map<string, PiezaDef>, con:
   // Con menos de PASOS_MINIMOS pasos por periodo aun con el paso más corto, la fuente se simula pero la onda no se sigue.
   function avisarFrecuenciaDe(p: Pieza, hz: number): void {
     if (1 / (hz * PASO_MIN) < PASOS_MINIMOS) avisos.push(`La fuente ${p.ref} de ${formatearValor(hz, 'Hz')} es más rápida de lo que la vista previa puede seguir.`)
+  }
+
+  /** Onda de una fuente de pulso (voltaje o corriente) con sus tiempos; null y el error en `errores` si no es válida. */
+  function ondaDePulso(p: Pieza, def: PiezaDef, m: { ciclo: string; ancho?: string; subida?: string; bajada?: string; retardo?: string }, alto: number, freq: number): Onda | null {
+    const texto = p.props[m.ciclo] ?? def.props.find((d) => d.id === m.ciclo)?.defecto ?? ''
+    const duty = leerCiclo(texto)
+    if (duty === null) {
+      errores.push(`El ciclo de trabajo «${texto}» de ${p.ref} no es válido.`)
+      return null
+    }
+    const t = tiemposDePulso(p, def, m, freq, duty)
+    if (typeof t === 'string') {
+      errores.push(t)
+      return null
+    }
+    avisarFrecuenciaDe(p, freq)
+    // Sin tiempos propios (un .kir de antes) es la cuadrada de siempre; con ellos, un pulso de SPICE.
+    if (t === null) return { kind: 'square', low: 0, high: alto, freq, duty }
+    return { kind: 'pulse', low: 0, high: alto, freq, rise: t.subida, fall: t.bajada, width: t.ancho, phase: t.fase, continua: true }
+  }
+
+  /** Onda de una fuente de corriente senoidal o de pulso (la amplitud en A). */
+  function ondaDeCorriente(p: Pieza, def: PiezaDef, o: OndaDeCorriente, amplitud: number, freq: number): Onda | null {
+    if (o.forma === 'pulso') return ondaDePulso(p, def, o, amplitud, freq)
+    avisarFrecuenciaDe(p, freq)
+    return { kind: 'sine', offset: 0, amp: amplitud, freq }
   }
 
   type ModeloNuevo = Extract<ModeloDef, { tipo: 'jfet' | 'termistor' | 'ldr' | 'pasos' | 'controlada' | 'pwl' }>

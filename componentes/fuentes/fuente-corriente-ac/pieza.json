@@ -1,0 +1,24 @@
+{
+  "id": "fuente-corriente-ac",
+  "nombre": { "es": "Fuente de corriente AC", "en": "AC current source" },
+  "categoria": "fuentes",
+  "grupo": "Independientes",
+  "prefijo": "I",
+  "buscar": ["iac", "corriente ac", "corriente alterna", "corriente senoidal", "isin", "fuente de corriente ac"],
+  "pines": [
+    { "id": "entrada", "nombre": "entrada", "x": 0, "y": 4 },
+    { "id": "salida", "nombre": "salida", "x": 0, "y": -4 }
+  ],
+  "props": [
+    { "id": "amplitud", "nombre": "Amplitud (pico)", "unidad": "A", "defecto": "1m", "comunes": ["100u", "1m", "10m", "100m", "1"] },
+    { "id": "frecuencia", "nombre": "Frecuencia", "unidad": "Hz", "defecto": "1k", "comunes": ["50", "60", "100", "1k", "10k"] }
+  ],
+  "modelo": { "tipo": "I", "a": "entrada", "b": "salida", "prop": "amplitud", "onda": { "forma": "senoidal", "frecuencia": "frecuencia" } },
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
+  "datos": {
+    "equivalencias": { "kicad": "Simulation_SPICE:ISIN" },
+    "valores": {
+      "*": { "virtual": true, "nota": "Fuente ideal de corriente senoidal del simulador." }
+    }
+  }
+}

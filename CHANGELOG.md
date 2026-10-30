@@ -1,5 +1,35 @@
 # Historial de cambios
 
+## 2.2.1
+
+Los circuitos importados se ven y se simulan como en su programa original, y llegan las condiciones iniciales en capacitores e inductores y las fuentes de corriente AC y de pulso.
+
+### Nuevo
+
+- Capacitores e inductores con voltaje o corriente inicial opcional. Cuando alguna pieza lo tiene, el análisis transitorio parte de esas condiciones: la casilla «Partir de cero» queda marcada y una nota nombra las piezas. La exportación a SPICE escribe `ic=` y `uic`.
+- Fuentes de corriente AC y de pulso, 113 piezas en total.
+- Las gráficas analógicas de Proteus y sus osciloscopios virtuales pasan también a un osciloscopio con su base de tiempo, su escala y etiquetas de red en sus entradas.
+
+### Importar
+
+- Se conservan los cables, terminales, tierras y etiquetas del original en su lugar y a su escala, en vez de tender cables largos por todo el esquema.
+- Una fuente de CD que alimenta un terminal con nombre se convierte en ese terminal de alimentación con su voltaje (como VCC). Si su corriente se grafica en un análisis, se queda como fuente.
+- Las piezas conservan su orientación: los amplificadores de Proteus ya no salen reflejados y el UniversalOpamp2 de LTspice lleva In− arriba.
+- Las etiquetas de red crecen hacia su lado libre, evitan pines, números de pin y nombres de otras piezas, y se corren por su cable cuando no hay lugar.
+- Las fuentes conservan amplitud, frecuencia, flancos, ancho y retardo. PWL, EXP y los pulsos invertidos se importan por tramos, y un pulso que no cabe en su periodo pasa al generador.
+- Los transistores conservan los parámetros del `.model` del archivo.
+- Los estados guardados por Falstad, el `ic=` y el `.ic` de SPICE pasan a las condiciones iniciales de cada pieza.
+- El `.tran` de un solo argumento se lee como el tiempo final.
+
+### Diseño
+
+- La etiqueta seleccionada ya no abre un globo de texto: las líneas punteadas señalan lo que une.
+
+### Arreglos
+
+- Copiar, cortar o duplicar una etiqueta ya no duplica la sonda de su punto.
+- Un archivo con coordenadas absurdas o con muchas hojas se abre sin colgar Kirchi.
+
 ## 2.2.0
 
 Kirchi abre circuitos de Falstad, LTspice, netlists SPICE, KiCad y Proteus, con un informe de lo convertido, lo aproximado y lo que no tiene equivalencia, y un capítulo del tutorial para aprenderlo.

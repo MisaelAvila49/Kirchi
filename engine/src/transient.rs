@@ -96,15 +96,15 @@ const SEGMENTO_MIN_POR_PASO: f64 = 1e-4;
 /// Una onda cuadrada o de pulso con un tramo más corto que `SEGMENTO_MIN_POR_PASO` del paso máximo `h` se rechaza (los
 /// tramos de 0, flancos ideales, no cuentan).
 fn comprobar_cuadrada(k: usize, e: &Element, h: f64) -> Result<(), EngineError> {
-    let (tramo, nombre) = match e {
-        Element::V { wave: Wave::Square { freq, duty, .. }, .. } => (duty.min(1.0 - duty) / freq, "cuadrada"),
-        Element::V { wave: Wave::Pulse { freq, rise, fall, width, .. }, .. } => {
+    let (tramo, nombre) = match e.onda() {
+        Some(Wave::Square { freq, duty, .. }) => (duty.min(1.0 - duty) / freq, "cuadrada"),
+        Some(Wave::Pulse { freq, rise, fall, width, .. }) => {
             let per = 1.0 / freq;
             let resto = per - rise - width - fall;
             let minimo = [*rise, *width, *fall, resto].into_iter().filter(|x| *x > 1e-12 * per).fold(f64::INFINITY, f64::min);
             (minimo, "de pulso")
         }
-        Element::V { wave: Wave::Stair { freq, steps, .. }, .. } => (1.0 / (freq * *steps as f64), "de escalera"),
+        Some(Wave::Stair { freq, steps, .. }) => (1.0 / (freq * *steps as f64), "de escalera"),
         _ => return Ok(()),
     };
     if tramo < h * SEGMENTO_MIN_POR_PASO {
@@ -2127,7 +2127,7 @@ mod tests {
         assert!((tr.voltage(2) - 2.0).abs() < 1e-3, "v = {}", tr.voltage(2));
         // Otro tipo o nodos distintos no se cambian en caliente.
         assert!(matches!(tr.set_element(0, Element::V { a: 2, b: 0, wave: crate::Wave::Dc { v: 2.0 } }), Err(EngineError::Invalid(_))));
-        assert!(matches!(tr.set_element(2, Element::C { a: 2, b: 0, farads: 2e-6 }), Err(EngineError::Invalid(_))));
+        assert!(matches!(tr.set_element(2, Element::C { a: 2, b: 0, farads: 2e-6, ic: None }), Err(EngineError::Invalid(_))));
         assert!(matches!(tr.set_element(1, Element::R { a: 1, b: 2, ohms: -1.0 }), Err(EngineError::Invalid(_))));
     }
 
@@ -2623,9 +2623,9 @@ mod tests {
             {"type":"C","a":1,"b":0,"farads":1e-6},
             {"type":"L","a":1,"b":0,"henries":1e-3}]}"#), 2e-6).unwrap();
         // Se carga el capacitor con una corriente de 1 A durante 1 µs y se apaga.
-        tr.set_element(0, Element::I { a: 0, b: 1, amps: 1.0 }).unwrap();
+        tr.set_element(0, Element::I { a: 0, b: 1, amps: 1.0, wave: None }).unwrap();
         tr.advance_to(1e-6, u32::MAX).unwrap();
-        tr.set_element(0, Element::I { a: 0, b: 1, amps: 0.0 }).unwrap();
+        tr.set_element(0, Element::I { a: 0, b: 1, amps: 0.0, wave: None }).unwrap();
         let periodo = 2.0 * std::f64::consts::PI * (1e-3f64 * 1e-6).sqrt();
         let mut pico0 = 0.0f64;
         while tr.time() < 1e-6 + periodo {

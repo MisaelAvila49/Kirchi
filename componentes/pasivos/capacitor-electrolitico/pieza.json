@@ -12,9 +12,10 @@
   "props": [
     { "id": "valor", "nombre": "Capacitancia", "unidad": "F", "defecto": "100u", "serie": "E6", "comunes": ["1u", "2.2u", "4.7u", "10u", "22u", "47u", "100u", "220u", "470u", "1m", "2.2m", "4.7m"] },
     { "id": "voltaje", "nombre": "Voltaje nominal", "defecto": "25 V", "opciones": ["6.3 V", "10 V", "16 V", "25 V", "35 V", "50 V", "63 V", "100 V"] },
-    { "id": "esr", "nombre": "Resistencia serie (ESR)", "unidad": "Ω", "defecto": "0", "omitir": true, "comunes": ["0", "0.1", "0.3", "0.5", "1", "2"] }
+    { "id": "esr", "nombre": "Resistencia serie (ESR)", "unidad": "Ω", "defecto": "0", "omitir": true, "comunes": ["0", "0.1", "0.3", "0.5", "1", "2"] },
+    { "id": "vinicial", "nombre": "Voltaje inicial (opcional)", "unidad": "V", "defecto": "", "opcional": true, "omitir": true, "comunes": ["0", "1", "5", "10"] }
   ],
-  "modelo": { "tipo": "C", "a": "+", "b": "-", "prop": "valor", "rserie": "esr" },
+  "modelo": { "tipo": "C", "a": "+", "b": "-", "prop": "valor", "rserie": "esr", "ic": "vinicial" },
   "limites": { "voltaje": { "prop": "voltaje", "aviso": 1, "inverso": 1 }, "quema": { "factor": 1, "durante": 0.5 } },
   "datos": {
     "equivalencias": { "kicad": "Device:C_Polarized", "ltspice": ["polcap", "Misc\\EuropeanPolcap"], "falstad": "209", "proteus": ["CAP-ELEC", "CAP-POL"], "sinVerificar": ["proteus"] },

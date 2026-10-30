@@ -1,0 +1,13 @@
+* Fuente de corriente senoidal de 1 mA y 1 kHz sobre un RC en paralelo de 1 kohm y 1 uF
+I1 0 1 SIN(0 1m 1k)
+R1 1 0 1k
+C1 1 0 1u
+.options reltol=1e-4 abstol=1e-12 vntol=1e-7
+.control
+set wr_singlescale
+set wr_vecnames
+option numdgt=7
+tran 2u 5m 0 2u uic
+wrdata salida.txt v(1)
+.endc
+.end

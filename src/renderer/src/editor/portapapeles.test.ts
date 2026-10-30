@@ -26,6 +26,40 @@ function divisorConOsciloscopio(): Documento {
   return d
 }
 
+describe('qué sondas viajan', () => {
+  /** El divisor con una etiqueta y una sonda de voltaje en el mismo punto, sobre el cable c_a. */
+  function conEtiquetaYSonda(): Documento {
+    const d = { ...divisor(), sondas: {} } as Documento
+    d.etiquetas.e_1 = { id: 'e_1', nombre: 'Salida', x: 0, y: -6, rot: 0 }
+    d.sondas = { s_v: { id: 's_v', tipo: 'voltaje', x: 0, y: -6 } }
+    return d
+  }
+  const conEtiqueta = (d: Documento, cables: string[] = []) => {
+    const s = sel([], cables)
+    s.etiquetas.add('e_1')
+    return s
+  }
+
+  it('duplicar solo la etiqueta no copia la sonda de su punto', () => {
+    const d = conEtiquetaYSonda()
+    expect(copiar(d, conEtiqueta(d), lib)!.sondas ?? []).toEqual([])
+    const r = duplicar(d, lib, conEtiqueta(d), idSecuencial())!
+    expect(Object.keys(aplicar(d, r.cmd).sondas ?? {})).toEqual(['s_v'])
+  })
+
+  it('copiar la etiqueta junto con su cable copia la sonda', () => {
+    const d = conEtiquetaYSonda()
+    expect(copiar(d, conEtiqueta(d, ['c_a']), lib)!.sondas).toHaveLength(1)
+  })
+
+  it('copiar la sonda seleccionada la copia sola', () => {
+    const d = conEtiquetaYSonda()
+    const s = seleccionVacia()
+    s.sondas.add('s_v')
+    expect(copiar(d, s, lib)!.sondas).toHaveLength(1)
+  })
+})
+
 describe('las sondas viajan con su instrumento', () => {
   it('copiar lleva la sonda cuando su instrumento y el cable que toca van en la selección, relativa al origen', () => {
     const d = divisorConOsciloscopio()

@@ -15,6 +15,7 @@ const PERMITIDOS = [
   'sinVentana/', // el modo sin ventana lee las redes de un documento y compila su netlist
   'importar/cables.ts', // traza los cables del documento que arma la importación
   'importar/convertir.ts', // ubica las sondas de corriente sobre los cables que acaba de trazar
+  'importar/trazado.ts', // lleva los cables del original al documento que arma la importación y completa lo que falta
   'plantillas/', // copia cables al armar y colocar
   'exportar/', // dibuja el circuito en SVG, PNG y PDF
   'prueba/', // circuitos de prueba y oráculos

@@ -4,6 +4,7 @@ import { calcularConexiones } from '../conexiones/conexiones'
 import type { Documento } from '../doc/tipos'
 import { conEtiquetas, type Parte } from '../prueba/circuitos'
 import { conPiezas, perilla, piezaDePrueba } from '../prueba/piezasNuevas'
+import { libreriaDePrueba } from '../prueba/libreria'
 import type { ModeloDef, PiezaDef } from '../piezas/tipos'
 import { compilarNetlist, type ElementoMotor } from './netlist'
 
@@ -26,6 +27,37 @@ const ntcDef = piezaDePrueba('ntc-t', ['1', '2'], [opciones('10k'), perilla('tem
 const ldrDef = piezaDePrueba('ldr-t', ['1', '2'], [opciones('GL5528'), perilla('luz', 'Luz', 'lx', '300', 0.1, 1e5, 'log')], {
   tipo: 'ldr', a: '1', b: '2', prop: 'modelo', luz: 'luz', modelos: { GL5528: { r10: 2e4, gamma: 0.7, roscuro: 1e6, tau_sube: 0.02, tau_baja: 0.03 } }
 }, 'LDR')
+
+describe('condiciones iniciales y corriente variable', () => {
+  const lib = libreriaDePrueba().piezas
+  const comp = (partes: Parte[]) => {
+    const d: Documento = conEtiquetas(lib, partes)
+    return compilarNetlist(d, lib, calcularConexiones(d, lib))
+  }
+  const cap = (props: Record<string, string>): Parte => ({ tipo: 'capacitor', ref: 'C1', props: { valor: '10u', ...props }, pines: { '1': 'a', '2': '0' } })
+
+  it('el voltaje inicial de un capacitor llega al motor y vacío no cambia nada', () => {
+    const con = comp([R('R1', '1k', 'a', '0'), cap({ vinicial: '5' })])
+    expect(con.errores).toEqual([])
+    expect(de(con.netlist!.elements, 'C')[0]).toMatchObject({ farads: 1e-5, ic: 5 })
+    const sin = comp([R('R1', '1k', 'a', '0'), cap({ vinicial: '' })])
+    expect(de(sin.netlist!.elements, 'C')[0]).not.toHaveProperty('ic')
+  })
+  it('la corriente inicial de un inductor llega al motor', () => {
+    const r = comp([R('R1', '1k', 'a', '0'), { tipo: 'inductor', ref: 'L1', props: { valor: '10m', iinicial: '2m' }, pines: { '1': 'a', '2': '0' } }])
+    expect(de(r.netlist!.elements, 'L')[0]).toMatchObject({ henries: 0.01, ic: 0.002 })
+  })
+  it('una condición inicial que no se lee es un error con la referencia', () => {
+    const r = comp([R('R1', '1k', 'a', '0'), cap({ vinicial: 'cinco' })])
+    expect(r.errores.join(' ')).toContain('C1')
+  })
+  it('la fuente de corriente AC y la de pulso llevan su onda en amperes', () => {
+    const ac = comp([{ tipo: 'fuente-corriente-ac', ref: 'I1', props: { amplitud: '2m', frecuencia: '500' }, pines: { entrada: '0', salida: 'a' } }, R('R1', '1k', 'a', '0')])
+    expect(de(ac.netlist!.elements, 'I')[0]).toMatchObject({ wave: { kind: 'sine', offset: 0, amp: 0.002, freq: 500 } })
+    const pu = comp([{ tipo: 'fuente-corriente-pulso', ref: 'I1', props: { alto: '1m', frecuencia: '1k', ciclo: '25 %' }, pines: { entrada: '0', salida: 'a' } }, R('R1', '1k', 'a', '0')])
+    expect(de(pu.netlist!.elements, 'I')[0]).toMatchObject({ wave: { kind: 'square', low: 0, high: 0.001, freq: 1000, duty: 0.25 } })
+  })
+})
 
 describe('netlist de las piezas nuevas', () => {
   it('un JFET llega al motor con el modelo de su opción y su canal', () => {

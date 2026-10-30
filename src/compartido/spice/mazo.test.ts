@@ -20,6 +20,12 @@ describe('armarMazo', () => {
     expect(m.texto.includes(String.fromCharCode(92))).toBe(false)
     for (const l of m.texto.split('\n').slice(0, -1)) expect(l, l).toMatch(LINEA)
   })
+  it('un transitorio con condiciones iniciales lleva uic aunque no se haya pedido', () => {
+    const conIc: NetlistMotor = { nodes: 2, elements: [{ type: 'R', a: 1, b: 0, ohms: 1000 }, { type: 'C', a: 1, b: 0, farads: 1e-5, ic: 5 }] }
+    const peticion = (n: NetlistMotor) => armarMazo(validarPeticion({ netlist: n, analisis: { tipo: 'tran', paso: 1e-5, fin: 1e-3 } })).texto
+    expect(peticion(conIc)).toMatch(/^tran .* uic$/m)
+    expect(peticion({ nodes: 2, elements: [{ type: 'R', a: 1, b: 0, ohms: 1000 }, { type: 'C', a: 1, b: 0, farads: 1e-5 }] })).not.toMatch(/uic/)
+  })
   it('barrido DC con segunda fuente y paso hacia atras', () => {
     const m = armarMazo(validarPeticion({ netlist, analisis: { tipo: 'dc', fuente: 0, desde: 5, hasta: 0, paso: 1, segunda: { fuente: 3, desde: 0, hasta: 2, paso: 1 } } }))
     expect(m.texto).toContain('dc v0 5 0 -1 v3 0 2 1\n')

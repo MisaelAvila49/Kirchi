@@ -58,27 +58,3 @@ export function etiquetasHermanas(doc: Documento, id: Id): Id[] {
     .map((x) => x.id)
     .sort()
 }
-
-/**
- * Globo de una etiqueta puesta a mano: nombre, cuántas tienen ese nombre (misma red), qué pines une y cómo cambiarlo.
- */
-export function globoDeEtiqueta(doc: Documento, con: Conexiones, id: Id): string[] | null {
-  const e = Object.hasOwn(doc.etiquetas, id) ? doc.etiquetas[id] : undefined
-  if (!e) return null
-  const n = etiquetasHermanas(doc, id).length + 1
-  const lineas = [e.nombre]
-  lineas.push(n > 1 ? `${n} etiquetas con este nombre: es la misma red.` : 'Una sola etiqueta con este nombre: otra igual la uniría sin cable.')
-  const red = con.redDeEtiqueta.get(id)
-  const r = red === undefined ? undefined : con.redes[red]
-  if (r && n > 1) {
-    const pines = r.pines
-      .map(partirClavePin)
-      .filter((q) => Object.hasOwn(doc.piezas, q.piezaId))
-      .map((q) => [doc.piezas[q.piezaId].ref, q.pinId] as const)
-      .sort((a, b) => ordenRef(a[0], b[0]) || a[1].localeCompare(b[1], 'es', { numeric: true }))
-      .map(([ref, pin]) => `${ref}:${pin}`)
-    if (pines.length) lineas.push(`Une ${pines.length > 4 ? `${pines.slice(0, 3).join(', ')} y ${pines.length - 3} más` : enumerar(pines)}.`)
-  }
-  lineas.push('Doble clic en el nombre para cambiarlo.')
-  return lineas
-}

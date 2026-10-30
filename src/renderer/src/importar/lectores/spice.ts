@@ -46,10 +46,11 @@ const tokens = (s: string): string[] => unir(s).replace(/[(),]/g, ' ').split(/\s
 const esTierra = (n: string): boolean => n === '0' || n.toLowerCase() === 'gnd'
 
 const NOMBRES_Q = ['C', 'B', 'E', 'S']
-const FUNCIONES = ['pulse', 'sin', 'pwl', 'exp', 'sffm', 'am']
+const FUNCIONES = ['pulse', 'sin', 'sine', 'pwl', 'exp', 'sffm', 'am']
 const CAMPOS_FUENTE: Record<string, string[]> = {
   pulse: ['v1', 'v2', 'td', 'tr', 'tf', 'pw', 'per'],
-  sin: ['vo', 'va', 'freq', 'td', 'theta']
+  sin: ['vo', 'va', 'freq', 'td', 'theta', 'phi'],
+  exp: ['v1', 'v2', 'td1', 'tau1', 'td2', 'tau2']
 }
 
 type Analisis = Extract<DirectivaAjena, { tipo: 'analisis' }>
@@ -112,7 +113,8 @@ export function leerSpice(texto: string, nombre: string): CircuitoAjeno {
         props.ac = rest[++i] ?? ''
         if (rest[i + 1] !== undefined && numeroSpice(rest[i + 1] as string) !== null && !FUNCIONES.includes((rest[i + 1] as string).toLowerCase())) props.fase = rest[++i] as string
       } else if (FUNCIONES.includes(k)) {
-        forma = k
+        // LTspice escribe SINE; es la misma onda.
+        forma = k === 'sine' ? 'sin' : k
         args = []
         while (i + 1 < rest.length && !['dc', 'ac', ...FUNCIONES].includes((rest[i + 1] as string).toLowerCase())) args.push(rest[++i] as string)
       } else if (dc === undefined && !forma) dc = t
@@ -122,21 +124,43 @@ export function leerSpice(texto: string, nombre: string): CircuitoAjeno {
     const pieza: PiezaAjena = { ref, tipo: letra, ...(dc !== undefined ? { valor: dc } : {}), props, pines: conectar(ref, nodos, ['+', '−']) }
     if (forma === 'pwl' || forma === 'exp') props[forma] = args.join(' ')
     piezas.push(pieza)
-    const campos = forma ? CAMPOS_FUENTE[forma] : undefined
-    if (letra === 'V' && forma && campos) {
-      const parametros: Record<string, number | string> = {}
+    if (!forma) return
+    const campos = CAMPOS_FUENTE[forma]
+    const parametros: Record<string, number | string> = {}
+    if (forma === 'pwl') {
+      // Pares de tiempo y valor; `r=` y `td=` del PWL de ngspice no se convierten.
+      const nums = args.filter((x) => !x.includes('=')).map((x) => numeroSpice(x))
+      if (args.some((x) => x.includes('='))) aviso(l.n, `la fuente ${ref} lleva opciones en su PWL (${args.filter((x) => x.includes('=')).join(' ')}) que no se convierten.`)
+      if (nums.length < 2 || nums.length % 2 !== 0 || nums.some((x) => x === null)) {
+        aviso(l.n, `los puntos del PWL de ${ref} no son pares de tiempo y valor y la fuente se guardó como propiedad.`)
+        return
+      }
+      const pares: [number, number][] = []
+      for (let i = 0; i < nums.length; i += 2) pares.push([nums[i] as number, nums[i + 1] as number])
+      // Kirchi parte de t = 0: antes del primer punto SPICE sostiene su valor.
+      if (pares[0]![0] > 0) pares.unshift([0, pares[0]![1]])
+      const limpios = pares.filter((q, i) => i === 0 || q[0] > pares[i - 1]![0])
+      if (limpios.length !== pares.length) aviso(l.n, `el PWL de ${ref} repite o desordena tiempos y se descartaron esos puntos.`)
+      parametros.forma = 'pwl'
+      parametros.puntos = limpios.map(([t, v]) => `${t} ${v}`).join(', ')
+    } else if (campos) {
       campos.forEach((c, i) => {
         if (args[i] !== undefined) parametros[c] = valorONumero(args[i] as string)
       })
-      instrumentos.push({
-        tipo: 'generador',
-        forma: forma === 'pulse' ? 'pulso' : 'senoidal',
-        nombre: ref,
-        red: nombreRed(nodos[0] as string),
-        referencia: nombreRed(nodos[1] as string),
-        parametros
-      })
-    } else if (forma && !campos) aviso(l.n, `la fuente ${ref} con forma ${forma.toUpperCase()} se guardó como propiedad, sin generador.`)
+      if (forma === 'exp') parametros.forma = 'exp'
+    } else {
+      aviso(l.n, `la fuente ${ref} con forma ${forma.toUpperCase()} se guardó como propiedad, sin generador.`)
+      return
+    }
+    if (letra === 'I') parametros.corriente = 1
+    instrumentos.push({
+      tipo: 'generador',
+      forma: forma === 'pulse' ? 'pulso' : forma === 'sin' ? 'senoidal' : 'otra',
+      nombre: ref,
+      red: nombreRed(nodos[0] as string),
+      referencia: nombreRed(nodos[1] as string),
+      parametros
+    })
   }
 
   function elemento(l: Linea): void {
@@ -293,12 +317,16 @@ export function leerSpice(texto: string, nombre: string): CircuitoAjeno {
       if (toks.length > 5) aviso(l.n, 'el barrido .dc anidado se leyó solo en su primera fuente.')
     } else if (cmd === '.tran') {
       tipo = 'tran'
-      poner('paso', num(1))
-      poner('fin', num(2))
-      const pos = toks.slice(3).filter((t) => t.toLowerCase() !== 'uic')
+      // LTspice admite `.tran 100u`: un solo argumento es el tiempo final.
+      if (toks[2] === undefined || toks[2].toLowerCase() === 'uic') poner('fin', num(1))
+      else {
+        poner('paso', num(1))
+        poner('fin', num(2))
+      }
+      const pos = toks.slice(toks[2]?.toLowerCase() === 'uic' ? 4 : 3).filter((t) => t.toLowerCase() !== 'uic')
       poner('inicio', pos[0] !== undefined ? valorONumero(pos[0]) : undefined)
       poner('max', pos[1] !== undefined ? valorONumero(pos[1]) : undefined)
-      if (toks.some((t, i) => i > 2 && t.toLowerCase() === 'uic')) parametros.uic = 1
+      if (toks.some((t, i) => i > 1 && t.toLowerCase() === 'uic')) parametros.uic = 1
     } else if (cmd === '.ac') {
       tipo = 'ac'
       poner('tipo', toks[1]?.toLowerCase())

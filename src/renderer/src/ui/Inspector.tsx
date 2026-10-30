@@ -340,7 +340,7 @@ export default function Inspector(props: Props) {
   const figura = () => (props.vista.tipo === 'figura' ? props.vista : null)
   /** Los campos de la pieza seleccionada, sin la posición de un potenciómetro (tiene su control). */
   const campos = (): CampoProp[] => (props.vista.tipo === 'pieza' ? props.vista.props.filter((c) => !(props.pot && c.id === 'posicion') && !props.perillas?.some((p) => p.propId === c.id)) : [])
-  const partes = () => repartirCampos(campos(), (c) => !!c.personalizado)
+  const partes = () => repartirCampos(campos(), (c) => !!c.personalizado || !!c.opcional)
   const titulo = () => {
     const v = props.vista
     if (v.tipo === 'nada') return 'Sin selección'

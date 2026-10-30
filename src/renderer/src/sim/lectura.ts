@@ -3,7 +3,7 @@ import { enumerar, type ModeloDigital } from '../netlist/digital'
 import { formatearMedida } from '../valores/valores'
 import { DIVISIONES_H } from '../instrumentos/ajustes'
 import type { RelojAdc } from '../netlist/convertidores'
-import { ELEMENTOS_DIGITALES, type ElementoMotor, type NetlistMotor, type ResultadoNetlist } from '../netlist/netlist'
+import { ELEMENTOS_DIGITALES, type ElementoMotor, type NetlistMotor, type Onda, type ResultadoNetlist } from '../netlist/netlist'
 import type { SimReading } from './protocol'
 import type { Tramo } from '../conexiones/corrientes'
 import type { Aviso } from './avisos'
@@ -422,8 +422,9 @@ export const PASOS_POR_PANTALLA = 500
 export function pasoDeSimulacion(n: NetlistMotor, bases: readonly number[] = []): number {
   let h = PASO_MAX
   for (const e of n.elements) {
-    if (e.type !== 'V' || e.wave.kind === 'dc' || e.wave.kind === 'pwl') continue
-    h = Math.min(h, 1 / (PASOS_POR_PERIODO * e.wave.freq))
+    const w = ondaDe(e)
+    if (!w || w.kind === 'dc' || w.kind === 'pwl') continue
+    h = Math.min(h, 1 / (PASOS_POR_PERIODO * w.freq))
   }
   for (const b of bases) h = Math.min(h, (DIVISIONES_H * b) / PASOS_POR_PANTALLA)
   return Math.max(PASO_MIN, h)
@@ -438,8 +439,13 @@ const PASOS_POR_PERIODO_FINO = 200
 /** El motor rechaza un tramo de onda más corto que 1e-4 del paso máximo (`comprobar_cuadrada`): la mitad de ese límite. */
 const PASO_POR_TRAMO = 0.5e4
 
+/** La onda de una fuente de voltaje o de corriente con onda; undefined en cualquier otro elemento. */
+function ondaDe(e: ElementoMotor): Onda | undefined {
+  return e.type === 'V' ? e.wave : e.type === 'I' ? e.wave : undefined
+}
+
 /** El tramo más corto de una onda con flancos (los de 0, flancos ideales, no cuentan); Infinity si no tiene. */
-function tramoMinimo(w: Extract<ElementoMotor, { type: 'V' }>['wave']): number {
+function tramoMinimo(w: Onda): number {
   switch (w.kind) {
     case 'square':
       return Math.min(w.duty, 1 - w.duty) / w.freq
@@ -473,15 +479,16 @@ export function topesDeVistaPrevia(n: NetlistMotor, bases: readonly number[] = [
   libre = Math.max(PASO_MIN, libre)
   const fuentes: [number, number][] = []
   n.elements.forEach((e, k) => {
-    if (e.type !== 'V' || e.wave.kind === 'dc') return
+    const w = ondaDe(e)
+    if (!w || w.kind === 'dc') return
     let h: number
     // Una onda por tramos no tiene frecuencia: solo cuentan sus esquinas.
-    if (e.wave.kind === 'pwl') h = PASO_POR_TRAMO * tramoMinimo(e.wave)
+    if (w.kind === 'pwl') h = PASO_POR_TRAMO * tramoMinimo(w)
     else {
-      const f = e.wave.freq
+      const f = w.freq
       // Hasta 250 Hz, 200 pasos por periodo (el rectificador a 60 Hz con 50 se alejaba 2.5 % de la cota fina); de ahí en adelante,
       // los 50 de siempre con tope de 20 µs, así que nunca es más fino que `pasoDeSimulacion`.
-      h = Math.min(Math.max(1 / (PASOS_POR_PERIODO_FINO * f), Math.min(1 / (PASOS_POR_PERIODO * f), PASO_MAX)), PASO_POR_TRAMO * tramoMinimo(e.wave))
+      h = Math.min(Math.max(1 / (PASOS_POR_PERIODO_FINO * f), Math.min(1 / (PASOS_POR_PERIODO * f), PASO_MAX)), PASO_POR_TRAMO * tramoMinimo(w))
     }
     if (h < libre) fuentes.push([k, Math.max(PASO_MIN, h)])
   })

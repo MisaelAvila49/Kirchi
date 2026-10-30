@@ -1,0 +1,13 @@
+{
+  "netlist": {
+    "nodes": 3,
+    "elements": [
+      { "type": "R", "a": 1, "b": 2, "ohms": 5 },
+      { "type": "L", "a": 2, "b": 0, "henries": 0.01, "ic": 0.01 },
+      { "type": "C", "a": 1, "b": 0, "farads": 1e-6 }
+    ]
+  },
+  "fin": 0.003,
+  "hmax": 2e-6,
+  "columnas": { "v(1)": { "nodo": 1 }, "v(2)": { "nodo": 2 } }
+}

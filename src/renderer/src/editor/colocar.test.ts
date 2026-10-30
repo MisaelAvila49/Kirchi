@@ -65,6 +65,16 @@ describe('colocar', () => {
     expect(cambiarProp(P, osc!, 'medidas', 'x'.repeat(25))).toEqual({ error: 'Medidas a la vista admite 24 caracteres como máximo.' })
   })
 
+  it('la condición inicial del capacitor parte vacía, no se escribe al colocarlo y acepta vacío, un voltaje o una unidad equivocada con error', () => {
+    const c = nuevaPieza(documentoVacio(), def('capacitor'), en, 0, false, idSecuencial())
+    expect(c.props).toEqual({ valor: '100n' })
+    expect(cambiarProp(c, def('capacitor'), 'vinicial', '5')).toMatchObject({ pieza: { props: { vinicial: '5' } } })
+    expect(cambiarProp(c, def('capacitor'), 'vinicial', '  ')).toMatchObject({ pieza: { props: { vinicial: '' } } })
+    expect(cambiarProp(c, def('capacitor'), 'vinicial', '2M')).toEqual({ error: 'Voltaje inicial (opcional) admite hasta 1,000,000 V.' })
+    expect(cambiarProp(c, def('capacitor'), 'vinicial', '5 A')).toEqual({ error: 'Se esperaba un valor en V.' })
+    expect(cambiarProp(c, def('capacitor'), 'valor', '')).toEqual({ error: '«» no es un valor válido.' })
+  })
+
   it('cambiarProp valida números con su unidad y listas cerradas con sus opciones', () => {
     const S1: Pieza = { ...R1, tipo: 'interruptor', ref: 'S1' }
     expect(cambiarProp(R1, def('resistencia'), 'valor', '330')).toEqual({ pieza: { ...R1, props: { valor: '330' } } })

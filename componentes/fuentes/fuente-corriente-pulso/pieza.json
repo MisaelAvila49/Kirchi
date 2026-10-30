@@ -1,0 +1,29 @@
+{
+  "id": "fuente-corriente-pulso",
+  "nombre": { "es": "Fuente de corriente de pulso", "en": "Pulse current source" },
+  "categoria": "fuentes",
+  "grupo": "Independientes",
+  "prefijo": "I",
+  "buscar": ["ipulso", "corriente pulso", "corriente cuadrada", "ipulse", "pulse current", "fuente de corriente de pulso"],
+  "pines": [
+    { "id": "entrada", "nombre": "entrada", "x": 0, "y": 4 },
+    { "id": "salida", "nombre": "salida", "x": 0, "y": -4 }
+  ],
+  "props": [
+    { "id": "alto", "nombre": "Corriente alta", "unidad": "A", "defecto": "1m", "comunes": ["100u", "1m", "10m", "100m", "1"] },
+    { "id": "frecuencia", "nombre": "Frecuencia", "unidad": "Hz", "defecto": "1k", "comunes": ["1", "10", "100", "1k", "10k"] },
+    { "id": "ciclo", "nombre": "Ciclo de trabajo", "defecto": "50 %", "opciones": ["10 %", "25 %", "50 %", "75 %", "90 %"] },
+    { "id": "ancho", "nombre": "Ancho del pulso", "unidad": "s", "defecto": "0", "comunes": ["0", "10u", "100u", "1m"], "omitir": true },
+    { "id": "subida", "nombre": "Tiempo de subida", "unidad": "s", "defecto": "0", "comunes": ["0", "1u", "10u", "100u"], "omitir": true },
+    { "id": "bajada", "nombre": "Tiempo de bajada", "unidad": "s", "defecto": "0", "comunes": ["0", "1u", "10u", "100u"], "omitir": true },
+    { "id": "retardo", "nombre": "Retardo", "unidad": "s", "defecto": "0", "comunes": ["0", "100u", "1m", "10m"], "omitir": true }
+  ],
+  "modelo": { "tipo": "I", "a": "entrada", "b": "salida", "prop": "alto", "onda": { "forma": "pulso", "frecuencia": "frecuencia", "ciclo": "ciclo", "ancho": "ancho", "subida": "subida", "bajada": "bajada", "retardo": "retardo" } },
+  "etiquetas": { "ref": { "x": 3, "y": -1 }, "valor": { "x": 3, "y": 1 } },
+  "datos": {
+    "equivalencias": { "kicad": "Simulation_SPICE:IPULSE" },
+    "valores": {
+      "*": { "virtual": true, "nota": "Fuente ideal de corriente de pulsos del simulador." }
+    }
+  }
+}

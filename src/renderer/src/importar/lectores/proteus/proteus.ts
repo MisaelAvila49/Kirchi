@@ -4,8 +4,8 @@ import { cadenaBinaria, leerHojas, type ObjetoDsn } from './dsn'
 import { Simbolos } from './simbolos'
 import { abrirProyecto } from './zip'
 
-/** 1 unidad del archivo son 10 nm. */
-const UNIDADES_POR_MM = 100000
+/** 1 unidad del archivo son 10 nm; la rejilla de 0.1 in se lleva a la de 2.5 mm de Kirchi. */
+const UNIDADES_POR_MM = 254000 / 2.5
 /** Propiedades que no aportan al convertidor; las demás pasan con tope. */
 const PROPS_OMITIDAS = new Set(['PRIMITIVE', 'MODFILE', 'VALUE', 'PACKAGE'])
 const MAX_PROPS = 40
@@ -192,7 +192,7 @@ export function leerProteus(bytes: Uint8Array, nombre: string): CircuitoAjeno {
       const conectados = c.pines.filter((x) => x !== 0)
       const nombres = [...new Set(conectados.map(nombreDeRed))].filter((x) => x !== '0')
       if (virtual === 'otro') avisos.push(`El instrumento virtual ${nombreInst} (${c.dispositivo}) no tiene equivalente y no se importó.`)
-      else instrumentos.push({ tipo: 'virtual', clase: virtual, nombre: nombreInst, redes: nombres })
+      else instrumentos.push({ tipo: 'virtual', clase: virtual, nombre: nombreInst, redes: nombres, x: c.x, y: c.y })
       continue
     }
     let ref = c.ref ?? ''
@@ -279,7 +279,7 @@ export function leerProteus(bytes: Uint8Array, nombre: string): CircuitoAjeno {
     }
     redDe.set(o.ident, r)
     if (forma === 'otra') avisos.push(`El generador ${o.nombre || o.ident} es de un tipo (${o.dispositivo}) sin equivalente directo; se conservan sus parámetros.`)
-    instrumentos.push({ tipo: 'generador', forma, nombre: o.nombre || o.ident, red: r, referencia: o.alambres[1] !== 0 ? nombreDeRed(o.alambres[1]) : '0', parametros: parametrosDeGenerador(forma, propiedades(o.props)) })
+    instrumentos.push({ tipo: 'generador', forma, nombre: o.nombre || o.ident, red: r, referencia: o.alambres[1] !== 0 ? nombreDeRed(o.alambres[1]) : '0', parametros: parametrosDeGenerador(forma, propiedades(o.props)), x: o.x, y: o.y })
   }
 
   // Gráficas: la analógica con eje de tiempo es un transitorio; las demás quedan como directiva sin convertir.
@@ -294,6 +294,10 @@ export function leerProteus(bytes: Uint8Array, nombre: string): CircuitoAjeno {
         else if (!trazas.includes(r)) trazas.push(r)
       }
       directivas.push({ tipo: 'analisis', analisis: 'tran', parametros: { inicio: o.inicio, fin: o.fin }, trazas, nombre: o.titulo })
+      // La gráfica también se vuelve un osciloscopio con un canal por traza, donde estaba la caja.
+      const [x1, y1, x2, y2] = o.caja
+      if (trazas.length && o.fin > o.inicio)
+        instrumentos.push({ tipo: 'virtual', clase: 'osciloscopio', nombre: o.titulo, redes: trazas, x: (x1 + x2) / 2, y: (y1 + y2) / 2, ventana: [o.inicio, o.fin], ...(o.rangoY ? { rangoY: o.rangoY } : {}) })
     } else directivas.push({ tipo: 'otra', texto: `Gráfica ${o.titulo}` })
   }
 

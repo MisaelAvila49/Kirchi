@@ -15,7 +15,7 @@ describe('librería', () => {
     expect([...lib.piezas.values()].filter((d) => !d.oculta).map((d) => d.id).sort()).toEqual([
       'adc0804', 'alimentacion', 'amp-op', 'and', 'bateria', 'biestable-d', 'biestable-jk', 'boton', 'bufer-244', 'buffer-3-estados', 'capacitor', 'capacitor-electrolitico', 'codificador-148', 'comparador',
       'comparador-magnitud-85', 'conmutador', 'contador', 'contador-161', 'contador-163', 'contador-190', 'contador-193', 'contador-4017', 'cristal', 'dac0808', 'decodificador-138', 'decodificador-139',
-      'decodificador-4028', 'decodificador-7447', 'decodificador-7seg', 'diac', 'diodo', 'display-7seg', 'estado-logico', 'foco', 'fuente-ac', 'fuente-cccs', 'fuente-ccvs', 'fuente-corriente',
+      'decodificador-4028', 'decodificador-7447', 'decodificador-7seg', 'diac', 'diodo', 'display-7seg', 'estado-logico', 'foco', 'fuente-ac', 'fuente-cccs', 'fuente-ccvs', 'fuente-corriente', 'fuente-corriente-ac', 'fuente-corriente-pulso',
       'fuente-dc', 'fuente-pulso', 'fuente-pwl', 'fuente-trifasica', 'fuente-variable', 'fuente-vccs', 'fuente-vcvs', 'fusible', 'generador', 'igbt', 'ina128', 'inductor', 'interruptor', 'interruptor-dip-4', 'interruptor-dip-8', 'jfet-n',
       'jfet-p', 'l298', 'ldr', 'led', 'lm35', 'lm386', 'lm4040', 'mosfet-n', 'mosfet-p', 'motor-dc', 'motor-pasos-bipolar', 'motor-pasos-unipolar', 'multimetro', 'multiplexor-151', 'multiplexor-153',
       'multiplexor-157', 'nand', 'nor', 'not', 'not-schmitt', 'npn', 'ntc', 'optoacoplador-4n25', 'optoacoplador-pc817', 'or', 'osciloscopio', 'pnp', 'potenciometro', 'ptc', 'puente-rectificador',

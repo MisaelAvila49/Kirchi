@@ -5,7 +5,7 @@ import type { Documento, Etiqueta, Punto, Rotacion } from '../../doc/tipos'
 import { cuerpoEnMundo } from '../../editor/colision'
 import { conflictoDeTocados, piezaCruzada } from '../../editor/conflictos'
 import { enrutar, rutaLibre } from '../../editor/enrutar'
-import { LARGO_TRAMO_ETIQUETA } from '../../editor/etiquetaEnTramo'
+import { giroDeEtiqueta, LARGO_TRAMO_ETIQUETA } from '../../editor/etiquetaEnTramo'
 import { cajasSeCruzan } from '../../lienzo/apartar'
 import { cajaEtiqueta } from '../../lienzo/medidas'
 import { pinesEnMundo } from '../../piezas/transformar'
@@ -107,7 +107,7 @@ export function etiquetaEn(est: Estado, doc: Documento, p: Punto, patilla: Patil
   const { lib } = est
   const id = est.gen('e')
   const directa = (): { cmd: Comando; etiqueta: Etiqueta } => {
-    const etiqueta: Etiqueta = { id, nombre, x: p.x, y: p.y, rot: 0 }
+    const etiqueta: Etiqueta = { id, nombre, x: p.x, y: p.y, rot: giroDeEtiqueta(doc, lib, p, nombre) }
     return { cmd: crear('conectar', 'etiquetas', etiqueta), etiqueta }
   }
   if (!patilla) return directa()

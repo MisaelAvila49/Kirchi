@@ -4,8 +4,8 @@ V2 vb 0 DC 0.7
 RC vcc c 2.2k
 RB vb b 100k
 Q1 c b 0 2N3904
-* El importador sustituye el modelo del archivo por el 2N3904 de la librería.
-.model 2N3904 NPN(IS=7.791e-15 BF=500 NF=1 VAF=100 IKF=0.01887 ISE=2.086e-13 NE=1.5 BR=5 RB=3.402 RC=0.9771 RE=0.5144 CJE=7.102e-12 VJE=0.75 MJE=0.33 TF=4.099e-10 CJC=7.223e-12 VJC=0.75 MJC=0.33 TR=2.5e-7)
+* El importador lleva el .model del archivo al transistor.
+.model 2N3904 NPN(IS=6.7f BF=416 VAF=74)
 .options reltol=1e-4 abstol=1e-12 vntol=1e-7
 .control
 set wr_singlescale

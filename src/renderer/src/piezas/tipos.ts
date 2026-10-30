@@ -40,6 +40,8 @@ export interface PropDef {
   /** No se escribe al crear la pieza, solo cuando el usuario la cambia (potencia nominal de la resistencia): los circuitos
    * nuevos y los viejos guardan los mismos bytes. */
   omitir?: boolean
+  /** Valor numérico que puede quedar vacío (la condición inicial de un capacitor): vacío es «sin valor» y su `defecto` es «». */
+  opcional?: boolean
   /** Perilla en vivo: la propiedad se mueve mientras simula y llega al motor por un canal. La unidad es la de la magnitud
    * (°C, lx, N·m); `escala: 'log'` (luz) hace que cada muesca multiplique en vez de sumar (`paso` y `pasoFino` cuentan muescas por década) y exige `min` positivo. */
   enVivo?: EnVivo
@@ -141,9 +143,15 @@ export type ElementoCompuesto =
 /** Parámetros de un modelo con los nombres y las unidades de ngspice («is», «bf», «vto»). */
 export type ParametrosSpice = Record<string, number>
 
+/** La corriente de una fuente `I` que no es fija: `prop` del modelo es su amplitud (pico, o el nivel alto del pulso) y estos ids dan el resto; el pulso lleva
+ * las mismas propiedades que la fuente de voltaje de pulso. */
+export type OndaDeCorriente =
+  | { forma: 'senoidal'; frecuencia: string }
+  | { forma: 'pulso'; frecuencia: string; ciclo: string; ancho?: string; subida?: string; bajada?: string; retardo?: string }
+
 export type ModeloDef =
   /** `I`: fuente de corriente ideal; la corriente entra por `a`, la atraviesa y sale por `b` hacia el circuito. */
-  | { tipo: 'R' | 'C' | 'L' | 'V' | 'I'; a: string; b: string; prop: string; rserie?: string }
+  | { tipo: 'R' | 'C' | 'L' | 'V' | 'I'; a: string; b: string; prop: string; rserie?: string; ic?: string; onda?: OndaDeCorriente }
   /** Zener de la serie `serie` (voltaje → corriente de prueba `izt` en A e impedancia `zzt` en Ω de la hoja); `prop` es el
    * voltaje Zener. `is`, `n`, `cjo`, `vj` y `m` son del diodo de SPICE. */
   /** JFET de nivel 1 (`pjf`: canal P), un juego de parámetros de SPICE por opción de `prop`. */

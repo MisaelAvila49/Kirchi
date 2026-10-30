@@ -1225,8 +1225,8 @@ mod motor_a_pasos {
         );
         let tr = Transient::new(Netlist::from_json(&json).unwrap(), 1e-4).unwrap();
         let (peor, final_) = recorrer(tr, |tr, a, b| {
-            tr.set_element(0, Element::I { a: 0, b: 1, amps: 1.7 * a }).unwrap();
-            tr.set_element(1, Element::I { a: 0, b: 2, amps: 1.7 * b }).unwrap();
+            tr.set_element(0, Element::I { a: 0, b: 1, amps: 1.7 * a, wave: None }).unwrap();
+            tr.set_element(1, Element::I { a: 0, b: 2, amps: 1.7 * b, wave: None }).unwrap();
         });
         assert!(peor < 1.5, "el rotor se retrasó {peor} pasos");
         assert!(final_ < 0.05, "perdió {final_} pasos");

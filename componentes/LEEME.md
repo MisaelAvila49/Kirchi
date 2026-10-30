@@ -27,6 +27,8 @@ Todos los modelos nombran pines (`a` y `b`, distintos) y propiedades de la pieza
 
 `I` es una fuente de corriente ideal y lleva `prop` como las anteriores; la corriente entra por `a`, atraviesa la fuente y sale por `b` hacia el circuito (los pines de `fuente-corriente` son `entrada` y `salida`, sección siguiente).
 
+`onda` (opcional, solo en `I`) hace variable la corriente: `{ "forma": "senoidal", "frecuencia": "frecuencia" }` o `{ "forma": "pulso", "frecuencia": ..., "ciclo": ..., "ancho"?, "subida"?, "bajada"?, "retardo"? }`, con los mismos `id` y reglas que `senoidal` y `pulso` de voltaje. Entonces `prop` es la amplitud (pico) o la corriente alta del pulso, en A (`fuente-corriente-ac` y `fuente-corriente-pulso`).
+
 ```json
 "modelo": { "tipo": "I", "a": "entrada", "b": "salida", "prop": "corriente" }
 ```
@@ -141,6 +143,8 @@ Las piezas que SPICE no trae se describen con sus valores nominales; las ecuacio
 En un compuesto, un transistor con capacitancias de unión (`cje`, `cjc`, `tf`, `tr`) de resistencias muy pequeñas (`rc`, `re` de milésimas de ohm) forma constantes de tiempo de picosegundos y la regla trapezoidal oscila (también en ngspice): los transistores de paso de los reguladores van sin ellas.
 
 `rserie` en un modelo `C`, `L` o `V` es el id de una propiedad numérica con una resistencia en serie (ESR del capacitor, resistencia del alambre de la bobina, resistencia interna de la batería): con ella mayor que cero la netlist pone el elemento y una resistencia unidos por una red interna, y la lectura de la pieza es la de sus dos terminales. `ley` en un modelo `pot` es una propiedad de lista con «lineal», «logarítmica» o «antilogarítmica» (la logarítmica de audio, 15 % del valor a mitad del giro); con `"reostato": true` el potenciómetro no lleva `b` y es una sola resistencia del pin `a` al cursor `c`. Un pin puede llevar `ayuda`, renglones separados por « · » que el globo del pin muestra bajo su nombre.
+
+`ic` en un modelo `C` o `L` es el id de una propiedad numérica opcional con la condición inicial: el voltaje del capacitor de `a` a `b` o la corriente del inductor de `a` a `b` en t = 0. Vacía, la pieza parte descargada como siempre; con valor, el motor arranca esa pieza desde él (el `ic=` de SPICE) y la exportación a SPICE lo escribe con `uic` en el análisis transitorio.
 
 `foco` lleva `voltaje` y `potencia` (propiedades), `k` (el filamento caliente tiene 1 + k veces la resistencia del frío; 9 da la corriente de arranque de diez veces la nominal) y `tau` (constante de tiempo térmica a la temperatura nominal, s). El filamento pierde calor por los soportes y por radiación, así que su corriente crece como V^0.55 y su potencia como V^1.55. Si su potencia llega al doble de la nominal (un foco de 12 V desde 18.8 V), el filamento se funde: queda abierto y el Registro lo avisa.
 
@@ -311,6 +315,8 @@ Un transistor, un MOSFET o un amplificador puede llevar en el documento sus prop
 ```
 
 Una propiedad con `"omitir": true` no se escribe en el documento al colocar la pieza: la pieza toma su `defecto` hasta que se cambia, y un `.kir` de antes que no la trae se guarda con los mismos bytes.
+
+Una propiedad numérica con `"opcional": true` puede quedar vacía y su `defecto` es `""` (la condición inicial de un capacitor): vacío es «sin valor» y el editor lo acepta.
 
 ## Datos físicos
 

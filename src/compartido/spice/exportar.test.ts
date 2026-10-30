@@ -22,6 +22,27 @@ describe('números', () => {
   })
 })
 
+describe('condiciones iniciales y corriente variable', () => {
+  it('el capacitor y el inductor llevan ic= solo si traen condición inicial', () => {
+    const c = cuerpo([
+      { type: 'C', a: 1, b: 0, farads: 1e-5, ic: 5 },
+      { type: 'C', a: 2, b: 0, farads: 1e-5 },
+      { type: 'L', a: 3, b: 0, henries: 0.01, ic: -0.002 }
+    ])
+    expect(c).toContain('c0 n1 0 0.00001 ic=5')
+    expect(c).toMatch(/^c1 n2 0 0.00001$/m)
+    expect(c).toContain('l2 n3 0 0.01 ic=-0.002')
+  })
+  it('la fuente de corriente con onda sale como seno o pulso y sin onda como continua', () => {
+    const c = cuerpo([
+      { type: 'I', a: 0, b: 1, amps: 0, wave: { kind: 'sine', offset: 0, amp: 0.001, freq: 1000 } },
+      { type: 'I', a: 0, b: 2, amps: 0.002 }
+    ])
+    expect(c).toContain('i0 0 n1 sin(0 0.001 1000 0 0 0)')
+    expect(c).toContain('i1 0 n2 dc 0.002')
+  })
+})
+
 describe('elementos básicos', () => {
   it('traduce resistencias, capacitores, inductores y fuentes con nombres generados', () => {
     const t = cuerpo([

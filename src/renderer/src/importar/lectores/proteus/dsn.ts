@@ -21,7 +21,7 @@ export type ObjetoDsn =
   | { tipo: 'union'; desp: number; x: number; y: number; cables: number[] }
   | { tipo: 'terminal'; desp: number; x: number; y: number; giro: number; banderas: number; dispositivo: string; nombre: string; cable: number }
   | { tipo: 'generador' | 'sonda'; desp: number; x: number; y: number; giro: number; banderas: number; ident: string; dispositivo: string; nombre: string; props: string; alambres: [number, number] }
-  | { tipo: 'grafica'; desp: number; titulo: string; ejeX: string; inicio: number; fin: number; trazas: { expresion: string; ident: string; nombre: string }[] }
+  | { tipo: 'grafica'; desp: number; titulo: string; ejeX: string; inicio: number; fin: number; caja: [number, number, number, number]; rangoY?: [number, number]; trazas: { expresion: string; ident: string; nombre: string }[] }
   | { tipo: 'texto'; desp: number; x: number; y: number; texto: string }
   | { tipo: 'subcircuito'; desp: number; nombre: string; hoja: string }
   | { tipo: 'grafico2d'; desp: number }
@@ -130,9 +130,12 @@ function grafica(r: Lector, desp: number): ObjetoDsn {
   r.salta(4)
   r.cs()
   const ejeX = r.ps()
-  r.salta(16)
+  // La caja en el esquema (x1, y1, x2, y2), en las unidades del archivo.
+  const caja: [number, number, number, number] = [r.i32(), r.i32(), r.i32(), r.i32()]
   const inicio = r.v.getFloat64(r.o, true)
   const fin = r.v.getFloat64(r.o + 8, true)
+  // Los cuatro últimos son los extremos de los ejes; el infinito marca un eje sin datos.
+  const ejes = [32, 40, 48, 56].map((k) => r.v.getFloat64(r.o + k, true)).filter(Number.isFinite)
   r.salta(64)
   const trazas: { expresion: string; ident: string; nombre: string }[] = []
   for (;;) {
@@ -151,7 +154,7 @@ function grafica(r: Lector, desp: number): ObjetoDsn {
     if (!(r.d[r.o] === 0x00 && r.d[r.o + 1] === 0xff)) break
   }
   r.salta(3)
-  return { tipo: 'grafica', desp, titulo, ejeX, inicio, fin, trazas }
+  return { tipo: 'grafica', desp, titulo, ejeX, inicio, fin, caja, ...(ejes.length ? { rangoY: [Math.min(...ejes), Math.max(...ejes)] as [number, number] } : {}), trazas }
 }
 
 /** Lista de objetos desde `desde` hasta el byte 0xFF. `filever` ≤ 806 acorta el tramo del componente. */

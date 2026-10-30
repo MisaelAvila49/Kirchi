@@ -199,8 +199,9 @@ describe('recorrido del DSN con bytes armados', () => {
 
   it('declara unidades de 10 nm, eje Y hacia arriba, versión y el dibujo', () => {
     const c = leerProteus(proyecto(dsn), 'mini.pdsprj')
-    expect(c).toMatchObject({ formato: 'proteus', version: '8.13', unidadesPorMm: 100000, yHaciaArriba: true, nombre: 'mini.pdsprj' })
-    expect(c.unidadesPorMm! * 2.54).toBe(CELDA)
+    expect(c).toMatchObject({ formato: 'proteus', version: '8.13', yHaciaArriba: true, nombre: 'mini.pdsprj' })
+    // Una celda de 0.1 in del origen es una de 2.5 mm de Kirchi.
+    expect(c.unidadesPorMm! * 2.5).toBeCloseTo(CELDA)
     expect(c.dibujo!.cables).toHaveLength(2)
     expect(c.dibujo!.terminales).toMatchObject([{ nombre: 'GND', tipo: 'tierra', x: -CELDA, y: -CELDA }])
     expect(c.dibujo!.uniones).toEqual([])
@@ -282,7 +283,7 @@ describe('etiquetas, generadores y sondas', () => {
   })
 
   it('el pulso porcentual se vuelve segundos y la referencia sin cable es tierra', () => {
-    expect(c.instrumentos[0]).toEqual({
+    expect(c.instrumentos[0]).toMatchObject({
       tipo: 'generador',
       forma: 'pulso',
       nombre: 'G1',
@@ -366,6 +367,19 @@ describe.skipIf(CARPETA === '' || !existsSync(join(CARPETA, 'New Project.pdsprj'
     expect(c.avisos).toEqual([])
   })
 
+  it('New Project: la gráfica analógica también es un osciloscopio con su ventana, su rango y su lugar', () => {
+    const c = leer('New Project.pdsprj')
+    const osc = c.instrumentos.find((i) => i.tipo === 'virtual' && i.clase === 'osciloscopio')
+    expect(osc).toMatchObject({ nombre: 'ANALOGUE ANALYSIS', ventana: [0, 50] })
+    const o = osc as { redes: string[]; rangoY: [number, number]; x: number; y: number }
+    expect(o.redes).toHaveLength(2)
+    expect(o.rangoY[0]).toBeCloseTo(-0.198, 3)
+    expect(o.rangoY[1]).toBeCloseTo(1.194, 3)
+    // La caja (-43, -25) a (-16, -2) en cuadros de 100 mil.
+    expect(o.x).toBeCloseTo(-29.5 * CELDA, 0)
+    expect(o.y).toBeCloseTo(-13.5 * CELDA, 0)
+  })
+
   it('Resistencia: cuatro resistencias sin cables, con giro y espejos', () => {
     const c = leer('Resistencia.pdsprj')
     expect(c.piezas).toHaveLength(4)
@@ -394,7 +408,8 @@ describe.skipIf(LOTE === '' || !existsSync(LOTE))('lote público de proyectos de
         const c = leerProteus(new Uint8Array(readFileSync(join(LOTE, f))), f)
         const conInstrumento = new Set(c.instrumentos.flatMap((i) => (i.tipo === 'sonda' ? [i.red] : i.tipo === 'generador' ? [i.red, i.referencia] : i.redes)))
         const s = c.redes.filter((r) => r.pines.length === 1 && r.nombre?.startsWith('N') && !conInstrumento.has(r.nombre)).length
-        virtuales += c.instrumentos.filter((i) => i.tipo === 'virtual').length
+        // Solo los instrumentos que son componentes del archivo: el osciloscopio que sale de una gráfica (con `ventana`) no lo es.
+        virtuales += c.instrumentos.filter((i) => i.tipo === 'virtual' && !('ventana' in i)).length
         const fu = c.avisos.filter((a) => a.startsWith('Pines que no coinciden')).length
         piezas += c.piezas.length
         pines += c.piezas.reduce((a, p) => a + p.pines.length, 0)

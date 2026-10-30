@@ -1,6 +1,6 @@
 {
   "name": "kirchi",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Simulador de circuitos libre y sin conexión",
   "license": "MIT",
   "private": true,

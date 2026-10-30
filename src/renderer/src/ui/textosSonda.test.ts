@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { calcularConexiones } from '../conexiones/conexiones'
 import { documentoVacio, type Documento, type Pieza, type Sonda } from '../doc/tipos'
 import { libreriaDePrueba } from '../prueba/libreria'
-import { etiquetasHermanas, globoDeEtiqueta, globoDeSonda, nombreLargoDeSonda, pinesQueMide, textosInspectorDeSonda } from './textosSonda'
+import { etiquetasHermanas, globoDeSonda, nombreLargoDeSonda, pinesQueMide, textosInspectorDeSonda } from './textosSonda'
 
 const lib = libreriaDePrueba().piezas
 const pieza = (id: string, tipo: string, ref: string, x: number, y: number): Pieza => ({ id, tipo, ref, x, y, rot: 0, espejo: false, props: {} })
@@ -37,7 +37,7 @@ describe('lo que se dice de una sonda', () => {
   })
 })
 
-describe('el globo de una etiqueta puesta a mano (B1)', () => {
+describe('las etiquetas hermanas (B1)', () => {
   const d = (): Documento => ({
     ...documentoVacio(),
     piezas: { r: pieza('r', 'resistencia', 'R1', 0, 0), o: pieza('o', 'osciloscopio', 'XSC1', 80, 0) },
@@ -48,10 +48,8 @@ describe('el globo de una etiqueta puesta a mano (B1)', () => {
       s: { id: 's', nombre: 'SOLA', x: 40, y: 40, rot: 0 }
     }
   })
-  it('dice cuántas tienen su nombre, qué une y cómo cambiarlo', () => {
+  it('encuentra las etiquetas hermanas por nombre', () => {
     const doc = d()
-    expect(globoDeEtiqueta(doc, calcularConexiones(doc, lib), 'a')).toEqual(['VIN', '2 etiquetas con este nombre: es la misma red.', 'Une R1:2 y XSC1:A.', 'Doble clic en el nombre para cambiarlo.'])
-    expect(globoDeEtiqueta(doc, calcularConexiones(doc, lib), 's')).toEqual(['SOLA', 'Una sola etiqueta con este nombre: otra igual la uniría sin cable.', 'Doble clic en el nombre para cambiarlo.'])
     expect(etiquetasHermanas(doc, 'a')).toEqual(['b'])
   })
 })

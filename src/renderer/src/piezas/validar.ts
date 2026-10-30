@@ -19,7 +19,7 @@ const SERIES_DE_PROP = ['elegida', 'E6', 'E12', 'E24']
 const MODELOS = ['R', 'C', 'L', 'V', 'I', 'D', 'zener', 'bjt', 'mosfet', 'ampop', 'comparador', 'compuesto', 'foco', 'fusible', 'motor', 'rele', 'zumbador', 'interruptor', 'senoidal', 'pulso', 'pot', 'alimentacion', 'tierra', ...MODELOS_NUEVOS, ...MODELOS_DIGITALES, ...MODELOS_MSI, ...MODELOS_INSTRUMENTOS]
 /** Las claves que lleva cada tipo de modelo: una errata («tua» por «tau») se rechaza en vez de ignorarse. */
 const CLAVES: Record<string, string[]> = {
-  R: ['tipo', 'a', 'b', 'prop'], C: ['tipo', 'a', 'b', 'prop', 'rserie'], L: ['tipo', 'a', 'b', 'prop', 'rserie'], V: ['tipo', 'a', 'b', 'prop', 'rserie'], I: ['tipo', 'a', 'b', 'prop'],
+  R: ['tipo', 'a', 'b', 'prop'], C: ['tipo', 'a', 'b', 'prop', 'rserie', 'ic'], L: ['tipo', 'a', 'b', 'prop', 'rserie', 'ic'], V: ['tipo', 'a', 'b', 'prop', 'rserie'], I: ['tipo', 'a', 'b', 'prop', 'onda'],
   D: ['tipo', 'a', 'b', 'is', 'n', 'inom', 'por'],
   zener: ['tipo', 'a', 'b', 'prop', 'is', 'n', 'cjo', 'vj', 'm', 'serie', 'sinFamiliaHasta', 'por'],
   bjt: ['tipo', 'c', 'b', 'e', 'pnp', 'prop', 'modelos'],
@@ -308,6 +308,26 @@ function validarLimites(l: any, modelo: any, props: PropDef[], pines: { id: stri
   return out
 }
 
+/** `modelo.onda` de una fuente de corriente: la forma y las propiedades que la describen. */
+function validarOndaDeCorriente(m: any, props: PropDef[], err: (campo: string, msg: string) => void): void {
+  const o = m.onda
+  const esObj = (v: unknown) => v !== null && typeof v === 'object' && !Array.isArray(v)
+  if (m.tipo !== 'I') return err('modelo.onda', 'solo la lleva una fuente de corriente')
+  if (!esObj(o)) return err('modelo.onda', 'debe ser un objeto')
+  const claves = o.forma === 'senoidal' ? ['forma', 'frecuencia'] : ['forma', 'frecuencia', 'ciclo', 'ancho', 'subida', 'bajada', 'retardo']
+  if (o.forma !== 'senoidal' && o.forma !== 'pulso') return err('modelo.onda.forma', 'debe ser «senoidal» o «pulso»')
+  for (const k of Object.keys(o)) if (!claves.includes(k)) err(`modelo.onda.${k}`, `no es una clave de la onda ${o.forma}`)
+  for (const c of ['frecuencia', ...(o.forma === 'pulso' ? ['ciclo'] : []), ...(o.forma === 'pulso' ? ['ancho', 'subida', 'bajada', 'retardo'].filter((x) => o[x] !== undefined) : [])]) {
+    const prop = props.find((q) => q.id === o[c])
+    if (!prop) err(`modelo.onda.${c}`, 'no es una propiedad de la pieza')
+    else if (c === 'ciclo') {
+      if (!prop.opciones) err('modelo.onda.ciclo', 'debe ser una propiedad de lista')
+      else if (!prop.opciones.every((x) => leerCiclo(x) !== null)) err('modelo.onda.ciclo', 'sus opciones deben ser porcentajes entre 0 y 100, como «50 %»')
+    } else if (prop.opciones || prop.texto) err(`modelo.onda.${c}`, 'debe ser una propiedad numérica')
+    else if (['ancho', 'subida', 'bajada', 'retardo'].includes(c) && prop.unidad !== 's') err(`modelo.onda.${c}`, 'debe ser una propiedad numérica en s')
+  }
+}
+
 export function lineaDeError(texto: string, error: unknown): number | null {
   const msg = error instanceof Error ? error.message : String(error)
   const l = /line (\d+)/.exec(msg)
@@ -385,6 +405,10 @@ export function validarPieza(texto: string, ruta: string): Validacion {
       }
       if (p.ajuste !== undefined && typeof p.ajuste !== 'boolean') err(`${c}.ajuste`, 'debe ser verdadero o falso')
       if (p.omitir !== undefined && typeof p.omitir !== 'boolean') err(`${c}.omitir`, 'debe ser verdadero o falso')
+      if (p.opcional !== undefined) {
+        if (typeof p.opcional !== 'boolean') err(`${c}.opcional`, 'debe ser verdadero o falso')
+        else if (p.opcional && (hayOpciones || p.texto === true)) err(`${c}.opcional`, 'solo aplica a una propiedad numérica')
+      }
       if (p.enVivo !== undefined) validarEnVivo(p, c, err)
       // Valores comerciales: `serie` ofrece una serie en el editor; `catalogo` toma `comunes` como los valores del
       // catálogo y deja cualquier otro como «Personalizado». Solo en una propiedad numérica.
@@ -426,6 +450,8 @@ export function validarPieza(texto: string, ruta: string): Validacion {
       } else if (p.texto === true) {
         const tope = Number.isInteger(p.largoMax) ? p.largoMax : MAX_TEXTO_PROP
         if (p.defecto.trim() === '' || p.defecto.length > tope) err(`${c}.defecto`, `debe ser un texto de 1 a ${tope} caracteres`)
+      } else if (p.opcional === true && p.defecto === '') {
+        // Una propiedad opcional parte vacía.
       } else if (!leerValor(p.defecto)) err(`${c}.defecto`, `no es un valor válido: «${p.defecto}»`)
       else if (esObj(p.enVivo) && esNumero(p.enVivo.min) && esNumero(p.enVivo.max)) {
         const x = leerValor(p.defecto)?.valor
@@ -523,6 +549,14 @@ export function validarPieza(texto: string, ruta: string): Validacion {
         else if (!q) err('modelo.rserie', 'no es una propiedad de la pieza')
         else if (q.opciones || q.texto) err('modelo.rserie', 'debe ser una propiedad numérica')
       }
+      if (m.ic !== undefined) {
+        const q = props.find((x) => x.id === m.ic)
+        if (m.tipo !== 'C' && m.tipo !== 'L') err('modelo.ic', 'solo lo llevan un capacitor y una bobina')
+        else if (!q) err('modelo.ic', 'no es una propiedad de la pieza')
+        else if (q.opciones || q.texto) err('modelo.ic', 'debe ser una propiedad numérica')
+        else if (q.opcional !== true) err('modelo.ic', 'debe ser una propiedad opcional (con "opcional": true) para poder quedar vacía')
+      }
+      if (m.onda !== undefined) validarOndaDeCorriente(m, props, err)
       if (m.tipo === 'pot') {
         if (!pinExiste(m.c)) err('modelo.c', 'no es un pin de la pieza')
         else if (m.c === m.a || m.c === m.b) err('modelo.c', 'debe ser un pin distinto de modelo.a y modelo.b')

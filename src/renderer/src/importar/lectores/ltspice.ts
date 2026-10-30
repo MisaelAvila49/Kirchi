@@ -11,6 +11,9 @@ interface Segmento {
   y2: number
 }
 
+/** La rejilla de LTspice es de 16 unidades: una celda suya es una de Kirchi (2.5 mm). */
+const UNIDADES_POR_MM = 16 / 2.5
+
 const clave = (x: number, y: number): string => `${x},${y}`
 
 /** Unión-búsqueda sobre puntos de la hoja. */
@@ -207,7 +210,7 @@ export function leerLtspice(texto: string, nombre: string): CircuitoAjeno {
   const sinteticas: string[] = ['* LTspice']
   const origen: string[] = ['']
   for (const p of piezas) {
-    if (p.tipo.toLowerCase() !== 'voltage' || p.pines.length < 2) continue
+    if (!['voltage', 'current'].includes(p.tipo.toLowerCase()) || p.pines.length < 2) continue
     const [a, b] = p.pines.map((pin) => nombreDe(pin.x as number, pin.y as number))
     sinteticas.push(`${p.ref} ${a} ${b} ${(p.valor ?? '0').replace(/\bSINE\b/gi, 'SIN')}`)
     origen.push(`la fuente ${p.ref}`)
@@ -238,6 +241,7 @@ export function leerLtspice(texto: string, nombre: string): CircuitoAjeno {
     formato: 'ltspice',
     ...(version ? { version } : {}),
     nombre,
+    unidadesPorMm: UNIDADES_POR_MM,
     piezas,
     redes,
     dibujo,

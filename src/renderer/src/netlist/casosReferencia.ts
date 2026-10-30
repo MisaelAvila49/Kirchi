@@ -380,6 +380,39 @@ export const CASOS: Record<string, Caso> = {
   // Bloque 3: la fuente trifásica de 180 V de pico a 60 Hz contra tres fuentes senoidales con fase de ngspice.
   trifasica_60hz: { partes: [{ tipo: 'fuente-trifasica', ref: 'VT1', props: { amplitud: '180', frecuencia: '60' }, pines: { A: 'a', B: 'b', C: 'c', N: '0' } }, R('RA', '1k', 'a', '0'), R('RB', '1k', 'b', '0'), R('RC', '1k', 'c', '0')], fin: 34e-3, hmax: 1e-5, tolT: 2e-6 },
   // Dos diodos en inversa en serie frente a un escalón de 10 V, con un filtro RC de 47 uF.
+  ic_rc_descarga: { partes: [R('R1', '1k', '1', '0'), { tipo: 'capacitor', ref: 'C1', props: { valor: '10u', vinicial: '5' }, pines: { '1': '1', '2': '0' } }], fin: 0.02, hmax: 2e-5 },
+  ic_lc_oscila: {
+    partes: [R('R1', '5', '1', '2'), { tipo: 'inductor', ref: 'L1', props: { valor: '10m', iinicial: '10m' }, pines: { '1': '2', '2': '0' } }, C('C1', '1u', '1', '0')],
+    fin: 0.003,
+    hmax: 2e-6
+  },
+  ic_wien_arranca: {
+    partes: [
+      CTL('fuente-vcvs', 'E1', '100k', 'o', '0', 'p', 'n'),
+      R('R1', '10k', 'o', 'a'),
+      C('C1', '16n', 'a', 'p'),
+      R('R2', '10k', 'p', '0'),
+      { tipo: 'capacitor', ref: 'C2', props: { valor: '16n', vinicial: '10m' }, pines: { '1': 'p', '2': '0' } },
+      R('RF1', '15k', 'o', 'm'),
+      R('RF2', '10k', 'm', 'n'),
+      { tipo: 'diodo', ref: 'D1', pines: { A: 'm', K: 'n' } },
+      { tipo: 'diodo', ref: 'D2', pines: { A: 'n', K: 'm' } },
+      R('RG', '10k', 'n', '0')
+    ],
+    fin: 0.02,
+    hmax: 2e-6
+  },
+  isenoidal_rc: {
+    partes: [{ tipo: 'fuente-corriente-ac', ref: 'I1', props: { amplitud: '1m', frecuencia: '1k' }, pines: { entrada: '0', salida: '1' } }, R('R1', '1k', '1', '0'), C('C1', '1u', '1', '0')],
+    fin: 0.005,
+    hmax: 2e-6
+  },
+  ipulso_capacitor: {
+    partes: [{ tipo: 'fuente-corriente-pulso', ref: 'I1', props: { alto: '1m', frecuencia: '1k', ciclo: '50 %', ancho: '400u', subida: '10u', bajada: '10u' }, pines: { entrada: '0', salida: '1' } }, R('R1', '1k', '1', '0'), C('C1', '1u', '1', '0')],
+    fin: 0.005,
+    hmax: 2e-6,
+    tolT: 2e-6
+  },
   diodos_serie_rc: {
     partes: [DC('V1', '10', '1'), { tipo: 'diodo', ref: 'D1', pines: { A: '2', K: '1' } }, { tipo: 'diodo', ref: 'D2', pines: { A: '3', K: '2' } }, R('R1', '100', '3', '4'), C('C1', '47u', '4', '0'), R('R2', '10k', '4', '0')],
     fin: 0.02,

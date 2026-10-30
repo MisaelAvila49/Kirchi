@@ -82,7 +82,7 @@ import DialogoGuardar from './ui/DialogoGuardar'
 import DialogoRecuperar from './ui/DialogoRecuperar'
 import EditorEnLinea from './ui/EditorEnLinea'
 import Globo from './ui/Globo'
-import { globoDeEtiqueta, globoDeSonda } from './ui/textosSonda'
+import { globoDeSonda } from './ui/textosSonda'
 import HojaAtajos from './ui/HojaAtajos'
 import type { PotVista } from './ui/ControlPerilla'
 import { compilarNetlist, opcionDe } from './netlist/netlist'
@@ -1184,12 +1184,6 @@ export default function App() {
       return { texto: `Se encima con ${est.choque.ref}.`, x: p.x, y: p.y }
     }
     const h = est.hover
-    // Una etiqueta bajo el ratón dice con qué se une.
-    if (h?.tipo === 'etiqueta' && lienzo) {
-      const lineas = globoDeEtiqueta(est.doc, est.con, h.id)
-      const s = lienzo.aPantalla(editor.cursor)
-      if (lineas) return { texto: lineas.join(' '), lineas, x: s.x, y: s.y }
-    }
     // Una sonda bajo el ratón dice qué mide y cómo se mueve.
     if (h?.tipo === 'sonda' && lienzo) {
       const texto = globoDeSonda(est.doc, est.con, h.id)

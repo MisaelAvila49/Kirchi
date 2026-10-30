@@ -10,9 +10,11 @@ export function editableEnCaliente(def: PiezaDef | undefined, propId: string): b
   if (def?.props.find((d) => d.id === propId)?.enVivo) return true
   const m = def?.modelo
   switch (m?.tipo) {
+    case 'I':
+      // La corriente variable también cambia su frecuencia y los tiempos del pulso.
+      return propId === m.prop || (m.onda !== undefined && Object.entries(m.onda).some(([k, id]) => k !== 'forma' && id === propId))
     case 'R':
     case 'V':
-    case 'I':
     case 'pot':
       return propId === m.prop
     case 'senoidal':

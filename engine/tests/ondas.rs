@@ -234,3 +234,24 @@ fn la_escalera_se_simula_y_se_valida() {
     assert!(invalido(r#"{"kind":"stair","low":0,"high":3,"freq":250,"steps":1}"#, 1e-5).contains("fuera del rango"));
     assert!(invalido(r#"{"kind":"stair","low":0,"high":3,"freq":250,"steps":4,"phase":1}"#, 1e-5).contains("fuera del rango"));
 }
+
+#[test]
+fn una_fuente_de_corriente_con_fase_continua_cambia_de_frecuencia_sin_salto() {
+    let mut tr = Transient::new(
+        Netlist::from_json(
+            r#"{"nodes":2,"elements":[
+            {"type":"I","a":0,"b":1,"amps":0,"wave":{"kind":"sine","offset":0,"amp":0.001,"freq":1000,"continua":true}},
+            {"type":"R","a":1,"b":0,"ohms":1000}]}"#,
+        )
+        .unwrap(),
+        1e-5,
+    )
+    .unwrap();
+    tr.advance_to(1.25e-3, u32::MAX).unwrap();
+    let antes = tr.voltage(1);
+    assert!((antes.abs() - 1.0).abs() < 1e-6, "{antes}");
+    let onda = Wave::Sine { offset: 0.0, amp: 0.001, freq: 2000.0, phase: 0.0, continua: true };
+    tr.set_element(0, Element::I { a: 0, b: 1, amps: 0.0, wave: Some(onda) }).unwrap();
+    tr.step().unwrap();
+    assert!((tr.voltage(1) - antes).abs() < 0.01, "saltó de {antes} a {}", tr.voltage(1));
+}

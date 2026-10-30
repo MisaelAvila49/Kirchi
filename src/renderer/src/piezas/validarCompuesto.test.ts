@@ -86,6 +86,32 @@ describe('validarPieza, modelo compuesto', () => {
   })
 })
 
+describe('validarPieza, condición inicial y corriente variable', () => {
+  const dos = () => [{ id: 'A', nombre: 'A', x: -4, y: 0 }, { id: 'B', nombre: 'B', x: 4, y: 0 }]
+  const pieza = (props: unknown[], modelo: unknown) => ({ id: 'c', nombre: { es: 'C', en: 'C' }, categoria: 'pasivos', prefijo: 'C', buscar: ['c'], pines: dos(), props, modelo })
+  const errs = (o: unknown) => { const r = validarPieza(JSON.stringify(o), 'c.json'); return r.ok ? [] : r.errores }
+  const valor = { id: 'valor', nombre: 'Valor', unidad: 'F', defecto: '1u' }
+  const vi = { id: 'vi', nombre: 'Voltaje inicial', unidad: 'V', defecto: '', opcional: true }
+
+  it('una propiedad opcional parte vacía y sirve de condición inicial', () => {
+    expect(errs(pieza([valor, vi], { tipo: 'C', a: 'A', b: 'B', prop: 'valor', ic: 'vi' }))).toEqual([])
+  })
+  it('una propiedad numérica sin opcional no puede partir vacía ni ser la condición inicial', () => {
+    expect(errs(pieza([valor, { ...vi, opcional: undefined }], { tipo: 'C', a: 'A', b: 'B', prop: 'valor' })).join(' ')).toMatch(/defecto no es un valor válido/)
+    expect(errs(pieza([valor, { ...vi, defecto: '0', opcional: undefined }], { tipo: 'C', a: 'A', b: 'B', prop: 'valor', ic: 'vi' })).join(' ')).toMatch(/modelo\.ic debe ser una propiedad opcional/)
+  })
+  it('ic solo lo llevan el capacitor y la bobina', () => {
+    expect(errs(pieza([valor, vi], { tipo: 'R', a: 'A', b: 'B', prop: 'valor', ic: 'vi' })).join(' ')).toMatch(/clave desconocida en un modelo «R»/)
+  })
+  it('la onda de una fuente de corriente pide propiedades que existan', () => {
+    const f = { id: 'f', nombre: 'Frecuencia', unidad: 'Hz', defecto: '1k' }
+    const a = { id: 'a', nombre: 'Amplitud', unidad: 'A', defecto: '1m' }
+    expect(errs(pieza([a, f], { tipo: 'I', a: 'A', b: 'B', prop: 'a', onda: { forma: 'senoidal', frecuencia: 'f' } }))).toEqual([])
+    expect(errs(pieza([a, f], { tipo: 'I', a: 'A', b: 'B', prop: 'a', onda: { forma: 'senoidal', frecuencia: 'nada' } })).join(' ')).toMatch(/modelo\.onda\.frecuencia no es una propiedad/)
+    expect(errs(pieza([a, f], { tipo: 'I', a: 'A', b: 'B', prop: 'a', onda: { forma: 'triangular', frecuencia: 'f' } })).join(' ')).toMatch(/modelo\.onda\.forma/)
+  })
+})
+
 // Elementos nuevos en un compuesto: M, J, E, G, H, F y EXT, y los valores lineales en una propiedad.
 describe('validarPieza, compuesto con elementos nuevos', () => {
   const pieza = () => ({

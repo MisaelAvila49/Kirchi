@@ -156,14 +156,18 @@ describe.skipIf(NUEVO === '' || !existsSync(NUEVO))('proyecto de Proteus de siet
     expect(con.redDePin.get(clavePin(porRef('RV1').id, '2'))).toBe(con.redDePin.get(clavePin(u5.id, '-')))
   })
 
-  it('conserva los valores, las fuentes de ±15 V, el pulso, las dos sondas y el transitorio de 0 a 50 s', () => {
+  it('conserva los valores, los rieles de ±15 V, el pulso, las dos sondas y el transitorio de 0 a 50 s', () => {
     const d = doc()
     const valor = (ref: string) => leerValor(porRef(ref).props.valor!)?.valor
     expect(['R1', 'R2', 'R3', 'R4', 'R7', 'R8', 'R9', 'R10', 'R11', 'R12'].map(valor)).toEqual(Array(10).fill(1000))
     expect([valor('R5'), valor('R6')]).toEqual([1e6, 1e6])
     expect([valor('C1'), valor('C2')]).toEqual([1e-6, 1e-6])
     expect([valor('RV1'), valor('RV2')]).toEqual([1e4, 1e4])
-    expect(Object.values(d.piezas).filter((p) => p.tipo === 'fuente-dc').map((p) => p.props.voltaje).sort()).toEqual(['-15', '15'])
+    // Los generadores de CD de V+ y V− son el voltaje de sus terminales, no piezas.
+    expect(Object.values(d.piezas).filter((p) => p.tipo === 'fuente-dc')).toHaveLength(0)
+    expect(Object.fromEntries(Object.values(d.alimentaciones ?? {}).map((a) => [a.nombre, a.voltaje]))).toEqual({ 'V+': '15', 'V-': '-15' })
+    // Cada TL081 lleva su terminal V+ y V− junto al pin, como en Proteus: catorce terminales y ningún cable largo de alimentación.
+    expect(Object.values(d.piezas).filter((p) => p.tipo === 'alimentacion')).toHaveLength(14)
     expect(Object.values(d.piezas).filter((p) => p.tipo === 'fuente-pulso')).toHaveLength(1)
     expect(Object.values(d.sondas ?? {}).filter((s) => s.tipo === 'voltaje')).toHaveLength(2)
     const a = Object.values(d.analisis ?? {})

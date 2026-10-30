@@ -610,10 +610,10 @@ pub fn build(e: &Element, idx: usize) -> Result<Box<dyn Device>, EngineError> {
 fn construir(e: &Element, idx: usize) -> Box<dyn Device> {
     match e {
         Element::R { a, b, ohms } => Box::new(basic::Resistor::new(*a, *b, *ohms)),
-        Element::C { a, b, farads } => Box::new(basic::Capacitor::new(*a, *b, *farads)),
-        Element::L { a, b, henries } => Box::new(basic::Inductor::new(*a, *b, *henries)),
+        Element::C { a, b, farads, ic } => Box::new(basic::Capacitor::new(*a, *b, *farads, *ic)),
+        Element::L { a, b, henries, ic } => Box::new(basic::Inductor::new(*a, *b, *henries, *ic)),
         Element::V { a, b, wave } => Box::new(basic::VSource::new(*a, *b, wave.clone())),
-        Element::I { a, b, amps } => Box::new(basic::ISource::new(*a, *b, *amps)),
+        Element::I { a, b, amps, wave } => Box::new(basic::ISource::new(*a, *b, *amps, wave.clone())),
         Element::D { a, b, model } => Box::new(diode::Diode::new(*a, *b, model.clone())),
         Element::Q { c, b, e, pnp, model, euler } => Box::new(bjt::Bjt::new(*c, *b, *e, *pnp, model.clone(), *euler)),
         Element::J { d, g, s, pjf, model } => Box::new(jfet::Jfet::new(*d, *g, *s, *pjf, model.clone())),

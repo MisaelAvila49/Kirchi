@@ -1297,3 +1297,29 @@ fn dip_palancas() {
 fn teclado_matriz() {
     revisar("teclado_matriz");
 }
+
+// Condiciones iniciales (`ic=` con `uic`) y fuentes de corriente variables contra ngspice.
+#[test]
+fn ic_rc_descarga() {
+    revisar("ic_rc_descarga");
+}
+
+#[test]
+fn ic_lc_oscila() {
+    revisar("ic_lc_oscila");
+}
+
+#[test]
+fn ic_wien_arranca() {
+    revisar("ic_wien_arranca");
+}
+
+#[test]
+fn isenoidal_rc() {
+    revisar("isenoidal_rc");
+}
+
+#[test]
+fn ipulso_capacitor() {
+    revisar("ipulso_capacitor");
+}

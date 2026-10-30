@@ -906,10 +906,31 @@ pub fn aun_no_se_simula(idx: usize) -> EngineError {
 #[serde(tag = "type")]
 pub enum Element {
     R { a: usize, b: usize, ohms: f64 },
-    C { a: usize, b: usize, farads: f64 },
-    L { a: usize, b: usize, henries: f64 },
+    /// `ic`: voltaje inicial de `a` a `b` (el `IC=` de SPICE con `uic`); sin él, parte descargado.
+    C {
+        a: usize,
+        b: usize,
+        farads: f64,
+        #[serde(default)]
+        ic: Option<f64>,
+    },
+    /// `ic`: corriente inicial de `a` a `b`; sin ella, parte en 0.
+    L {
+        a: usize,
+        b: usize,
+        henries: f64,
+        #[serde(default)]
+        ic: Option<f64>,
+    },
     V { a: usize, b: usize, wave: Wave },
-    I { a: usize, b: usize, amps: f64 },
+    /// Con `wave`, la corriente sigue esa onda (sus voltajes se leen como amperes) y `amps` no cuenta.
+    I {
+        a: usize,
+        b: usize,
+        amps: f64,
+        #[serde(default)]
+        wave: Option<Wave>,
+    },
     D {
         a: usize,
         b: usize,
@@ -1254,6 +1275,15 @@ pub enum Element {
 }
 
 impl Element {
+    /// La onda de una fuente independiente que la tiene (voltaje, o corriente que no es fija).
+    pub fn onda(&self) -> Option<&Wave> {
+        match self {
+            Element::V { wave, .. } => Some(wave),
+            Element::I { wave, .. } => wave.as_ref(),
+            _ => None,
+        }
+    }
+
     /// Los nodos de sus terminales.
     pub fn nodes(&self) -> Vec<usize> {
         match *self {
@@ -1537,7 +1567,8 @@ impl Element {
             Element::C { farads, .. } => vec![*farads],
             Element::L { henries, .. } => vec![*henries],
             Element::D { model, .. } => vec![model.is, model.n],
-            Element::V { wave: Wave::Square { freq, .. }, .. } | Element::V { wave: Wave::Pulse { freq, .. }, .. } | Element::V { wave: Wave::Stair { freq, .. }, .. } => vec![*freq],
+            Element::V { wave: Wave::Square { freq, .. } | Wave::Pulse { freq, .. } | Wave::Stair { freq, .. }, .. }
+            | Element::I { wave: Some(Wave::Square { freq, .. } | Wave::Pulse { freq, .. } | Wave::Stair { freq, .. }), .. } => vec![*freq],
             Element::Lamp { rfrio, pnom, tau, .. } => vec![*rfrio, *pnom, *tau],
             Element::Motor { r, l, ke, j, bm, .. } => vec![*r, *l, *ke, *j, *bm],
             Element::Fuse { ohms, inom, ifusion, tau, .. } => vec![*ohms, *inom, *ifusion, *tau],
@@ -1610,7 +1641,7 @@ impl Element {
             Element::L { henries, .. } => en(*henries, L_RANGO),
             Element::Xfmr { l1, l2, .. } => en(*l1, L_RANGO) && en(*l2, L_RANGO),
             Element::V { wave, .. } => wave.in_range(),
-            Element::I { amps, .. } => amps.abs() <= FUENTE_MAX,
+            Element::I { amps, wave, .. } => amps.abs() <= FUENTE_MAX && wave.as_ref().map_or(true, Wave::in_range),
             Element::Lamp { rfrio, k, pnom, tau, .. } => en(*rfrio, R_RANGO) && *k <= LAMP_K_MAX && en(*pnom, LAMP_P_RANGO) && en(*tau, TAU_RANGO),
             Element::Motor { r, l, ke, j, bm, .. } => {
                 en(*r, R_RANGO) && en(*l, L_RANGO) && en(*ke, MOTOR_KE_RANGO) && en(*j, MOTOR_INERCIA_RANGO) && en(*bm, MOTOR_INERCIA_RANGO)
@@ -1721,7 +1752,7 @@ impl Element {
     fn finite(&self) -> bool {
         match self {
             Element::V { wave, .. } => wave.finite(),
-            Element::I { amps, .. } => amps.is_finite(),
+            Element::I { amps, wave, .. } => amps.is_finite() && wave.as_ref().map_or(true, Wave::finite),
             Element::Psu { v, .. } => v.is_finite(),
             Element::E { ganancia, .. } | Element::F { ganancia, .. } => ganancia.is_finite(),
             Element::G { gm, .. } => gm.is_finite(),
@@ -1955,7 +1986,7 @@ impl Netlist {
                     "elemento {i}: ambos extremos en el mismo nodo"
                 )));
             }
-            if let Element::V { wave: Wave::Square { duty, .. }, .. } = e {
+            if let Some(Wave::Square { duty, .. }) = e.onda() {
                 if !(*duty > 0.0 && *duty < 1.0) {
                     return Err(EngineError::Invalid(format!(
                         "elemento {i}: el ciclo de trabajo debe estar entre 0 y 1"
@@ -1966,6 +1997,11 @@ impl Netlist {
                 return Err(EngineError::Invalid(format!(
                     "elemento {i}: el valor debe ser positivo"
                 )));
+            }
+            if let Element::C { ic: Some(x), .. } | Element::L { ic: Some(x), .. } = e {
+                if !(x.is_finite() && x.abs() <= FUENTE_MAX) {
+                    return Err(EngineError::Invalid(format!("elemento {i}: la condición inicial debe ser finita y de a lo más {FUENTE_MAX:e}")));
+                }
             }
             if !e.finite() {
                 return Err(EngineError::Invalid(format!("elemento {i}: un valor no es finito")));
@@ -2079,9 +2115,21 @@ mod tests {
     }
 
     #[test]
+    fn rechaza_una_condicion_inicial_fuera_de_tope() {
+        for (tipo, campo) in [("C", "farads"), ("L", "henries")] {
+            for ic in ["2e6", "-2e6", "1e999"] {
+                let json = format!(r#"{{"nodes":2,"elements":[{{"type":"{tipo}","a":1,"b":0,"{campo}":1e-3,"ic":{ic}}}]}}"#);
+                assert!(Netlist::from_json(&json).is_err(), "{tipo} ic={ic}");
+            }
+            let bueno = format!(r#"{{"nodes":2,"elements":[{{"type":"{tipo}","a":1,"b":0,"{campo}":1e-3,"ic":5}}]}}"#);
+            assert!(Netlist::from_json(&bueno).is_ok(), "{tipo}");
+        }
+    }
+
+    #[test]
     fn lee_un_inductor() {
         let n = Netlist::from_json(r#"{"nodes":2,"elements":[{"type":"L","a":1,"b":0,"henries":1e-3}]}"#).unwrap();
-        assert_eq!(n.elements[0], Element::L { a: 1, b: 0, henries: 1e-3 });
+        assert_eq!(n.elements[0], Element::L { a: 1, b: 0, henries: 1e-3, ic: None });
         let e = Netlist::from_json(r#"{"nodes":2,"elements":[{"type":"L","a":1,"b":0,"henries":0}]}"#).unwrap_err();
         assert_eq!(e, EngineError::Invalid("elemento 0: el valor debe ser positivo".into()));
     }

@@ -67,7 +67,7 @@ export function ondaEnContinua(w: Onda): Onda {
 /** En continua un capacitor es un circuito abierto, un inductor un corto y una fuente su valor de reposo; los índices de la netlist no cambian. */
 export function netlistEnContinua(n: NetlistMotor): NetlistMotor {
   const elements = n.elements.map((e): ElementoMotor =>
-    e.type === 'C' ? { type: 'R', a: e.a, b: e.b, ohms: 1e12 } : e.type === 'L' ? { type: 'R', a: e.a, b: e.b, ohms: 1e-6 } : e.type === 'V' ? { ...e, wave: ondaEnContinua(e.wave) } : e
+    e.type === 'C' ? { type: 'R', a: e.a, b: e.b, ohms: 1e12 } : e.type === 'L' ? { type: 'R', a: e.a, b: e.b, ohms: 1e-6 } : e.type === 'V' ? { ...e, wave: ondaEnContinua(e.wave) } : e.type === 'I' && e.wave ? { ...e, wave: ondaEnContinua(e.wave) } : e
   )
   return { ...n, elements }
 }

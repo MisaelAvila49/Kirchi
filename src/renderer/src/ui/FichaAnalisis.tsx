@@ -42,6 +42,13 @@ export interface PropsFicha {
   estadoCorrida?: string | null
 }
 
+/** Con condiciones iniciales el análisis siempre parte de ellas (uic): la casilla lo muestra y lo dice. */
+function notaIc(refs: readonly string[]): string | undefined {
+  if (refs.length === 0) return undefined
+  const lista = refs.length === 1 ? refs[0] : `${refs.slice(0, -1).join(', ')} y ${refs[refs.length - 1]}`
+  return `Hay condiciones iniciales en ${lista}: el análisis parte de ellas y los demás capacitores parten descargados.`
+}
+
 const sinPrefijo = (n: number | undefined): string => (n === undefined ? '' : textoDeNumero(n, 7))
 
 /** La pista de un ajuste a pedido: el botón «?» de su renglón la abre y la cierra. */
@@ -73,7 +80,7 @@ function PistaTexto(props: { pista: Pista }) {
 }
 
 /** Una casilla con su pista a pedido. */
-function Casilla(props: { marcada: boolean; desactivado?: boolean; onCambiar(v: boolean): void; texto: string; pista?: string; ajuste: string }) {
+function Casilla(props: { marcada: boolean; desactivado?: boolean; onCambiar(v: boolean): void; texto: string; pista?: string; ajuste: string; nota?: string }) {
   const pista = usarPista(props.pista)
   return (
     <div class="an-fila-casilla">
@@ -83,6 +90,9 @@ function Casilla(props: { marcada: boolean; desactivado?: boolean; onCambiar(v: 
       </label>
       <PistaBoton pista={pista} ajuste={props.ajuste} />
       <PistaTexto pista={pista} />
+      <Show when={props.nota}>
+        <p class="an-pista an-nota">{props.nota}</p>
+      </Show>
     </div>
   )
 }
@@ -273,6 +283,7 @@ export default function FichaAnalisis(props: PropsFicha) {
     setError(props.onGuardar(nuevo))
   }
   const cambiarConfig = (f: (c: ConfigAnalisis) => ConfigAnalisis) => cambiar((a) => ({ ...a, config: f(a.config) }))
+  const conIc = () => props.ctx?.condicionesIniciales ?? []
   const fuentes = () => (props.ctx?.fuentes ?? []).map((f) => ({ valor: f.id, texto: f.ref }))
   const sinEditar = () => !props.editable
 
@@ -356,8 +367,9 @@ export default function FichaAnalisis(props: PropsFicha) {
             <Campo etiqueta="Guardar desde" valor={c.inicio} unidad="s" opcional onValor={(v) => cambiarConfig((x) => ({ ...(x as typeof c), inicio: v }))} desactivado={sinEditar()} pista={pistaDe('tran.inicio')} />
             <Casilla
               ajuste="Partir de cero"
-              marcada={!!c.uic}
-              desactivado={sinEditar()}
+              marcada={!!c.uic || conIc().length > 0}
+              desactivado={sinEditar() || conIc().length > 0}
+              nota={notaIc(conIc())}
               texto="Partir de cero, sin calcular el reposo (condiciones iniciales)"
               pista={pistaDe('tran.uic')}
               onCambiar={(si) => cambiarConfig((x) => ({ ...(x as typeof c), uic: si || undefined }))}

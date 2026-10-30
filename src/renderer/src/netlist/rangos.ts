@@ -1,4 +1,5 @@
 import { formatearValor } from '../valores/valores'
+import type { Onda } from '../../../compartido/netlistMotor'
 import type { ElementoMotor } from './netlist'
 
 /** Rangos que acepta el motor (`engine/src/netlist.rs`, constantes `*_RANGO`), para decir un valor fuera de ellos con el
@@ -335,26 +336,37 @@ export function problemaDeParametro(modelo: FamiliaParametros, campo: string, va
   return g && !dentro(valor, g) ? queDice(g, valor) : null
 }
 
+/** Los valores de una onda de voltaje (`u` = 'V') o de corriente (`u` = 'A') contra lo que acepta el motor. */
+function errorDeOnda(w: Onda, ref: string, u: 'V' | 'A'): string | null {
+  const lista: [Rango, number][] = []
+  if (w.kind === 'dc') lista.push([r('v', u === 'V' ? 'su voltaje' : 'su corriente', u, [-FUENTE, FUENTE]), w.v])
+  else if (w.kind === 'sine') lista.push([r('offset', 'su nivel', u, [-FUENTE, FUENTE]), w.offset], [r('amp', 'su amplitud', u, [-FUENTE, FUENTE]), w.amp], [r('freq', 'su frecuencia', 'Hz', [-1e9, 1e9]), w.freq])
+  else if (w.kind === 'square') lista.push([r('low', 'su nivel bajo', u, [-FUENTE, FUENTE]), w.low], [r('high', 'su nivel alto', u, [-FUENTE, FUENTE]), w.high], [r('freq', 'su frecuencia', 'Hz', [1e-6, 1e9]), w.freq], [r('duty', 'su ciclo de trabajo', '', [0, 1], { sinLo: true, sinHi: true }), w.duty])
+  else if (w.kind === 'stair') lista.push([r('low', 'su nivel bajo', u, [-FUENTE, FUENTE]), w.low], [r('high', 'su nivel alto', u, [-FUENTE, FUENTE]), w.high], [r('freq', 'su frecuencia', 'Hz', [1e-6, 1e9]), w.freq], [r('steps', 'sus pasos', '', [2, 256]), w.steps])
+  else if (w.kind === 'pwl') {
+    const valor = r('v', 'un valor de su forma de onda', u, [-FUENTE, FUENTE])
+    if (w.puntos.length < 1 || w.puntos.length > PWL_MAX_PUNTOS) return `${ref}: su forma de onda debe tener de 1 a ${PWL_MAX_PUNTOS} puntos.`
+    if (w.puntos[0][0] !== 0 || w.puntos.some(([t], i) => !Number.isFinite(t) || (i > 0 && !(t > w.puntos[i - 1][0])))) {
+      return `${ref}: los tiempos de su forma de onda deben empezar en 0 y ser crecientes.`
+    }
+    for (const [, v] of w.puntos) lista.push([valor, v])
+  } else lista.push([r('low', 'su nivel bajo', u, [-FUENTE, FUENTE]), w.low], [r('high', 'su nivel alto', u, [-FUENTE, FUENTE]), w.high], [r('freq', 'su frecuencia', 'Hz', [1e-6, 1e9]), w.freq], [r('rise', 'su tiempo de subida', 's', [0, 1e3]), w.rise], [r('fall', 'su tiempo de bajada', 's', [0, 1e3]), w.fall], [r('width', 'su ancho', 's', [0, 1e3]), w.width])
+  for (const [g, v] of lista) if (!dentro(v, g)) return texto(ref, g, v)
+  return null
+}
+
 /** Si algún valor del elemento queda fuera de lo que acepta el motor, una oración en español que nombra la pieza (`ref`);
  * si no, null. Es lo que el motor rechazaría con «elemento N: un valor está fuera del rango admitido». */
 export function errorDeRango(e: ElementoMotor, ref: string): string | null {
-  if (e.type === 'V') {
-    const w = e.wave
-    const lista: [Rango, number][] = []
-    if (w.kind === 'dc') lista.push([RANGO_DE_LA_FUENTE[0], w.v])
-    else if (w.kind === 'sine') lista.push([r('offset', 'su nivel', 'V', [-FUENTE, FUENTE]), w.offset], [r('amp', 'su amplitud', 'V', [-FUENTE, FUENTE]), w.amp], [r('freq', 'su frecuencia', 'Hz', [-1e9, 1e9]), w.freq])
-    else if (w.kind === 'square') lista.push([r('low', 'su nivel bajo', 'V', [-FUENTE, FUENTE]), w.low], [r('high', 'su nivel alto', 'V', [-FUENTE, FUENTE]), w.high], [r('freq', 'su frecuencia', 'Hz', [1e-6, 1e9]), w.freq], [r('duty', 'su ciclo de trabajo', '', [0, 1], { sinLo: true, sinHi: true }), w.duty])
-    else if (w.kind === 'stair') lista.push([r('low', 'su nivel bajo', 'V', [-FUENTE, FUENTE]), w.low], [r('high', 'su nivel alto', 'V', [-FUENTE, FUENTE]), w.high], [r('freq', 'su frecuencia', 'Hz', [1e-6, 1e9]), w.freq], [r('steps', 'sus pasos', '', [2, 256]), w.steps])
-    else if (w.kind === 'pwl') {
-      const valor = r('v', 'un valor de su forma de onda', 'V', [-FUENTE, FUENTE])
-      if (w.puntos.length < 1 || w.puntos.length > PWL_MAX_PUNTOS) return `${ref}: su forma de onda debe tener de 1 a ${PWL_MAX_PUNTOS} puntos.`
-      if (w.puntos[0][0] !== 0 || w.puntos.some(([t], i) => !Number.isFinite(t) || (i > 0 && !(t > w.puntos[i - 1][0])))) {
-        return `${ref}: los tiempos de su forma de onda deben empezar en 0 y ser crecientes.`
-      }
-      for (const [, v] of w.puntos) lista.push([valor, v])
-    } else lista.push([r('low', 'su nivel bajo', 'V', [-FUENTE, FUENTE]), w.low], [r('high', 'su nivel alto', 'V', [-FUENTE, FUENTE]), w.high], [r('freq', 'su frecuencia', 'Hz', [1e-6, 1e9]), w.freq], [r('rise', 'su tiempo de subida', 's', [0, 1e3]), w.rise], [r('fall', 'su tiempo de bajada', 's', [0, 1e3]), w.fall], [r('width', 'su ancho', 's', [0, 1e3]), w.width])
-    for (const [g, v] of lista) if (!dentro(v, g)) return texto(ref, g, v)
-    return null
+  if (e.type === 'V') return errorDeOnda(e.wave, ref, 'V')
+  if (e.type === 'I' && e.wave) {
+    const o = errorDeOnda(e.wave, ref, 'A')
+    if (o) return o
+  }
+  if (e.type === 'C' || e.type === 'L') {
+    const ic = e.ic
+    const g = r('ic', e.type === 'C' ? 'su voltaje inicial' : 'su corriente inicial', e.type === 'C' ? 'V' : 'A', [-FUENTE, FUENTE])
+    if (ic !== undefined && !dentro(ic, g)) return texto(ref, g, ic)
   }
   const campos = DIRECTOS[e.type]
   if (campos) {

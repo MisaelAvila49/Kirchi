@@ -66,7 +66,8 @@ export function armarDocumento(c: Conversion, lib: Map<string, PiezaDef>, gen: G
     ...f.piezas.map((p) => crear('importar', 'piezas', p)),
     ...f.cables.map((x) => crear('importar', 'cables', x)),
     ...f.etiquetas.map((x) => crear('importar', 'etiquetas', x)),
-    ...(f.sondas ?? []).map((x) => crear('importar', 'sondas', x))
+    ...(f.sondas ?? []).map((x) => crear('importar', 'sondas', x)),
+    ...(c.alimentaciones ?? []).map((a) => crear('importar', 'alimentaciones', { id: gen('a'), nombre: a.nombre, voltaje: a.voltaje }))
   ]
   let doc = aplicar(documentoVacio(), juntar('importar', cmds))
 

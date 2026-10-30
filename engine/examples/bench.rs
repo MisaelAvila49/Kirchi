@@ -12,7 +12,7 @@ fn ladder(nodes: usize) -> Netlist {
     }];
     for k in 1..nodes - 1 {
         elements.push(Element::R { a: k, b: k + 1, ohms: 100.0 });
-        elements.push(Element::C { a: k + 1, b: 0, farads: 1e-7 });
+        elements.push(Element::C { a: k + 1, b: 0, farads: 1e-7, ic: None });
     }
     Netlist { nodes, digital_nets: 0, elements, sondas: Vec::new(), canales: Vec::new(), lectores: Vec::new(), tablas: Vec::new() }
 }

@@ -50,6 +50,8 @@ export interface CampoProp {
    * Modelo «Personalizado»: `texto` es el juego de SPICE de la pieza y `base` los parámetros del modelo elegido que se escriben al activarlo.
    */
   personalizado?: { familia: FamiliaSpice; base: string }
+  /** Valor que puede quedar vacío (una condición inicial): va siempre en «Más ajustes». */
+  opcional?: boolean
   /** El texto leído en notación de ingeniería («1 kΩ»); null si no se lee o es una lista. */
   lectura: string | null
   /** Se cambia sin detener la vista previa: el valor de una resistencia o de una fuente. */
@@ -470,6 +472,7 @@ export function vistaInspector(
       return {
         id: d.id, nombre: d.nombre, texto, unidad: d.unidad, opciones: d.opciones, lectura: v ? formatearValor(v.valor, d.unidad ?? v.unidad) : null, enCaliente: editableEnCaliente(def, d.id),
         ...(muestras ? { muestras } : {}),
+        ...(d.opcional ? { opcional: true } : {}),
         ...(d.serie ? { serie: d.serie } : {}),
         ...(d.catalogo ? { catalogo: true, comunes: d.comunes } : comunesDeLaFicha(d) ? { comunes: d.comunes } : {}),
         ...(tabla ? { tabla } : {})

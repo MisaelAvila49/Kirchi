@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="es" data-tema="oscuro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kirchi, simulador de circuitos libre y en español</title>
+<meta name="description" content="Kirchi es un simulador de circuitos de escritorio, libre (MIT), sin conexión y en español. Abre circuitos de Proteus 8, LTspice, Falstad, SPICE y KiCad y los simula.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fuentes/mona-sans-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+  document.documentElement.classList.add("js");
+  try { var t = localStorage.getItem("kirchi-tema"); if (t === "claro" || t === "oscuro") document.documentElement.dataset.tema = t; } catch (e) {}
+</script>
+<link rel="stylesheet" href="estilos.css">
+<script src="config.js"></script>
+</head>
+<body>
+<a class="salto" href="#contenido">Saltar al contenido</a>
+
+<header class="cab">
+  <a class="marca" href="#inicio" aria-label="Kirchi, inicio"><img src="img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
+  <nav class="nav" aria-label="Secciones">
+    <a href="#importar">Importar</a>
+    <a href="#que-tiene">Qué tiene</a>
+    <a href="#descargas">Descargar</a>
+    <a href="#codigo">Código y licencias</a>
+  </nav>
+  <div class="cab-botones">
+    <button class="btn-borde" id="boton-movimiento" type="button" aria-pressed="false">Pausar movimiento</button>
+    <button class="btn-borde" id="boton-tema" type="button" aria-pressed="false">Tema claro</button>
+  </div>
+</header>
+
+<main id="contenido">
+<section class="portada" id="inicio">
+  <div class="portada-luz" aria-hidden="true"></div>
+  <div class="ancho portada-rejilla">
+    <div class="portada-texto">
+      <h1 class="hero-titulo">Kirchi</h1>
+      <h2 class="hero-subtitulo hero-titulo">Simulador de circuitos libre, sin conexión y en español.</h2>
+      <p class="hero-entrada">Dibujas el esquema en una rejilla, pulsas F5 y lo ves funcionar: el voltaje de cada cable, la corriente de cada rama y un osciloscopio de cuatro canales. Hecho para estudiantes de ingeniería.</p>
+      <div class="hero-acciones">
+        <a class="btn" id="cta-principal" href="#descargas">Descargar Kirchi</a>
+        <p class="otros" id="cta-otros"><a href="#descargas">Windows, macOS y Linux</a></p>
+      </div>
+      <p class="hero-datos">Versión <span data-version></span> · Licencia MIT · Sin cuenta y sin enviar datos</p>
+    </div>
+    <figure class="portada-figura">
+      <img class="solo-oscuro" src="img/555-oscuro.webp" width="2400" height="1351" alt="Kirchi en tema oscuro: un circuito con un 555 astable en simulación y, abajo, el osciloscopio con cuatro señales." fetchpriority="high">
+      <img class="solo-claro" src="img/555-claro.webp" width="2400" height="1351" alt="Kirchi en tema claro: un circuito con un 555 astable en simulación y, abajo, el osciloscopio con cuatro señales.">
+      <figcaption>Captura real de Kirchi: un 555 astable con las cuatro señales de su osciloscopio.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="seccion" id="importar" aria-labelledby="t-importar">
+  <div class="ancho dos">
+    <div>
+      <p class="rotulo">Novedad de la versión <span data-version></span></p>
+      <h2 id="t-importar">Abre tus circuitos de Proteus, LTspice, Falstad, SPICE y KiCad</h2>
+      <p class="lead">Abrir (Ctrl+O) o arrastrar el archivo a la ventana basta. Kirchi reconoce el programa de origen por el contenido, abre el circuito como documento nuevo y deja el original intacto.</p>
+      <p>Al terminar muestra un informe de lo convertido: lo que se aproximó con la pieza más cercana, lo que no tiene equivalencia y los análisis que se convirtieron. Se conservan las sondas, los generadores, los multímetros y osciloscopios virtuales, y los análisis de punto de operación, barrido de CD, transitorio, CA y Fourier.</p>
+    </div>
+    <div class="formatos" role="table" aria-label="Formatos que Kirchi abre">
+      <div role="row" class="encabezado"><span role="columnheader">Programa</span><span role="columnheader">Archivos</span></div>
+      <div role="row"><span role="cell">Proteus 8</span><span role="cell" class="mono">.pdsprj</span></div>
+      <div role="row"><span role="cell">LTspice</span><span role="cell" class="mono">.asc</span></div>
+      <div role="row"><span role="cell">Falstad y CircuitJS</span><span role="cell" class="mono">.txt</span></div>
+      <div role="row"><span role="cell">SPICE</span><span role="cell" class="mono">.cir .net .sp</span></div>
+      <div role="row"><span role="cell">KiCad 7 a 9, con sus hojas</span><span role="cell" class="mono">.kicad_sch</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="seccion seccion-tenue" id="que-tiene" aria-labelledby="t-tiene">
+  <div class="ancho">
+    <h2 id="t-tiene">Un circuito en marcha, tal como se ve</h2>
+    <div class="carrusel" data-duracion="8s" data-estado="corre">
+      <div class="carrusel-rejilla">
+        <div role="tablist" aria-label="Qué hace Kirchi" aria-orientation="vertical" class="carrusel-pestanas">
+          <button role="tab" id="c1" aria-controls="cp1" aria-selected="true" type="button"><b>Simulación en tiempo real</b><span class="barra"><i></i></span></button>
+          <button role="tab" id="c2" aria-controls="cp2" aria-selected="false" tabindex="-1" type="button"><b>Instrumentos</b><span class="barra"><i></i></span></button>
+          <button role="tab" id="c3" aria-controls="cp3" aria-selected="false" tabindex="-1" type="button"><b>Análisis con ngspice</b><span class="barra"><i></i></span></button>
+          <button role="tab" id="c4" aria-controls="cp4" aria-selected="false" tabindex="-1" type="button"><b>Circuitos grandes</b><span class="barra"><i></i></span></button>
+          <button role="tab" id="c5" aria-controls="cp5" aria-selected="false" tabindex="-1" type="button"><b>Un circuito de Proteus</b><span class="barra"><i></i></span></button>
+          <button role="tab" id="c6" aria-controls="cp6" aria-selected="false" tabindex="-1" type="button"><b>Exportar para tu reporte</b><span class="barra"><i></i></span></button>
+        </div>
+        <div class="carrusel-visor">
+          <div class="visor-marco">
+            <div class="visor-barras" aria-hidden="true"><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span></div>
+            <p class="visor-siguiente" aria-hidden="true"></p>
+            <button class="carrusel-pausa visor-pausa" type="button" aria-pressed="false"><span class="icono" aria-hidden="true"></span><span class="txt">Pausar</span></button>
+          </div>
+          <div class="carrusel-paneles" aria-live="off">
+            <div role="tabpanel" id="cp1" aria-labelledby="c1" tabindex="0" class="panel-c" style="--pos: 50% 45%">
+              <img class="solo-oscuro" src="img/amp-oscuro.webp" width="2400" height="1351" alt="Amplificador en emisor común simulándose, con el voltaje de cada red y dos multímetros midiendo." loading="lazy">
+              <img class="solo-claro" src="img/amp-claro.webp" width="2400" height="1351" alt="Amplificador en emisor común simulándose, con el voltaje de cada red y dos multímetros midiendo." loading="lazy">
+              <p>Los cables se pintan según su voltaje, la corriente se mueve por cada rama, los LED encienden y las piezas se queman cuando pasan su máximo. Ocho velocidades, de ×10 a ×0.001, y perillas e interruptores que se accionan mientras corre.</p>
+            </div>
+            <div role="tabpanel" id="cp2" aria-labelledby="c2" tabindex="0" class="panel-c" hidden>
+              <img class="solo-oscuro" src="img/555-oscuro.webp" width="2400" height="1351" alt="Osciloscopio de cuatro canales con las señales de un 555 astable y sus sondas sobre el esquema." loading="lazy">
+              <img class="solo-claro" src="img/555-claro.webp" width="2400" height="1351" alt="Osciloscopio de cuatro canales con las señales de un 555 astable y sus sondas sobre el esquema." loading="lazy">
+              <p>Osciloscopio de cuatro canales con disparo, cursores, medidas automáticas y modo X-Y. Multímetro, generador de funciones, fuente variable y medidores rápidos sobre cualquier cable.</p>
+            </div>
+            <div role="tabpanel" id="cp3" aria-labelledby="c3" tabindex="0" class="panel-c" hidden>
+              <img class="solo-oscuro" src="img/bode-oscuro.webp" width="2400" height="1351" alt="Diagrama de Bode de un filtro notch de 60 Hz, con el esquema y el panel de análisis." loading="lazy">
+              <img class="solo-claro" src="img/bode-claro.webp" width="2400" height="1351" alt="Diagrama de Bode de un filtro notch de 60 Hz, con el esquema y el panel de análisis." loading="lazy">
+              <p>Punto de operación, barrido de CD, transitorio, CA y Bode, Fourier y barrido de parámetro. ngspice 47 viene incluido y corre como programa aparte. Las gráficas llevan cursores y rangos que se escriben.</p>
+            </div>
+            <div role="tabpanel" id="cp4" aria-labelledby="c4" tabindex="0" class="panel-c" hidden>
+              <img class="solo-oscuro" src="img/compu-oscuro.webp" width="2400" height="1351" alt="Una computadora analógica de 37 piezas y 18 redes en simulación, con el osciloscopio mostrando su respuesta." loading="lazy">
+              <img class="solo-claro" src="img/compu-claro.webp" width="2400" height="1351" alt="Una computadora analógica de 37 piezas y 18 redes en simulación, con el osciloscopio mostrando su respuesta." loading="lazy">
+              <p>Una computadora analógica de 37 piezas y 18 redes simulándose al 100 % del tiempo real, con la respuesta en el osciloscopio.</p>
+            </div>
+            <div role="tabpanel" id="cp5" aria-labelledby="c5" tabindex="0" class="panel-c" hidden style="--pos: 60% 60%">
+              <img class="solo-oscuro" src="img/imp-sim-oscuro.webp" width="2400" height="1351" alt="Kirchi simulando un circuito importado de Proteus: el esquema, el informe de importación a la derecha y el osciloscopio con la respuesta de la salida." loading="lazy">
+              <img class="solo-claro" src="img/imp-sim-claro.webp" width="2400" height="1351" alt="Kirchi simulando un circuito importado de Proteus: el esquema, el informe de importación a la derecha y el osciloscopio con la respuesta de la salida." loading="lazy">
+              <p>Un circuito de Proteus 8 abierto en Kirchi y simulado: con el osciloscopio lleno hasta los 50 s del análisis y el informe de importación en el panel Proyecto.</p>
+            </div>
+            <div role="tabpanel" id="cp6" aria-labelledby="c6" tabindex="0" class="panel-c" hidden style="--pos: 50% 40%">
+              <img class="solo-oscuro" src="img/exp-osc-oscuro.webp" width="2400" height="1351" alt="Diálogo para exportar la captura del osciloscopio, con el estilo Instrumento o Informe, los formatos PNG, SVG, PDF y CSV y las propiedades de la figura." loading="lazy">
+              <img class="solo-claro" src="img/exp-osc-claro.webp" width="2400" height="1351" alt="Diálogo para exportar la captura del osciloscopio, con el estilo Instrumento o Informe, los formatos PNG, SVG, PDF y CSV y las propiedades de la figura." loading="lazy">
+              <p>Exporta el esquema a PNG, SVG o PDF, y las gráficas con su estilo para el reporte. El editor de la figura cambia colores, letra, rejilla y anotaciones antes de exportar.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="carrusel-nota">Capturas reales de Kirchi. Cambian solas cada 8 segundos y se detienen tras una vuelta. Se pausan con el botón, con el ratón encima o al usar el teclado.</p>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" aria-labelledby="t-cifras">
+  <div class="ancho">
+    <h2 id="t-cifras">Lo que incluye</h2>
+    <dl class="cifras">
+      <div><dt>piezas</dt><dd>111</dd></div>
+      <div><dt>plantillas</dt><dd>15</dd></div>
+      <div><dt>calculadoras</dt><dd>6</dd></div>
+      <div><dt>canales de osciloscopio</dt><dd>4</dd></div>
+      <div><dt>capítulos de tutorial</dt><dd>5</dd></div>
+    </dl>
+    <div class="lista-doble">
+      <div>
+        <h3>111 piezas con modelo eléctrico</h3>
+        <p>En nueve categorías: pasivos, fuentes, semiconductores, integrados, digitales, interruptores, indicadores, electromecánicos e instrumentos. Hay sensores, motores a pasos, JFET, IGBT, optoacopladores, fuentes controladas y lógica MSI. Cada pieza muestra en el inspector su encapsulado, sus pines, su huella y la hoja de datos de la que salen sus parámetros.</p>
+      </div>
+      <div>
+        <h3>Plantillas y calculadoras</h3>
+        <p>Quince plantillas listas para simular y seis calculadoras (divisor, LED, filtros, 555 astable y monoestable, amplificadores) que muestran la ecuación con tus valores y generan el circuito.</p>
+      </div>
+      <div>
+        <h3>Tutorial dentro de la aplicación</h3>
+        <p>«Aprende Kirchi» tiene cinco capítulos que se hacen por separado: Conoce Kirchi, Tu primer circuito, Medir, Analizar y exportar e Importar.</p>
+      </div>
+      <div>
+        <h3>Para la entrega</h3>
+        <p>Exporta esquemas y gráficas a PNG, SVG y PDF, con fondo blanco o tema oscuro y anotaciones que no ensucian el circuito. También graba la ventana en video MP4, con o sin micrófono.</p>
+      </div>
+      <div>
+        <h3>Gratis y sin conexión</h3>
+        <p>Licencia MIT, sin cuenta, sin anuncios y sin funciones de pago. Todo ocurre en tu computadora y no se envía ningún dato. Un asistente de IA por el protocolo MCP es opcional y viene apagado.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="seccion seccion-tenue" aria-labelledby="t-falta">
+  <div class="ancho dos">
+    <div>
+      <h2 id="t-falta">Lo que todavía no hace</h2>
+    </div>
+    <div>
+      <p class="lead">Kirchi simula circuitos de electrónica analógica y digital. No simula microcontroladores ni sirve para diseñar placas (PCB).</p>
+      <p>Tampoco tiene todavía protoboard ni diagramas de bloques. La protoboard es lo siguiente en el desarrollo, y no hay fecha. Los archivos de Kirchi son <span class="mono">.kir</span> y se abren con doble clic.</p>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="descargas" aria-labelledby="t-descargas">
+  <div class="ancho">
+    <h2 id="t-descargas">Descargar Kirchi <span data-version-release></span></h2>
+    <p class="lead">Gratis y sin cuenta. Elige tu sistema.</p>
+    <div class="descargas">
+      <div class="fila-desc" id="windows">
+        <div class="fd-nombre"><h3>Windows</h3><p class="mono">Windows 10 y 11</p></div>
+        <div class="fd-texto">
+          <p>La Microsoft Store instala y actualiza Kirchi sola. También hay un instalador y una versión portátil que se abre sin instalar.</p>
+          <p class="nota">El instalador no está firmado con un certificado de pago: SmartScreen avisa de un editor desconocido. Pulsa «Más información» y «Ejecutar de todos modos».</p>
+        </div>
+        <div class="fd-botones">
+          <a class="btn" data-tienda href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Microsoft Store</a>
+          <a class="btn-borde enlace-desc" data-sufijo="-Windows-instalador.exe" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Instalador (.exe)</a>
+          <a class="btn-borde enlace-desc" data-sufijo="-Windows-portable.zip" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Portátil (.zip)</a>
+        </div>
+      </div>
+      <div class="fila-desc" id="macos">
+        <div class="fd-nombre"><h3>macOS</h3><p class="mono">dmg universal</p></div>
+        <div class="fd-texto">
+          <p>Arrastra Kirchi a Aplicaciones.</p>
+          <p class="nota">La aplicación no está firmada por Apple. La primera vez, clic derecho sobre Kirchi › Abrir. Si macOS no puede verificarla, abre Ajustes del Sistema › Privacidad y seguridad y pulsa «Abrir de todos modos». Si dice que está dañada, ejecuta <span class="mono">xattr -cr /Applications/Kirchi.app</span> en la Terminal.</p>
+        </div>
+        <div class="fd-botones">
+          <a class="btn enlace-desc" data-sufijo="-macOS.dmg" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Descargar .dmg</a>
+        </div>
+      </div>
+      <div class="fila-desc" id="linux">
+        <div class="fd-nombre"><h3>Linux</h3><p class="mono">AppImage y deb</p></div>
+        <div class="fd-texto">
+          <p>La AppImage necesita permiso de ejecución: <span class="mono">chmod +x Kirchi-*-Linux.AppImage</span>. El paquete .deb es para Debian y Ubuntu.</p>
+        </div>
+        <div class="fd-botones">
+          <a class="btn enlace-desc" data-sufijo="-Linux.AppImage" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">AppImage</a>
+          <a class="btn-borde enlace-desc" data-sufijo="-Linux.deb" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Paquete .deb</a>
+        </div>
+      </div>
+    </div>
+    <p class="nota-gen">Los enlaces llevan al archivo más reciente publicado en GitHub. Si no cargan, <a href="https://github.com/MisaelAvila49/Kirchi/releases/latest">la página de versiones</a> tiene todos los archivos.</p>
+  </div>
+</section>
+
+<section class="seccion seccion-tenue" id="codigo" aria-labelledby="t-codigo">
+  <div class="ancho dos">
+    <div>
+      <h2 id="t-codigo">Código fuente y licencias</h2>
+      <p class="lead">Kirchi es software libre con licencia MIT. El código está en un repositorio público.</p>
+      <ul class="enlaces">
+        <li><a href="https://github.com/MisaelAvila49/Kirchi">Repositorio en GitHub</a></li>
+        <li><a href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Versión más reciente (Release)</a></li>
+        <li><a class="enlace-desc" data-sufijo="-fuentes-de-terceros.zip" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Código fuente de terceros (.zip)</a></li>
+        <li><a href="https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE">Licencia MIT de Kirchi</a></li>
+        <li><a href="https://github.com/MisaelAvila49/Kirchi/blob/main/docs/licencias-terceros.md">Lista y detalle de licencias de terceros</a></li>
+        <li><a href="https://github.com/MisaelAvila49/Kirchi/blob/main/src/renderer/src/ui/licenciasTerceros.json">Licencias de las bibliotecas incluidas (JSON)</a></li>
+      </ul>
+    </div>
+    <div class="texto-legal">
+      <h3>ngspice</h3>
+      <p>Los análisis los resuelve ngspice 47, que Kirchi ejecuta como un programa aparte, en su propio proceso y sin enlazarlo. Se compila a partir del código oficial, sin cambios, y viaja con su licencia. ngspice combina varias: el simulador es BSD modificada, KLU y numparam son LGPL, OSDI es Mozilla Public License 2.0, sparse es de tipo MIT, XSPICE es de dominio público y el modelo de código «table» es GNU GPL 2 o posterior.</p>
+      <p>Esas licencias piden que quien recibe los binarios pueda obtener el código fuente. En cada Release se publica <span class="mono">Kirchi-X.Y.Z-fuentes-de-terceros.zip</span>, con el código de ngspice 47 y del crate <span class="mono">faer</span> (que incluye partes bajo MPL 2.0), junto con sus sumas SHA-256.</p>
+      <h3>Electron y bibliotecas</h3>
+      <p>La interfaz corre en Electron, que incluye Chromium. Los avisos de Electron y de Chromium, y las licencias de cada biblioteca de la interfaz y del motor, viajan con la aplicación y se muestran en «Acerca de».</p>
+      <h3>Tipografías y animación de esta página</h3>
+      <p>Mona Sans, Geist Mono y Source Serif 4, bajo la SIL Open Font License 1.1, las mismas que usa Kirchi. Avisos y textos: <a href="licencias/OFL-mona-sans.txt">Mona Sans</a>, <a href="licencias/OFL-geist-mono.txt">Geist Mono</a> y <a href="licencias/OFL-source-serif-4.txt">Source Serif 4</a>. La animación del titular usa GSAP 3.15.0 con su <a href="https://gsap.com/standard-license">licencia estándar</a>.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="pie">
+  <div class="ancho pie-rejilla">
+    <div>
+      <p class="pie-marca"><img src="img/icono.svg" alt="" width="28" height="28"> Kirchi</p>
+      <p>Hecho por Misael Saúl Avila López. Licencia MIT.</p>
+    </div>
+    <div>
+      <p class="rotulo">Seguir y escribir</p>
+      <ul class="enlaces">
+        <li><a href="https://github.com/MisaelAvila49">GitHub, misaelavila49</a></li>
+        <li><a href="https://www.youtube.com/@MisaelAvila49">YouTube</a></li>
+        <li><a href="https://www.tiktok.com/@misael_avila.49">TikTok</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="rotulo">¿Algo falla?</p>
+      <p>Escribe tus fallas y propuestas a <a href="mailto:misaelavila49@gmail.com">misaelavila49@gmail.com</a>.</p>
+    </div>
+  </div>
+</footer>
+
+<dialog class="lupa" id="lupa" aria-label="Captura ampliada">
+  <button class="lupa-cerrar btn" type="button" id="lupa-cerrar">Cerrar</button>
+  <div class="lupa-cuerpo"><img id="lupa-img" alt="" width="2400" height="1351"></div>
+</dialog>
+
+<div class="cta-fija" id="cta-fija" hidden><a class="btn" href="#descargas">Descargar Kirchi</a></div>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script type="module" src="js/principal.js"></script>
+</body>
+</html>

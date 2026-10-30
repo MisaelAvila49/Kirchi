@@ -1,0 +1,13 @@
+{
+  "netlist": {
+    "nodes": 2,
+    "elements": [
+      { "type": "I", "a": 0, "b": 1, "amps": 0, "wave": { "kind": "sine", "offset": 0, "amp": 0.001, "freq": 1000 } },
+      { "type": "R", "a": 1, "b": 0, "ohms": 1000 },
+      { "type": "C", "a": 1, "b": 0, "farads": 1e-6 }
+    ]
+  },
+  "fin": 0.005,
+  "hmax": 2e-6,
+  "columnas": { "v(1)": { "nodo": 1 } }
+}
