@@ -56,18 +56,6 @@ if (window.gsap && window.SplitText) {
 const carr = [...document.querySelectorAll(".carrusel")].map((c) => carrusel(c, { pausaGlobal: () => pausaGlobal }));
 oyentesPausa.push(() => carr.forEach((c) => c.sincronizar()));
 
-/* Sistema del visitante */
-function detectar() {
-  const ua = navigator.userAgent || "";
-  const plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
-  const t = `${plat} ${ua}`;
-  if (/android|iphone|ipad|ipod/i.test(t)) return "otro";
-  if (/win/i.test(t)) return "windows";
-  if (/mac/i.test(t)) return "macos";
-  if (/linux|x11|cros/i.test(t)) return "linux";
-  return "otro";
-}
-const SO = detectar();
 const tiendaLista = !/^\[/.test(CFG.TIENDA);
 
 /* Enlaces directos desde la API pública de GitHub, con respaldo a la página de versiones */
@@ -81,19 +69,7 @@ let assets = [];
 function buscar(sufijo) { return assets.find((a) => a.name.endsWith(sufijo)); }
 function ponerEnlaces() {
   enlaces.forEach((a) => { const f = buscar(a.dataset.sufijo); if (f) a.href = f.browser_download_url; });
-  principal();
 }
-function principal() {
-  const cta = document.getElementById("cta-principal");
-  const otros = document.getElementById("cta-otros");
-  const mac = buscar("-macOS.dmg"), lin = buscar("-Linux.AppImage");
-  const A = { windows: ["Descargar para Windows", tiendaLista ? CFG.TIENDA : "#windows"], macos: ["Descargar para macOS", mac ? mac.browser_download_url : "#macos"], linux: ["Descargar para Linux", lin ? lin.browser_download_url : "#linux"] };
-  if (A[SO]) { cta.textContent = A[SO][0]; cta.href = A[SO][1]; }
-  const resto = ["windows", "macos", "linux"].filter((s) => s !== SO).map((s) => `<a href="#${s}">${{ windows: "Windows", macos: "macOS", linux: "Linux" }[s]}</a>`);
-  otros.innerHTML = A[SO] ? `También para ${resto.join(" y ")}` : `<a href="#descargas">Windows, macOS y Linux</a>`;
-  if (SO === "windows" && !tiendaLista) { cta.textContent = "Descargar para Windows"; cta.href = "#windows"; }
-}
-principal();
 fetch(`https://api.github.com/repos/${CFG.REPO}/releases/latest`, { headers: { Accept: "application/vnd.github+json" } })
   .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
   .then((j) => { assets = j.assets || []; ponerEnlaces();

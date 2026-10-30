@@ -16,7 +16,7 @@ Armas el circuito, pulsas F5 y lo ves funcionar. Gratis, sin internet, sin cuent
 [![Versión](https://img.shields.io/badge/versi%C3%B3n-2.2.1-0E7C66.svg)](CHANGELOG.md)
 ![Plataformas](https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
 
-<img src="docs/imagenes/portada.jpg" alt="Un 555 astable con las cuatro señales de su osciloscopio" width="100%">
+<img src="docs/imagenes/portada.jpg" alt="Capturas reales de Kirchi: un 555 astable, un circuito con siete amplificadores TL081 y las cuatro señales del osciloscopio" width="100%">
 
 </div>
 
