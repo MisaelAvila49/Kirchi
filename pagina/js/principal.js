@@ -1,20 +1,20 @@
-// Kirchi, página de descarga: tema, pausa global, titular cinético, carrusel, detección del sistema,
-// enlaces directos a los instaladores y CTA fija en móvil. Sin listeners de scroll.
-import { carrusel } from "./carrusel.js";
+// Kirchi, página de descarga: tema, pausa global, selector de sistema, enlaces directos a los instaladores,
+// barra fija en el celular, ampliar capturas y tráiler de fachada. Sin listeners de scroll.
 import { t, alCambiar } from "./idioma.js";
+import "./trailer.js";
 
 const CFG = window.KIRCHI;
 const REDUCIR = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const RELEASES = `https://github.com/${CFG.REPO}/releases/latest`;
 const raiz = document.documentElement;
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 /* Versión: un solo lugar (config.js). Cambiar de idioma reescribe los textos, así que se vuelve a poner. */
 let versionRelease = CFG.VERSION;
 function pintarVersion() {
-  document.querySelectorAll("[data-version]").forEach((e) => { e.textContent = CFG.VERSION; });
-  document.querySelectorAll("[data-version-release]").forEach((e) => { e.textContent = versionRelease; });
+  $$("[data-version]").forEach((e) => { e.textContent = CFG.VERSION; });
+  $$("[data-version-release]").forEach((e) => { e.textContent = versionRelease; });
 }
-pintarVersion();
 
 /* Tema claro y oscuro */
 const botonTema = document.getElementById("boton-tema");
@@ -28,64 +28,72 @@ botonTema.addEventListener("click", () => {
   try { localStorage.setItem("kirchi-tema", raiz.dataset.tema); } catch (e) {}
   pintarTema();
 });
-pintarTema();
 
-/* Pausa global del movimiento (WCAG 2.2.2) */
+/* Pausa global del movimiento (WCAG 2.2.2): trazas de la portada y onda del osciloscopio */
 let pausaGlobal = REDUCIR;
 const botonMov = document.getElementById("boton-movimiento");
-const oyentesPausa = [];
 function pintarPausa() {
   botonMov.setAttribute("aria-pressed", String(pausaGlobal));
   botonMov.textContent = pausaGlobal ? t("reanudar_mov") : t("pausar_mov");
   raiz.classList.toggle("pausado", pausaGlobal);
 }
-botonMov.addEventListener("click", () => { pausaGlobal = !pausaGlobal; pintarPausa(); oyentesPausa.forEach((f) => f()); });
-pintarPausa();
+botonMov.addEventListener("click", () => { pausaGlobal = !pausaGlobal; pintarPausa(); });
 
-/* Titular cinético, una sola vez al cargar */
-if (window.gsap && window.SplitText) {
-  const mm = gsap.matchMedia();
-  mm.add({ mov: "(prefers-reduced-motion: no-preference)", quieto: "(prefers-reduced-motion: reduce)" }, (ctx) => {
-    gsap.set(".hero-titulo", { visibility: "visible" });
-    if (ctx.conditions.quieto) return;
-    SplitText.create(".hero-titulo", {
-      type: "lines", mask: "lines", autoSplit: true, aria: "auto",
-      onSplit: (s) => gsap.from(s.lines, { yPercent: 110, duration: 1, ease: "expo.out", stagger: 0.12, delay: 0.1 }),
-    });
-    gsap.from([".hero-entrada", ".hero-acciones", ".hero-datos"], { y: 16, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.5 });
-  });
-} else {
-  document.querySelectorAll(".hero-titulo").forEach((e) => { e.style.visibility = "visible"; });
-}
-
-/* Carrusel */
-const carr = [...document.querySelectorAll(".carrusel")].map((c) => carrusel(c, { pausaGlobal: () => pausaGlobal }));
-oyentesPausa.push(() => carr.forEach((c) => c.sincronizar()));
-
-alCambiar(() => { pintarVersion(); pintarTema(); pintarPausa(); carr.forEach((c) => c.sincronizar()); document.querySelectorAll(".ampliar").forEach((b) => b.setAttribute("aria-label", t("ampliar"))); });
-
+/* Sistema: detectado por el navegador y elegible en el panel de la portada */
+const NOMBRE = { windows: "Windows", macos: "macOS", linux: "Linux" };
+const SUFIJO = { macos: "-macOS.dmg", linux: "-Linux.AppImage" };
+const ua = `${(navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || ""} ${navigator.userAgent}`;
+let sistema = /Mac/i.test(ua) && !/iPhone|iPad/i.test(ua) ? "macos" : /Linux|X11/i.test(ua) && !/Android/i.test(ua) ? "linux" : "windows";
 const tiendaLista = !/^\[/.test(CFG.TIENDA);
+let assets = [];
+function enlace(so) {
+  if (so === "windows") return tiendaLista ? CFG.TIENDA : RELEASES;
+  const f = assets.find((a) => a.name.endsWith(SUFIJO[so]));
+  return f ? f.browser_download_url : RELEASES;
+}
+function pintarSistema() {
+  $$(".js-dl").forEach((a) => {
+    a.href = enlace(sistema);
+    const l = a.querySelector(".js-dl-txt"); if (l) l.textContent = t("para") + NOMBRE[sistema];
+  });
+  $$(".js-dl-dato").forEach((e) => { e.textContent = `${t("version")}${CFG.VERSION} · ${t("os_" + sistema)}`; });
+  $$(".js-otros").forEach((c) => {
+    c.replaceChildren();
+    const s = document.createElement("span"); s.textContent = t("tambien"); c.append(s);
+    Object.keys(NOMBRE).filter((o) => o !== sistema).forEach((o) => {
+      const a = document.createElement("a"); a.href = enlace(o); a.textContent = NOMBRE[o]; c.append(a);
+    });
+  });
+  $$("[data-os-actual]").forEach((e) => e.classList.toggle("actual", e.dataset.osActual === sistema));
+  $$(".canal-os").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.os === sistema)));
+}
+$$(".canal-os").forEach((b) => b.addEventListener("click", () => { sistema = b.dataset.os; pintarSistema(); }));
 
-/* Enlaces directos desde la API pública de GitHub, con respaldo a la página de versiones */
-const enlaces = [...document.querySelectorAll("[data-sufijo]")];
+/* Enlaces directos a cada instalador desde la API pública de GitHub, con respaldo a la página de versiones */
 const botonTienda = document.querySelector("[data-tienda]");
 if (botonTienda) {
   if (tiendaLista) botonTienda.href = CFG.TIENDA;
   else botonTienda.dataset.pendiente = "true";
 }
-let assets = [];
-function buscar(sufijo) { return assets.find((a) => a.name.endsWith(sufijo)); }
 function ponerEnlaces() {
-  enlaces.forEach((a) => { const f = buscar(a.dataset.sufijo); if (f) a.href = f.browser_download_url; });
+  $$("[data-sufijo]").forEach((a) => { const f = assets.find((x) => x.name.endsWith(a.dataset.sufijo)); if (f) a.href = f.browser_download_url; });
+  pintarSistema();
 }
+
+function todo() { pintarVersion(); pintarTema(); pintarPausa(); pintarSistema(); $$(".ampliar").forEach((b) => b.setAttribute("aria-label", t("ampliar"))); }
+todo();
+alCambiar(todo);
+
 fetch(`https://api.github.com/repos/${CFG.REPO}/releases/latest`, { headers: { Accept: "application/vnd.github+json" } })
   .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-  .then((j) => { assets = j.assets || []; ponerEnlaces();
+  .then((j) => {
+    assets = j.assets || []; ponerEnlaces();
     // El título de descargas muestra la versión que de verdad se baja.
-    if (j.tag_name) { versionRelease = j.tag_name.replace(/^v/, ""); pintarVersion(); } })
+    if (j.tag_name) { versionRelease = j.tag_name.replace(/^v/, ""); pintarVersion(); }
+  })
   .catch(() => { /* sin red o sin límite de la API: los enlaces quedan en la página de versiones */ });
 
-/* CTA fija en móvil al salir de la portada */
+/* Barra fija en el celular al salir de la portada */
 const fija = document.getElementById("cta-fija");
 let enPortada = true, enDescargas = false;
 const actualizarFija = () => { fija.hidden = enPortada || enDescargas; };
@@ -95,9 +103,9 @@ new IntersectionObserver(([e]) => { enDescargas = e.isIntersecting; actualizarFi
 /* Ampliar una captura: botón sobre cada imagen, diálogo a pantalla completa con Cerrar y Esc */
 const lupa = document.getElementById("lupa"), lupaImg = document.getElementById("lupa-img");
 let origen = null;
-document.querySelectorAll(".panel-c img, .portada-figura img, .figura-pb img").forEach((img) => {
+$$(".pant-cuerpo > img").forEach((img) => {
   const b = document.createElement("button");
-  b.type = "button"; b.className = "ampliar " + (img.classList.contains("solo-claro") ? "solo-claro" : img.classList.contains("solo-oscuro") ? "solo-oscuro" : "");
+  b.type = "button"; b.className = "ampliar";
   b.setAttribute("aria-label", t("ampliar"));
   img.replaceWith(b); b.append(img);
   b.addEventListener("click", () => {

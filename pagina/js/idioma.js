@@ -2,9 +2,11 @@
 // data-en-<atributo> (alt, aria-label, content). Los textos que pone el JS salen de TEXTOS.
 const TEXTOS = {
   es: { tema_claro: "Tema claro", tema_oscuro: "Tema oscuro", pausar_mov: "Pausar movimiento", reanudar_mov: "Reanudar movimiento",
-        pausar: "Pausar", reanudar: "Reanudar", sigue: "Sigue:", ampliar: "Ampliar la captura" },
+        ampliar: "Ampliar la captura", para: "Descargar para ", tambien: "También para", version: "Versión ",
+        os_windows: "Windows 10 y 11 · Microsoft Store", os_macos: "macOS · dmg universal", os_linux: "Linux · AppImage" },
   en: { tema_claro: "Light theme", tema_oscuro: "Dark theme", pausar_mov: "Pause motion", reanudar_mov: "Resume motion",
-        pausar: "Pause", reanudar: "Resume", sigue: "Next:", ampliar: "Enlarge the screenshot" },
+        ampliar: "Enlarge the screenshot", para: "Download for ", tambien: "Also for", version: "Version ",
+        os_windows: "Windows 10 and 11 · Microsoft Store", os_macos: "macOS · universal dmg", os_linux: "Linux · AppImage" },
 };
 const raiz = document.documentElement;
 const oyentes = [];

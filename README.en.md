@@ -22,6 +22,8 @@ Build the circuit, press F5 and watch it work. Free, offline, no account, in Eng
 
 <p><a href="#whats-new-in-31">What is new</a> · <a href="#breadboard">Breadboard</a> · <a href="#screenshots">Screenshots</a> · <a href="#download-and-install">Download</a> · <a href="#how-it-works">How it works</a> · <a href="docs/guia-de-uso.en.md">User guide</a></p>
 
+<a href="https://www.youtube.com/watch?v=UEJBj35t4yg"><img src="docs/imagenes/trailer-en.jpg" alt="Watch the Kirchi trailer on YouTube: video thumbnail with its title" width="70%"></a><br><sub><a href="https://www.youtube.com/watch?v=UEJBj35t4yg">Watch the trailer (YouTube)</a></sub>
+
 </div>
 
 ## Why Kirchi

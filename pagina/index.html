@@ -18,279 +18,323 @@
 <body>
 <a data-en="Skip to content" class="salto" href="#contenido">Saltar al contenido</a>
 
-<header class="cab">
-  <a data-en-aria-label="Kirchi, home" class="marca" href="#inicio" aria-label="Kirchi, inicio"><img src="img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
-  <nav data-en-aria-label="Sections" class="nav" aria-label="Secciones">
+<header class="cab"><div class="ancho cab-in">
+  <a class="marca" href="#inicio" data-en-aria-label="Kirchi, home" aria-label="Kirchi, inicio"><img src="img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
+  <nav class="nav" data-en-aria-label="Sections" aria-label="Secciones">
     <a data-en="Breadboard" href="#protoboard">Protoboard</a>
     <a data-en="Import" href="#importar">Importar</a>
+    <a data-en="Measure" href="#simular">Medir</a>
     <a data-en="Manufacture" href="#fabricar">Fabricar</a>
-    <a data-en="Features" href="#que-tiene">Qué tiene</a>
     <a data-en="Download" href="#descargas">Descargar</a>
     <a data-en="Support" href="#apoyar" class="nav-apoyo">Apoyar</a>
     <a data-en="Licenses" href="#codigo">Licencias</a>
   </nav>
-  <div class="cab-botones">
-    <button class="btn-borde" id="boton-movimiento" type="button" aria-pressed="false">Pausar movimiento</button>
-    <button class="btn-borde" id="boton-tema" type="button" aria-pressed="false">Tema claro</button>
-    <div class="selector-idioma" role="group" aria-label="Idioma / Language"><button class="btn-borde" type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="true">ES</button><button class="btn-borde" type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="false">EN</button></div>
+  <div class="ctrl">
+    <button class="mini" id="boton-movimiento" type="button" aria-pressed="false">Pausar movimiento</button>
+    <button class="mini" id="boton-tema" type="button" aria-pressed="false">Tema claro</button>
+    <span class="selector-idioma" role="group" aria-label="Idioma / Language" style="display:flex;gap:4px"><button class="mini" type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="true">ES</button><button class="mini" type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="false">EN</button></span>
+    <a class="btn js-dl" href="#descargas"><i data-i="descargar"></i><span class="js-dl-txt">Descargar</span></a>
   </div>
-</header>
+</div></header>
 
 <main id="contenido">
-<section class="portada" id="inicio">
-  <div class="portada-luz" aria-hidden="true"></div>
-  <div class="ancho portada-rejilla">
-    <div class="portada-texto">
-      <h1 class="hero-titulo">Kirchi</h1>
-      <h2 data-en="Free, offline circuit simulator, in English and Spanish." class="hero-subtitulo hero-titulo">Simulador de circuitos gratis, sin conexión, en español y en inglés.</h2>
-      <p data-en="You draw the schematic on a grid, build it on a breadboard, press F5 and watch it work: the voltage on every wire, the current in every branch and a four-channel oscilloscope. Made for engineering students." class="hero-entrada">Dibujas el esquema en una rejilla, lo armas en una protoboard, pulsas F5 y lo ves funcionar: el voltaje de cada cable, la corriente de cada rama y un osciloscopio de cuatro canales. Hecho para estudiantes de ingeniería.</p>
-      <div class="hero-acciones">
-        <a data-en="Download Kirchi for Windows, macOS and Linux" class="btn" id="cta-principal" href="#descargas">Descarga Kirchi para Windows, macOS y Linux</a>
-        <a data-en="Support Kirchi" class="btn-borde" id="cta-apoyo" href="#apoyar">Apoyar a Kirchi</a>
-      </div>
-      <p data-en="Version <span data-version></span> · Free · No account, no data sent" class="hero-datos">Versión <span data-version></span> · Gratis · Sin cuenta y sin enviar datos</p>
+<section class="hero" id="inicio">
+  <div class="rejilla-osc" aria-hidden="true"></div>
+  <svg class="trazas" viewBox="0 0 1440 440" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path class="tz k1" pathLength="1" d="M0 120H90V170H180V120H270V170H360V120H450V170H540V120H630V170H720V120H810V170H900V120H990V170H1080V120H1170V170H1260V120H1350V170H1440V120H1530V170H1440"/>
+    <path class="tz k4" pathLength="1" d="M0 190H50V240H140V190H230V240H320V190H410V240H500V190H590V240H680V190H770V240H860V190H950V240H1040V190H1130V240H1220V190H1310V240H1400V190H1490V240H1580V190H1440"/>
+    <path class="tz k2" pathLength="1" d="M0 295L110 270L220 320L330 270L440 320L550 270L660 320L770 270L880 320L990 270L1100 320L1210 270L1320 320L1430 270L1540 320"/>
+    <path class="tz k3" pathLength="1" d="M0 350H90V410H270V350H450V410H630V350H810V410H990V350H1170V410H1350V350H1530V410H1710V350H1440"/>
+  </svg>
+  <div class="ancho hero-in">
+    <div class="hero-txt">
+      <p class="eyebrow mono an" data-en="Kirchi · free circuit simulator · offline">Kirchi · simulador de circuitos · gratis · sin conexión</p>
+      <h1 class="an" style="--d:.08s"><span data-en="Open your Proteus circuit,">Abre tu circuito de Proteus,</span> <em data-en="build it on a breadboard">ármalo en protoboard</em> <span data-en="and simulate it.">y simúlalo.</span></h1>
+      <p class="sub an" style="--d:.16s" data-en="Watch the voltage on every wire and the signal on a four-channel oscilloscope while it runs. In English or Spanish, with no internet and no account. Made for engineering students.">Mira el voltaje de cada cable y la señal en un osciloscopio de cuatro canales mientras corre. En español o en inglés, sin internet y sin cuenta. Hecho para estudiantes de ingeniería.</p>
+      <p class="hero-acciones an" style="--d:.24s"><a class="btn-borde" id="cta-apoyo" href="#apoyar"><i data-i="apoyo"></i><span data-en="Support Kirchi">Apoyar a Kirchi</span></a></p>
     </div>
-    <figure class="portada-figura">
-      <img data-en-alt="Kirchi simulating an analog computer with seven TL081 op amps: the schematic, the same circuit built on the breadboard and the oscilloscope with the input and the response." src="img/captura-compu-analogica.webp" width="2400" height="1350" alt="Kirchi simulando una computadora analógica con siete TL081: el esquema, el mismo circuito armado en la protoboard y el osciloscopio con la entrada y la respuesta." fetchpriority="high">
-      <figcaption data-en="Real Kirchi screenshot: an analog computer with seven TL081 as a schematic and built on the breadboard, with its response on the oscilloscope.">Captura real de Kirchi: una computadora analógica con siete TL081 en esquema y armada en la protoboard, con su respuesta en el osciloscopio.</figcaption>
+    <div class="instrumento an" style="--d:.2s" role="group" data-en-aria-label="Download panel" aria-label="Panel de descarga">
+      <div class="inst-cab mono"><span class="led"></span><span>KIRCHI <span data-version></span></span><span class="inst-der" data-en="Free · no account">Gratis · sin cuenta</span></div>
+      <div class="pantalla" aria-hidden="true">
+        <div class="pantalla-rej"></div>
+        <div class="pantalla-onda"><svg class="onda" viewBox="0 0 1600 200" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="k1" d="M0 20H100V60H200V20H300V60H400V20H500V60H600V20H700V60H800V20H900V60H1000V20H1100V60H1200V20H1300V60H1400V20H1500V60H1600V20H1700V60H1600"/>
+          <path class="k4" d="M0 74H40V114H140V74H240V114H340V74H440V114H540V74H640V114H740V74H840V114H940V74H1040V114H1140V74H1240V114H1340V74H1440V114H1540V74H1640V114H1740V74H1600"/>
+          <path class="k2" d="M0 135L100 124L200 146L300 124L400 146L500 124L600 146L700 124L800 146L900 124L1000 146L1100 124L1200 146L1300 124L1400 146L1500 124L1600 146"/>
+          <path class="k3" d="M0 158H80V190H280V158H480V190H680V158H880V190H1080V158H1280V190H1480V158H1680V190H1880V158H1600"/>
+        </svg></div>
+        <span class="lect mono"><b class="k1">A</b><b class="k2">B</b><b class="k3">C</b><b class="k4">D</b></span>
+        <span class="escala mono" data-en="500 µs per division">500 µs por división</span>
+      </div>
+      <p class="sel-tit mono" data-en="Channel = your system">Canal = tu sistema</p>
+      <div class="selector" role="group" data-en-aria-label="System" aria-label="Sistema">
+        <button type="button" class="canal-os k1" data-os="windows">Windows</button>
+        <button type="button" class="canal-os k2" data-os="macos">macOS</button>
+        <button type="button" class="canal-os k3" data-os="linux">Linux</button>
+      </div>
+      <a class="btn btn-grande js-dl" href="#descargas" id="cta-principal"><i data-i="descargar"></i><span class="js-dl-txt">Descargar</span></a>
+      <p class="dato js-dl-dato"></p>
+    </div>
+  </div>
+</section>
+
+<section class="lecturas" data-en-aria-label="Kirchi at a glance" aria-label="Kirchi de un vistazo"><div class="ancho"><ul class="confianza">
+  <li class="k1"><i data-i="gratis"></i><span data-en="Free">Gratis</span></li>
+  <li class="k2"><i data-i="sincuenta"></i><span data-en="No account">Sin cuenta</span></li>
+  <li class="k3"><i data-i="sinconexion"></i><span data-en="Offline, no data sent">Sin internet y sin enviar datos</span></li>
+  <li class="k4"><i data-i="web"></i><span data-en="English and Spanish">Español e inglés</span></li>
+  <li class="k1"><i data-i="kirchi"></i><span data-en="Windows, macOS and Linux">Windows, macOS y Linux</span></li>
+</ul></div></section>
+
+<section class="trailer-sec" aria-labelledby="t-trailer"><div class="ancho trailer-in">
+  <div class="k3">
+    <p class="rotulo"><i data-i="video"></i><span data-en="Trailer">Tráiler</span></p>
+    <h2 class="titulo" id="t-trailer" data-en="See it work before you install it">Míralo funcionar antes de instalarlo</h2>
+    <p class="lead" data-en="A short video with a real circuit: from opening a file to the signal on the oscilloscope.">Un video corto con un circuito real: de abrir un archivo a la señal en el osciloscopio.</p>
+    <p class="trailer-aviso mono" data-en="Nothing loads from YouTube until you press play.">Hasta que lo reproduzcas no se carga nada de YouTube.</p>
+    <p class="trailer-enlace"><a href="https://www.youtube.com/watch?v=OSJBYb792Fo" data-en-href="https://www.youtube.com/watch?v=UEJBj35t4yg" data-en="Watch it on YouTube">Verlo en YouTube</a></p>
+  </div>
+  <figure class="poster poster-d" id="trailer">
+    <img src="img/trailer-es.webp" data-en-src="img/trailer-en.webp" width="1280" height="720" alt="" loading="lazy">
+    <a class="jugar" id="trailer-jugar" href="https://www.youtube.com/watch?v=OSJBYb792Fo" data-en-href="https://www.youtube.com/watch?v=UEJBj35t4yg" role="button" data-en-aria-label="Play the trailer" aria-label="Reproducir el tráiler"><b><i data-i="reproducir"></i><span data-en="Watch the trailer">Ver el tráiler</span></b></a>
+  </figure>
+</div></section>
+
+<section class="fila-sec" id="protoboard" aria-labelledby="t-protoboard"><div class="ancho fila">
+  <div class="fila-txt k1">
+    <p class="rotulo"><i data-i="protoboard"></i><span data-en="Since version 3.0">Desde la versión 3.0</span></p>
+    <h2 id="t-protoboard" data-en="Build the circuit on a breadboard, next to its schematic">Arma el circuito en una protoboard, junto a su esquema</h2>
+    <p class="lead" data-en="The schematic is the plan and the breadboard is what you build. Each view works with the same parts and is simulated separately: you choose which one.">El esquema es el plano y la protoboard es lo que armas. Cada vista trabaja con las mismas piezas y se simula por separado: eliges con cuál.</p>
+    <p data-en="Build breadboard places on the board what the schematic has. A summary first says what is added, removed and rewired, and a single undo reverts it. Build schematic does the reverse, and whatever is missing or differs is marked and listed in Warnings.">Generar protoboard arma en la placa lo que tiene el esquema. Un resumen previo dice qué se agrega, qué se quita y qué se recablea, y un solo deshacer lo revierte. Generar esquema hace el camino contrario, y lo que falta o difiere se marca y se lista en Avisos.</p>
+    <p data-en="There are 830, 400 and 170-point boards, parts that look like the real thing and resistors with their color bands. With Measure you plug the probes of a multimeter or an oscilloscope into the board.">Hay placas de 830, 400 y 170 puntos, piezas con su aspecto real y resistencias con sus bandas de color. Con Medir se clavan las puntas de un multímetro o un osciloscopio en la placa.</p>
+  </div>
+  <div class="fila-med k1">
+    <figure class="pant">
+      <div class="pant-cab mono"><b class="canal-et">CH1</b><span data-en="Breadboard">Protoboard</span><span class="pant-der">830 · 400 · 170</span></div>
+      <div class="pant-cuerpo"><img class="crema" src="img/protoboard-armado.webp" width="1691" height="642" loading="lazy" data-en-alt="The analog computer with seven TL081 built on a breadboard by Kirchi: each stage next to its chip, straight jumpers to the power rails and colored wires." alt="La computadora analógica con siete TL081 armada en una protoboard por Kirchi: cada etapa junto a su integrado, puentes rectos a los rieles de alimentación y cables de colores."></div>
+    </figure>
+    <ul class="hilos"><li class="chip k1"><i class="p"></i><span data-en="830, 400 and 170-point boards">Placas de 830, 400 y 170 puntos</span></li><li class="chip k3"><i class="p"></i><span data-en="Resistors with their color bands">Resistencias con sus bandas de color</span></li><li class="chip k2"><i class="p"></i><span data-en="Measure plugs the probes into the board">Medir clava las puntas en la placa</span></li></ul>
+  </div>
+  <ol class="armado" style="grid-column: 1 / -1">
+    <li><b data-en="Each stage together">Cada etapa junta</b><span data-en="The parts of a stage sit around their own chip, with space between stages.">Las piezas de una etapa quedan alrededor de su integrado, con aire entre etapas.</span></li>
+    <li><b data-en="One jumper per power pin">Un puente por pin de alimentación</b><span data-en="Straight and short, from each power pin to its rail.">Recto y corto, del pin de alimentación a su riel.</span></li>
+    <li><b data-en="Nothing on unused pins">Nada en los pines sin uso</b><span data-en="Offset adjust, NC and the other unit of a chip stay empty.">El ajuste de offset, NC y la otra unidad del chip quedan vacíos.</span></li>
+    <li><b data-en="The same layout every time">El mismo armado cada vez</b><span data-en="The same circuit gives the same board, even if you delete the schematic and paste it again.">El mismo circuito da la misma placa, aunque borres el esquema y lo vuelvas a pegar.</span></li>
+  </ol>
+</div></section>
+
+<section class="fila-sec" id="importar" aria-labelledby="t-importar"><div class="ancho fila inv">
+  <div class="fila-txt k4">
+    <p class="rotulo"><i data-i="importar"></i><span data-en="Since version 2.2">Desde la versión 2.2</span></p>
+    <h2 id="t-importar" data-en="Open your Proteus, LTspice, Falstad, SPICE and KiCad circuits">Abre tus circuitos de Proteus, LTspice, Falstad, SPICE y KiCad</h2>
+    <p class="lead" data-en="Open (Ctrl+O) or drag the file into the window. Kirchi recognizes the source program from the file contents, opens the circuit as a new document and leaves the original untouched.">Abrir (Ctrl+O) o arrastrar el archivo a la ventana basta. Kirchi reconoce el programa de origen por el contenido, abre el circuito como documento nuevo y deja el original intacto.</p>
+    <p data-en="When it finishes it shows a report of what was converted: what was approximated with the closest part, what has no equivalent and which analyses were converted. Probes, generators, virtual multimeters and oscilloscopes are kept, along with the operating point, DC sweep, transient, AC and Fourier analyses.">Al terminar muestra un informe de lo convertido: lo que se aproximó con la pieza más cercana, lo que no tiene equivalencia y los análisis que se convirtieron. Se conservan las sondas, los generadores, los multímetros y osciloscopios virtuales, y los análisis de punto de operación, barrido de CD, transitorio, CA y Fourier.</p>
+  </div>
+  <div class="fila-med k4">
+    <figure class="pant">
+      <div class="pant-cab mono"><b class="canal-et">CH4</b><span data-en="Import">Importar</span><span class="pant-der">Ctrl+O</span></div>
+      <div class="pant-cuerpo"><img src="img/imp-sim-oscuro.webp" width="2400" height="1351" loading="lazy" data-en-alt="Kirchi simulating a circuit imported from Proteus: the schematic, the import report on the right and the oscilloscope with the output response." alt="Kirchi simulando un circuito importado de Proteus: el esquema, el informe de importación a la derecha y el osciloscopio con la respuesta de la salida."></div>
+    </figure>
+    <ul class="hilos"><li class="chip k4"><i class="p"></i><span>Proteus 8 · .pdsprj</span></li><li class="chip k1"><i class="p"></i><span>LTspice · .asc</span></li><li class="chip k2"><i class="p"></i><span data-en="Falstad and CircuitJS · .txt">Falstad y CircuitJS · .txt</span></li><li class="chip k3"><i class="p"></i><span>SPICE · .cir .net .sp</span></li><li class="chip k1"><i class="p"></i><span data-en="KiCad 7 to 9, with their sheets · .kicad_sch">KiCad 7 a 9, con sus hojas · .kicad_sch</span></li></ul>
+  </div>
+</div></section>
+
+<section class="fila-sec" id="simular" aria-labelledby="t-simular"><div class="ancho fila">
+  <div class="fila-txt k2">
+    <p class="rotulo"><i data-i="osciloscopio"></i><span data-en="Simulate and measure">Simular y medir</span></p>
+    <h2 id="t-simular" data-en="Press F5 and watch it work">Pulsa F5 y míralo funcionar</h2>
+    <p class="lead" data-en="The voltage on every wire, the current in every branch and a four-channel oscilloscope with trigger, cursors, automatic measurements and X-Y mode. Multimeter, function generator, variable power supply and quick meters on any wire.">El voltaje de cada cable, la corriente de cada rama y un osciloscopio de cuatro canales con disparo, cursores, medidas automáticas y modo X-Y. Multímetro, generador de funciones, fuente variable y medidores rápidos sobre cualquier cable.</p>
+    <p data-en="Wires are colored by voltage, current moves through every branch, LEDs light up and parts burn out when they exceed their maximum. Eight speeds, from ×10 to ×0.001, and knobs and switches you can operate while it runs.">Los cables se pintan según su voltaje, la corriente se mueve por cada rama, los LED encienden y las piezas se queman cuando pasan su máximo. Ocho velocidades, de ×10 a ×0.001, y perillas e interruptores que se accionan mientras corre.</p>
+  </div>
+  <div class="fila-med k2">
+    <figure class="pant">
+      <div class="pant-cab mono"><b class="canal-et">CH2</b><span data-en="Simulate">Simular</span><span class="pant-der">F5</span></div>
+      <div class="pant-cuerpo"><img src="img/555-oscuro.webp" width="2400" height="1351" loading="lazy" data-en-alt="Four-channel oscilloscope with the signals of a 555 astable and its probes on the schematic." alt="Osciloscopio de cuatro canales con las señales de un 555 astable y sus sondas sobre el esquema."></div>
+    </figure>
+    <ul class="hilos"><li class="chip k1"><i class="p"></i><span data-en="Wires are colored by voltage">Los cables se pintan por voltaje</span></li><li class="chip k3"><i class="p"></i><span data-en="LEDs light up and parts burn out">Los LED encienden y las piezas se queman</span></li><li class="chip k2"><i class="p"></i><span data-en="Eight speeds, from ×10 to ×0.001">Ocho velocidades, de ×10 a ×0.001</span></li></ul>
+  </div>
+</div></section>
+
+<section class="fila-sec" id="analizar" aria-labelledby="t-analizar"><div class="ancho fila inv">
+  <div class="fila-txt k3">
+    <p class="rotulo"><i data-i="analisis"></i><span data-en="Analysis">Análisis</span></p>
+    <h2 id="t-analizar" data-en="Analysis with ngspice">Análisis con ngspice</h2>
+    <p class="lead" data-en="Operating point, DC sweep, transient, AC and Bode, Fourier and parameter sweep. ngspice 47 is included and runs as a separate program. Plots have cursors and ranges you can type.">Punto de operación, barrido de CD, transitorio, CA y Bode, Fourier y barrido de parámetro. ngspice 47 viene incluido y corre como programa aparte. Las gráficas llevan cursores y rangos que se escriben.</p>
+  </div>
+  <div class="fila-med k3">
+    <figure class="pant">
+      <div class="pant-cab mono"><b class="canal-et">CH3</b><span data-en="Analyze">Analizar</span><span class="pant-der">ngspice 47</span></div>
+      <div class="pant-cuerpo"><img src="img/bode-oscuro.webp" width="2400" height="1351" loading="lazy" data-en-alt="Bode plot of a 60 Hz notch filter, with the schematic and the analysis panel." alt="Diagrama de Bode de un filtro notch de 60 Hz, con el esquema y el panel de análisis."></div>
+    </figure>
+    <ul class="hilos"><li class="chip k3"><i class="p"></i><span data-en="Bode plot of a 60 Hz notch filter">Bode de un filtro notch de 60 Hz</span></li></ul>
+  </div>
+</div></section>
+
+<section class="fila-sec" id="grandes" aria-labelledby="t-grandes"><div class="ancho fila">
+  <div class="fila-txt k1">
+    <p class="rotulo"><i data-i="simular"></i><span data-en="Large circuits">Circuitos grandes</span></p>
+    <h2 id="t-grandes" data-en="A large circuit, still in real time">Un circuito grande, aún en tiempo real</h2>
+    <p class="lead" data-en="An analog computer with 37 parts and 18 nets simulated at 100 % of real time, with the response on the oscilloscope.">Una computadora analógica de 37 piezas y 18 redes simulándose al 100 % del tiempo real, con la respuesta en el osciloscopio.</p>
+  </div>
+  <div class="fila-med k1">
+    <figure class="pant">
+      <div class="pant-cab mono"><b class="canal-et">CH1</b><span data-en="Real time">Tiempo real</span><span class="pant-der">37 · 18</span></div>
+      <div class="pant-cuerpo"><img src="img/compu-oscuro.webp" width="2400" height="1351" loading="lazy" data-en-alt="An analog computer with 37 parts and 18 nets being simulated, with the oscilloscope showing its response." alt="Una computadora analógica de 37 piezas y 18 redes en simulación, con el osciloscopio mostrando su respuesta."></div>
     </figure>
   </div>
-</section>
+</div></section>
 
-<section class="seccion seccion-tenue" id="protoboard" aria-labelledby="t-protoboard">
-  <div class="ancho">
-    <div class="dos">
-      <div>
-        <p data-en="Since version 3.0" class="rotulo">Desde la versión 3.0</p>
-        <h2 data-en="Build the circuit on a breadboard, next to its schematic" id="t-protoboard">Arma el circuito en una protoboard, junto a su esquema</h2>
-        <p data-en="The schematic is the plan and the breadboard is what you build. Each view works with the same parts and is simulated separately: you choose which one." class="lead">El esquema es el plano y la protoboard es lo que armas. Cada vista trabaja con las mismas piezas y se simula por separado: eliges con cuál.</p>
-      </div>
-      <div>
-        <p data-en="Build breadboard places on the board what the schematic has. A summary first says what is added, removed and rewired, and a single undo reverts it. Build schematic does the reverse, and whatever is missing or differs is marked and listed in Warnings.">Generar protoboard arma en la placa lo que tiene el esquema. Un resumen previo dice qué se agrega, qué se quita y qué se recablea, y un solo deshacer lo revierte. Generar esquema hace el camino contrario, y lo que falta o difiere se marca y se lista en Avisos.</p>
-        <p data-en="There are 830, 400 and 170-point boards, parts that look like the real thing and resistors with their color bands. With Measure you plug the probes of a multimeter or an oscilloscope into the board.">Hay placas de 830, 400 y 170 puntos, piezas con su aspecto real y resistencias con sus bandas de color. Con Medir se clavan las puntas de un multímetro o un osciloscopio en la placa.</p>
-      </div>
-    </div>
-    <figure class="figura-pb">
-      <img data-en-alt="The analog computer with seven TL081 built on a breadboard by Kirchi: each stage next to its chip, straight jumpers to the power rails and colored wires." src="img/protoboard-armado.webp" width="1691" height="642" alt="La computadora analógica con siete TL081 armada en una protoboard por Kirchi: cada etapa junto a su integrado, puentes rectos a los rieles de alimentación y cables de colores." loading="lazy">
-      <figcaption data-en="Kirchi export: the board built by Build breadboard from the schematic of an analog computer with seven TL081.">Exportación de Kirchi: la placa que armó Generar protoboard a partir del esquema de una computadora analógica con siete TL081.</figcaption>
+<section class="disparo" data-en-aria-label="Download" aria-label="Descargar"><div class="rejilla-osc" aria-hidden="true"></div><div class="ancho disparo-in">
+  <span class="marcador mono" aria-hidden="true">T</span>
+  <div><h2 data-en="Trigger: open your first circuit today">Disparo: abre hoy tu primer circuito</h2><p data-en="Free, no account, and everything happens on your computer.">Gratis, sin cuenta, y todo ocurre en tu computadora.</p></div>
+  <div class="cta-bloque centro">
+    <a class="btn btn-grande js-dl" href="#descargas"><i data-i="descargar"></i><span class="js-dl-txt">Descargar</span></a>
+    <p class="otros js-otros"></p>
+    <p class="dato js-dl-dato"></p>
+  </div>
+</div></section>
+
+<section class="fila-sec" id="fabricar" aria-labelledby="t-fabricar"><div class="ancho fila inv">
+  <div class="fila-txt k3">
+    <p class="rotulo"><i data-i="fabricar"></i><span data-en="Since version 3.1">Desde la versión 3.1</span></p>
+    <h2 id="t-fabricar" data-en="From schematic to board, with KiCad and JLCPCB">Del esquema a una placa, con KiCad y JLCPCB</h2>
+    <p class="lead" data-en="File › Export for manufacturing checks the footprint of every part and writes a KiCad project with its schematic, an empty board and the bill of materials for JLCPCB.">Archivo › Exportar para fabricar revisa la huella de cada pieza y escribe un proyecto de KiCad con su esquema, una placa vacía y la lista de materiales para JLCPCB.</p>
+    <p data-en="You draw the board in KiCad. A guide inside Kirchi stays open at the side in sixteen steps, each with a picture: install KiCad, check each part and export from Kirchi, bring the parts in with F8, draw the board outline, route the traces, check the rules, generate the Gerber and drill files and, before paying, print the board at 1:1 scale to test the real parts on it.">La placa se dibuja en KiCad. Una guía dentro de Kirchi se queda abierta a un lado en dieciséis pasos, con un dibujo cada uno: instalar KiCad, revisar cada pieza y exportar desde Kirchi, traer las piezas con F8, dibujar el borde, trazar las pistas, revisar las reglas, generar los Gerber y las perforaciones, y antes de pagar imprimir la placa a escala 1:1 para probar las piezas reales encima.</p>
+  </div>
+  <div class="fila-med k3">
+    <figure class="pant">
+      <div class="pant-cab mono"><b class="canal-et">CH3</b><span data-en="Manufacture">Fabricar</span><span class="pant-der">KiCad · JLCPCB</span></div>
+      <div class="pant-cuerpo"><ol class="guia"><li class="chip k1"><i class="p"></i><span data-en="Install KiCad">Instalar KiCad</span></li><li class="chip k2"><i class="p"></i><span data-en="Check each part and export from Kirchi">Revisar cada pieza y exportar desde Kirchi</span></li><li class="chip k3"><i class="p"></i><span data-en="Bring the parts in with F8">Traer las piezas con F8</span></li><li class="chip k4"><i class="p"></i><span data-en="Draw the outline and route the traces">Dibujar el borde y trazar las pistas</span></li><li class="chip k1"><i class="p"></i><span data-en="Check the rules">Revisar las reglas</span></li><li class="chip k2"><i class="p"></i><span data-en="Generate the Gerber and drill files">Generar los Gerber y las perforaciones</span></li><li class="chip k3"><i class="p"></i><span data-en="Print the board at 1:1 to test the parts">Imprimir la placa a escala 1:1 para probar las piezas</span></li></ol></div>
     </figure>
-    <ol class="armado">
-      <li><b data-en="Each stage together">Cada etapa junta</b><span data-en="The parts of a stage sit around their own chip, with space between stages.">Las piezas de una etapa quedan alrededor de su integrado, con aire entre etapas.</span></li>
-      <li><b data-en="One jumper per power pin">Un puente por pin de alimentación</b><span data-en="Straight and short, from each power pin to its rail.">Recto y corto, del pin de alimentación a su riel.</span></li>
-      <li><b data-en="Nothing on unused pins">Nada en los pines sin uso</b><span data-en="Offset adjust, NC and the other unit of a chip stay empty.">El ajuste de offset, NC y la otra unidad del chip quedan vacíos.</span></li>
-      <li><b data-en="The same layout every time">El mismo armado cada vez</b><span data-en="The same circuit gives the same board, even if you delete the schematic and paste it again.">El mismo circuito da la misma placa, aunque borres el esquema y lo vuelvas a pegar.</span></li>
-    </ol>
+    <ul class="hilos"><li class="chip k3"><i class="p"></i><span data-en="Kirchi does not route the board: you draw it in KiCad">Kirchi no traza la placa: la dibujas en KiCad</span></li></ul>
   </div>
-</section>
+</div></section>
 
-<section class="seccion" id="importar" aria-labelledby="t-importar">
-  <div class="ancho dos">
+<section class="fila-sec" id="exportar" aria-labelledby="t-exportar"><div class="ancho fila">
+  <div class="fila-txt k1">
+    <p class="rotulo"><i data-i="exportar"></i><span data-en="For your report">Para tu reporte</span></p>
+    <h2 id="t-exportar" data-en="Export for your assignment">Exporta para la entrega</h2>
+    <p class="lead" data-en="Export the schematic to PNG, SVG or PDF, and plots in their report style. The figure editor changes colors, font, grid and annotations before exporting.">Exporta el esquema a PNG, SVG o PDF, y las gráficas con su estilo para el reporte. El editor de la figura cambia colores, letra, rejilla y anotaciones antes de exportar.</p>
+    <p data-en="With a white background or dark theme and annotations that do not clutter the circuit. You can also record the window as an MP4 video, with or without a microphone.">Con fondo blanco o tema oscuro y anotaciones que no ensucian el circuito. También puedes grabar la ventana en video MP4, con o sin micrófono.</p>
+  </div>
+  <div class="fila-med k1">
+    <figure class="pant">
+      <div class="pant-cab mono"><b class="canal-et">CH1</b><span data-en="Export">Exportar</span><span class="pant-der">PNG · SVG · PDF</span></div>
+      <div class="pant-cuerpo"><img src="img/exp-osc-oscuro.webp" width="2400" height="1351" loading="lazy" data-en-alt="Dialog to export the oscilloscope capture, with the Instrument or Report style, the PNG, SVG, PDF and CSV formats and the figure properties." alt="Diálogo para exportar la captura del osciloscopio, con el estilo Instrumento o Informe, los formatos PNG, SVG, PDF y CSV y las propiedades de la figura."></div>
+    </figure>
+    <ul class="hilos"><li class="chip k1"><i class="p"></i><span>PNG · SVG · PDF · CSV</span></li><li class="chip k4"><i class="p"></i><span data-en="Instrument or Report style">Estilo Instrumento o Informe</span></li><li class="chip k3"><i class="p"></i><span data-en="MP4 video of the window">Video MP4 de la ventana</span></li></ul>
+  </div>
+</div></section>
+
+<section class="tablero" id="tablero" aria-labelledby="t-inc"><div class="ancho">
+  <h2 class="titulo" id="t-inc" data-en="What is included">Lo que incluye</h2>
+  <dl class="cifras">
+    <div class="k1"><dd>113</dd><dt data-en="parts with an electrical model">piezas con modelo eléctrico</dt></div>
+    <div class="k2"><dd>15</dd><dt data-en="templates ready to simulate">plantillas listas para simular</dt></div>
+    <div class="k3"><dd>6</dd><dt data-en="calculators">calculadoras</dt></div>
+    <div class="k4"><dd>4</dd><dt data-en="oscilloscope channels">canales de osciloscopio</dt></div>
+    <div class="k1"><dd>5</dd><dt data-en="tutorial chapters inside the app">capítulos de tutorial en la aplicación</dt></div>
+  </dl>
+  <div class="lista-doble">
     <div>
-      <p data-en="Since version 2.2" class="rotulo">Desde la versión 2.2</p>
-      <h2 data-en="Open your Proteus, LTspice, Falstad, SPICE and KiCad circuits" id="t-importar">Abre tus circuitos de Proteus, LTspice, Falstad, SPICE y KiCad</h2>
-      <p data-en="Open (Ctrl+O) or drag the file into the window. Kirchi recognizes the source program from the file contents, opens the circuit as a new document and leaves the original untouched." class="lead">Abrir (Ctrl+O) o arrastrar el archivo a la ventana basta. Kirchi reconoce el programa de origen por el contenido, abre el circuito como documento nuevo y deja el original intacto.</p>
-      <p data-en="When it finishes it shows a report of what was converted: what was approximated with the closest part, what has no equivalent and which analyses were converted. Probes, generators, virtual multimeters and oscilloscopes are kept, along with the operating point, DC sweep, transient, AC and Fourier analyses.">Al terminar muestra un informe de lo convertido: lo que se aproximó con la pieza más cercana, lo que no tiene equivalencia y los análisis que se convirtieron. Se conservan las sondas, los generadores, los multímetros y osciloscopios virtuales, y los análisis de punto de operación, barrido de CD, transitorio, CA y Fourier.</p>
-    </div>
-    <div data-en-aria-label="Formats Kirchi opens" class="formatos" role="table" aria-label="Formatos que Kirchi abre">
-      <div role="row" class="encabezado"><span data-en="Program" role="columnheader">Programa</span><span data-en="Files" role="columnheader">Archivos</span></div>
-      <div role="row"><span role="cell">Proteus 8</span><span role="cell" class="mono">.pdsprj</span></div>
-      <div role="row"><span role="cell">LTspice</span><span role="cell" class="mono">.asc</span></div>
-      <div role="row"><span role="cell">Falstad y CircuitJS</span><span role="cell" class="mono">.txt</span></div>
-      <div role="row"><span role="cell">SPICE</span><span role="cell" class="mono">.cir .net .sp</span></div>
-      <div role="row"><span data-en="KiCad 7 to 9, with their sheets" role="cell">KiCad 7 a 9, con sus hojas</span><span role="cell" class="mono">.kicad_sch</span></div>
-    </div>
-  </div>
-</section>
-
-<section class="seccion" id="fabricar" aria-labelledby="t-fabricar">
-  <div class="ancho dos">
-    <div>
-      <p data-en="Since version 3.1" class="rotulo">Desde la versión 3.1</p>
-      <h2 data-en="From schematic to board, with KiCad and JLCPCB" id="t-fabricar">Del esquema a una placa, con KiCad y JLCPCB</h2>
-      <p data-en="File › Export for manufacturing checks the footprint of every part and writes a KiCad project with its schematic, an empty board and the bill of materials for JLCPCB." class="lead">Archivo › Exportar para fabricar revisa la huella de cada pieza y escribe un proyecto de KiCad con su esquema, una placa vacía y la lista de materiales para JLCPCB.</p>
+      <h3 data-en="113 parts with an electrical model">113 piezas con modelo eléctrico</h3>
+      <p data-en="In nine categories: passives, sources, semiconductors, integrated circuits, digital, switches, indicators, electromechanical and instruments. There are sensors, stepper motors, JFETs, IGBTs, optocouplers, controlled sources and MSI logic. Each part shows in the inspector its package, its pins, its footprint and the datasheet its parameters come from.">En nueve categorías: pasivos, fuentes, semiconductores, integrados, digitales, interruptores, indicadores, electromecánicos e instrumentos. Hay sensores, motores a pasos, JFET, IGBT, optoacopladores, fuentes controladas y lógica MSI. Cada pieza muestra en el inspector su encapsulado, sus pines, su huella y la hoja de datos de la que salen sus parámetros.</p>
     </div>
     <div>
-      <p data-en="You draw the board in KiCad. A guide inside Kirchi stays open at the side in sixteen steps, each with a picture: install KiCad, check each part and export from Kirchi, bring the parts in with F8, draw the board outline, route the traces, check the rules, generate the Gerber and drill files and, before paying, print the board at 1:1 scale to test the real parts on it.">La placa se dibuja en KiCad. Una guía dentro de Kirchi se queda abierta a un lado en dieciséis pasos, con un dibujo cada uno: instalar KiCad, revisar cada pieza y exportar desde Kirchi, traer las piezas con F8, dibujar el borde, trazar las pistas, revisar las reglas, generar los Gerber y las perforaciones, y antes de pagar imprimir la placa a escala 1:1 para probar las piezas reales encima.</p>
+      <h3 data-en="Templates and calculators">Plantillas y calculadoras</h3>
+      <p data-en="Fifteen templates ready to simulate and six calculators (divider, LED, filters, 555 astable and monostable, amplifiers) that show the equation with your values and build the circuit.">Quince plantillas listas para simular y seis calculadoras (divisor, LED, filtros, 555 astable y monoestable, amplificadores) que muestran la ecuación con tus valores y generan el circuito.</p>
+    </div>
+    <div>
+      <h3 data-en="Tutorial inside the app">Tutorial dentro de la aplicación</h3>
+      <p data-en="“Learn Kirchi” has five chapters you can do separately: Get to know Kirchi, Your first circuit, Measure, Analyze and export, and Import.">«Aprende Kirchi» tiene cinco capítulos que se hacen por separado: Conoce Kirchi, Tu primer circuito, Medir, Analizar y exportar e Importar.</p>
+    </div>
+    <div>
+      <h3 data-en="For your assignment">Para la entrega</h3>
+      <p data-en="Export schematics and plots to PNG, SVG and PDF, with a white background or dark theme and annotations that do not clutter the circuit. You can also record the window as an MP4 video, with or without a microphone.">Exporta esquemas y gráficas a PNG, SVG y PDF, con fondo blanco o tema oscuro y anotaciones que no ensucian el circuito. También graba la ventana en video MP4, con o sin micrófono.</p>
+    </div>
+    <div>
+      <h3 data-en="Free and offline">Gratis y sin conexión</h3>
+      <p data-en="Free, no account, no ads and no paid features. Everything happens on your computer and no data is sent. An AI assistant over the MCP protocol is optional and comes turned off.">Gratis, sin cuenta, sin anuncios y sin funciones de pago. Todo ocurre en tu computadora y no se envía ningún dato. Un asistente de IA por el protocolo MCP es opcional y viene apagado.</p>
     </div>
   </div>
-</section>
-
-<section class="seccion seccion-tenue" id="que-tiene" aria-labelledby="t-tiene">
-  <div class="ancho">
-    <h2 data-en="A circuit at work, as it looks" id="t-tiene">Un circuito en marcha, tal como se ve</h2>
-    <div class="carrusel" data-duracion="8s" data-estado="corre">
-      <div class="carrusel-rejilla">
-        <div data-en-aria-label="What Kirchi does" role="tablist" aria-label="Qué hace Kirchi" aria-orientation="vertical" class="carrusel-pestanas">
-          <button role="tab" id="c1" aria-controls="cp1" aria-selected="true" type="button"><b data-en="Live simulation">Simulación en tiempo real</b><span class="barra"><i></i></span></button>
-          <button role="tab" id="c2" aria-controls="cp2" aria-selected="false" tabindex="-1" type="button"><b data-en="Instruments">Instrumentos</b><span class="barra"><i></i></span></button>
-          <button role="tab" id="c3" aria-controls="cp3" aria-selected="false" tabindex="-1" type="button"><b data-en="Analysis with ngspice">Análisis con ngspice</b><span class="barra"><i></i></span></button>
-          <button role="tab" id="c4" aria-controls="cp4" aria-selected="false" tabindex="-1" type="button"><b data-en="Large circuits">Circuitos grandes</b><span class="barra"><i></i></span></button>
-          <button role="tab" id="c5" aria-controls="cp5" aria-selected="false" tabindex="-1" type="button"><b data-en="A Proteus circuit">Un circuito de Proteus</b><span class="barra"><i></i></span></button>
-          <button role="tab" id="c6" aria-controls="cp6" aria-selected="false" tabindex="-1" type="button"><b data-en="Export for your report">Exportar para tu reporte</b><span class="barra"><i></i></span></button>
-        </div>
-        <div class="carrusel-visor">
-          <div class="visor-marco">
-            <div class="visor-barras" aria-hidden="true"><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span></div>
-            <p class="visor-siguiente" aria-hidden="true"></p>
-            <button class="carrusel-pausa visor-pausa" type="button" aria-pressed="false"><span class="icono" aria-hidden="true"></span><span class="txt">Pausar</span></button>
-          </div>
-          <div class="carrusel-paneles" aria-live="off">
-            <div role="tabpanel" id="cp1" aria-labelledby="c1" tabindex="0" class="panel-c" style="--pos: 50% 45%">
-              <img data-en-alt="Common-emitter amplifier being simulated, with the voltage of every net and two multimeters measuring." class="solo-oscuro" src="img/amp-oscuro.webp" width="2400" height="1351" alt="Amplificador en emisor común simulándose, con el voltaje de cada red y dos multímetros midiendo." loading="lazy">
-              <img data-en-alt="Common-emitter amplifier being simulated, with the voltage of every net and two multimeters measuring." class="solo-claro" src="img/amp-claro.webp" width="2400" height="1351" alt="Amplificador en emisor común simulándose, con el voltaje de cada red y dos multímetros midiendo." loading="lazy">
-              <p data-en="Wires are colored by voltage, current moves through every branch, LEDs light up and parts burn out when they exceed their maximum. Eight speeds, from ×10 to ×0.001, and knobs and switches you can operate while it runs.">Los cables se pintan según su voltaje, la corriente se mueve por cada rama, los LED encienden y las piezas se queman cuando pasan su máximo. Ocho velocidades, de ×10 a ×0.001, y perillas e interruptores que se accionan mientras corre.</p>
-            </div>
-            <div role="tabpanel" id="cp2" aria-labelledby="c2" tabindex="0" class="panel-c" hidden>
-              <img data-en-alt="Four-channel oscilloscope with the signals of a 555 astable and its probes on the schematic." class="solo-oscuro" src="img/555-oscuro.webp" width="2400" height="1351" alt="Osciloscopio de cuatro canales con las señales de un 555 astable y sus sondas sobre el esquema." loading="lazy">
-              <img data-en-alt="Four-channel oscilloscope with the signals of a 555 astable and its probes on the schematic." class="solo-claro" src="img/555-claro.webp" width="2400" height="1351" alt="Osciloscopio de cuatro canales con las señales de un 555 astable y sus sondas sobre el esquema." loading="lazy">
-              <p data-en="Four-channel oscilloscope with trigger, cursors, automatic measurements and X-Y mode. Multimeter, function generator, variable power supply and quick meters on any wire.">Osciloscopio de cuatro canales con disparo, cursores, medidas automáticas y modo X-Y. Multímetro, generador de funciones, fuente variable y medidores rápidos sobre cualquier cable.</p>
-            </div>
-            <div role="tabpanel" id="cp3" aria-labelledby="c3" tabindex="0" class="panel-c" hidden>
-              <img data-en-alt="Bode plot of a 60 Hz notch filter, with the schematic and the analysis panel." class="solo-oscuro" src="img/bode-oscuro.webp" width="2400" height="1351" alt="Diagrama de Bode de un filtro notch de 60 Hz, con el esquema y el panel de análisis." loading="lazy">
-              <img data-en-alt="Bode plot of a 60 Hz notch filter, with the schematic and the analysis panel." class="solo-claro" src="img/bode-claro.webp" width="2400" height="1351" alt="Diagrama de Bode de un filtro notch de 60 Hz, con el esquema y el panel de análisis." loading="lazy">
-              <p data-en="Operating point, DC sweep, transient, AC and Bode, Fourier and parameter sweep. ngspice 47 is included and runs as a separate program. Plots have cursors and ranges you can type.">Punto de operación, barrido de CD, transitorio, CA y Bode, Fourier y barrido de parámetro. ngspice 47 viene incluido y corre como programa aparte. Las gráficas llevan cursores y rangos que se escriben.</p>
-            </div>
-            <div role="tabpanel" id="cp4" aria-labelledby="c4" tabindex="0" class="panel-c" hidden>
-              <img data-en-alt="An analog computer with 37 parts and 18 nets being simulated, with the oscilloscope showing its response." class="solo-oscuro" src="img/compu-oscuro.webp" width="2400" height="1351" alt="Una computadora analógica de 37 piezas y 18 redes en simulación, con el osciloscopio mostrando su respuesta." loading="lazy">
-              <img data-en-alt="An analog computer with 37 parts and 18 nets being simulated, with the oscilloscope showing its response." class="solo-claro" src="img/compu-claro.webp" width="2400" height="1351" alt="Una computadora analógica de 37 piezas y 18 redes en simulación, con el osciloscopio mostrando su respuesta." loading="lazy">
-              <p data-en="An analog computer with 37 parts and 18 nets simulated at 100 % of real time, with the response on the oscilloscope.">Una computadora analógica de 37 piezas y 18 redes simulándose al 100 % del tiempo real, con la respuesta en el osciloscopio.</p>
-            </div>
-            <div role="tabpanel" id="cp5" aria-labelledby="c5" tabindex="0" class="panel-c" hidden style="--pos: 60% 60%">
-              <img data-en-alt="Kirchi simulating a circuit imported from Proteus: the schematic, the import report on the right and the oscilloscope with the output response." class="solo-oscuro" src="img/imp-sim-oscuro.webp" width="2400" height="1351" alt="Kirchi simulando un circuito importado de Proteus: el esquema, el informe de importación a la derecha y el osciloscopio con la respuesta de la salida." loading="lazy">
-              <img data-en-alt="Kirchi simulating a circuit imported from Proteus: the schematic, the import report on the right and the oscilloscope with the output response." class="solo-claro" src="img/imp-sim-claro.webp" width="2400" height="1351" alt="Kirchi simulando un circuito importado de Proteus: el esquema, el informe de importación a la derecha y el osciloscopio con la respuesta de la salida." loading="lazy">
-              <p data-en="A Proteus 8 circuit opened in Kirchi and simulated: with the oscilloscope filled up to the 50 s of the analysis and the import report in the Project panel.">Un circuito de Proteus 8 abierto en Kirchi y simulado: con el osciloscopio lleno hasta los 50 s del análisis y el informe de importación en el panel Proyecto.</p>
-            </div>
-            <div role="tabpanel" id="cp6" aria-labelledby="c6" tabindex="0" class="panel-c" hidden style="--pos: 50% 40%">
-              <img data-en-alt="Dialog to export the oscilloscope capture, with the Instrument or Report style, the PNG, SVG, PDF and CSV formats and the figure properties." class="solo-oscuro" src="img/exp-osc-oscuro.webp" width="2400" height="1351" alt="Diálogo para exportar la captura del osciloscopio, con el estilo Instrumento o Informe, los formatos PNG, SVG, PDF y CSV y las propiedades de la figura." loading="lazy">
-              <img data-en-alt="Dialog to export the oscilloscope capture, with the Instrument or Report style, the PNG, SVG, PDF and CSV formats and the figure properties." class="solo-claro" src="img/exp-osc-claro.webp" width="2400" height="1351" alt="Diálogo para exportar la captura del osciloscopio, con el estilo Instrumento o Informe, los formatos PNG, SVG, PDF y CSV y las propiedades de la figura." loading="lazy">
-              <p data-en="Export the schematic to PNG, SVG or PDF, and plots in their report style. The figure editor changes colors, font, grid and annotations before exporting.">Exporta el esquema a PNG, SVG o PDF, y las gráficas con su estilo para el reporte. El editor de la figura cambia colores, letra, rejilla y anotaciones antes de exportar.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <p data-en="Real Kirchi screenshots. They change on their own every 8 seconds and stop after one round. They pause with the button, with the mouse over them or when you use the keyboard." class="carrusel-nota">Capturas reales de Kirchi. Cambian solas cada 8 segundos y se detienen tras una vuelta. Se pausan con el botón, con el ratón encima o al usar el teclado.</p>
-    </div>
-  </div>
-</section>
-
-<section class="seccion" aria-labelledby="t-cifras">
-  <div class="ancho">
-    <h2 data-en="What is included" id="t-cifras">Lo que incluye</h2>
-    <dl class="cifras">
-      <div><dt data-en="parts">piezas</dt><dd>113</dd></div>
-      <div><dt data-en="templates">plantillas</dt><dd>15</dd></div>
-      <div><dt data-en="calculators">calculadoras</dt><dd>6</dd></div>
-      <div><dt data-en="oscilloscope channels">canales de osciloscopio</dt><dd>4</dd></div>
-      <div><dt data-en="tutorial chapters">capítulos de tutorial</dt><dd>5</dd></div>
-    </dl>
-    <div class="lista-doble">
-      <div>
-        <h3 data-en="113 parts with an electrical model">113 piezas con modelo eléctrico</h3>
-        <p data-en="In nine categories: passives, sources, semiconductors, integrated circuits, digital, switches, indicators, electromechanical and instruments. There are sensors, stepper motors, JFETs, IGBTs, optocouplers, controlled sources and MSI logic. Each part shows in the inspector its package, its pins, its footprint and the datasheet its parameters come from.">En nueve categorías: pasivos, fuentes, semiconductores, integrados, digitales, interruptores, indicadores, electromecánicos e instrumentos. Hay sensores, motores a pasos, JFET, IGBT, optoacopladores, fuentes controladas y lógica MSI. Cada pieza muestra en el inspector su encapsulado, sus pines, su huella y la hoja de datos de la que salen sus parámetros.</p>
-      </div>
-      <div>
-        <h3 data-en="Templates and calculators">Plantillas y calculadoras</h3>
-        <p data-en="Fifteen templates ready to simulate and six calculators (divider, LED, filters, 555 astable and monostable, amplifiers) that show the equation with your values and build the circuit.">Quince plantillas listas para simular y seis calculadoras (divisor, LED, filtros, 555 astable y monoestable, amplificadores) que muestran la ecuación con tus valores y generan el circuito.</p>
-      </div>
-      <div>
-        <h3 data-en="Tutorial inside the app">Tutorial dentro de la aplicación</h3>
-        <p data-en="“Learn Kirchi” has five chapters you can do separately: Get to know Kirchi, Your first circuit, Measure, Analyze and export, and Import.">«Aprende Kirchi» tiene cinco capítulos que se hacen por separado: Conoce Kirchi, Tu primer circuito, Medir, Analizar y exportar e Importar.</p>
-      </div>
-      <div>
-        <h3 data-en="For your assignment">Para la entrega</h3>
-        <p data-en="Export schematics and plots to PNG, SVG and PDF, with a white background or dark theme and annotations that do not clutter the circuit. You can also record the window as an MP4 video, with or without a microphone.">Exporta esquemas y gráficas a PNG, SVG y PDF, con fondo blanco o tema oscuro y anotaciones que no ensucian el circuito. También graba la ventana en video MP4, con o sin micrófono.</p>
-      </div>
-      <div>
-        <h3 data-en="Free and offline">Gratis y sin conexión</h3>
-        <p data-en="Free, no account, no ads and no paid features. Everything happens on your computer and no data is sent. An AI assistant over the MCP protocol is optional and comes turned off.">Gratis, sin cuenta, sin anuncios y sin funciones de pago. Todo ocurre en tu computadora y no se envía ningún dato. Un asistente de IA por el protocolo MCP es opcional y viene apagado.</p>
-      </div>
-    </div>
-  </div>
-</section>
+</div></section>
 
 <section class="seccion seccion-tenue" aria-labelledby="t-falta">
   <div class="ancho dos">
     <div>
-      <h2 data-en="What it does not do yet" id="t-falta">Lo que todavía no hace</h2>
+      <h2 class="titulo" data-en="What it does not do yet" id="t-falta">Lo que todavía no hace</h2>
     </div>
     <div>
       <p data-en="Kirchi simulates analog and digital electronic circuits. It does not simulate microcontrollers or route boards (PCBs): it prepares the project and you draw the board in KiCad." class="lead">Kirchi simula circuitos de electrónica analógica y digital. No simula microcontroladores ni traza placas (PCB): prepara el proyecto y la placa se dibuja en KiCad.</p>
-      <p data-en="It does not have block diagrams yet either, and there is no date for them. Kirchi files are <span class=&quot;mono&quot;>.kir</span> and open with a double click.">Tampoco tiene todavía diagramas de bloques, y no hay fecha para ellos. Los archivos de Kirchi son <span class="mono">.kir</span> y se abren con doble clic.</p>
+      <p data-en="It does not have block diagrams yet either, and there is no date for them. Kirchi files are <span class=&quot;mono&quot;>.kir</span> and open with a double click." style="color: var(--ink-soft)">Tampoco tiene todavía diagramas de bloques, y no hay fecha para ellos. Los archivos de Kirchi son <span class="mono">.kir</span> y se abren con doble clic.</p>
     </div>
   </div>
 </section>
 
-<section class="seccion" id="descargas" aria-labelledby="t-descargas">
-  <div class="ancho">
-    <h2 data-en="Download Kirchi <span data-version-release></span>" id="t-descargas">Descargar Kirchi <span data-version-release></span></h2>
-    <p data-en="Free and no account. Choose your system." class="lead">Gratis y sin cuenta. Elige tu sistema.</p>
-    <div class="descargas">
-      <div class="fila-desc" id="windows">
-        <div class="fd-nombre"><h3>Windows</h3><p data-en="Windows 10 and 11" class="mono">Windows 10 y 11</p></div>
-        <div class="fd-texto">
-          <p data-en="The Microsoft Store installs and updates Kirchi by itself. There is also an installer and a portable version that runs without installing.">La Microsoft Store instala y actualiza Kirchi sola. También hay un instalador y una versión portátil que se abre sin instalar.</p>
-          <p data-en="The installer is not signed with a paid certificate: SmartScreen warns about an unknown publisher. Click “More info” and “Run anyway”." class="nota">El instalador no está firmado con un certificado de pago: SmartScreen avisa de un editor desconocido. Pulsa «Más información» y «Ejecutar de todos modos».</p>
-        </div>
-        <div class="fd-botones">
-          <a class="btn" data-tienda href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Microsoft Store</a>
-          <a data-en="Installer (.exe)" class="btn-borde enlace-desc" data-sufijo="-Windows-instalador.exe" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Instalador (.exe)</a>
-          <a data-en="Portable (.zip)" class="btn-borde enlace-desc" data-sufijo="-Windows-portable.zip" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Portátil (.zip)</a>
-        </div>
+<section class="desc-sec" id="descargas" aria-labelledby="t-desc"><div class="ancho">
+  <h2 class="titulo" id="t-desc"><span data-en="Download Kirchi">Descargar Kirchi</span> <span class="mono v">v<span data-version-release></span></span></h2>
+  <p class="lead" data-en="Free and no account. Choose your system.">Gratis y sin cuenta. Elige tu sistema.</p>
+  <div class="os-lista">
+    <article class="os" id="windows" data-os-actual="windows">
+      <h3><i data-i="kirchi"></i> Windows</h3>
+      <span class="etiqueta mono" data-en="Windows 10 and 11">Windows 10 y 11</span>
+      <p data-en="The Microsoft Store installs and updates Kirchi by itself. There is also an installer and a portable version that runs without installing.">La Microsoft Store instala y actualiza Kirchi sola. También hay un instalador y una versión portátil que se abre sin instalar.</p>
+      <div class="fd-botones">
+        <a class="btn" data-tienda href="https://github.com/MisaelAvila49/Kirchi/releases/latest"><i data-i="descargar"></i> Microsoft Store</a>
+        <a class="btn-borde enlace-desc" data-sufijo="-Windows-instalador.exe" href="https://github.com/MisaelAvila49/Kirchi/releases/latest" data-en="Installer (.exe)">Instalador (.exe)</a>
+        <a class="btn-borde enlace-desc" data-sufijo="-Windows-portable.zip" href="https://github.com/MisaelAvila49/Kirchi/releases/latest" data-en="Portable (.zip)">Portátil (.zip)</a>
       </div>
-      <div class="fila-desc" id="macos">
-        <div class="fd-nombre"><h3>macOS</h3><p data-en="universal dmg" class="mono">dmg universal</p></div>
-        <div class="fd-texto">
-          <p data-en="Drag Kirchi to Applications.">Arrastra Kirchi a Aplicaciones.</p>
-          <p data-en="The app is not signed by Apple. The first time, right-click Kirchi › Open. If macOS cannot verify it, open System Settings › Privacy &amp;amp; Security and click “Open Anyway”. If it says the app is damaged, run <span class=&quot;mono&quot;>xattr -cr /Applications/Kirchi.app</span> in Terminal." class="nota">La aplicación no está firmada por Apple. La primera vez, clic derecho sobre Kirchi › Abrir. Si macOS no puede verificarla, abre Ajustes del Sistema › Privacidad y seguridad y pulsa «Abrir de todos modos». Si dice que está dañada, ejecuta <span class="mono">xattr -cr /Applications/Kirchi.app</span> en la Terminal.</p>
-        </div>
-        <div class="fd-botones">
-          <a data-en="Download .dmg" class="btn enlace-desc" data-sufijo="-macOS.dmg" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Descargar .dmg</a>
-        </div>
+      <p class="nota" data-en="The installer is not signed with a paid certificate: SmartScreen warns about an unknown publisher. Click “More info” and “Run anyway”.">El instalador no está firmado con un certificado de pago: SmartScreen avisa de un editor desconocido. Pulsa «Más información» y «Ejecutar de todos modos».</p>
+    </article>
+    <article class="os" id="macos" data-os-actual="macos">
+      <h3><i data-i="kirchi"></i> macOS</h3>
+      <span class="etiqueta mono" data-en="universal dmg">dmg universal</span>
+      <p data-en="Drag Kirchi to Applications.">Arrastra Kirchi a Aplicaciones.</p>
+      <div class="fd-botones">
+        <a class="btn enlace-desc" data-sufijo="-macOS.dmg" href="https://github.com/MisaelAvila49/Kirchi/releases/latest"><i data-i="descargar"></i> <span data-en="Download .dmg">Descargar .dmg</span></a>
       </div>
-      <div class="fila-desc" id="linux">
-        <div class="fd-nombre"><h3>Linux</h3><p data-en="AppImage and deb" class="mono">AppImage y deb</p></div>
-        <div class="fd-texto">
-          <p data-en="The AppImage needs execute permission: <span class=&quot;mono&quot;>chmod +x Kirchi-*-Linux.AppImage</span>. The .deb package is for Debian and Ubuntu.">La AppImage necesita permiso de ejecución: <span class="mono">chmod +x Kirchi-*-Linux.AppImage</span>. El paquete .deb es para Debian y Ubuntu.</p>
-        </div>
-        <div class="fd-botones">
-          <a class="btn enlace-desc" data-sufijo="-Linux.AppImage" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">AppImage</a>
-          <a data-en="Package .deb" class="btn-borde enlace-desc" data-sufijo="-Linux.deb" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Paquete .deb</a>
-        </div>
+      <p class="nota" data-en="The app is not signed by Apple. The first time, right-click Kirchi › Open. If macOS cannot verify it, open System Settings › Privacy &amp; Security and click “Open Anyway”. If it says the app is damaged, run <span class=&quot;mono&quot;>xattr -cr /Applications/Kirchi.app</span> in Terminal.">La aplicación no está firmada por Apple. La primera vez, clic derecho sobre Kirchi › Abrir. Si macOS no puede verificarla, abre Ajustes del Sistema › Privacidad y seguridad y pulsa «Abrir de todos modos». Si dice que está dañada, ejecuta <span class="mono">xattr -cr /Applications/Kirchi.app</span> en la Terminal.</p>
+    </article>
+    <article class="os" id="linux" data-os-actual="linux">
+      <h3><i data-i="kirchi"></i> Linux</h3>
+      <span class="etiqueta mono" data-en="AppImage and deb">AppImage y deb</span>
+      <p data-en="The AppImage needs execute permission: <span class=&quot;mono&quot;>chmod +x Kirchi-*-Linux.AppImage</span>. The .deb package is for Debian and Ubuntu.">La AppImage necesita permiso de ejecución: <span class="mono">chmod +x Kirchi-*-Linux.AppImage</span>. El paquete .deb es para Debian y Ubuntu.</p>
+      <div class="fd-botones">
+        <a class="btn enlace-desc" data-sufijo="-Linux.AppImage" href="https://github.com/MisaelAvila49/Kirchi/releases/latest"><i data-i="descargar"></i> AppImage</a>
+        <a class="btn-borde enlace-desc" data-sufijo="-Linux.deb" href="https://github.com/MisaelAvila49/Kirchi/releases/latest" data-en="Package .deb">Paquete .deb</a>
       </div>
-    </div>
-    <p data-en="The links go to the latest file published on GitHub. If they do not load, <a href=&quot;https://github.com/MisaelAvila49/Kirchi/releases/latest&quot;>the releases page</a> has all the files." class="nota-gen">Los enlaces llevan al archivo más reciente publicado en GitHub. Si no cargan, <a href="https://github.com/MisaelAvila49/Kirchi/releases/latest">la página de versiones</a> tiene todos los archivos.</p>
+    </article>
   </div>
-</section>
+  <p class="nota-gen" data-en="The links go to the latest file published on GitHub. If they do not load, <a href=&quot;https://github.com/MisaelAvila49/Kirchi/releases/latest&quot;>the releases page</a> has all the files.">Los enlaces llevan al archivo más reciente publicado en GitHub. Si no cargan, <a href="https://github.com/MisaelAvila49/Kirchi/releases/latest">la página de versiones</a> tiene todos los archivos.</p>
+</div></section>
 
-<section class="seccion seccion-apoyo" id="apoyar" aria-labelledby="t-apoyar">
-  <div class="ancho apoyo-rejilla">
-    <div class="apoyo-texto">
-      <p data-en="Voluntary support" class="rotulo">Apoyo voluntario</p>
-      <h2 data-en="Help keep Kirchi going" id="t-apoyar">Ayuda a que Kirchi siga avanzando</h2>
-      <p data-en="Kirchi is free and you can use all of it without paying anything. If it is useful to you, you can contribute so it keeps being maintained." class="lead">Kirchi es gratis y puedes usarlo completo sin pagar nada. Si te sirve, puedes aportar para que siga manteniéndose.</p>
-      <ul class="apoyo-chips" data-en-aria-label="What your support means" aria-label="Qué significa tu apoyo">
-        <li class="mono" data-en="Optional">Opcional</li>
-        <li class="mono" data-en="Unlocks nothing">No desbloquea nada</li>
-        <li class="mono" data-en="No account needed">Sin cuenta</li>
-      </ul>
-      <p data-en="Your contribution pays for time to maintain Kirchi and build new versions, and for services it may need, such as cloud features in the future." class="apoyo-por-que">Tu aportación paga tiempo para mantener Kirchi y hacer versiones nuevas, y servicios que pueda necesitar, como la nube a futuro.</p>
-    </div>
-    <div class="apoyo-caja">
-      <p data-en="Choose how to contribute" class="apoyo-caja-titulo">Elige cómo aportar</p>
-      <ul class="apoyo-lista" id="proveedores"></ul>
-      <p data-en="Each provider charges its own fees and handles your data under its own terms. Kirchi does not receive or store your payment data." class="apoyo-nota">Cada proveedor cobra sus propias comisiones y trata tus datos según sus condiciones. Kirchi no recibe ni guarda tus datos de pago.</p>
-    </div>
-    <script type="module">
-      import { pintarProveedores } from "./js/proveedores.js";
-      pintarProveedores(document.getElementById("proveedores"));
-    </script>
+<section class="apoyo" id="apoyar" aria-labelledby="t-apoyar"><div class="ancho apoyo-in">
+  <div class="apoyo-texto">
+    <p class="rotulo"><i data-i="apoyo"></i><span data-en="Voluntary support">Apoyo voluntario</span></p>
+    <h2 id="t-apoyar" data-en="Help keep Kirchi going">Ayuda a que Kirchi siga avanzando</h2>
+    <p class="lead" data-en="Kirchi is free and you can use all of it without paying anything. If it is useful to you, you can contribute so it keeps being maintained.">Kirchi es gratis y puedes usarlo completo sin pagar nada. Si te sirve, puedes aportar para que siga manteniéndose.</p>
+    <ul class="apoyo-chips" data-en-aria-label="What your support means" aria-label="Qué significa tu apoyo">
+      <li class="mono" data-en="Optional">Opcional</li>
+      <li class="mono" data-en="Unlocks nothing">No desbloquea nada</li>
+      <li class="mono" data-en="No account needed">Sin cuenta</li>
+    </ul>
+    <p class="apoyo-por-que" data-en="Your contribution pays for time to maintain Kirchi and build new versions, and for services it may need, such as cloud features in the future.">Tu aportación paga tiempo para mantener Kirchi y hacer versiones nuevas, y servicios que pueda necesitar, como la nube a futuro.</p>
   </div>
-</section>
+  <div class="apoyo-caja">
+    <p class="apoyo-caja-titulo" data-en="Choose how to contribute">Elige cómo aportar</p>
+    <ul class="apoyo-lista" id="proveedores"></ul>
+    <p class="apoyo-nota" data-en="Each provider charges its own fees and handles your data under its own terms. Kirchi does not receive or store your payment data.">Cada proveedor cobra sus propias comisiones y trata tus datos según sus condiciones. Kirchi no recibe ni guarda tus datos de pago.</p>
+  </div>
+  <script type="module">
+    import { pintarProveedores } from "./js/proveedores.js";
+    pintarProveedores(document.getElementById("proveedores"));
+  </script>
+</div></section>
 
 <section class="seccion seccion-tenue" id="codigo" aria-labelledby="t-codigo">
   <div class="ancho dos">
     <div>
-      <h2 data-en="Licenses and terms of use" id="t-codigo">Licencias y términos de uso</h2>
+      <h2 class="titulo" data-en="Licenses and terms of use" id="t-codigo">Licencias y términos de uso</h2>
       <p data-en="Kirchi is free to use under its terms of use: you may share the official installers without charging for them, but not sell it or distribute modified copies. Versions up to 3.0.0 were published under MIT and 3.1.0 under Apache 2.0. Third-party components keep their own licenses." class="lead">Kirchi es gratis y se usa con sus términos de uso: puedes compartir los instaladores oficiales sin cobrar, pero no venderlo ni distribuir copias modificadas. Las versiones hasta la 3.0.0 se publicaron con MIT y la 3.1.0 con Apache 2.0. Los componentes de terceros conservan sus licencias.</p>
       <ul class="enlaces">
         <li><a data-en="Latest version (Release)" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Versión más reciente (Release)</a></li>
@@ -307,43 +351,40 @@
       <p data-en="Those licenses require that whoever receives the binaries can obtain the source code. Each Release publishes <span class=&quot;mono&quot;>Kirchi-X.Y.Z-fuentes-de-terceros.zip</span>, with the code of ngspice 47 and of the <span class=&quot;mono&quot;>faer</span> crate (which includes parts under MPL 2.0), along with their SHA-256 sums.">Esas licencias piden que quien recibe los binarios pueda obtener el código fuente. En cada Release se publica <span class="mono">Kirchi-X.Y.Z-fuentes-de-terceros.zip</span>, con el código de ngspice 47 y del crate <span class="mono">faer</span> (que incluye partes bajo MPL 2.0), junto con sus sumas SHA-256.</p>
       <h3 data-en="Electron and libraries">Electron y bibliotecas</h3>
       <p data-en="The interface runs on Electron, which includes Chromium. The notices for Electron and Chromium, and the licenses of every interface and engine library, ship with the app and are shown in “About”.">La interfaz corre en Electron, que incluye Chromium. Los avisos de Electron y de Chromium, y las licencias de cada biblioteca de la interfaz y del motor, viajan con la aplicación y se muestran en «Acerca de».</p>
-      <h3 data-en="Typefaces and animation of this page">Tipografías y animación de esta página</h3>
-      <p data-en="Mona Sans, Geist Mono and Source Serif 4, under the SIL Open Font License 1.1, the same ones Kirchi uses. Notices and texts: <a href=&quot;licencias/OFL-mona-sans.txt&quot;>Mona Sans</a>, <a href=&quot;licencias/OFL-geist-mono.txt&quot;>Geist Mono</a> and <a href=&quot;licencias/OFL-source-serif-4.txt&quot;>Source Serif 4</a>. The headline animation uses GSAP 3.15.0 with its <a href=&quot;https://gsap.com/standard-license&quot;>standard license</a>.">Mona Sans, Geist Mono y Source Serif 4, bajo la SIL Open Font License 1.1, las mismas que usa Kirchi. Avisos y textos: <a href="licencias/OFL-mona-sans.txt">Mona Sans</a>, <a href="licencias/OFL-geist-mono.txt">Geist Mono</a> y <a href="licencias/OFL-source-serif-4.txt">Source Serif 4</a>. La animación del titular usa GSAP 3.15.0 con su <a href="https://gsap.com/standard-license">licencia estándar</a>.</p>
+      <h3 data-en="Typefaces of this page">Tipografías de esta página</h3>
+      <p data-en="Mona Sans, Geist Mono and Source Serif 4, under the SIL Open Font License 1.1, the same ones Kirchi uses. Notices and texts: <a href=&quot;licencias/OFL-mona-sans.txt&quot;>Mona Sans</a>, <a href=&quot;licencias/OFL-geist-mono.txt&quot;>Geist Mono</a> and <a href=&quot;licencias/OFL-source-serif-4.txt&quot;>Source Serif 4</a>.">Mona Sans, Geist Mono y Source Serif 4, bajo la SIL Open Font License 1.1, las mismas que usa Kirchi. Avisos y textos: <a href="licencias/OFL-mona-sans.txt">Mona Sans</a>, <a href="licencias/OFL-geist-mono.txt">Geist Mono</a> y <a href="licencias/OFL-source-serif-4.txt">Source Serif 4</a>.</p>
     </div>
   </div>
 </section>
 </main>
 
-<footer class="pie">
-  <div class="ancho pie-rejilla">
-    <div>
-      <p class="pie-marca"><img src="img/icono.svg" alt="" width="28" height="28"> Kirchi</p>
-      <p data-en="Made by Misael Saúl Avila López. Free to use, <a href=&quot;https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE&quot;>terms of use</a> · <a href=&quot;https://gist.github.com/MisaelAvila49/26b174fbe0fbfba7ef4c4176b3a25404&quot;>Privacy</a>.">Hecho por Misael Saúl Avila López. Gratis, <a href="https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE">términos de uso</a> · <a href="https://gist.github.com/MisaelAvila49/26b174fbe0fbfba7ef4c4176b3a25404">Privacidad</a>.</p>
-    </div>
-    <div>
-      <p data-en="Follow and write" class="rotulo">Seguir y escribir</p>
-      <ul class="enlaces">
-        <li><a href="https://github.com/MisaelAvila49">GitHub, misaelavila49</a></li>
-        <li><a href="https://www.youtube.com/@MisaelAvila49">YouTube</a></li>
-        <li><a href="https://www.tiktok.com/@misael_avila.49">TikTok</a></li>
-      </ul>
-    </div>
-    <div>
-      <p data-en="Something wrong?" class="rotulo">¿Algo falla?</p>
-      <p data-en="Send your bug reports and suggestions to <a href=&quot;mailto:misaelavila49@gmail.com&quot;>misaelavila49@gmail.com</a>.">Escribe tus fallas y propuestas a <a href="mailto:misaelavila49@gmail.com">misaelavila49@gmail.com</a>.</p>
-    </div>
+<footer class="pie"><div class="ancho pie-in">
+  <div>
+    <p class="marca"><img src="img/icono.svg" alt="" width="28" height="28"><span>Kirchi</span></p>
+    <p data-en="Made by Misael Saúl Avila López. Free to use, <a href=&quot;https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE&quot;>terms of use</a> · <a href=&quot;https://gist.github.com/MisaelAvila49/26b174fbe0fbfba7ef4c4176b3a25404&quot;>Privacy</a>.">Hecho por Misael Saúl Avila López. Gratis, <a href="https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE">términos de uso</a> · <a href="https://gist.github.com/MisaelAvila49/26b174fbe0fbfba7ef4c4176b3a25404">Privacidad</a>.</p>
   </div>
-</footer>
+  <div>
+    <h2 data-en="Follow and write">Seguir y escribir</h2>
+    <ul>
+      <li><a href="https://github.com/MisaelAvila49">GitHub, misaelavila49</a></li>
+      <li><a href="https://www.youtube.com/@MisaelAvila49">YouTube</a></li>
+      <li><a href="https://www.tiktok.com/@misael_avila.49">TikTok</a></li>
+    </ul>
+  </div>
+  <div>
+    <h2 data-en="Something wrong?">¿Algo falla?</h2>
+    <p data-en="Send your bug reports and suggestions to <a href=&quot;mailto:misaelavila49@gmail.com&quot;>misaelavila49@gmail.com</a>.">Escribe tus fallas y propuestas a <a href="mailto:misaelavila49@gmail.com">misaelavila49@gmail.com</a>.</p>
+  </div>
+</div></footer>
 
 <dialog data-en-aria-label="Enlarged screenshot" class="lupa" id="lupa" aria-label="Captura ampliada">
   <button data-en="Close" class="lupa-cerrar btn" type="button" id="lupa-cerrar">Cerrar</button>
   <div class="lupa-cuerpo"><img id="lupa-img" alt="" width="2400" height="1351"></div>
 </dialog>
 
-<div class="cta-fija" id="cta-fija" hidden><a data-en="Download Kirchi" class="btn" href="#descargas">Descargar Kirchi</a><a data-en="Support" class="btn-borde" href="#apoyar">Apoyar</a></div>
+<div class="cta-fija" id="cta-fija" hidden><a class="btn js-dl" href="#descargas" data-en="Download Kirchi">Descargar Kirchi</a><a data-en="Support" class="btn-borde" href="#apoyar">Apoyar</a></div>
 
-<script src="vendor/gsap.min.js"></script>
-<script src="vendor/SplitText.min.js"></script>
+<script src="js/iconos.js"></script>
 <script type="module" src="js/principal.js"></script>
 </body>
 </html>

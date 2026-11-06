@@ -16,17 +16,17 @@
 <body>
 <a data-en="Skip to content" class="salto" href="#contenido">Saltar al contenido</a>
 
-<header class="cab">
+<header class="cab"><div class="ancho cab-in">
   <a data-en-aria-label="Kirchi, home page" class="marca" href="./" aria-label="Kirchi, página principal"><img src="img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
-  <div class="cab-botones">
-    <button class="btn-borde" id="boton-tema" type="button" aria-pressed="false">Tema claro</button>
-    <div class="selector-idioma" role="group" aria-label="Idioma / Language"><button class="btn-borde" type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="true">ES</button><button class="btn-borde" type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="false">EN</button></div>
+  <div class="ctrl">
+    <button class="mini" id="boton-tema" type="button" aria-pressed="false">Tema claro</button>
+    <span class="selector-idioma" role="group" aria-label="Idioma / Language" style="display:flex;gap:4px"><button class="mini" type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="true">ES</button><button class="mini" type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="false">EN</button></span>
   </div>
-</header>
+</div></header>
 
 <main id="contenido">
-<section class="seccion seccion-apoyo" aria-labelledby="t-apoyar">
-  <div class="ancho apoyo-rejilla">
+<section class="apoyo apoyo-pagina" aria-labelledby="t-apoyar">
+  <div class="ancho apoyo-in">
     <div class="apoyo-texto">
       <p data-en="Voluntary support" class="rotulo">Apoyo voluntario</p>
       <h1 data-en="Help keep Kirchi going" id="t-apoyar" class="titulo-apoyo">Ayuda a que Kirchi siga avanzando</h1>

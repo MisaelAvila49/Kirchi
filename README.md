@@ -22,6 +22,8 @@ Armas el circuito, pulsas F5 y lo ves funcionar. Gratis, sin internet, sin cuent
 
 <p><a href="#novedades-de-la-31">Novedades</a> · <a href="#protoboard">Protoboard</a> · <a href="#capturas">Capturas</a> · <a href="#descargar-e-instalar">Descargar</a> · <a href="#cómo-funciona">Cómo funciona</a> · <a href="docs/guia-de-uso.md">Guía de uso</a></p>
 
+<a href="https://www.youtube.com/watch?v=OSJBYb792Fo"><img src="docs/imagenes/trailer-es.jpg" alt="Ver el tráiler de Kirchi en YouTube: miniatura con el título del video" width="70%"></a><br><sub><a href="https://www.youtube.com/watch?v=OSJBYb792Fo">Mira el tráiler (YouTube)</a></sub>
+
 </div>
 
 ## Por qué Kirchi
