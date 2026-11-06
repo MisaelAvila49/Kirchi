@@ -1,20 +1,26 @@
 // Kirchi, página de descarga: tema, pausa global, titular cinético, carrusel, detección del sistema,
 // enlaces directos a los instaladores y CTA fija en móvil. Sin listeners de scroll.
 import { carrusel } from "./carrusel.js";
+import { t, alCambiar } from "./idioma.js";
 
 const CFG = window.KIRCHI;
 const REDUCIR = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const RELEASES = `https://github.com/${CFG.REPO}/releases/latest`;
 const raiz = document.documentElement;
 
-/* Versión: un solo lugar (config.js) */
-document.querySelectorAll("[data-version], [data-version-release]").forEach((e) => { e.textContent = CFG.VERSION; });
+/* Versión: un solo lugar (config.js). Cambiar de idioma reescribe los textos, así que se vuelve a poner. */
+let versionRelease = CFG.VERSION;
+function pintarVersion() {
+  document.querySelectorAll("[data-version]").forEach((e) => { e.textContent = CFG.VERSION; });
+  document.querySelectorAll("[data-version-release]").forEach((e) => { e.textContent = versionRelease; });
+}
+pintarVersion();
 
 /* Tema claro y oscuro */
 const botonTema = document.getElementById("boton-tema");
 function pintarTema() {
   const claro = raiz.dataset.tema === "claro";
-  botonTema.textContent = claro ? "Tema oscuro" : "Tema claro";
+  botonTema.textContent = claro ? t("tema_oscuro") : t("tema_claro");
   botonTema.setAttribute("aria-pressed", String(claro));
 }
 botonTema.addEventListener("click", () => {
@@ -30,7 +36,7 @@ const botonMov = document.getElementById("boton-movimiento");
 const oyentesPausa = [];
 function pintarPausa() {
   botonMov.setAttribute("aria-pressed", String(pausaGlobal));
-  botonMov.textContent = pausaGlobal ? "Reanudar movimiento" : "Pausar movimiento";
+  botonMov.textContent = pausaGlobal ? t("reanudar_mov") : t("pausar_mov");
   raiz.classList.toggle("pausado", pausaGlobal);
 }
 botonMov.addEventListener("click", () => { pausaGlobal = !pausaGlobal; pintarPausa(); oyentesPausa.forEach((f) => f()); });
@@ -56,6 +62,8 @@ if (window.gsap && window.SplitText) {
 const carr = [...document.querySelectorAll(".carrusel")].map((c) => carrusel(c, { pausaGlobal: () => pausaGlobal }));
 oyentesPausa.push(() => carr.forEach((c) => c.sincronizar()));
 
+alCambiar(() => { pintarVersion(); pintarTema(); pintarPausa(); carr.forEach((c) => c.sincronizar()); document.querySelectorAll(".ampliar").forEach((b) => b.setAttribute("aria-label", t("ampliar"))); });
+
 const tiendaLista = !/^\[/.test(CFG.TIENDA);
 
 /* Enlaces directos desde la API pública de GitHub, con respaldo a la página de versiones */
@@ -74,7 +82,7 @@ fetch(`https://api.github.com/repos/${CFG.REPO}/releases/latest`, { headers: { A
   .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
   .then((j) => { assets = j.assets || []; ponerEnlaces();
     // El título de descargas muestra la versión que de verdad se baja.
-    if (j.tag_name) document.querySelectorAll("[data-version-release]").forEach((e) => { e.textContent = j.tag_name.replace(/^v/, ""); }); })
+    if (j.tag_name) { versionRelease = j.tag_name.replace(/^v/, ""); pintarVersion(); } })
   .catch(() => { /* sin red o sin límite de la API: los enlaces quedan en la página de versiones */ });
 
 /* CTA fija en móvil al salir de la portada */
@@ -90,7 +98,7 @@ let origen = null;
 document.querySelectorAll(".panel-c img, .portada-figura img, .figura-pb img").forEach((img) => {
   const b = document.createElement("button");
   b.type = "button"; b.className = "ampliar " + (img.classList.contains("solo-claro") ? "solo-claro" : img.classList.contains("solo-oscuro") ? "solo-oscuro" : "");
-  b.setAttribute("aria-label", "Ampliar la captura");
+  b.setAttribute("aria-label", t("ampliar"));
   img.replaceWith(b); b.append(img);
   b.addEventListener("click", () => {
     origen = b; lupaImg.src = img.currentSrc || img.src; lupaImg.alt = img.alt;

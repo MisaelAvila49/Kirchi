@@ -1,5 +1,63 @@
 # Historial de cambios
 
+## 3.1.1
+
+Kirchi sigue siendo gratis, ahora con términos de uso de un programa de código cerrado, y la interfaz en inglés ya no muestra textos en español.
+
+### Cambios
+
+- Kirchi se usa con sus términos de uso (archivo LICENSE, también en «Acerca de»): es gratis y se pueden compartir los instaladores oficiales sin cobrar, pero no venderlo ni distribuir copias modificadas. Su código ya no es público. Las versiones hasta la 3.0.0 se publicaron con MIT y la 3.1.0 con Apache 2.0, y siguen bajo esas licencias. Los componentes de terceros conservan las suyas y su código fuente se entrega con cada versión.
+- La página de descarga tiene un acceso a Apoyar a Kirchi en la barra de arriba, en la portada y en el celular, y una sección de apoyo nueva con PayPal, Mercado Pago y GitHub Sponsors.
+- Las notas de cada versión en GitHub incluyen sus cambios y una versión en inglés.
+
+### Arreglos
+
+- Los textos que todavía salían en español con la interfaz en inglés (informe de importación, menú de la protoboard, mesa, osciloscopio y barra de estado) ya están traducidos.
+
+## 3.1.0
+
+Exportar el esquema para fabricar una placa y Kirchi en inglés. Desde esta versión Kirchi se distribuye bajo Apache 2.0, con su archivo NOTICE en el paquete, en «Acerca de», en el README y en la página. Las versiones hasta la 3.0.0 siguen bajo MIT.
+
+### Nuevo
+
+- Archivo › Exportar para fabricar revisa cada pieza antes de exportar: su huella de KiCad, el mapa de pines (el número de cada pin de la huella con su nombre en Kirchi) y a qué red va la alimentación de cada integrado. Una pieza sin huella bloquea la exportación y dice qué le falta, y se puede cambiar la huella, marcar una pieza como conector u omitirla. Los transistores en TO-92, TO-220 o SOT-23 llevan un aviso por el orden de sus pines.
+- La exportación escribe un proyecto de KiCad (esquema, placa vacía con las reglas de JLCPCB y biblioteca de símbolos), la lista de materiales para JLCPCB en `.csv` o solo la netlist. Todo va en una subcarpeta con el nombre del proyecto, que nunca sobrescribe otra, y el diálogo pide el nombre si el circuito no está guardado.
+- Ayuda › Aprender › Fabricar una placa abre una guía de dieciséis pasos, con un dibujo por paso, para llegar del circuito de Kirchi, pasando por KiCad, a los archivos Gerber y su zip para JLCPCB. Fabricar y la guía tienen su botón en la cinta.
+- La pestaña Ayuda tiene cuatro grupos: Aprender, Kirchi, Ayúdanos y Comunidad. La guía de uso y las novedades se abren dentro de Kirchi, sin internet y en el idioma de la aplicación. Ejemplos, Atajos e «Ir al tutorial» salen de la cinta: Atajos sigue en la fila de título y F1 lleva al tutorial en marcha.
+- Kirchi está en español e inglés. El idioma se elige en Configuración (Automático sigue el del sistema) y con Ctrl+K › «Cambiar idioma», y cambia al momento.
+- Las piezas, las plantillas, las calculadoras y el tutorial «Aprende Kirchi» también están en inglés, junto con los avisos y los diálogos.
+- La página de descarga y los documentos (README, guía de uso e historial de cambios) tienen versión en inglés.
+- Formato 12 del `.kir`: guarda cómo se fabrica cada pieza (conector, omitida o huella elegida). Un archivo anterior se abre igual, y uno que no usa esto se sigue guardando como antes.
+- El tutorial de la protoboard marca con sombras el lugar de cada paso y pone la punta del instrumento antes de simular.
+- Exportar la protoboard tiene sus propias opciones y pregunta primero «Qué vista».
+- Contacto abre un diálogo para copiar el correo o abrirlo en Gmail, Outlook web o la app de correo, y un enlace que no abre se ve. «Copiar datos del error» incluye los últimos cinco errores aunque ya se hayan cerrado.
+- Apoyar a Kirchi: sección en el README y en la página, con los enlaces para hacerlo.
+
+### Cambios
+
+- La lista de materiales va en ASCII y neutraliza las fórmulas de Excel en sus celdas.
+- Los rótulos de los símbolos de KiCad ya no se enciman entre pines vecinos, y los terminales sueltos y los rieles de reserva llevan «sin conexión».
+- Un revisor de textos encuentra lo que falta por traducir.
+- Generar protoboard da el mismo armado cada vez que se genera el mismo circuito, aunque se borre el esquema y se vuelva a pegar, y quita lo que quedó de la vez anterior.
+- Generar protoboard deja cada etapa junta alrededor de su integrado, con el aire entre etapas, sin cables en diagonal y con un puente recto propio para cada pin de alimentación.
+- Generar protoboard no pone nada en la tira de un pin que el circuito no usa (ajuste de offset, NC o la otra unidad del chip), y a los pines que van a un riel, como LT y BI de un decodificador, les pone su puente.
+- Una pieza o un cable en la tira de un pin sin uso sale en Avisos y lleva un aro amarillo.
+- El halo amarillo de una unión de más marca solo el cable o el pin que la causa, no toda la cadena de puentes.
+- Al mover el extremo de un cable doblado, su doblez se vuelve a trazar y no queda un tramo en diagonal.
+- Las grabaciones MP4 se guardan con su duración, así que los reproductores y editores muestran el tiempo correcto y se pueden recortar.
+- Las puntas sin usar de un instrumento quedan fuera del archivo.
+- Los cables curvos se dibujan encima de los rectos.
+- El multímetro lleva COM en tierra.
+- Medir avisa por qué no actúa cuando la vista previa está corriendo.
+- Los avisos y nombres de la protoboard dicen «pin» en lugar de «pata».
+- La protoboard dice «cable» en lugar de «alambre», «colocar» en lugar de «tender» y «amarillo» en lugar de «ámbar».
+
+### Arreglos
+
+- «Generar protoboard» ya no se queda en «Calculando cambios…» cuando falla: muestra el motivo y avisa.
+- Los errores que nadie atrapó se anotan recortados, para que una traza muy larga no llene el registro.
+- En Windows, Kirchi ya no queda en blanco en pantalla completa mientras un programa como NVIDIA App graba la pantalla.
+
 ## 3.0.0
 
 El circuito se arma en una protoboard junto a su esquema: el esquema es el plano y la protoboard lo que se arma. Cada vista trabaja por separado con las mismas piezas, se sincronizan en las dos direcciones, se simula y se analiza lo de la pestaña abierta y se marca lo que difiere. Los avisos pasan a su propia pestaña.
@@ -8,17 +66,17 @@ El circuito se arma en una protoboard junto a su esquema: el esquema es el plano
 
 - Pestañas Esquema, Protoboard y Las dos sobre el lienzo. En Las dos cada vista se encuadra por su lado y tiene su propia selección, con un divisor que se arrastra. F, Encuadrar y el zoom de la barra actúan sobre la vista del último clic. Las pestañas se pliegan a un botón con el icono y el nombre de la vista actual, y el ajuste se recuerda.
 - Una pieza puede estar solo en la protoboard y una nota ser de la protoboard. El esquema no dibuja, conecta ni simula lo que solo vive en la placa, y Avisos lo lista en gris. Borrar en el esquema una pieza ya armada la deja en la protoboard, y Supr en la protoboard devuelve a la mesa la que también está en el esquema o borra la que solo vive allí.
-- Edición en la protoboard: la herramienta Pieza, la Librería y el buscador colocan piezas en la placa, y también Tierra, Alimentación, Nota y Alambre. Hay selección con rectángulo y `Shift`, cortar, copiar, pegar, duplicar y girar en grupo, y `Esc` o el clic derecho cancelan la herramienta.
+- Edición en la protoboard: la herramienta Pieza, la Librería y el buscador colocan piezas en la placa, y también Tierra, Alimentación, Nota y Cable. Hay selección con rectángulo y `Shift`, cortar, copiar, pegar, duplicar y girar en grupo, y `Esc` o el clic derecho cancelan la herramienta.
 - Placas de 830, 400 y 170 puntos, una o varias por circuito, con rieles partidos opcionales. Los rieles de dos placas no se unen solos.
-- Las piezas del esquema esperan en la mesa «Por colocar» y se arrastran a la placa. Al arrastrar se marcan los agujeros de las patas y se ilumina cada tira: verde si cabe, rojo si no cabe (agujero ocupado, fuera de la placa, pata que no alcanza) y ámbar si cabe pero hace corto, como un integrado que no cruza el canal.
-- La punta de una pata se lleva a otro agujero y la pata se dobla, hasta el largo real de su encapsulado. Más corta que el cuerpo, la pieza queda de pie.
-- Alambres de agujero a agujero, rectos a ras de la placa o curvos por encima (tecla A), con color por función que se cambia con clic derecho › Color. Un alambre recto se dobla arrastrando un punto de su recorrido.
+- Las piezas del esquema esperan en la mesa «Por colocar» y se arrastran a la placa. Al arrastrar se marcan los agujeros de los pines y se ilumina cada tira: verde si cabe, rojo si no cabe (agujero ocupado, fuera de la placa, pin que no alcanza) y amarillo si cabe pero hace corto, como un integrado que no cruza el canal.
+- La punta de un pin se lleva a otro agujero y el pin se dobla, hasta el largo real de su encapsulado. Más corta que el cuerpo, la pieza queda de pie.
+- Cables de agujero a agujero, rectos a ras de la placa o curvos por encima (tecla A), con color por función que se cambia con clic derecho › Color. Un cable recto se dobla arrastrando un punto de su recorrido.
 - Las fuentes, la tierra y las puntas de los instrumentos se ven como una etiqueta con su nombre completo, en dos alturas: las del riel + fuera de la placa y las del − junto a su riel. Se arrastran de una altura a la otra, se pueden intercambiar y, si no caben junto a sus postes, salen escalonadas fuera de la placa sin cruzarse. Con Ver equipos pasan a ser fuentes, generador, osciloscopio y multímetro dibujados fuera de la placa, en el lado más cercano, y cada cable va al agujero libre más cercano de su red. Un par simétrico como +15 V y −15 V va en una fuente doble.
 - Líneas punteadas muestran las conexiones que faltan y se marcan las diferencias con el esquema (faltan, sobran, cortos). Las dos ayudas se apagan en Vista › Protoboard y se guardan con el archivo.
-- «Generar protoboard» y «Generar esquema» igualan una vista con la otra. Un resumen previo dice qué se agrega, qué se quita y qué se recablea, con una casilla para conservar lo que sobra, y un solo deshacer lo revierte. Generar protoboard reparte los integrados a lo ancho, sin encimar piezas, agrega placas si hace falta, colorea los alambres para que vecinos no repitan color y voltea las resistencias, capacitores y bobinas cuando así ningún alambre pasa sobre un agujero ocupado. Generar esquema acomoda las piezas siguiendo la señal y une con cables o etiquetas de red, también con lo seleccionado.
-- F5 simula la pestaña abierta, y en Las dos un selector elige entre el esquema y lo armado. Los análisis usan la misma fuente, con las trazas por nombre de red del esquema o por tira cuando no hay uno. Al simular la protoboard la corriente se anima por alambres y patas, y los LED y displays encienden. Los colores por voltaje de tiras y alambres, y el valor de cada tira, se piden con la tecla V. Un pin sin conectar se simula abierto.
-- Una selección completa de la protoboard se mueve con el arrastre, con piezas, alambres, etiquetas y notas juntos, también a otra placa. El doble clic derecho borra en la protoboard como en el esquema.
-- Medir, en el clic derecho de una pieza, una tira o un alambre de la placa, clava las puntas de un multímetro o un osciloscopio en agujeros libres de la red de sus patas.
+- «Generar protoboard» y «Generar esquema» igualan una vista con la otra. Un resumen previo dice qué se agrega, qué se quita y qué se recablea, con una casilla para conservar lo que sobra, y un solo deshacer lo revierte. Generar protoboard reparte los integrados a lo ancho, sin encimar piezas, agrega placas si hace falta, colorea los cables para que vecinos no repitan color y voltea las resistencias, capacitores y bobinas cuando así ningún cable pasa sobre un agujero ocupado. Generar esquema acomoda las piezas siguiendo la señal y une con cables o etiquetas de red, también con lo seleccionado.
+- F5 simula la pestaña abierta, y en Las dos un selector elige entre el esquema y lo armado. Los análisis usan la misma fuente, con las trazas por nombre de red del esquema o por tira cuando no hay uno. Al simular la protoboard la corriente se anima por cables y pines, y los LED y displays encienden. Los colores por voltaje de tiras y cables, y el valor de cada tira, se piden con la tecla V. Un pin sin conectar se simula abierto.
+- Una selección completa de la protoboard se mueve con el arrastre, con piezas, cables, etiquetas y notas juntos, también a otra placa. El doble clic derecho borra en la protoboard como en el esquema.
+- Medir, en el clic derecho de una pieza, una tira o un cable de la placa, clava las puntas de un multímetro o un osciloscopio en agujeros libres de la red de sus pines.
 - Las resistencias llevan sus bandas: cuatro en cuerpo beige para valores E24, cinco en cuerpo azul para E96 y bandas grises con el valor escrito para un valor sin código comercial, que se simula con su valor exacto.
 - Las piezas sin dibujo propio, como la caja gris de Importar, se insertan como una hilera de pines con su nombre.
 - La protoboard se exporta a PNG, SVG y PDF con las mismas herramientas del esquema.
@@ -30,8 +88,8 @@ El circuito se arma en una protoboard junto a su esquema: el esquema es el plano
 ### Diseño
 
 - La cinta pasa a tener Simular, Grabar y Mostrar en la fila de título y las pestañas Inicio, Analizar, Vista y Ayuda. Sigue a la vista con el último clic, no al paso del ratón. La tecla V cicla en tres pasos al simular: colores por voltaje, colores con valores y nada. Las placas tienen las proporciones reales de 830, 400 y 170 puntos, y un selector Etiquetas | Equipos elige cómo se ven los instrumentos. En el lienzo limpio de Las dos, la barra flotante queda sobre el divisor y los rótulos de vista suben para no quedar debajo.
-- Los cambios de la cinta: Los instrumentos salen de la cinta y se colocan desde la Librería y Medir, Agrupar en encapsulados se quita de la interfaz, Grabar tiene su propio grupo con pausa y detener, y la flecha que pliega la cinta pasa a la fila de pestañas. En la protoboard, Colocar trae Pieza, Placa y Alimentación, Tierra, Nota y Alambre, y el grupo Protoboard concentra Generar protoboard, Generar esquema, la forma de los alambres y las ayudas visuales. El clic derecho tiene iconos en todas sus entradas.
-- Pestaña Avisos en el riel derecho, con un número del color del aviso más grave: rojo impide simular, ámbar avisa de algo que se quema o no es comercial y gris lista las diferencias con la protoboard. Solo muestra el estado actual, lo corregido desaparece solo. Al pasar el ratón por una tarjeta se resalta su lugar y un clic lo encuadra. F5 con un aviso rojo abre la pestaña en lugar de simular.
+- Los cambios de la cinta: Los instrumentos salen de la cinta y se colocan desde la Librería y Medir, Agrupar en encapsulados se quita de la interfaz, Grabar tiene su propio grupo con pausa y detener, y la flecha que pliega la cinta pasa a la fila de pestañas. En la protoboard, Colocar trae Pieza, Placa y Alimentación, Tierra, Nota y Cable, y el grupo Protoboard concentra Generar protoboard, Generar esquema, la forma de los cables y las ayudas visuales. El clic derecho tiene iconos en todas sus entradas.
+- Pestaña Avisos en el riel derecho, con un número del color del aviso más grave: rojo impide simular, amarillo avisa de algo que se quema o no es comercial y gris lista las diferencias con la protoboard. Solo muestra el estado actual, lo corregido desaparece solo. Al pasar el ratón por una tarjeta se resalta su lugar y un clic lo encuadra. F5 con un aviso rojo abre la pestaña en lugar de simular.
 - Se quita la pestaña Registro de la franja inferior. Los avisos tampoco salen ya en el inspector sin selección ni en Proyecto.
 - La placa, la mesa y las piezas conservan sus colores reales en tema oscuro.
 

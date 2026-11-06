@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es" data-tema="oscuro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-en="Support Kirchi">Apoyar a Kirchi</title>
+<meta name="description" data-en-content="Kirchi is free. If it is useful to you, you can support its development with a voluntary contribution that unlocks nothing." content="Kirchi es gratis. Si te sirve, puedes apoyar su desarrollo con una aportación voluntaria que no desbloquea nada.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>
+  try { var t = localStorage.getItem("kirchi-tema"); if (t === "claro" || t === "oscuro") document.documentElement.dataset.tema = t; } catch (e) {}
+</script>
+<link rel="stylesheet" href="estilos.css">
+<script src="config.js"></script>
+<script src="js/idioma-inicial.js"></script>
+</head>
+<body>
+<a data-en="Skip to content" class="salto" href="#contenido">Saltar al contenido</a>
+
+<header class="cab">
+  <a data-en-aria-label="Kirchi, home page" class="marca" href="./" aria-label="Kirchi, página principal"><img src="img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
+  <div class="cab-botones">
+    <button class="btn-borde" id="boton-tema" type="button" aria-pressed="false">Tema claro</button>
+    <div class="selector-idioma" role="group" aria-label="Idioma / Language"><button class="btn-borde" type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="true">ES</button><button class="btn-borde" type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="false">EN</button></div>
+  </div>
+</header>
+
+<main id="contenido">
+<section class="seccion seccion-apoyo" aria-labelledby="t-apoyar">
+  <div class="ancho apoyo-rejilla">
+    <div class="apoyo-texto">
+      <p data-en="Voluntary support" class="rotulo">Apoyo voluntario</p>
+      <h1 data-en="Help keep Kirchi going" id="t-apoyar" class="titulo-apoyo">Ayuda a que Kirchi siga avanzando</h1>
+      <p data-en="Kirchi is free and you can use all of it without paying anything. If it is useful to you, you can contribute so it keeps being maintained." class="lead">Kirchi es gratis y puedes usarlo completo sin pagar nada. Si te sirve, puedes aportar para que siga manteniéndose.</p>
+      <ul class="apoyo-chips" data-en-aria-label="What your support means" aria-label="Qué significa tu apoyo">
+        <li class="mono" data-en="Optional">Opcional</li>
+        <li class="mono" data-en="Unlocks nothing">No desbloquea nada</li>
+        <li class="mono" data-en="No account needed">Sin cuenta</li>
+      </ul>
+      <p data-en="Your contribution pays for time to maintain Kirchi and build new versions, and for services it may need, such as cloud features in the future." class="apoyo-por-que">Tu aportación paga tiempo para mantener Kirchi y hacer versiones nuevas, y servicios que pueda necesitar, como la nube a futuro.</p>
+    </div>
+    <div class="apoyo-caja">
+      <p data-en="Choose how to contribute" class="apoyo-caja-titulo">Elige cómo aportar</p>
+      <ul class="apoyo-lista" id="proveedores"></ul>
+      <p data-en="There is no active way to give support right now." id="sin-proveedores" hidden>Por ahora no hay una forma de apoyo activa.</p>
+      <p data-en="Each provider charges its own fees and handles your data under its own terms. Kirchi does not receive or store your payment data. <a href=&quot;./&quot;>Back to the Kirchi page</a>." class="apoyo-nota">Cada proveedor cobra sus propias comisiones y trata tus datos según sus condiciones. Kirchi no recibe ni guarda tus datos de pago. <a href="./">Volver a la página de Kirchi</a>.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="pie">
+  <div class="ancho">
+    <p data-en="Made by Misael Saúl Avila López. Free to use, <a href=&quot;https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE&quot;>terms of use</a> · <a href=&quot;https://gist.github.com/MisaelAvila49/26b174fbe0fbfba7ef4c4176b3a25404&quot;>Privacy</a>.">Hecho por Misael Saúl Avila López. Gratis, <a href="https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE">términos de uso</a> · <a href="https://gist.github.com/MisaelAvila49/26b174fbe0fbfba7ef4c4176b3a25404">Privacidad</a>.</p>
+  </div>
+</footer>
+<script type="module" src="js/apoyo.js"></script>
+</body>
+</html>

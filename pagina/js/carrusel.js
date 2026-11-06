@@ -3,6 +3,8 @@
 // avance para siempre; recorre un ciclo completo y se detiene; solo corre a la vista; sin
 // avance con movimiento reducido. aria-live apagado mientras rota, cortés cuando se detiene.
 
+import { t, alCambiar } from "./idioma.js";
+
 const REDUCIR = matchMedia("(prefers-reduced-motion: reduce)");
 
 export function carrusel(raiz, {pausaGlobal = () => false} = {}) {
@@ -21,9 +23,12 @@ export function carrusel(raiz, {pausaGlobal = () => false} = {}) {
     if (siguiente && detenido) siguiente.textContent = "";
     vivo.setAttribute("aria-live", corre ? "off" : "polite");
     if (boton) {
-      (boton.querySelector(".txt") || boton).textContent = detenido ? "Reanudar" : "Pausar";
+      (boton.querySelector(".txt") || boton).textContent = detenido ? t("reanudar") : t("pausar");
       boton.setAttribute("aria-pressed", String(detenido));
     }
+  }
+  function rotuloSiguiente() {
+    if (siguiente && !detenido) siguiente.textContent = i < tabs.length - 1 ? `${t("sigue")} ${tabs[i + 1].querySelector("b").textContent.trim()}` : "";
   }
   function elegir(n, enfocar) {
     i = (n + tabs.length) % tabs.length;
@@ -36,7 +41,7 @@ export function carrusel(raiz, {pausaGlobal = () => false} = {}) {
       b.classList.toggle("activa", k === i);
       const relleno = b.querySelector("i"); relleno.style.animation = "none"; void relleno.offsetWidth; relleno.style.animation = "";
     });
-    if (siguiente) siguiente.textContent = i < tabs.length - 1 ? `Sigue: ${tabs[i + 1].textContent.trim()}` : "";
+    if (siguiente) rotuloSiguiente();
     if (enfocar) tabs[i].focus();
     sincronizar();
   }
@@ -61,5 +66,6 @@ export function carrusel(raiz, {pausaGlobal = () => false} = {}) {
   REDUCIR.addEventListener("change", () => { detenido = REDUCIR.matches; sincronizar(); });
   raiz.style.setProperty("--dur", raiz.dataset.duracion || "7s");
   elegir(0);
+  alCambiar(() => { rotuloSiguiente(); sincronizar(); });
   return {sincronizar};
 }

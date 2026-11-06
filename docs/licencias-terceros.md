@@ -1,6 +1,6 @@
 # Licencias de terceros
 
-Kirchi se distribuye con la licencia MIT (`LICENSE`, Copyright (c) 2026 Misael Saúl Avila López), que viaja junto al ejecutable como `LICENSE.txt`. Lo que Kirchi lleva de terceros se divide en dos partes que se tratan distinto: lo que forma parte de su programa (bibliotecas de la interfaz, crates del motor y fuentes tipográficas), que solo admite licencias permisivas, y lo que viaja junto a él como programa aparte (Electron con Chromium, y ngspice), que conserva sus propias licencias, incluidas algunas recíprocas. Todos los textos se muestran en «Acerca de», en tres apartados plegables: la licencia de Kirchi, ngspice y Electron, y las licencias de terceros.
+Kirchi se distribuye con sus términos de uso (`LICENSE` y `NOTICE`, Copyright 2026 Misael Saúl Avila López), que viajan junto al ejecutable como `LICENSE.txt` y `NOTICE.txt`: es gratuito y su código no es público desde la versión 3.1.1. Las versiones hasta la 3.0.0 se publicaron con la licencia MIT y la 3.1.0 con Apache 2.0. Lo que Kirchi lleva de terceros se divide en dos partes que se tratan distinto: lo que forma parte de su programa (bibliotecas de la interfaz, crates del motor y fuentes tipográficas), que solo admite licencias permisivas, y lo que viaja junto a él como programa aparte (Electron con Chromium, y ngspice), que conserva sus propias licencias, incluidas algunas recíprocas. Todos los textos se muestran en «Acerca de», en tres apartados plegables: la licencia de Kirchi, ngspice y Electron, y las licencias de terceros.
 
 ## Dentro del programa
 
@@ -68,3 +68,5 @@ El flujo de instaladores la sube como artefacto `kirchi-fuentes-terceros` (traba
 Los símbolos SVG de `componentes/` son dibujos propios y no traen metadatos de otros programas ni de bancos de símbolos. Los parámetros eléctricos son cifras: la mayoría se ajustaron por Kirchi a las hojas de datos de los fabricantes, que se citan en el campo `fuentes` de cada `pieza.json` con documento, revisión y dirección. El repositorio no contiene archivos de modelo SPICE de fabricantes ni sus textos.
 
 Los seis transistores de señal (2N2222, 2N3904, BC547, 2N2907, 2N3906 y BC557) usan parámetros ajustados por Kirchi a las hojas de datos, citadas en `fuentes` de cada pieza.
+
+Los logotipos de GitHub, PayPal y Mercado Pago del diálogo «Apoyar a Kirchi» son de Simple Icons (CC0 1.0). Las marcas pertenecen a sus dueños y se usan solo para identificar el medio de pago.
