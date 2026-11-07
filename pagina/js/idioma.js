@@ -1,11 +1,11 @@
 // Selector ES/EN. El español vive en el HTML; el inglés, en atributos data-en (contenido) y
 // data-en-<atributo> (alt, aria-label, content). Los textos que pone el JS salen de TEXTOS.
 const TEXTOS = {
-  es: { tema_claro: "Tema claro", tema_oscuro: "Tema oscuro", pausar_mov: "Pausar movimiento", reanudar_mov: "Reanudar movimiento",
-        ampliar: "Ampliar la captura", para: "Descargar para ", tambien: "También para", version: "Versión ",
+  es: { pausar_mov: "Pausar movimiento", reanudar_mov: "Reanudar movimiento",
+        ampliar: "Ampliar la captura", sigue: "Sigue: ", car_pausar: "Pausar el carrusel", car_reanudar: "Reanudar el carrusel", video_play: "Reproducir el video", video_pausa: "Pausar el video", para: "Descargar para ", tambien: "También para", version: "Versión ",
         os_windows: "Windows 10 y 11 · Microsoft Store", os_macos: "macOS · dmg universal", os_linux: "Linux · AppImage" },
-  en: { tema_claro: "Light theme", tema_oscuro: "Dark theme", pausar_mov: "Pause motion", reanudar_mov: "Resume motion",
-        ampliar: "Enlarge the screenshot", para: "Download for ", tambien: "Also for", version: "Version ",
+  en: { pausar_mov: "Pause motion", reanudar_mov: "Resume motion",
+        ampliar: "Enlarge the screenshot", sigue: "Next: ", car_pausar: "Pause the carousel", car_reanudar: "Resume the carousel", video_play: "Play the video", video_pausa: "Pause the video", para: "Download for ", tambien: "Also for", version: "Version ",
         os_windows: "Windows 10 and 11 · Microsoft Store", os_macos: "macOS · universal dmg", os_linux: "Linux · AppImage" },
 };
 const raiz = document.documentElement;

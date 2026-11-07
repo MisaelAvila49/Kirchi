@@ -1,11 +1,11 @@
-// Kirchi, página de descarga: tema, pausa global, selector de sistema, enlaces directos a los instaladores,
+// Kirchi, página de descarga: selector de sistema, enlaces directos a los instaladores,
 // barra fija en el celular, ampliar capturas y tráiler de fachada. Sin listeners de scroll.
 import { t, alCambiar } from "./idioma.js";
 import "./trailer.js";
 
 const CFG = window.KIRCHI;
-const REDUCIR = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const RELEASES = `https://github.com/${CFG.REPO}/releases/latest`;
+const REDUCIR = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const raiz = document.documentElement;
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -16,26 +16,14 @@ function pintarVersion() {
   $$("[data-version-release]").forEach((e) => { e.textContent = versionRelease; });
 }
 
-/* Tema claro y oscuro */
-const botonTema = document.getElementById("boton-tema");
-function pintarTema() {
-  const claro = raiz.dataset.tema === "claro";
-  botonTema.textContent = claro ? t("tema_oscuro") : t("tema_claro");
-  botonTema.setAttribute("aria-pressed", String(claro));
-}
-botonTema.addEventListener("click", () => {
-  raiz.dataset.tema = raiz.dataset.tema === "claro" ? "oscuro" : "claro";
-  try { localStorage.setItem("kirchi-tema", raiz.dataset.tema); } catch (e) {}
-  pintarTema();
-});
-
-/* Pausa global del movimiento (WCAG 2.2.2): trazas de la portada y onda del osciloscopio */
+/* Pausa global del movimiento (WCAG 2.2.2): onda y trazas de la portada, figura animada y transiciones. Con movimiento reducido arranca pausado. */
 let pausaGlobal = REDUCIR;
 const botonMov = document.getElementById("boton-movimiento");
 function pintarPausa() {
   botonMov.setAttribute("aria-pressed", String(pausaGlobal));
-  botonMov.textContent = pausaGlobal ? t("reanudar_mov") : t("pausar_mov");
+  botonMov.setAttribute("aria-label", pausaGlobal ? t("reanudar_mov") : t("pausar_mov"));
   raiz.classList.toggle("pausado", pausaGlobal);
+  document.dispatchEvent(new Event("kirchi-pausa"));
 }
 botonMov.addEventListener("click", () => { pausaGlobal = !pausaGlobal; pintarPausa(); });
 
@@ -65,9 +53,14 @@ function pintarSistema() {
     });
   });
   $$("[data-os-actual]").forEach((e) => e.classList.toggle("actual", e.dataset.osActual === sistema));
-  $$(".canal-os").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.os === sistema)));
+  $$("[data-os]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.os === sistema)));
 }
-$$(".canal-os").forEach((b) => b.addEventListener("click", () => { sistema = b.dataset.os; pintarSistema(); }));
+/* Una sola elección de sistema para la portada y para «Descargar»: un estado (sistema) y un evento. */
+document.addEventListener("kirchi-sistema", pintarSistema);
+$$("[data-os]").forEach((b) => b.addEventListener("click", () => {
+  sistema = b.dataset.os;
+  document.dispatchEvent(new CustomEvent("kirchi-sistema", { detail: sistema }));
+}));
 
 /* Enlaces directos a cada instalador desde la API pública de GitHub, con respaldo a la página de versiones */
 const botonTienda = document.querySelector("[data-tienda]");
@@ -80,7 +73,7 @@ function ponerEnlaces() {
   pintarSistema();
 }
 
-function todo() { pintarVersion(); pintarTema(); pintarPausa(); pintarSistema(); $$(".ampliar").forEach((b) => b.setAttribute("aria-label", t("ampliar"))); }
+function todo() { pintarVersion(); pintarPausa(); pintarSistema(); $$(".ampliar").forEach((b) => b.setAttribute("aria-label", t("ampliar"))); }
 todo();
 alCambiar(todo);
 
@@ -100,9 +93,15 @@ const actualizarFija = () => { fija.hidden = enPortada || enDescargas; };
 new IntersectionObserver(([e]) => { enPortada = e.isIntersecting || e.boundingClientRect.top > 0; actualizarFija(); }).observe(document.getElementById("inicio"));
 new IntersectionObserver(([e]) => { enDescargas = e.isIntersecting; actualizarFija(); }).observe(document.getElementById("descargas"));
 
-/* Ampliar una captura: botón sobre cada imagen, diálogo a pantalla completa con Cerrar y Esc */
-const lupa = document.getElementById("lupa"), lupaImg = document.getElementById("lupa-img");
+/* Ampliar una captura: capa propia (no <dialog>) que cierra con el botón visible, con Esc y con un clic fuera de la imagen. */
+const lupa = document.getElementById("lupa"), lupaImg = document.getElementById("lupa-img"), lupaCuerpo = document.getElementById("lupa-cuerpo");
+const lupaCerrar = document.getElementById("lupa-cerrar");
 let origen = null;
+function cerrarLupa() {
+  if (lupa.hidden) return;
+  lupa.hidden = true; lupaImg.removeAttribute("src"); raiz.classList.remove("lupa-abierta");
+  if (origen) origen.focus();
+}
 $$(".pant-cuerpo > img").forEach((img) => {
   const b = document.createElement("button");
   b.type = "button"; b.className = "ampliar";
@@ -110,10 +109,26 @@ $$(".pant-cuerpo > img").forEach((img) => {
   img.replaceWith(b); b.append(img);
   b.addEventListener("click", () => {
     origen = b; lupaImg.src = img.currentSrc || img.src; lupaImg.alt = img.alt;
-    lupa.showModal();
-    const cu = lupa.querySelector(".lupa-cuerpo"); cu.scrollTop = 0; cu.scrollLeft = (cu.scrollWidth - cu.clientWidth) / 2;
+    lupa.hidden = false; raiz.classList.add("lupa-abierta");
+    lupaCuerpo.scrollTop = 0; lupaCuerpo.scrollLeft = (lupaCuerpo.scrollWidth - lupaCuerpo.clientWidth) / 2;
+    lupaCerrar.focus();
   });
 });
-document.getElementById("lupa-cerrar").addEventListener("click", () => lupa.close());
-lupa.addEventListener("click", (e) => { if (e.target === lupa) lupa.close(); });
-lupa.addEventListener("close", () => { lupaImg.removeAttribute("src"); if (origen) origen.focus(); });
+lupaCerrar.addEventListener("click", cerrarLupa);
+lupa.addEventListener("click", (e) => { if (e.target !== lupaImg) cerrarLupa(); });
+document.addEventListener("keydown", (e) => {
+  if (lupa.hidden) return;
+  if (e.key === "Escape") { e.preventDefault(); cerrarLupa(); }
+  else if (e.key === "Tab") { e.preventDefault(); lupaCerrar.focus(); }
+});
+
+/* Las imágenes y pósters del otro idioma se precargan en reposo, para que el cambio de idioma no parpadee */
+function precargar() {
+  $$("[data-en-src], [data-en-poster]").forEach((e) => {
+    ["src", "poster"].forEach((a) => {
+      const otro = e.getAttribute("data-en-" + a), actual = e.getAttribute(a);
+      if (otro && actual && /\.(webp|png|jpg)$/.test(otro)) { new Image().src = otro; new Image().src = actual; }
+    });
+  });
+}
+addEventListener("load", () => { if (window.requestIdleCallback) requestIdleCallback(precargar, { timeout: 4000 }); else setTimeout(precargar, 1500); });

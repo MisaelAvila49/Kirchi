@@ -6,9 +6,6 @@
 <title data-en="Support Kirchi">Apoyar a Kirchi</title>
 <meta name="description" data-en-content="Kirchi is free. If it is useful to you, you can support its development with a voluntary contribution that unlocks nothing." content="Kirchi es gratis. Si te sirve, puedes apoyar su desarrollo con una aportación voluntaria que no desbloquea nada.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<script>
-  try { var t = localStorage.getItem("kirchi-tema"); if (t === "claro" || t === "oscuro") document.documentElement.dataset.tema = t; } catch (e) {}
-</script>
 <link rel="stylesheet" href="estilos.css">
 <script src="config.js"></script>
 <script src="js/idioma-inicial.js"></script>
@@ -19,7 +16,6 @@
 <header class="cab"><div class="ancho cab-in">
   <a data-en-aria-label="Kirchi, home page" class="marca" href="./" aria-label="Kirchi, página principal"><img src="img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
   <div class="ctrl">
-    <button class="mini" id="boton-tema" type="button" aria-pressed="false">Tema claro</button>
     <span class="selector-idioma" role="group" aria-label="Idioma / Language" style="display:flex;gap:4px"><button class="mini" type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="true">ES</button><button class="mini" type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="false">EN</button></span>
   </div>
 </div></header>
