@@ -12,7 +12,7 @@ Build the circuit, press F5 and watch it work. Free, offline, no account, in Eng
 
 [![Get it from the Microsoft Store](https://img.shields.io/badge/Microsoft%20Store-Get%20it-0E7C66?style=for-the-badge&logo=microsoft&logoColor=white)](https://apps.microsoft.com/detail/9pks3qd294cn)
 [![Download for Windows, macOS and Linux](https://img.shields.io/badge/Releases-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-22252A?style=for-the-badge&logo=github&logoColor=white)](../../releases/latest)
-[![Download page](https://img.shields.io/badge/Page-Download-22252A?style=for-the-badge&logo=githubpages&logoColor=white)](https://misaelavila49.github.io/Kirchi/)
+[![Download page](https://img.shields.io/badge/Page-Download-22252A?style=for-the-badge&logo=githubpages&logoColor=white)](https://misaelavila49.github.io/Kirchi/en/)
 
 [![Free to use](https://img.shields.io/badge/use-free-0E7C66.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-3.1.1-0E7C66.svg)](CHANGELOG.en.md)
@@ -169,7 +169,7 @@ The assistant can build, simulate, read measurements and export the image of the
 
 ## Download and install
 
-The easiest way on Windows is the [Microsoft Store](https://apps.microsoft.com/detail/9pks3qd294cn). For any system, the installers are on [Releases](../../releases/latest) and on the [download page](https://misaelavila49.github.io/Kirchi/).
+The easiest way on Windows is the [Microsoft Store](https://apps.microsoft.com/detail/9pks3qd294cn). For any system, the installers are on [Releases](../../releases/latest) and on the [download page](https://misaelavila49.github.io/Kirchi/en/).
 
 The Microsoft Store installs and updates Kirchi by itself. With the files from Releases, the installers are not signed with a paid certificate, so each system asks for a confirmation the first time:
 

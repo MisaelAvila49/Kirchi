@@ -42,3 +42,23 @@ document.querySelectorAll("[data-idioma]").forEach((a) => a.addEventListener("cl
   try { localStorage.setItem("kirchi-idioma", a.dataset.idioma); } catch (e) {}
 }));
 aplicar();
+
+// Si el navegador está en el otro idioma y la persona aún no elige, se le ofrece la otra página sin redirigir.
+(function avisoDeIdioma() {
+  const nav = /^en/i.test(navigator.language || "") ? "en" : /^es/i.test(navigator.language || "") ? "es" : "";
+  let elegido = "";
+  try { elegido = localStorage.getItem("kirchi-idioma") || ""; } catch (e) {}
+  const otra = raiz.getAttribute("data-otra-pagina");
+  if (elegido || !nav || nav === idioma() || !otra) return;
+  const en = nav === "en";
+  const aviso = document.createElement("div");
+  aviso.className = "aviso-idioma";
+  aviso.lang = nav;
+  aviso.innerHTML = `<a href="${otra}" hreflang="${nav}" data-idioma="${nav}">${en ? "This page is also in English" : "Esta página también está en español"} <span aria-hidden="true">→</span></a>` +
+    `<button type="button" class="aviso-idioma-cerrar">${en ? "Close" : "Cerrar"}</button>`;
+  const guardar = (l) => { try { localStorage.setItem("kirchi-idioma", l); } catch (e) {} };
+  aviso.querySelector("a").addEventListener("click", () => guardar(nav));
+  // Cerrar el aviso es quedarse en esta página: no vuelve a salir.
+  aviso.querySelector("button").addEventListener("click", () => { guardar(idioma()); aviso.remove(); });
+  document.body.prepend(aviso);
+})();

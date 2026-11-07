@@ -53,6 +53,11 @@ a { color: var(--link); text-underline-offset: .2em; }
 /* ES y EN son enlaces a la página de cada idioma */
 a.mini { display: inline-flex; align-items: center; text-decoration: none; }
 .mini[aria-current="page"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+/* Aviso de la página en el idioma del navegador */
+.aviso-idioma { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 16px; padding: 8px 16px; background: var(--surface); border-bottom: 1px solid var(--line); font: 500 .875rem/1.4 var(--sans); }
+.aviso-idioma a { color: var(--link); text-underline-offset: 3px; }
+.aviso-idioma-cerrar { font: 500 .8125rem/1 var(--mono); color: var(--ink-soft); background: transparent; border: 1px solid var(--chip-line); border-radius: 8px; padding: 7px 10px; min-height: 32px; cursor: pointer; }
+.aviso-idioma-cerrar:hover { color: var(--ink); border-color: var(--ink-soft); }
 .cab .btn { padding: 9px 16px; font-size: .9375rem; min-height: 38px; }
 
 /* Botones */
