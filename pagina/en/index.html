@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en" data-tema="oscuro" data-otra-pagina="../"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kirchi, a free circuit simulator in English and Spanish</title>
+<meta name="description" content="Kirchi is a free, offline desktop circuit simulator, in English and Spanish. Watch the voltage on every wire and a four-channel oscilloscope while it runs, build on a breadboard and open circuits from Proteus, LTspice, KiCad and Falstad.">
+<!-- seo:inicio -->
+<link rel="canonical" href="https://misaelavila49.github.io/Kirchi/en/">
+<link rel="alternate" hreflang="es" href="https://misaelavila49.github.io/Kirchi/">
+<link rel="alternate" hreflang="en" href="https://misaelavila49.github.io/Kirchi/en/">
+<link rel="alternate" hreflang="x-default" href="https://misaelavila49.github.io/Kirchi/en/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kirchi">
+<meta property="og:title" content="Kirchi, a free circuit simulator in English and Spanish">
+<meta property="og:description" content="Kirchi is a free, offline desktop circuit simulator, in English and Spanish. Watch the voltage on every wire and a four-channel oscilloscope while it runs, build on a breadboard and open circuits from Proteus, LTspice, KiCad and Falstad.">
+<meta property="og:url" content="https://misaelavila49.github.io/Kirchi/en/">
+<meta property="og:image" content="https://misaelavila49.github.io/Kirchi/img/og-en.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Kirchi: a circuit in the schematic and built on the breadboard.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="es_MX">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Kirchi","description":"Kirchi is a free, offline desktop circuit simulator, in English and Spanish. Watch the voltage on every wire and a four-channel oscilloscope while it runs, build on a breadboard and open circuits from Proteus, LTspice, KiCad and Falstad.","url":"https://misaelavila49.github.io/Kirchi/en/","applicationCategory":"EducationalApplication","applicationSubCategory":"Circuit simulator","operatingSystem":"Windows 10, Windows 11, macOS, Linux","softwareVersion":"3.1.1","inLanguage":["es","en"],"isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"downloadUrl":"https://misaelavila49.github.io/Kirchi/en/#descargas","image":"https://misaelavila49.github.io/Kirchi/img/og-en.jpg","screenshot":["https://misaelavila49.github.io/Kirchi/img/amp-en.webp","https://misaelavila49.github.io/Kirchi/img/fabricar-en.webp","https://misaelavila49.github.io/Kirchi/img/bode-en.webp"],"author":{"@type":"Person","name":"Misael Saúl Avila López"},"license":"https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE"}</script>
+<!-- seo:fin -->
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preload" href="../fuentes/mona-sans-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin="">
+<script>
+  document.documentElement.classList.add("js");
+</script>
+<link rel="stylesheet" href="../estilos.css">
+<script src="../config.js"></script>
+<script src="../js/idioma-inicial.js"></script>
+</head>
+<body>
+<a class="salto" href="#contenido">Skip to content</a>
+
+<header class="cab"><div class="ancho cab-in">
+  <a class="marca" href="#inicio" aria-label="Kirchi, home"><img src="../img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
+  <nav class="nav" aria-label="Sections">
+    <a href="#trailer-sec">Trailer</a>
+    <a href="#crecimiento">Evolution</a>
+    <a href="#uso">Features</a>
+    <a href="#apoyar" class="nav-apoyo">Support</a>
+  </nav>
+  <div class="ctrl">
+    <div class="ctrl-herr">
+      <button class="mini mini-icono" id="boton-movimiento" type="button" aria-pressed="false" aria-label="Pausar movimiento"><span class="ic-p"><i data-i="pausa"></i></span><span class="ic-r"><i data-i="reproducir"></i></span></button>
+      <span class="selector-idioma" role="group" aria-label="Idioma / Language"><a class="mini" href="../" data-idioma="es" hreflang="es" lang="es" aria-label="Español">ES</a><a class="mini" href="./" data-idioma="en" hreflang="en" lang="en" aria-label="English" aria-current="page">EN</a></span>
+    </div>
+    <a class="btn btn-cab" href="#descargas"><i data-i="descargar"></i><span>Download</span></a>
+  </div>
+</div></header>
+
+<main id="contenido">
+<section class="hero" id="inicio">
+  <div class="rejilla-osc" aria-hidden="true"></div>
+  <svg class="trazas" viewBox="0 0 1440 440" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path class="tz k1" pathLength="1" d="M0 120H90V170H180V120H270V170H360V120H450V170H540V120H630V170H720V120H810V170H900V120H990V170H1080V120H1170V170H1260V120H1350V170H1440V120H1530V170H1440"></path>
+    <path class="tz k4" pathLength="1" d="M0 190H50V240H140V190H230V240H320V190H410V240H500V190H590V240H680V190H770V240H860V190H950V240H1040V190H1130V240H1220V190H1310V240H1400V190H1490V240H1580V190H1440"></path>
+    <path class="tz k2" pathLength="1" d="M0 295L110 270L220 320L330 270L440 320L550 270L660 320L770 270L880 320L990 270L1100 320L1210 270L1320 320L1430 270L1540 320"></path>
+    <path class="tz k3" pathLength="1" d="M0 350H90V410H270V350H450V410H630V350H810V410H990V350H1170V410H1350V350H1530V410H1710V350H1440"></path>
+  </svg>
+  <div class="ancho hero-in">
+    <div class="hero-txt">
+      <h1 class="an marca-h1"><img src="../img/icono.svg" alt="" width="88" height="88"><span>Kirchi</span></h1>
+      <p class="que an" style="--d:.08s">Free, offline circuit simulator</p>
+      <p class="sub an" style="--d:.16s">Watch the voltage on every wire and the signal on a four-channel oscilloscope while it runs. Open your circuits from Proteus, LTspice, KiCad or Falstad. In English or Spanish, with no internet and no account.</p>
+      <p class="hero-acciones an" style="--d:.24s"><a class="btn-borde" id="cta-apoyo" href="#apoyar"><i data-i="apoyo"></i><span>Support Kirchi</span></a></p>
+    </div>
+    <div class="instrumento an" style="--d:.2s" role="group" aria-label="Download panel">
+      <div class="inst-cab mono"><span class="led"></span><span>KIRCHI <span data-version=""></span></span><span class="inst-der">Free · no account</span></div>
+      <div class="pantalla" aria-hidden="true">
+        <div class="pantalla-rej"></div>
+        <div class="pantalla-onda"><svg class="onda" viewBox="0 0 1600 200" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path class="k1" d="M0 20H100V60H200V20H300V60H400V20H500V60H600V20H700V60H800V20H900V60H1000V20H1100V60H1200V20H1300V60H1400V20H1500V60H1600V20H1700V60H1600"></path>
+          <path class="k4" d="M0 74H40V114H140V74H240V114H340V74H440V114H540V74H640V114H740V74H840V114H940V74H1040V114H1140V74H1240V114H1340V74H1440V114H1540V74H1640V114H1740V74H1600"></path>
+          <path class="k2" d="M0 135L100 124L200 146L300 124L400 146L500 124L600 146L700 124L800 146L900 124L1000 146L1100 124L1200 146L1300 124L1400 146L1500 124L1600 146"></path>
+          <path class="k3" d="M0 158H80V190H280V158H480V190H680V158H880V190H1080V158H1280V190H1480V158H1680V190H1880V158H1600"></path>
+        </svg></div>
+        <span class="lect mono"><b class="k1">A</b><b class="k2">B</b><b class="k3">C</b><b class="k4">D</b></span>
+        <span class="escala mono">500 µs per division</span>
+      </div>
+      <p class="sel-tit mono">Channel = your system</p>
+      <div class="selector" role="group" aria-label="System">
+        <button type="button" class="canal-os k1" data-os="windows">Windows</button>
+        <button type="button" class="canal-os k2" data-os="macos">macOS</button>
+        <button type="button" class="canal-os k3" data-os="linux">Linux</button>
+      </div>
+      <a class="btn btn-grande js-dl" href="#descargas" id="cta-principal"><i data-i="descargar"></i><span class="js-dl-txt">Download</span></a>
+      <p class="dato js-dl-dato"></p>
+    </div>
+  </div>
+</section>
+
+<section class="lecturas" aria-label="Kirchi at a glance"><div class="ancho"><ul class="confianza">
+  <li class="k1"><i data-i="gratis"></i><span>Free</span></li>
+  <li class="k2"><i data-i="sincuenta"></i><span>No account</span></li>
+  <li class="k3"><i data-i="sinconexion"></i><span>Offline, no data sent</span></li>
+  <li class="k4"><i data-i="web"></i><span>English and Spanish</span></li>
+  <li class="k1"><i data-i="kirchi"></i><span>Windows, macOS and Linux</span></li>
+</ul></div></section>
+
+<section class="trailer-sec" id="trailer-sec" aria-labelledby="t-trailer"><div class="ancho">
+  <div class="trailer-tarjeta">
+    <div class="trailer-cab">
+      <p class="rotulo k3"><i data-i="video"></i><span>Trailer</span></p>
+      <h2 class="titulo" id="t-trailer">See it work before you install it</h2>
+      <p class="trailer-aviso mono">Nothing loads from YouTube until you press play.</p>
+      <p class="trailer-enlace"><a href="https://www.youtube.com/watch?v=UEJBj35t4yg">Watch it on YouTube</a></p>
+    </div>
+    <figure class="poster poster-d" id="trailer">
+      <img src="../img/trailer-en.webp" width="1280" height="720" alt="" loading="lazy">
+      <a class="jugar" id="trailer-jugar" href="https://www.youtube.com/watch?v=UEJBj35t4yg" role="button" aria-label="Play the trailer"><b><i data-i="reproducir"></i><span>Watch the trailer</span></b></a>
+    </figure>
+  </div>
+</div></section>
+
+<section class="hist hist-linea" id="crecimiento" aria-labelledby="t-crec" data-historia="linea"><div class="ancho">
+  <header class="hist-cab">
+    <p class="rotulo k1"><i data-i="nuevo"></i><span>Version by version</span></p>
+    <h2 class="titulo" id="t-crec">How Kirchi has grown</h2>
+  </header>
+  <div class="ctl ctl-linea" role="group" aria-label="Version controls">
+    <div class="canales-b">
+      <button type="button" class="mini canal-b k3" data-ir="0"><b>3.1</b></button>
+      <button type="button" class="mini canal-b k3" data-ir="1"><b>3.0</b></button>
+      <button type="button" class="mini canal-b k2" data-ir="2"><b>2.2</b></button>
+      <button type="button" class="mini canal-b k2" data-ir="3"><b>2.0</b></button>
+      <button type="button" class="mini canal-b k1" data-ir="4"><b>1.0</b></button>
+    </div>
+    <button type="button" class="mini" data-prev="">‹ Newer</button>
+    <button type="button" class="mini" data-next="">Older ›</button>
+    <span class="ctl-estado mono" data-estado=""></span>
+    <button type="button" class="mini ctl-anim" data-anim="" aria-pressed="false">No animation</button>
+  </div>
+  <div class="hist-grid">
+    <div class="pasos">
+      <article class="paso k3" data-paso="0" data-etq="3.1" tabindex="-1">
+        <div class="paso-txt">
+        <p class="ver mono" aria-hidden="true">3.1</p>
+        <h3>Export for manufacturing, and in English</h3>
+        <p>The KiCad project and the JLCPCB bill of materials come from the schematic, with a sixteen-step guide. Kirchi is also available in English.</p></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso k3" data-paso="1" data-etq="3.0" tabindex="-1">
+        <div class="paso-txt">
+        <p class="ver mono" aria-hidden="true">3.0</p>
+        <h3>The breadboard</h3>
+        <p>Boards of 830, 400 and 170 points. With right click, “Build breadboard” and “Build schematic” match the two views, and each hole shows whether the part fits, does not fit or shorts.</p></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso k2" data-paso="2" data-etq="2.2" tabindex="-1">
+        <div class="paso-txt">
+        <p class="ver mono" aria-hidden="true">2.2</p>
+        <h3>Open circuits from other programs</h3>
+        <p>Proteus 8, LTspice, KiCad 7 to 9, Falstad and SPICE, with a report of what was approximated.</p></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso k2" data-paso="3" data-etq="2.0" tabindex="-1">
+        <div class="paso-txt">
+        <p class="ver mono" aria-hidden="true">2.0</p>
+        <h3>Parts that change while you simulate</h3>
+        <p>Light, temperature and position sensors with their live knob, MSI logic and the data of every part: package, pins and datasheet.</p></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso k1" data-paso="4" data-etq="1.0" tabindex="-1">
+        <div class="paso-txt">
+        <p class="ver mono" aria-hidden="true">1.0</p>
+        <h3>The first public version</h3>
+        <p>Real-time simulation with colored voltages, oscilloscope, multimeter and generator, and analysis with ngspice.</p></div>
+        <div class="paso-slot"></div>
+      </article>
+    </div>
+    <div class="esc"><div class="esc-lienzo">
+        <figure class="pant esc-fig k3" data-fig="0">
+          <div class="pant-cab mono"><b class="canal-et">CH3</b><span>Manufacture</span><span class="pant-der">KiCad · JLCPCB · EN</span></div>
+          <div class="pant-cuerpo"><img src="../img/fabricar-en.webp" width="1000" height="625" loading="lazy" alt="Kirchi's “Export for manufacturing” dialog, with the KiCad footprint and the destination of each part."></div>
+        </figure>
+        <figure class="pant esc-fig k3" data-fig="1" data-video="">
+          <div class="pant-cab mono"><b class="canal-et">CH3</b><span>Breadboard</span><span class="pant-der">830 · 400 · 170</span></div>
+          <div class="pant-cuerpo"><div class="video-fig">
+            <video muted="" playsinline="" loop="" preload="none" src="../videos/protoboard-en.mp4" poster="../videos/protoboard-en.webp" width="1280" height="800" aria-label="Building the breadboard from the schematic with a right click, and the finished breadboard."></video>
+            <button type="button" class="video-play" aria-label="Reproducir el video"><span class="vp-r"><i data-i="reproducir"></i></span><span class="vp-p"><i data-i="pausa"></i></span></button>
+          </div></div>
+        </figure>
+        <figure class="pant esc-fig k2" data-fig="2" data-video="">
+          <div class="pant-cab mono"><b class="canal-et">CH2</b><span>Import</span><span class="pant-der">Ctrl+O</span></div>
+          <div class="pant-cuerpo"><div class="video-fig">
+            <video muted="" playsinline="" loop="" preload="none" src="../videos/importar-en.mp4" poster="../videos/importar-en.webp" width="1280" height="800" aria-label="A Proteus circuit opening in Kirchi, with its import report."></video>
+            <button type="button" class="video-play" aria-label="Reproducir el video"><span class="vp-r"><i data-i="reproducir"></i></span><span class="vp-p"><i data-i="pausa"></i></span></button>
+          </div></div>
+        </figure>
+        <figure class="pant esc-fig k2" data-fig="3">
+          <div class="pant-cab mono"><b class="canal-et">CH2</b><span>Parts</span><span class="pant-der">2.0</span></div>
+          <div class="pant-cuerpo"><img src="../img/piezas-vivo-en.webp" width="1100" height="690" loading="lazy" alt="A divider with a photoresistor in Kirchi, with low light and high light side by side and its live knob."></div>
+        </figure>
+        <figure class="pant esc-fig k1" data-fig="4">
+          <div class="pant-cab mono"><b class="canal-et">CH1</b><span>Simulate</span><span class="pant-der">1.0</span></div>
+          <div class="pant-cuerpo"><img src="../img/amp-en.webp" width="2060" height="1159" loading="lazy" alt="A one-transistor amplifier being simulated, with colored voltages, two multimeters and the oscilloscope."></div>
+        </figure>
+    </div></div>
+  </div>
+</div></section>
+
+<section class="disparo" id="abre" aria-label="Download"><div class="rejilla-osc" aria-hidden="true"></div><div class="ancho disparo-in">
+  <div><h2>Open your first circuit today</h2><p>Free, no account, and everything happens on your computer.</p></div>
+  <div class="cta-bloque centro">
+    <a class="btn btn-grande js-dl" href="#descargas"><i data-i="descargar"></i><span class="js-dl-txt">Download</span></a>
+    <p class="otros js-otros"></p>
+    <p class="dato js-dl-dato"></p>
+  </div>
+</div></section>
+
+<section class="hist hist-consola" id="uso" aria-labelledby="t-uso" data-historia="consola"><div class="ancho">
+  <header class="hist-cab">
+    <p class="rotulo k2"><i data-i="osciloscopio"></i><span>Day to day</span></p>
+    <h2 class="titulo" id="t-uso">What you do with Kirchi</h2>
+  </header>
+  <div class="ctl ctl-consola" role="group" aria-label="Console controls">
+    <div class="canales-b">
+    <button type="button" class="mini canal-b k1" data-ir="0" aria-label="F5 · Simulate"><b>F5</b></button>
+    <button type="button" class="mini canal-b k2" data-ir="1" aria-label="Measure"><b>Measure</b></button>
+    <button type="button" class="mini canal-b k3" data-ir="2" aria-label="Bode · Analyze"><b>Bode</b></button>
+    <button type="button" class="mini canal-b k4" data-ir="3" aria-label="ƒx · Calculators"><b>ƒx</b></button>
+    <button type="button" class="mini canal-b k1" data-ir="4" aria-label="REC · Record"><b>REC</b></button>
+    <button type="button" class="mini canal-b k2" data-ir="5" aria-label="PNG · Export"><b>PNG</b></button>
+    <button type="button" class="mini canal-b k3" data-ir="6" aria-label="Templates"><b>Templates</b></button>
+    <button type="button" class="mini canal-b k4" data-ir="7" aria-label="AI · Assistant"><b>AI</b></button>
+    </div>
+    <button type="button" class="mini" data-prev="">‹ Previous</button>
+    <button type="button" class="mini" data-next="">Next ›</button>
+    <button type="button" class="mini ctl-anim" data-anim="" aria-pressed="false">No animation</button>
+  </div>
+  <div class="hist-grid">
+    <div class="esc"><div class="esc-lienzo">
+        <figure class="pant esc-fig k1" data-fig="0" data-video="">
+          <div class="pant-cab mono"><b class="canal-et">CH1</b><span>Simulate</span><span class="pant-der">F5</span></div>
+          <div class="pant-cuerpo"><div class="video-fig">
+            <video muted="" playsinline="" loop="" preload="none" src="../videos/f5-en.mp4" poster="../videos/f5-en.webp" width="1280" height="800" aria-label="Kirchi simulating a circuit: wires change color with the voltage and the current moves."></video>
+            <button type="button" class="video-play" aria-label="Reproducir el video"><span class="vp-r"><i data-i="reproducir"></i></span><span class="vp-p"><i data-i="pausa"></i></span></button>
+          </div></div>
+        </figure>
+        <figure class="pant esc-fig k2" data-fig="1">
+          <div class="pant-cab mono"><b class="canal-et">CH2</b><span>Measure</span><span class="pant-der">CH1 · CH2 · CH3 · CH4</span></div>
+          <div class="pant-cuerpo"><img src="../img/555-en.webp" width="2280" height="1283" loading="lazy" alt="Four-channel oscilloscope with the signals of a 555 astable and its probes on the schematic."></div>
+        </figure>
+        <figure class="pant esc-fig k3" data-fig="2">
+          <div class="pant-cab mono"><b class="canal-et">CH3</b><span>Analyze</span><span class="pant-der">ngspice 47</span></div>
+          <div class="pant-cuerpo"><img src="../img/bode-en.webp" width="1360" height="765" loading="lazy" alt="Bode plot of a 60 Hz notch filter, with the schematic and the analysis panel."></div>
+        </figure>
+        <figure class="pant esc-fig k4" data-fig="3" data-video="">
+          <div class="pant-cab mono"><b class="canal-et">CH4</b><span>Calculators</span><span class="pant-der">6</span></div>
+          <div class="pant-cuerpo"><div class="video-fig">
+            <video muted="" playsinline="" loop="" preload="none" src="../videos/calculadora-en.mp4" poster="../videos/calculadora-en.webp" width="1280" height="800" aria-label="A Kirchi calculator showing the equation with your values and placing the circuit."></video>
+            <button type="button" class="video-play" aria-label="Reproducir el video"><span class="vp-r"><i data-i="reproducir"></i></span><span class="vp-p"><i data-i="pausa"></i></span></button>
+          </div></div>
+        </figure>
+        <figure class="pant esc-fig k1" data-fig="4" data-video="">
+          <div class="pant-cab mono"><b class="canal-et">CH5</b><span>Record</span><span class="pant-der">MP4</span></div>
+          <div class="pant-cuerpo"><div class="video-fig">
+            <video muted="" playsinline="" loop="" preload="none" src="../videos/grabar-en.mp4" poster="../videos/grabar-en.webp" width="1280" height="800" aria-label="Kirchi recording the screen while simulating a 555, with the recording time, Pause and Stop in view."></video>
+            <button type="button" class="video-play" aria-label="Reproducir el video"><span class="vp-r"><i data-i="reproducir"></i></span><span class="vp-p"><i data-i="pausa"></i></span></button>
+          </div></div>
+        </figure>
+        <figure class="pant esc-fig k2" data-fig="5" data-carrusel="">
+          <div class="pant-cab mono"><b class="canal-et">CH6</b><span>Export</span><span class="pant-der">PNG · SVG · PDF · MP4</span></div>
+          <div class="pant-cuerpo car">
+            <div class="car-visor" aria-live="off" aria-roledescription="carousel" aria-label="Export formats">
+              <img class="car-lamina activa" role="tabpanel" id="car-lam-0" aria-labelledby="car-tab-0" aria-hidden="false" src="../img/exportar/01-esquema-pdf-en.webp" width="1280" height="800" loading="lazy" alt="The circuit schematic exported to PDF.">
+              <img class="car-lamina" role="tabpanel" id="car-lam-1" aria-labelledby="car-tab-1" aria-hidden="true" src="../img/exportar/02-protoboard-png-en.webp" width="1280" height="800" loading="lazy" alt="Breadboard exported to PNG.">
+              <img class="car-lamina" role="tabpanel" id="car-lam-2" aria-labelledby="car-tab-2" aria-hidden="true" src="../img/exportar/03-osciloscopio-svg-en.webp" width="1280" height="800" loading="lazy" alt="Oscilloscope plot exported to SVG.">
+              <img class="car-lamina" role="tabpanel" id="car-lam-3" aria-labelledby="car-tab-3" aria-hidden="true" src="../img/exportar/04-bom-jlcpcb-en.webp" width="1280" height="800" loading="lazy" alt="Bill of materials for JLCPCB.">
+              <img class="car-lamina" role="tabpanel" id="car-lam-4" aria-labelledby="car-tab-4" aria-hidden="true" src="../img/exportar/05-video-mp4-en.webp" width="1280" height="800" loading="lazy" alt="Window recording as MP4 video.">
+              <span class="car-rotulo mono" aria-hidden="true">PDF</span>
+            </div>
+            <div class="car-pie">
+              <div class="car-tabs" role="tablist" aria-label="Export formats">
+              <button type="button" role="tab" class="car-tab" id="car-tab-0" aria-controls="car-lam-0" aria-selected="true" tabindex="0" data-fmt="PDF" data-lbl-es="Esquema en PDF" data-lbl-en="Schematic as PDF"><span class="car-barra"><i></i></span><span class="car-fmt">PDF</span></button>
+              <button type="button" role="tab" class="car-tab" id="car-tab-1" aria-controls="car-lam-1" aria-selected="false" tabindex="-1" data-fmt="PNG" data-lbl-es="Protoboard en PNG" data-lbl-en="Breadboard as PNG"><span class="car-barra"><i></i></span><span class="car-fmt">PNG</span></button>
+              <button type="button" role="tab" class="car-tab" id="car-tab-2" aria-controls="car-lam-2" aria-selected="false" tabindex="-1" data-fmt="SVG" data-lbl-es="Gráfica en SVG" data-lbl-en="Plot as SVG"><span class="car-barra"><i></i></span><span class="car-fmt">SVG</span></button>
+              <button type="button" role="tab" class="car-tab" id="car-tab-3" aria-controls="car-lam-3" aria-selected="false" tabindex="-1" data-fmt="CSV" data-lbl-es="Lista de materiales JLCPCB" data-lbl-en="JLCPCB bill of materials"><span class="car-barra"><i></i></span><span class="car-fmt">CSV</span></button>
+              <button type="button" role="tab" class="car-tab" id="car-tab-4" aria-controls="car-lam-4" aria-selected="false" tabindex="-1" data-fmt="MP4" data-lbl-es="Video MP4" data-lbl-en="MP4 video"><span class="car-barra"><i></i></span><span class="car-fmt">MP4</span></button>
+              </div>
+              <div class="car-fila">
+                <p class="car-sigue mono"></p>
+                <button type="button" class="car-pausa" aria-pressed="false" aria-label="Pausar el carrusel"><span class="vp-p"><i data-i="pausa"></i></span><span class="vp-r"><i data-i="reproducir"></i></span></button>
+              </div>
+              <p class="car-nota mono">The slides change by themselves every 4 s while this step is active. Click or press a key to stop them.</p>
+            </div>
+          </div>
+        </figure>
+        <figure class="pant esc-fig k3" data-fig="6">
+          <div class="pant-cab mono"><b class="canal-et">CH7</b><span>Templates</span><span class="pant-der">15</span></div>
+          <div class="pant-cuerpo"><img src="../img/plantillas-en.webp" width="1152" height="720" loading="lazy" alt="List of the templates included in Kirchi, ready to simulate."></div>
+        </figure>
+        <figure class="pant esc-fig k4" data-fig="7">
+          <div class="pant-cab mono"><b class="canal-et">CH8</b><span>Assistant</span><span class="pant-der">MCP</span></div>
+          <div class="pant-cuerpo"><img src="../img/asistente-en.webp" width="1264" height="790" loading="lazy" alt="Kirchi with the AI assistant connected through the MCP protocol, building and measuring a circuit."></div>
+        </figure>
+</div></div>
+    <div class="pasos">
+      <article class="paso paso-tecla k1" data-paso="0" data-etq="CH1" tabindex="-1">
+        <div class="paso-txt txt-tecla">
+        <p class="tecla mono" aria-hidden="true">F5</p>
+        <div><h3>Press F5 and watch the voltage</h3>
+        <p>Wires are colored by voltage and current moves through every branch. Eight speeds, from ×10 to ×0.001.</p></div></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso paso-tecla k2" data-paso="1" data-etq="CH2" tabindex="-1">
+        <div class="paso-txt txt-tecla">
+        <p class="tecla mono" aria-hidden="true">Measure</p>
+        <div><h3>Measure like in the lab</h3>
+        <p>Multimeter, four-channel oscilloscope and, with right click › Measure, probes on any wire.</p></div></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso paso-tecla k3" data-paso="2" data-etq="CH3" tabindex="-1">
+        <div class="paso-txt txt-tecla">
+        <p class="tecla mono" aria-hidden="true">Bode</p>
+        <div><h3>Analyze with ngspice</h3>
+        <p>Bode, Fourier and transient, with cursors and ranges you can type.</p></div></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso paso-tecla k4" data-paso="3" data-etq="CH4" tabindex="-1">
+        <div class="paso-txt txt-tecla">
+        <p class="tecla mono" aria-hidden="true">ƒx</p>
+        <div><h3>Calculate and build the circuit</h3>
+        <p>Six calculators show the equation with your values, pick commercial values and place the circuit.</p></div></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso paso-tecla k1" data-paso="4" data-etq="CH5" tabindex="-1">
+        <div class="paso-txt txt-tecla">
+        <p class="tecla mono" aria-hidden="true">REC</p>
+        <div><h3>Record your practice on video</h3>
+        <p>Record the Kirchi window as MP4, with pause and with or without a microphone, to explain a circuit or hand in a lab practice.</p></div></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso paso-tecla k2" data-paso="5" data-etq="CH6" tabindex="-1">
+        <div class="paso-txt txt-tecla">
+        <p class="tecla mono" aria-hidden="true">PNG</p>
+        <div><h3>Export for your report</h3>
+        <p>Schematics and plots as PNG, SVG and PDF, and the window as MP4 video.</p></div></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso paso-tecla k3" data-paso="6" data-etq="CH7" tabindex="-1">
+        <div class="paso-txt txt-tecla">
+        <p class="tecla mono" aria-hidden="true">Templates</p>
+        <div><h3>Start from a template</h3>
+        <p>Fifteen circuits ready to simulate, from the voltage divider to the 555.</p></div></div>
+        <div class="paso-slot"></div>
+      </article>
+      <article class="paso paso-tecla k4" data-paso="7" data-etq="CH8" tabindex="-1">
+        <div class="paso-txt txt-tecla">
+        <p class="tecla mono" aria-hidden="true">AI</p>
+        <div><h3>An AI assistant, if you want one</h3>
+        <p>An assistant like Claude can build, simulate and measure in Kirchi through the MCP protocol. It comes off and everything happens on your computer.</p></div></div>
+        <div class="paso-slot"></div>
+      </article>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="ligero" id="ligero" aria-labelledby="t-ligero"><div class="ancho">
+  <h2 class="titulo" id="t-ligero">Light and offline</h2>
+  <p class="lead">The Windows installer weighs less than 100 MB and a circuit with a thousand parts open uses less than 350 MB of memory. It needs no internet and no account.</p>
+  <figure class="pant k1 pant-ligero">
+    <div class="pant-cab mono"><b class="canal-et">READINGS</b><span class="pant-der">Measured in Kirchi 3.1.1</span></div>
+    <div class="pant-cuerpo texto"><dl class="lec-g">
+      <div class="lec k1"><dd>97.7 <small>MB</small></dd><dt>Windows installer</dt></div>
+      <div class="lec k2"><dd>335 <small>to</small> 345 <small>MB</small></dd><dt>Memory with a thousand parts open</dt></div>
+      <div class="lec k3"><dd>No internet</dd><dt>Connection</dt></div>
+      <div class="lec k4"><dd>No account</dd><dt>Account</dt></div>
+    </dl></div>
+  </figure>
+</div></section>
+
+<section class="apoyo" id="apoyar" aria-labelledby="t-apoyar"><div class="ancho apoyo-in">
+  <div class="apoyo-texto">
+    <p class="rotulo"><i data-i="apoyo"></i><span>Voluntary support</span></p>
+    <h2 id="t-apoyar">Help keep Kirchi going</h2>
+    <p class="lead">Kirchi is free and you can use all of it without paying anything. If it is useful to you, you can contribute so it keeps being maintained.</p>
+    <ul class="apoyo-chips" aria-label="What your support means">
+      <li class="mono">Optional</li>
+      <li class="mono">Unlocks nothing</li>
+      <li class="mono">No account needed</li>
+    </ul>
+    <p class="apoyo-por-que">Your contribution pays for time to maintain Kirchi and build new versions, and for services it may need, such as cloud features in the future.</p>
+  </div>
+  <div class="apoyo-caja">
+    <p class="apoyo-caja-titulo">Choose how to contribute</p>
+    <ul class="apoyo-lista" id="proveedores"></ul>
+    <p class="apoyo-nota">Each provider charges its own fees and handles your data under its own terms. Kirchi does not receive or store your payment data.</p>
+  </div>
+  <script type="module">
+    import { pintarProveedores } from "../js/proveedores.js";
+    pintarProveedores(document.getElementById("proveedores"));
+  </script>
+</div></section>
+
+<section class="desc-sec" id="descargas" aria-labelledby="t-desc"><div class="ancho">
+  <h2 class="titulo" id="t-desc"><span>Download Kirchi</span> <span class="mono v">v<span data-version-release=""></span></span></h2>
+  <p class="lead">Free and no account. Choose your system.</p>
+  <div class="os-lista">
+    <article class="os" id="windows" data-os-actual="windows">
+      <h3><button type="button" class="os-elegir" data-os="windows" aria-pressed="false"><i data-i="kirchi"></i><span>Windows</span><span class="os-marca mono">Chosen</span></button></h3>
+      <span class="etiqueta mono">Windows 10 and 11</span>
+      <p>The Microsoft Store installs and updates it by itself.</p>
+      <div class="fd-botones">
+        <a class="btn" data-tienda="" href="https://github.com/MisaelAvila49/Kirchi/releases/latest"><i data-i="descargar"></i> Microsoft Store</a>
+        <a class="btn-borde enlace-desc" data-sufijo="-Windows-instalador.exe" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Installer (.exe)</a>
+        <a class="btn-borde enlace-desc" data-sufijo="-Windows-portable.zip" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Portable (.zip)</a>
+      </div>
+      <details class="os-aviso"><summary>Security notice</summary><p>The installer is not signed with a paid certificate: SmartScreen warns about an unknown publisher. Click “More info” and “Run anyway”. The portable version runs without installing.</p></details>
+    </article>
+    <article class="os" id="macos" data-os-actual="macos">
+      <h3><button type="button" class="os-elegir" data-os="macos" aria-pressed="false"><i data-i="kirchi"></i><span>macOS</span><span class="os-marca mono">Chosen</span></button></h3>
+      <span class="etiqueta mono">universal dmg</span>
+      <p>Drag Kirchi to Applications.</p>
+      <div class="fd-botones">
+        <a class="btn enlace-desc" data-sufijo="-macOS.dmg" href="https://github.com/MisaelAvila49/Kirchi/releases/latest"><i data-i="descargar"></i> <span>Download .dmg</span></a>
+      </div>
+      <details class="os-aviso"><summary>Security notice</summary><p>The app is not signed by Apple. The first time, right-click Kirchi › Open. If macOS cannot verify it, open System Settings › Privacy &amp; Security and click “Open Anyway”. If it says the app is damaged, run <span class="mono">xattr -cr /Applications/Kirchi.app</span> in Terminal.</p></details>
+    </article>
+    <article class="os" id="linux" data-os-actual="linux">
+      <h3><button type="button" class="os-elegir" data-os="linux" aria-pressed="false"><i data-i="kirchi"></i><span>Linux</span><span class="os-marca mono">Chosen</span></button></h3>
+      <span class="etiqueta mono">AppImage and deb</span>
+      <p>The .deb package is for Debian and Ubuntu.</p>
+      <div class="fd-botones">
+        <a class="btn enlace-desc" data-sufijo="-Linux.AppImage" href="https://github.com/MisaelAvila49/Kirchi/releases/latest"><i data-i="descargar"></i> AppImage</a>
+        <a class="btn-borde enlace-desc" data-sufijo="-Linux.deb" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Package .deb</a>
+      </div>
+      <details class="os-aviso"><summary>Execute permission</summary><p>The AppImage needs execute permission: <span class="mono">chmod +x Kirchi-*-Linux.AppImage</span>.</p></details>
+    </article>
+  </div>
+  <p class="nota-gen">The links go to the latest file published on GitHub. If they do not load, <a href="https://github.com/MisaelAvila49/Kirchi/releases/latest">the releases page</a> has all the files.</p>
+</div></section>
+
+
+
+<section class="seccion seccion-tenue" id="codigo" aria-labelledby="t-codigo">
+  <div class="ancho dos">
+    <div>
+      <h2 class="titulo" id="t-codigo">Licenses and terms of use</h2>
+      <p class="lead">Kirchi is free to use under its terms of use: you may share the official installers without charging for them, but not sell it or distribute modified copies. Versions up to 3.0.0 were published under MIT and 3.1.0 under Apache 2.0. Third-party components keep their own licenses.</p>
+      <ul class="enlaces">
+        <li><a href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Latest version (Release)</a></li>
+        <li><a class="enlace-desc" data-sufijo="-fuentes-de-terceros.zip" href="https://github.com/MisaelAvila49/Kirchi/releases/latest">Third-party source code (.zip)</a></li>
+        <li><a href="https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE">Kirchi's terms of use</a></li>
+        <li><a href="https://gist.github.com/MisaelAvila49/26b174fbe0fbfba7ef4c4176b3a25404">Privacy policy</a></li>
+        <li><a href="https://github.com/MisaelAvila49/Kirchi/blob/main/docs/licencias-terceros.md">List and details of third-party licenses</a></li>
+        <li><a href="https://github.com/MisaelAvila49/Kirchi/blob/main/docs/licencias-terceros.json">Licenses of the bundled libraries (JSON)</a></li>
+      </ul>
+    </div>
+    <div class="texto-legal">
+      <h3>ngspice</h3>
+      <p>Analyses are solved by ngspice 47, which Kirchi runs as a separate program, in its own process and without linking it. It is built from the official source, unmodified, and ships with its license. ngspice combines several: the simulator is modified BSD, KLU and numparam are LGPL, OSDI is Mozilla Public License 2.0, sparse is MIT-style, XSPICE is public domain and the “table” code model is GNU GPL 2 or later.</p>
+      <p>Those licenses require that whoever receives the binaries can obtain the source code. Each Release publishes <span class="mono">Kirchi-X.Y.Z-fuentes-de-terceros.zip</span>, with the code of ngspice 47 and of the <span class="mono">faer</span> crate (which includes parts under MPL 2.0), along with their SHA-256 sums.</p>
+      <h3>Electron and libraries</h3>
+      <p>The interface runs on Electron, which includes Chromium. The notices for Electron and Chromium, and the licenses of every interface and engine library, ship with the app and are shown in “About”.</p>
+      <h3>Typefaces of this page</h3>
+      <p>Mona Sans, Geist Mono and Source Serif 4, under the SIL Open Font License 1.1, the same ones Kirchi uses. Notices and texts: <a href="../licencias/OFL-mona-sans.txt">Mona Sans</a>, <a href="../licencias/OFL-geist-mono.txt">Geist Mono</a> and <a href="../licencias/OFL-source-serif-4.txt">Source Serif 4</a>.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="pie"><div class="ancho pie-in">
+  <div>
+    <p class="marca"><img src="../img/icono.svg" alt="" width="28" height="28"><span>Kirchi</span></p>
+    <p>Made by Misael Saúl Avila López. Free to use, <a href="https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE">terms of use</a> · <a href="https://gist.github.com/MisaelAvila49/26b174fbe0fbfba7ef4c4176b3a25404">Privacy</a> · <a href="#codigo">Licenses</a>.</p>
+  </div>
+  <div>
+    <h2>Follow and write</h2>
+    <ul>
+      <li><a href="https://github.com/MisaelAvila49">GitHub, misaelavila49</a></li>
+      <li><a href="https://www.youtube.com/@MisaelAvila49">YouTube</a></li>
+      <li><a href="https://www.tiktok.com/@misael_avila.49">TikTok</a></li>
+    </ul>
+  </div>
+  <div>
+    <h2>Something wrong?</h2>
+    <p>Send your bug reports and suggestions to <a href="mailto:misaelavila49@gmail.com">misaelavila49@gmail.com</a>.</p>
+  </div>
+</div></footer>
+
+<div class="lupa" id="lupa" role="dialog" aria-modal="true" aria-label="Enlarged screenshot" hidden="">
+  <button class="lupa-cerrar btn" type="button" id="lupa-cerrar">Close</button>
+  <div class="lupa-cuerpo" id="lupa-cuerpo"><img id="lupa-img" alt="" width="2400" height="1351"></div>
+</div>
+
+<div class="cta-fija" id="cta-fija" hidden=""><a class="btn js-dl" href="#descargas">Download Kirchi</a><a class="btn-borde" href="#apoyar">Support</a></div>
+
+<script src="../js/iconos.js"></script>
+<script type="module" src="../js/principal.js"></script>
+<script type="module" src="../js/historias.js"></script>
+
+
+</body></html>

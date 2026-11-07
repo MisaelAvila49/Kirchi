@@ -1,10 +1,30 @@
 <!doctype html>
-<html lang="es" data-tema="oscuro">
+<html lang="es" data-tema="oscuro" data-otra-pagina="en/">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title data-en="Kirchi, a free circuit simulator in English and Spanish">Kirchi, simulador de circuitos gratis, en español y en inglés</title>
 <meta name="description" data-en-content="Kirchi is a free, offline desktop circuit simulator, in English and Spanish. Watch the voltage on every wire and a four-channel oscilloscope while it runs, build on a breadboard and open circuits from Proteus, LTspice, KiCad and Falstad." content="Kirchi es un simulador de circuitos de escritorio, gratis y sin conexión, en español y en inglés. Mira el voltaje de cada cable y un osciloscopio de cuatro canales mientras corre, arma en protoboard y abre circuitos de Proteus, LTspice, KiCad y Falstad.">
+<!-- seo:inicio -->
+<link rel="canonical" href="https://misaelavila49.github.io/Kirchi/">
+<link rel="alternate" hreflang="es" href="https://misaelavila49.github.io/Kirchi/">
+<link rel="alternate" hreflang="en" href="https://misaelavila49.github.io/Kirchi/en/">
+<link rel="alternate" hreflang="x-default" href="https://misaelavila49.github.io/Kirchi/en/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kirchi">
+<meta property="og:title" content="Kirchi, simulador de circuitos gratis, en español y en inglés">
+<meta property="og:description" content="Kirchi es un simulador de circuitos de escritorio, gratis y sin conexión, en español y en inglés. Mira el voltaje de cada cable y un osciloscopio de cuatro canales mientras corre, arma en protoboard y abre circuitos de Proteus, LTspice, KiCad y Falstad.">
+<meta property="og:url" content="https://misaelavila49.github.io/Kirchi/">
+<meta property="og:image" content="https://misaelavila49.github.io/Kirchi/img/og-es.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Kirchi: un circuito en el esquema y armado en la protoboard.">
+<meta property="og:locale" content="es_MX">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="google-site-verification" content="S6MUR_kziOU0yi1uO2WKKq6dOVCUUE6EdfGRU8Xvl7I">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Kirchi","description":"Kirchi es un simulador de circuitos de escritorio, gratis y sin conexión, en español y en inglés. Mira el voltaje de cada cable y un osciloscopio de cuatro canales mientras corre, arma en protoboard y abre circuitos de Proteus, LTspice, KiCad y Falstad.","url":"https://misaelavila49.github.io/Kirchi/","applicationCategory":"EducationalApplication","applicationSubCategory":"Simulador de circuitos","operatingSystem":"Windows 10, Windows 11, macOS, Linux","softwareVersion":"3.1.1","inLanguage":["es","en"],"isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"downloadUrl":"https://misaelavila49.github.io/Kirchi/#descargas","image":"https://misaelavila49.github.io/Kirchi/img/og-es.jpg","screenshot":["https://misaelavila49.github.io/Kirchi/img/amp-es.webp","https://misaelavila49.github.io/Kirchi/img/fabricar-es.webp","https://misaelavila49.github.io/Kirchi/img/bode-es.webp"],"author":{"@type":"Person","name":"Misael Saúl Avila López"},"license":"https://github.com/MisaelAvila49/Kirchi/blob/main/LICENSE"}</script>
+<!-- seo:fin -->
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fuentes/mona-sans-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
 <script>
@@ -28,7 +48,7 @@
   <div class="ctrl">
     <div class="ctrl-herr">
       <button class="mini mini-icono" id="boton-movimiento" type="button" aria-pressed="false" aria-label="Pausar movimiento"><span class="ic-p"><i data-i="pausa"></i></span><span class="ic-r"><i data-i="reproducir"></i></span></button>
-      <span class="selector-idioma" role="group" aria-label="Idioma / Language"><button class="mini" type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="true">ES</button><button class="mini" type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="false">EN</button></span>
+      <span class="selector-idioma" role="group" aria-label="Idioma / Language"><a class="mini" href="./" data-idioma="es" hreflang="es" lang="es" aria-label="Español" aria-current="page">ES</a><a class="mini" href="en/" data-idioma="en" hreflang="en" lang="en" aria-label="English">EN</a></span>
     </div>
     <a class="btn btn-cab" href="#descargas"><i data-i="descargar"></i><span data-en="Download">Descargar</span></a>
   </div>
@@ -69,7 +89,7 @@
         <button type="button" class="canal-os k2" data-os="macos">macOS</button>
         <button type="button" class="canal-os k3" data-os="linux">Linux</button>
       </div>
-      <a class="btn btn-grande js-dl" href="#descargas" id="cta-principal"><i data-i="descargar"></i><span class="js-dl-txt">Descargar</span></a>
+      <a class="btn btn-grande js-dl" href="#descargas" id="cta-principal"><i data-i="descargar"></i><span class="js-dl-txt" data-en="Download">Descargar</span></a>
       <p class="dato js-dl-dato"></p>
     </div>
   </div>
@@ -188,7 +208,7 @@
 <section class="disparo" id="abre" data-en-aria-label="Download" aria-label="Descargar"><div class="rejilla-osc" aria-hidden="true"></div><div class="ancho disparo-in">
   <div><h2 data-en="Open your first circuit today">Abre hoy tu primer circuito</h2><p data-en="Free, no account, and everything happens on your computer.">Gratis, sin cuenta, y todo ocurre en tu computadora.</p></div>
   <div class="cta-bloque centro">
-    <a class="btn btn-grande js-dl" href="#descargas"><i data-i="descargar"></i><span class="js-dl-txt">Descargar</span></a>
+    <a class="btn btn-grande js-dl" href="#descargas"><i data-i="descargar"></i><span class="js-dl-txt" data-en="Download">Descargar</span></a>
     <p class="otros js-otros"></p>
     <p class="dato js-dl-dato"></p>
   </div>

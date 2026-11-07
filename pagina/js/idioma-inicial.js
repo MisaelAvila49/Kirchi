@@ -1,7 +1,7 @@
-// Elige el idioma antes de pintar: lo guardado, si no el del navegador (en* = inglés), si no español.
+// Cada página tiene su idioma (la raíz en español, /en/ en inglés). Si la persona eligió el otro, se le lleva a su página.
 (function () {
-  var l = "";
+  var r = document.documentElement, l = "";
   try { l = localStorage.getItem("kirchi-idioma") || ""; } catch (e) {}
-  if (l !== "es" && l !== "en") l = /^en/i.test(navigator.language || "") ? "en" : "es";
-  document.documentElement.lang = l;
+  var otra = r.getAttribute("data-otra-pagina");
+  if ((l === "es" || l === "en") && l !== r.lang && otra) location.replace(otra + location.hash);
 })();

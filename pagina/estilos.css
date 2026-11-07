@@ -50,6 +50,9 @@ a { color: var(--link); text-underline-offset: .2em; }
 .mini { font: 500 .8125rem/1 var(--mono); color: var(--ink); background: transparent; border: 1px solid var(--chip-line); border-radius: 8px; padding: 9px 11px; cursor: pointer; min-height: 36px; }
 .mini:hover { border-color: var(--ink-soft); }
 .mini[aria-pressed="true"]:not(#mov):not(#tema) { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+/* ES y EN son enlaces a la página de cada idioma */
+a.mini { display: inline-flex; align-items: center; text-decoration: none; }
+.mini[aria-current="page"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .cab .btn { padding: 9px 16px; font-size: .9375rem; min-height: 38px; }
 
 /* Botones */

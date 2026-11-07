@@ -1,5 +1,5 @@
-// Selector ES/EN. El español vive en el HTML; el inglés, en atributos data-en (contenido) y
-// data-en-<atributo> (alt, aria-label, content). Los textos que pone el JS salen de TEXTOS.
+// Idioma de la página. La página en inglés (/en/) se genera desde los atributos data-en y data-en-<atributo>
+// del HTML en español; aplicar() traduce lo que el JS agrega después. Los textos que pone el JS salen de TEXTOS.
 const TEXTOS = {
   es: { pausar_mov: "Pausar movimiento", reanudar_mov: "Reanudar movimiento",
         ampliar: "Ampliar la captura", sigue: "Sigue: ", car_pausar: "Pausar el carrusel", car_reanudar: "Reanudar el carrusel", video_play: "Reproducir el video", video_pausa: "Pausar el video", para: "Descargar para ", tambien: "También para", version: "Versión ",
@@ -34,14 +34,11 @@ export function aplicar() {
       e.setAttribute(attr, en ? e.getAttribute(nombre) : g.attrs[attr]);
     }
   });
-  document.querySelectorAll("[data-idioma]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.idioma === idioma())));
   oyentes.forEach((f) => f());
 }
 
-function elegir(l) {
-  raiz.lang = l;
-  try { localStorage.setItem("kirchi-idioma", l); } catch (e) {}
-  aplicar();
-}
-document.querySelectorAll("[data-idioma]").forEach((b) => b.addEventListener("click", () => elegir(b.dataset.idioma)));
+// ES y EN son enlaces a la otra página; se recuerda la elección para la próxima visita.
+document.querySelectorAll("[data-idioma]").forEach((a) => a.addEventListener("click", () => {
+  try { localStorage.setItem("kirchi-idioma", a.dataset.idioma); } catch (e) {}
+}));
 aplicar();

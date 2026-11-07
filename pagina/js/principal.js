@@ -121,14 +121,3 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") { e.preventDefault(); cerrarLupa(); }
   else if (e.key === "Tab") { e.preventDefault(); lupaCerrar.focus(); }
 });
-
-/* Las imágenes y pósters del otro idioma se precargan en reposo, para que el cambio de idioma no parpadee */
-function precargar() {
-  $$("[data-en-src], [data-en-poster]").forEach((e) => {
-    ["src", "poster"].forEach((a) => {
-      const otro = e.getAttribute("data-en-" + a), actual = e.getAttribute(a);
-      if (otro && actual && /\.(webp|png|jpg)$/.test(otro)) { new Image().src = otro; new Image().src = actual; }
-    });
-  });
-}
-addEventListener("load", () => { if (window.requestIdleCallback) requestIdleCallback(precargar, { timeout: 4000 }); else setTimeout(precargar, 1500); });
