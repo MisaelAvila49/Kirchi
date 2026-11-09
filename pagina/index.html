@@ -43,7 +43,7 @@
     <a data-en="Trailer" href="#trailer-sec">Tráiler</a>
     <a data-en="Evolution" href="#crecimiento">Evolución</a>
     <a data-en="Features" href="#uso">Funciones</a>
-    <a data-en="Support" href="#apoyar" class="nav-apoyo">Apoyar</a>
+    <a data-en="Support" href="#descargas" class="nav-apoyo">Apoyar</a>
   </nav>
   <div class="ctrl">
     <div class="ctrl-herr">
@@ -377,28 +377,7 @@
   </figure>
 </div></section>
 
-<section class="apoyo" id="apoyar" aria-labelledby="t-apoyar"><div class="ancho apoyo-in">
-  <div class="apoyo-texto">
-    <p class="rotulo"><i data-i="apoyo"></i><span data-en="Voluntary support">Apoyo voluntario</span></p>
-    <h2 id="t-apoyar" data-en="Help keep Kirchi going">Ayuda a que Kirchi siga avanzando</h2>
-    <p class="lead" data-en="Kirchi is free and you can use all of it without paying anything. If it is useful to you, you can contribute so it keeps being maintained.">Kirchi es gratis y puedes usarlo completo sin pagar nada. Si te sirve, puedes aportar para que siga manteniéndose.</p>
-    <ul class="apoyo-chips" data-en-aria-label="What your support means" aria-label="Qué significa tu apoyo">
-      <li class="mono" data-en="Optional">Opcional</li>
-      <li class="mono" data-en="Unlocks nothing">No desbloquea nada</li>
-      <li class="mono" data-en="No account needed">Sin cuenta</li>
-    </ul>
-    <p class="apoyo-por-que" data-en="Your contribution pays for time to maintain Kirchi and build new versions, and for services it may need, such as cloud features in the future.">Tu aportación paga tiempo para mantener Kirchi y hacer versiones nuevas, y servicios que pueda necesitar, como la nube a futuro.</p>
-  </div>
-  <div class="apoyo-caja">
-    <p class="apoyo-caja-titulo" data-en="Choose how to contribute">Elige cómo aportar</p>
-    <ul class="apoyo-lista" id="proveedores"></ul>
-    <p class="apoyo-nota" data-en="Each provider charges its own fees and handles your data under its own terms. Kirchi does not receive or store your payment data.">Cada proveedor cobra sus propias comisiones y trata tus datos según sus condiciones. Kirchi no recibe ni guarda tus datos de pago.</p>
-  </div>
-  <script type="module">
-    import { pintarProveedores } from "./js/proveedores.js";
-    pintarProveedores(document.getElementById("proveedores"));
-  </script>
-</div></section>
+
 
 <section class="desc-sec" id="descargas" aria-labelledby="t-desc"><div class="ancho">
   <h2 class="titulo" id="t-desc"><span data-en="Download Kirchi">Descargar Kirchi</span> <span class="mono v">v<span data-version-release></span></span></h2>
@@ -436,6 +415,29 @@
     </article>
   </div>
   <p class="nota-gen" data-en="The links go to the latest file published on GitHub. If they do not load, <a href=&quot;https://github.com/MisaelAvila49/Kirchi/releases/latest&quot;>the releases page</a> has all the files.">Los enlaces llevan al archivo más reciente publicado en GitHub. Si no cargan, <a href="https://github.com/MisaelAvila49/Kirchi/releases/latest">la página de versiones</a> tiene todos los archivos.</p>
+</div></section>
+
+<section class="apoyo" id="apoyar" aria-labelledby="t-apoyar"><div class="ancho apoyo-in">
+  <div class="apoyo-texto">
+    <p class="rotulo"><i data-i="apoyo"></i><span data-en="Voluntary support">Apoyo voluntario</span></p>
+    <h2 id="t-apoyar" data-en="Help keep Kirchi going">Ayuda a que Kirchi siga avanzando</h2>
+    <p class="lead" data-en="Kirchi is free and you can use all of it without paying anything. If it is useful to you, you can contribute so it keeps being maintained.">Kirchi es gratis y puedes usarlo completo sin pagar nada. Si te sirve, puedes aportar para que siga manteniéndose.</p>
+    <ul class="apoyo-chips" data-en-aria-label="What your support means" aria-label="Qué significa tu apoyo">
+      <li class="mono" data-en="Optional">Opcional</li>
+      <li class="mono" data-en="Unlocks nothing">No desbloquea nada</li>
+      <li class="mono" data-en="No account needed">Sin cuenta</li>
+    </ul>
+    <p class="apoyo-por-que" data-en="Your contribution pays for time to maintain Kirchi and build new versions, and for services it may need, such as cloud features in the future.">Tu aportación paga tiempo para mantener Kirchi y hacer versiones nuevas, y servicios que pueda necesitar, como la nube a futuro.</p>
+  </div>
+  <div class="apoyo-caja">
+    <p class="apoyo-caja-titulo" data-en="Choose how to contribute">Elige cómo aportar</p>
+    <ul class="apoyo-lista" id="proveedores"></ul>
+    <p class="apoyo-nota" data-en="Each provider charges its own fees and handles your data under its own terms. Kirchi does not receive or store your payment data.">Cada proveedor cobra sus propias comisiones y trata tus datos según sus condiciones. Kirchi no recibe ni guarda tus datos de pago.</p>
+  </div>
+  <script type="module">
+    import { pintarProveedores } from "./js/proveedores.js";
+    pintarProveedores(document.getElementById("proveedores"));
+  </script>
 </div></section>
 
 

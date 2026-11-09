@@ -604,3 +604,7 @@ html { scroll-padding-top: var(--cab-h, 60px); }
 @media (max-width: 560px) { .car-nota { display: none; } }
 @media (prefers-reduced-motion: reduce) { .car-lamina { transition: none; } }
 .car-tab:focus-visible, .car-pausa:focus-visible, .video-play:focus-visible { outline: 2px solid var(--cc); outline-offset: 2px; }
+
+/* Descarga y apoyo van juntos al final: el apoyo es una franja propia debajo de las descargas, separada por una línea. */
+.desc-sec { padding-bottom: 40px; }
+.desc-sec + .apoyo { border-top: 1px solid var(--line); background: var(--bg-2); padding-block: 40px 48px; }

@@ -41,7 +41,7 @@
     <a href="#trailer-sec">Trailer</a>
     <a href="#crecimiento">Evolution</a>
     <a href="#uso">Features</a>
-    <a href="#apoyar" class="nav-apoyo">Support</a>
+    <a href="#descargas" class="nav-apoyo">Support</a>
   </nav>
   <div class="ctrl">
     <div class="ctrl-herr">
@@ -375,28 +375,7 @@
   </figure>
 </div></section>
 
-<section class="apoyo" id="apoyar" aria-labelledby="t-apoyar"><div class="ancho apoyo-in">
-  <div class="apoyo-texto">
-    <p class="rotulo"><i data-i="apoyo"></i><span>Voluntary support</span></p>
-    <h2 id="t-apoyar">Help keep Kirchi going</h2>
-    <p class="lead">Kirchi is free and you can use all of it without paying anything. If it is useful to you, you can contribute so it keeps being maintained.</p>
-    <ul class="apoyo-chips" aria-label="What your support means">
-      <li class="mono">Optional</li>
-      <li class="mono">Unlocks nothing</li>
-      <li class="mono">No account needed</li>
-    </ul>
-    <p class="apoyo-por-que">Your contribution pays for time to maintain Kirchi and build new versions, and for services it may need, such as cloud features in the future.</p>
-  </div>
-  <div class="apoyo-caja">
-    <p class="apoyo-caja-titulo">Choose how to contribute</p>
-    <ul class="apoyo-lista" id="proveedores"></ul>
-    <p class="apoyo-nota">Each provider charges its own fees and handles your data under its own terms. Kirchi does not receive or store your payment data.</p>
-  </div>
-  <script type="module">
-    import { pintarProveedores } from "../js/proveedores.js";
-    pintarProveedores(document.getElementById("proveedores"));
-  </script>
-</div></section>
+
 
 <section class="desc-sec" id="descargas" aria-labelledby="t-desc"><div class="ancho">
   <h2 class="titulo" id="t-desc"><span>Download Kirchi</span> <span class="mono v">v<span data-version-release=""></span></span></h2>
@@ -434,6 +413,29 @@
     </article>
   </div>
   <p class="nota-gen">The links go to the latest file published on GitHub. If they do not load, <a href="https://github.com/MisaelAvila49/Kirchi/releases/latest">the releases page</a> has all the files.</p>
+</div></section>
+
+<section class="apoyo" id="apoyar" aria-labelledby="t-apoyar"><div class="ancho apoyo-in">
+  <div class="apoyo-texto">
+    <p class="rotulo"><i data-i="apoyo"></i><span>Voluntary support</span></p>
+    <h2 id="t-apoyar">Help keep Kirchi going</h2>
+    <p class="lead">Kirchi is free and you can use all of it without paying anything. If it is useful to you, you can contribute so it keeps being maintained.</p>
+    <ul class="apoyo-chips" aria-label="What your support means">
+      <li class="mono">Optional</li>
+      <li class="mono">Unlocks nothing</li>
+      <li class="mono">No account needed</li>
+    </ul>
+    <p class="apoyo-por-que">Your contribution pays for time to maintain Kirchi and build new versions, and for services it may need, such as cloud features in the future.</p>
+  </div>
+  <div class="apoyo-caja">
+    <p class="apoyo-caja-titulo">Choose how to contribute</p>
+    <ul class="apoyo-lista" id="proveedores"></ul>
+    <p class="apoyo-nota">Each provider charges its own fees and handles your data under its own terms. Kirchi does not receive or store your payment data.</p>
+  </div>
+  <script type="module">
+    import { pintarProveedores } from "../js/proveedores.js";
+    pintarProveedores(document.getElementById("proveedores"));
+  </script>
 </div></section>
 
 
