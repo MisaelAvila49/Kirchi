@@ -2,6 +2,32 @@
 
 The Spanish history from versions 1.0 to 3.0.0 is in [CHANGELOG.md](CHANGELOG.md). This file starts with 3.1.0.
 
+## 3.1.2
+
+Opens Proteus 9 projects, lights both views when simulating in Both, and brings a user guide and release notes that are easier to read.
+
+### New
+
+- Import opens Proteus 8.15 to 9.1 projects, including autosaved copies ("[Autosaved]"). A component decomposed on the sheet (loose pins without a device) comes in as a gray box with its pin names, and its wires keep their connections.
+- More Proteus parts arrive as Kirchi parts instead of gray boxes: resistors, capacitors and inductors with manufacturer names, 1N400x diodes, push button, clock, logic probe, D flip-flop, buffer, motors, sounder, seven-segment displays, oscilloscope and generator, and the 74157, 74LS283, 74148 and 4075 chips. Approximated ones are listed in the report.
+- A digital-only Proteus circuit, which has no ground in Proteus, gets one when imported and the report says so.
+- If a file cannot be read, the message says why and which Proteus version it comes from, instead of only "no parts".
+
+### Design
+
+- The user guide is read by sections: an index with search on one side, one section per screen with its progress, topics as cards, and Previous and Next.
+- The release notes show one version at a time, with your version marked and a tab per kind of change.
+
+### Changes
+
+- In Both, when the schematic and the breadboard are the same circuit, both views show the simulation whatever the source. If they differ, the other view is dimmed with a notice that says how many differences there are.
+- Knobs, switches and buttons can also be operated from the breadboard while simulating.
+
+### Fixes
+
+- With the English interface, the oscilloscope roll mode, the Bode axes, the Export for manufacturing notes, the pulse source, the calculators' Input and Output and the analysis labels no longer show Spanish text.
+- Generic Proteus gates no longer cross their output with an input, and the imported 74148 no longer joins different nets.
+
 ## 3.1.1
 
 Kirchi is still free, now under the terms of use of a closed-source program, and the English interface no longer shows Spanish text.

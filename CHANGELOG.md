@@ -1,5 +1,31 @@
 # Historial de cambios
 
+## 3.1.2
+
+Abre proyectos de Proteus 9, enciende las dos vistas al simular en Las dos y trae una guía de uso y unas novedades más fáciles de leer.
+
+### Nuevo
+
+- Importar abre proyectos de Proteus 8.15 a 9.1, también las copias automáticas («[Autosaved]»). Un componente descompuesto en el dibujo (pines sueltos sin dispositivo) entra como caja gris con sus nombres de pin, y sus cables conservan las conexiones.
+- Más piezas de Proteus llegan como piezas de Kirchi en vez de caja gris: resistencias, capacitores y bobinas con nombre de fabricante, diodos 1N400x, botón, reloj, punta lógica, biestable D, búfer, motores, zumbador, displays de siete segmentos, osciloscopio y generador, y los integrados 74157, 74LS283, 74148 y 4075. Los que se aproximan se dicen en el informe.
+- Un circuito de Proteus solo digital, que en Proteus no lleva tierra, recibe una al importarse y el informe lo dice.
+- Si un archivo no se puede leer, el mensaje dice por qué y de qué versión de Proteus es, en vez de solo «no tiene piezas».
+
+### Diseño
+
+- La guía de uso se lee por secciones: índice con buscador a un lado, una sección por pantalla con su avance, temas en tarjetas y Anterior y Siguiente.
+- Las novedades muestran una versión a la vez, con tu versión marcada y una pestaña por tipo de cambio.
+
+### Cambios
+
+- En Las dos, cuando el esquema y la protoboard son el mismo circuito, las dos vistas muestran la simulación, sea cual sea la fuente. Si no coinciden, la otra vista se atenúa con un aviso que dice cuántas diferencias hay.
+- Las perillas, los interruptores y los botones se accionan también desde la protoboard mientras se simula.
+
+### Arreglos
+
+- Con la interfaz en inglés ya no salen en español el modo rodillo del osciloscopio, los ejes de Bode, las notas de Exportar para fabricar, la fuente de pulso, Entrada y Salida de las calculadoras ni los rótulos de los análisis.
+- Las compuertas genéricas de Proteus ya no cruzan su salida con una entrada, y el 74148 importado ya no une redes distintas.
+
 ## 3.1.1
 
 Kirchi sigue siendo gratis, ahora con términos de uso de un programa de código cerrado, y la interfaz en inglés ya no muestra textos en español.
