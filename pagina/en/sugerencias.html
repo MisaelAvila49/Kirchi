@@ -34,8 +34,31 @@
 
 <header class="cab"><div class="ancho cab-in">
   <a class="marca" href="./" aria-label="Kirchi, home page"><img src="../img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
+  <nav class="nav" aria-label="Sections">
+    <a href="trailer">Trailer</a>
+    <a href="features">Features</a>
+    <a href="whats-new">New in 3.2</a>
+    <a href="versions">Evolution</a>
+    <a href="download" class="nav-apoyo">Support</a>
+    <a href="sugerencias" aria-current="page">Suggestions</a>
+  </nav>
+  <details class="menu-movil">
+    <summary class="mini">Sections</summary>
+    <nav class="menu-lista" aria-label="Sections">
+      <a href="./">Home</a>
+      <a href="trailer">Trailer</a>
+      <a href="features">Features</a>
+      <a href="whats-new">New in 3.2</a>
+      <a href="versions">Evolution</a>
+      <a href="download" class="nav-apoyo">Support</a>
+      <a href="sugerencias" aria-current="page">Suggestions</a>
+    </nav>
+  </details>
   <div class="ctrl">
-    <span class="selector-idioma" role="group" aria-label="Idioma / Language" style="display:flex;gap:4px"><a class="mini" href="../sugerencias" data-idioma="es" hreflang="es" lang="es" aria-label="Español">ES</a><a class="mini" href="sugerencias" data-idioma="en" hreflang="en" lang="en" aria-label="English" aria-current="page">EN</a></span>
+    <div class="ctrl-herr">
+      <span class="selector-idioma" role="group" aria-label="Idioma / Language"><a class="mini" href="../sugerencias" data-idioma="es" hreflang="es" lang="es" aria-label="Español">ES</a><a class="mini" href="sugerencias" data-idioma="en" hreflang="en" lang="en" aria-label="English" aria-current="page">EN</a></span>
+    </div>
+    <a class="btn btn-cab" href="download"><i data-i="descargar"></i><span>Download</span></a>
   </div>
 </div></header>
 
@@ -111,6 +134,7 @@
         <p>If you left your email, I will write to you when what you asked for is out.</p>
         <div class="sug-gracias-acciones">
           <button class="btn-borde" type="button" id="otra">Send another</button>
+          <a class="btn-borde" href="./">Back to home</a>
           <a class="btn" href="download"><span>Download Kirchi</span></a>
         </div>
       </div>
@@ -125,6 +149,8 @@
   </div>
 </footer>
 <script type="module" src="../js/sugerencias.js"></script>
+<script src="../js/iconos.js"></script>
+<script src="../js/menu.js"></script>
 
 
 </body></html>

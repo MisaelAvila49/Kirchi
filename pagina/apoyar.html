@@ -35,8 +35,31 @@
 
 <header class="cab"><div class="ancho cab-in">
   <a data-en-aria-label="Kirchi, home page" class="marca" href="./" aria-label="Kirchi, página principal"><img src="img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
+  <nav class="nav" data-en-aria-label="Sections" aria-label="Secciones">
+    <a data-en="Trailer" href="trailer">Tráiler</a>
+    <a data-en="Features" href="funciones" data-en-href="features">Funciones</a>
+    <a data-en="New in 3.2" href="novedades" data-en-href="whats-new">Nuevo en la 3.2</a>
+    <a data-en="Evolution" href="versiones" data-en-href="versions">Evolución</a>
+    <a data-en="Support" href="descargar" data-en-href="download" class="nav-apoyo">Apoyar</a>
+    <a data-en="Suggestions" href="sugerencias">Sugerencias</a>
+  </nav>
+  <details class="menu-movil">
+    <summary class="mini" data-en="Sections">Secciones</summary>
+    <nav class="menu-lista" data-en-aria-label="Sections" aria-label="Secciones">
+      <a data-en="Home" href="./">Inicio</a>
+      <a data-en="Trailer" href="trailer">Tráiler</a>
+      <a data-en="Features" href="funciones" data-en-href="features">Funciones</a>
+      <a data-en="New in 3.2" href="novedades" data-en-href="whats-new">Nuevo en la 3.2</a>
+      <a data-en="Evolution" href="versiones" data-en-href="versions">Evolución</a>
+      <a data-en="Support" href="descargar" data-en-href="download" class="nav-apoyo">Apoyar</a>
+      <a data-en="Suggestions" href="sugerencias">Sugerencias</a>
+    </nav>
+  </details>
   <div class="ctrl">
-    <span class="selector-idioma" role="group" aria-label="Idioma / Language" style="display:flex;gap:4px"><a class="mini" href="apoyar" data-idioma="es" hreflang="es" lang="es" aria-label="Español" aria-current="page">ES</a><a class="mini" href="en/apoyar" data-idioma="en" hreflang="en" lang="en" aria-label="English">EN</a></span>
+    <div class="ctrl-herr">
+      <span class="selector-idioma" role="group" aria-label="Idioma / Language"><a class="mini" href="apoyar" data-idioma="es" hreflang="es" lang="es" aria-label="Español" aria-current="page">ES</a><a class="mini" href="en/apoyar" data-idioma="en" hreflang="en" lang="en" aria-label="English">EN</a></span>
+    </div>
+    <a class="btn btn-cab" href="descargar" data-en-href="download"><i data-i="descargar"></i><span data-en="Download">Descargar</span></a>
   </div>
 </div></header>
 
@@ -70,5 +93,7 @@
   </div>
 </footer>
 <script type="module" src="js/apoyo.js"></script>
+<script src="js/iconos.js"></script>
+<script src="js/menu.js"></script>
 </body>
 </html>

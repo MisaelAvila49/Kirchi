@@ -656,3 +656,24 @@ html { scroll-padding-top: var(--cab-h, 60px); }
 .sug-franja .rotulo { color: var(--c2); }
 .sug-franja h2 { font: 750 clamp(1.5rem, 2.8vw, 2.1rem)/1.15 var(--sans); font-stretch: 106%; letter-spacing: -.015em; margin-bottom: 8px; }
 .sug-franja .lead { font-size: 1.0625rem; }
+
+/* Menú de secciones del celular: abajo de 1000 px la barra se oculta y este menú la sustituye en todas las páginas */
+.menu-movil { display: none; }
+@media (max-width: 999px) { .menu-movil { display: block; } }
+.menu-movil summary { list-style: none; display: inline-flex; align-items: center; gap: 10px; min-height: 38px; font-family: var(--sans); font-weight: 600; font-size: .875rem; }
+.menu-movil summary::-webkit-details-marker { display: none; }
+.menu-movil summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+.menu-movil[open] summary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.menu-movil[open] summary::after { transform: translateY(2px) rotate(-135deg); }
+.menu-lista { position: absolute; left: var(--gutter); right: var(--gutter); top: calc(100% + 6px); z-index: 70; display: grid; gap: 2px; padding: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 24px 50px -16px rgba(0,0,0,.75); }
+.menu-lista a { display: block; padding: 12px 14px; border-radius: 10px; color: var(--ink); text-decoration: none; font-weight: 600; }
+.menu-lista a:hover { background: var(--bg); }
+.nav a[aria-current="page"], .menu-lista a[aria-current="page"] { color: var(--ink); text-decoration: underline; text-decoration-color: var(--c2); text-decoration-thickness: 2px; text-underline-offset: .4em; }
+/* En el celular la cabecera es una rejilla de dos renglones: marca y Descargar arriba; pausa, idioma y Secciones abajo */
+@media (max-width: 999px) {
+  .cab-in { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "marca boton" "herr menu"; column-gap: 10px; }
+  .cab-in > .marca { grid-area: marca; }
+  .cab .btn-cab { grid-area: boton; justify-self: end; }
+  .ctrl-herr { grid-area: herr; }
+  .menu-movil { grid-area: menu; justify-self: end; }
+}
