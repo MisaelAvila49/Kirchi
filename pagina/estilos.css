@@ -608,3 +608,51 @@ html { scroll-padding-top: var(--cab-h, 60px); }
 /* Descarga y apoyo van juntos al final: el apoyo es una franja propia debajo de las descargas, separada por una línea. */
 .desc-sec { padding-bottom: 40px; }
 .desc-sec + .apoyo { border-top: 1px solid var(--line); background: var(--bg-2); padding-block: 40px 48px; }
+
+/* Sugerencias: página con formulario (sugerencias.html) y franja que lleva a ella desde la principal. Azul (--c2) para distinguirla del apoyo. */
+.sug { padding-block: 64px 80px; }
+.sug-in { display: grid; gap: 28px 56px; align-items: start; }
+@media (min-width: 960px) { .sug-in { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } .sug-texto { position: sticky; top: 96px; } }
+.sug .rotulo { color: var(--c2); }
+.sug-titulo { font: 750 clamp(1.9rem, 4vw, 2.9rem)/1.08 var(--sans); font-stretch: 108%; letter-spacing: -.02em; margin-bottom: 14px; }
+.sug-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+.sug-chips li { border: 1px solid var(--c2); color: var(--ink); border-radius: 999px; padding: 4px 12px; font-size: .8125rem; }
+.sug-por-que { color: var(--ink-soft); font-size: .9375rem; max-width: 52ch; }
+.sug-caja { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--c2); border-radius: 16px; padding: 26px; min-width: 0; }
+@media (max-width: 560px) { .sug-caja { padding: 18px; } .sug { padding-block: 40px 56px; } }
+.sug-grupo { border: 0; margin: 0 0 26px; padding: 0; min-width: 0; }
+.sug-grupo legend, .sug-campo > label { display: block; padding: 0; font: 650 1.0625rem/1.35 var(--sans); color: var(--ink); margin-bottom: 10px; }
+.sug-campo { margin-bottom: 24px; }
+.sug-campo > label { margin-bottom: 4px; }
+.sug-ayuda { font-size: .875rem; color: var(--ink-tenue); margin-bottom: 10px; }
+.sug-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.sug-op { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--chip-line); border-radius: 10px; background: var(--bg); color: var(--ink); font-size: .9375rem; font-weight: 550; cursor: pointer; }
+.sug-op:hover { border-color: var(--ink-soft); }
+.sug-op input { width: 18px; height: 18px; margin: 0; accent-color: var(--c2); }
+.sug-op:has(input:checked) { border-color: var(--c2); background: color-mix(in srgb, var(--c2) 16%, var(--bg)); }
+.sug-op:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sug-otro { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: .9375rem; color: var(--ink-soft); }
+.sug-otro input { flex: 1; min-width: 0; }
+.sug input[type="text"], .sug input[type="email"], .sug textarea { width: 100%; box-sizing: border-box; font: 400 1rem/1.5 var(--sans); color: var(--ink); background: var(--bg); border: 1px solid var(--chip-line); border-radius: 10px; padding: 12px 14px; }
+.sug textarea { resize: vertical; min-height: 112px; }
+.sug input:focus-visible, .sug textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.sug-trampa { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.sug-estado { min-height: 1.5em; margin-bottom: 12px; font-size: .9375rem; color: var(--ink-soft); }
+.sug-estado.error { color: #ff9b9e; }
+.sug-enviar { width: 100%; }
+.sug-enviar:disabled { opacity: .7; cursor: progress; }
+.sug-nota { margin-top: 16px; color: var(--ink-tenue); font: 500 .75rem/1.5 var(--mono); }
+.sug-gracias { padding: 8px 2px; }
+.sug-gracias:focus { outline: none; }
+.sug-gracias-titulo { font: 750 1.6rem/1.2 var(--sans); color: var(--ink); margin-bottom: 8px; }
+.sug-gracias p { color: var(--ink-soft); }
+.sug-gracias-acciones { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.sug-gracias .btn-borde { font: 600 1.0625rem/1.2 var(--sans); cursor: pointer; padding: 16px 22px; }
+
+/* Franja de la principal que lleva al formulario */
+.sug-franja { border-top: 1px solid var(--line); padding-block: 44px; }
+.sug-franja-in { display: grid; gap: 18px 40px; align-items: center; }
+@media (min-width: 900px) { .sug-franja-in { grid-template-columns: minmax(0, 1fr) auto; } }
+.sug-franja .rotulo { color: var(--c2); }
+.sug-franja h2 { font: 750 clamp(1.5rem, 2.8vw, 2.1rem)/1.15 var(--sans); font-stretch: 106%; letter-spacing: -.015em; margin-bottom: 8px; }
+.sug-franja .lead { font-size: 1.0625rem; }

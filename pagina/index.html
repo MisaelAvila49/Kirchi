@@ -42,20 +42,21 @@
 <a data-en="Skip to content" class="salto" href="#contenido">Saltar al contenido</a>
 
 <header class="cab"><div class="ancho cab-in">
-  <a class="marca" href="#inicio" data-en-aria-label="Kirchi, home" aria-label="Kirchi, inicio"><img src="img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
+  <a class="marca" href="./" data-en-aria-label="Kirchi, home" aria-label="Kirchi, inicio"><img src="img/icono.svg" alt="" width="32" height="32"><span>Kirchi</span></a>
   <nav class="nav" data-en-aria-label="Sections" aria-label="Secciones">
-    <a data-en="Trailer" href="#trailer-sec">Tráiler</a>
-    <a data-en="Features" href="#uso">Funciones</a>
-    <a data-en="New in 3.2" href="#nuevo">Nuevo en la 3.2</a>
-    <a data-en="Evolution" href="#crecimiento">Evolución</a>
-    <a data-en="Support" href="#descargas" class="nav-apoyo">Apoyar</a>
+    <a data-en="Trailer" href="trailer">Tráiler</a>
+    <a data-en="Features" href="funciones" data-en-href="features">Funciones</a>
+    <a data-en="New in 3.2" href="novedades" data-en-href="whats-new">Nuevo en la 3.2</a>
+    <a data-en="Evolution" href="versiones" data-en-href="versions">Evolución</a>
+    <a data-en="Support" href="descargar" data-en-href="download" class="nav-apoyo">Apoyar</a>
+    <a data-en="Suggestions" href="sugerencias">Sugerencias</a>
   </nav>
   <div class="ctrl">
     <div class="ctrl-herr">
       <button class="mini mini-icono" id="boton-movimiento" type="button" aria-pressed="false" aria-label="Pausar movimiento"><span class="ic-p"><i data-i="pausa"></i></span><span class="ic-r"><i data-i="reproducir"></i></span></button>
       <span class="selector-idioma" role="group" aria-label="Idioma / Language"><a class="mini" href="./" data-idioma="es" hreflang="es" lang="es" aria-label="Español" aria-current="page">ES</a><a class="mini" href="en/" data-idioma="en" hreflang="en" lang="en" aria-label="English">EN</a></span>
     </div>
-    <a class="btn btn-cab" href="#descargas"><i data-i="descargar"></i><span data-en="Download">Descargar</span></a>
+    <a class="btn btn-cab" href="descargar" data-en-href="download"><i data-i="descargar"></i><span data-en="Download">Descargar</span></a>
   </div>
 </div></header>
 
@@ -94,7 +95,7 @@
         <button type="button" class="canal-os k2" data-os="macos">macOS</button>
         <button type="button" class="canal-os k3" data-os="linux">Linux</button>
       </div>
-      <a class="btn btn-grande js-dl" href="#descargas" id="cta-principal"><i data-i="descargar"></i><span class="js-dl-txt" data-en="Download">Descargar</span></a>
+      <a class="btn btn-grande js-dl" href="descargar" data-en-href="download" id="cta-principal"><i data-i="descargar"></i><span class="js-dl-txt" data-en="Download">Descargar</span></a>
       <p class="dato js-dl-dato"></p>
     </div>
   </div>
@@ -244,7 +245,7 @@
 <section class="disparo" id="abre" data-en-aria-label="Download" aria-label="Descargar"><div class="rejilla-osc" aria-hidden="true"></div><div class="ancho disparo-in">
   <div><h2 data-en="Open your first circuit today">Abre hoy tu primer circuito</h2><p data-en="Free, no account, and everything happens on your computer.">Gratis, sin cuenta, y todo ocurre en tu computadora.</p></div>
   <div class="cta-bloque centro">
-    <a class="btn btn-grande js-dl" href="#descargas"><i data-i="descargar"></i><span class="js-dl-txt" data-en="Download">Descargar</span></a>
+    <a class="btn btn-grande js-dl" href="descargar" data-en-href="download"><i data-i="descargar"></i><span class="js-dl-txt" data-en="Download">Descargar</span></a>
     <p class="otros js-otros"></p>
     <p class="dato js-dl-dato"></p>
   </div>
@@ -470,7 +471,7 @@
           <p class="ver mono" aria-hidden="true">3.2</p>
           <h3 data-en="The breadboard, step by step">La protoboard, paso a paso</h3>
           <p data-en="Build step by step, a right click to change breadboards and a single value per net while it runs.">Armar paso a paso, el clic derecho para cambiar de protoboard y un solo valor por red mientras simula.</p>
-          <p class="rec-accion"><a class="btn js-dl" href="#descargas"><i data-i="descargar"></i><span class="js-dl-txt" data-en="Download">Descargar</span></a></p>
+          <p class="rec-accion"><a class="btn js-dl" href="descargar" data-en-href="download"><i data-i="descargar"></i><span class="js-dl-txt" data-en="Download">Descargar</span></a></p>
         </div>
         <figure class="pant rec-fig k3">
           <div class="pant-cab mono"><b class="canal-et">CH3</b><span data-en="Breadboard">Protoboard</span><span class="pant-der">3.2</span></div>
@@ -558,6 +559,14 @@
     pintarProveedores(document.getElementById("proveedores"));
   </script>
 </div></section>
+<section class="sug-franja" id="sugerir" aria-labelledby="t-sugerir"><div class="ancho sug-franja-in">
+  <div>
+    <p class="rotulo"><span data-en="Suggestions">Sugerencias</span></p>
+    <h2 id="t-sugerir" data-en="What is your simulator missing?">¿Qué le falta a tu simulador?</h2>
+    <p class="lead" data-en="Tell me what gets in your way in Proteus, KiCad, LTspice or the program you use, and what you would like Kirchi to have.">Cuéntame qué te estorba de Proteus, KiCad, LTspice o el programa que uses, y qué te gustaría que tuviera Kirchi.</p>
+  </div>
+  <a class="btn" href="sugerencias"><span data-en="Leave a suggestion">Dejar una sugerencia</span></a>
+</div></section>
 
 
 
@@ -603,7 +612,7 @@
   </div>
   <div>
     <h2 data-en="Something wrong?">¿Algo falla?</h2>
-    <p data-en="Send your bug reports and suggestions to <a href=&quot;mailto:misaelavila49@gmail.com&quot;>misaelavila49@gmail.com</a>.">Escribe tus fallas y propuestas a <a href="mailto:misaelavila49@gmail.com">misaelavila49@gmail.com</a>.</p>
+    <p data-en="Send your bug reports and ideas to <a href=&quot;mailto:misaelavila49@gmail.com&quot;>misaelavila49@gmail.com</a>, or leave a <a href=&quot;sugerencias&quot;>suggestion</a>.">Escribe tus fallas y propuestas a <a href="mailto:misaelavila49@gmail.com">misaelavila49@gmail.com</a>, o deja una <a href="sugerencias">sugerencia</a>.</p>
   </div>
 </div></footer>
 
@@ -612,12 +621,13 @@
   <div class="lupa-cuerpo" id="lupa-cuerpo"><img id="lupa-img" alt="" width="2400" height="1351"></div>
 </div>
 
-<div class="cta-fija" id="cta-fija" hidden><a class="btn js-dl" href="#descargas" data-en="Download Kirchi">Descargar Kirchi</a><a data-en="Support" class="btn-borde" href="#apoyar">Apoyar</a></div>
+<div class="cta-fija" id="cta-fija" hidden><a class="btn js-dl" href="descargar" data-en-href="download" data-en="Download Kirchi">Descargar Kirchi</a><a data-en="Support" class="btn-borde" href="#apoyar">Apoyar</a></div>
 
 <script src="js/iconos.js"></script>
 <script type="module" src="js/principal.js"></script>
 <script type="module" src="js/historias.js"></script>
 <script type="module" src="js/consola.js"></script>
 <script type="module" src="js/recorrido.js"></script>
+<script type="module" src="js/rutas.js"></script>
 </body>
 </html>

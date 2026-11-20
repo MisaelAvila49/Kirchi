@@ -15,17 +15,31 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/"/>
   </url>
   <url>
-    <loc>https://kirchi.app/apoyar.html</loc>
+    <loc>https://kirchi.app/apoyar</loc>
     <lastmod>2026-11-20</lastmod>
-    <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/apoyar.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/apoyar.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/apoyar.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/apoyar"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/apoyar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/apoyar"/>
   </url>
   <url>
-    <loc>https://kirchi.app/en/apoyar.html</loc>
+    <loc>https://kirchi.app/en/apoyar</loc>
     <lastmod>2026-11-20</lastmod>
-    <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/apoyar.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/apoyar.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/apoyar.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/apoyar"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/apoyar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/apoyar"/>
+  </url>
+  <url>
+    <loc>https://kirchi.app/sugerencias</loc>
+    <lastmod>2026-11-20</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/sugerencias"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/sugerencias"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/sugerencias"/>
+  </url>
+  <url>
+    <loc>https://kirchi.app/en/sugerencias</loc>
+    <lastmod>2026-11-20</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/sugerencias"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/sugerencias"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/sugerencias"/>
   </url>
 </urlset>

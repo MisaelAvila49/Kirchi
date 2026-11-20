@@ -75,20 +75,19 @@ document.querySelectorAll(".recorrido").forEach((sec) => {
   const debeApilar = () => elegidoApilar || ANGOSTO.matches;
 
   // Un botón de versión lleva el scroll al punto en que esa versión queda centrada en el escenario.
-  function ir(i) {
+  function ir(i, suave = true) {
     const c = cab ? cab.offsetHeight : 0;
     const top = alto.getBoundingClientRect().top + scrollY - c + (i < 0 ? 0 : (ESPERA + i * PASO) * innerHeight);
-    scrollTo({ top: Math.round(top), behavior: REDUCIR.matches ? "auto" : "smooth" });
+    scrollTo({ top: Math.round(top), behavior: suave && !REDUCIR.matches ? "smooth" : "auto" });
   }
   botones.forEach((b, i) => b.addEventListener("click", () => ir(i)));
-  // El enlace Evolución de la barra lleva al inicio del escenario pegado (la 1.0 quieta al centro), no al título de la sección,
-  // para que el primer giro de la rueda no empiece ya a mover la pista.
-  document.querySelectorAll(`a[href="#${sec.id}"]`).forEach((a) => a.addEventListener("click", (e) => {
-    if (apilado) return;
+  // El enlace Versiones de la barra (y kirchi.app/versiones) lleva al inicio del escenario pegado (la 1.0 quieta al centro),
+  // no al título de la sección, para que el primer giro de la rueda no empiece ya a mover la pista. js/rutas.js avisa con kirchi:ir.
+  addEventListener("kirchi:ir", (e) => {
+    if (e.detail.id !== sec.id || apilado) return;
     e.preventDefault();
-    ir(-1);
-    history.replaceState(null, "", `#${sec.id}`);
-  }));
+    ir(-1, e.detail.suave);
+  });
 
   if (anim) {
     anim.setAttribute("aria-pressed", String(elegidoApilar));
