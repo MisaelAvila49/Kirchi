@@ -2,10 +2,10 @@
 // del HTML en español; aplicar() traduce lo que el JS agrega después. Los textos que pone el JS salen de TEXTOS.
 const TEXTOS = {
   es: { pausar_mov: "Pausar movimiento", reanudar_mov: "Reanudar movimiento",
-        ampliar: "Ampliar la captura", sigue: "Sigue: ", car_pausar: "Pausar el carrusel", car_reanudar: "Reanudar el carrusel", video_play: "Reproducir el video", video_pausa: "Pausar el video", para: "Descargar para ", tambien: "También para", version: "Versión ",
+        ampliar: "Ampliar la captura", sigue: "Sigue: ", car_pausar: "Pausar el carrusel", car_reanudar: "Reanudar el carrusel", cons_pausar: "Pausar las funciones", cons_reanudar: "Reanudar las funciones", video_play: "Reproducir el video", video_pausa: "Pausar el video", para: "Descargar para ", tambien: "También para", version: "Versión ",
         os_windows: "Windows 10 y 11 · Microsoft Store", os_macos: "macOS · dmg universal", os_linux: "Linux · AppImage" },
   en: { pausar_mov: "Pause motion", reanudar_mov: "Resume motion",
-        ampliar: "Enlarge the screenshot", sigue: "Next: ", car_pausar: "Pause the carousel", car_reanudar: "Resume the carousel", video_play: "Play the video", video_pausa: "Pause the video", para: "Download for ", tambien: "Also for", version: "Version ",
+        ampliar: "Enlarge the screenshot", sigue: "Next: ", car_pausar: "Pause the carousel", car_reanudar: "Resume the carousel", cons_pausar: "Pause the features", cons_reanudar: "Resume the features", video_play: "Play the video", video_pausa: "Pause the video", para: "Download for ", tambien: "Also for", version: "Version ",
         os_windows: "Windows 10 and 11 · Microsoft Store", os_macos: "macOS · universal dmg", os_linux: "Linux · AppImage" },
 };
 const raiz = document.documentElement;

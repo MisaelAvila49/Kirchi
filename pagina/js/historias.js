@@ -78,10 +78,54 @@ function historia(sec) {
     });
     figs.forEach((f, i) => f.dispatchEvent(new CustomEvent("kirchi-fig", { detail: { activa: i === actual, apilado: !!apilado } })));
     canales.forEach((c, i) => { if (i === actual) c.setAttribute("aria-current", "step"); else c.removeAttribute("aria-current"); });
-    if (estado) estado.textContent = `${pasos[actual].dataset.etq} · ${actual + 1} / ${pasos.length}`;
+    // El nombre del paso sale del botón de su canal, que ya viene traducido; data-etq queda de respaldo.
+    if (estado) estado.textContent = `${(canales[actual] && canales[actual].textContent.trim()) || pasos[actual].dataset.etq} · ${actual + 1} / ${pasos.length}`;
     if (prev) prev.disabled = actual === 0;
     if (next) next.disabled = actual === pasos.length - 1;
+    // Lado de la tarjeta del paso activo: la pantalla se va al lado contrario (relato.css).
+    if (pasos[actual].dataset.lado) sec.dataset.lado = pasos[actual].dataset.lado;
+    enfocar();
   }
+
+  // Acercamiento de cada figura a la parte de la captura que cuenta su paso (data-foco = centro x, centro y, escala).
+  // El punto enfocado se lleva al lado contrario de la tarjeta, sin dejar ver el borde de la captura.
+  // El marco ocupa todo el escenario y la captura lo cubre a lo ancho: lo que sobra arriba y abajo se recorta.
+  // Apilado («Sin animación» o teléfono): cada figura es su propio marco y el acercamiento queda fijo y centrado.
+  function enfocar() {
+    if (!lienzo) return;
+    figs.forEach((f, i) => {
+      const capa = f.querySelector(".zoom-capa");
+      if (!capa || !pasos[i].dataset.foco) return;
+      const marco = apilado ? f.querySelector(".pant-cuerpo") : lienzo;
+      const W = marco.clientWidth, H = marco.clientHeight;
+      if (!W || !H) return;
+      const [fx, fy, s] = pasos[i].dataset.foco.split(" ").map(Number);
+      const cw = capa.offsetWidth, ch = capa.offsetHeight;
+      const tx = 0.5; // la tarjeta va al lado de la pantalla, no encima
+      const lim = (v, marco, tam) => Math.min(0, Math.max(marco - s * tam, v));
+      capa.style.setProperty("--zx", lim(tx * W - fx * s * cw, W, cw).toFixed(1) + "px");
+      capa.style.setProperty("--zy", lim(0.5 * H - fy * s * ch, H, ch).toFixed(1) + "px");
+      capa.style.setProperty("--zs", String(s));
+    });
+  }
+  if (lienzo && sec.querySelector(".zoom-capa")) {
+    const ro = new ResizeObserver(() => enfocar());
+    ro.observe(lienzo);
+    figs.forEach((f) => ro.observe(f.querySelector(".pant-cuerpo")));
+  }
+
+  // Figuras con varios cuadros (cables uno por uno, redes bajo el ratón): avanzan cada 1.6 s solo con el paso activo a la vista,
+  // sin «Sin animación», sin la pausa global y sin movimiento reducido.
+  let aLaVista = false;
+  new IntersectionObserver((es) => { aLaVista = es[0].isIntersecting; }).observe(sec);
+  setInterval(() => {
+    if (!aLaVista || apilado || REDUCIR.matches || raiz.classList.contains("pausado")) return;
+    const f = figs[actual];
+    if (!f || !f.hasAttribute("data-cuadros")) return;
+    const cs = [...f.querySelectorAll(".cuadro")];
+    const k = cs.findIndex((c) => c.classList.contains("activo"));
+    cs.forEach((c, j) => c.classList.toggle("activo", j === (k + 1) % cs.length));
+  }, 1600);
 
   // Respaldo para saltos de scroll que se salten la franja: si el paso activo quedó a más de un paso de distancia, manda el bloque más cercano al centro.
   function centros() { return textos.map((t) => { const r = t.getBoundingClientRect(); return (r.top + r.bottom) / 2; }); }

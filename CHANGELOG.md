@@ -1,5 +1,64 @@
 # Historial de cambios
 
+## 3.2.0
+
+Arma el circuito paso a paso en la protoboard, lo reparte en varias protoboards y abre más proyectos de Proteus.
+
+### Nuevo
+
+- «Armar paso a paso» muestra cómo armar la protoboard en la mesa: primero los integrados, luego los puentes a los rieles, las resistencias y capacitores, los potenciómetros y al final los cables, cada paso con sus agujeros. Los cables de señal se ponen de uno en uno y en el orden que sigue la señal, con un paso por cada etapa que recorre: «Cable 3 de 10», con un halo fino y la coordenada de sus dos agujeros.
+- Clic derecho en la protoboard › «Repartir en estas protoboards» arma el circuito en las protoboards que ya pusiste, de cualquier medida (830, 400 o 170) y sin moverlas, y «Cambiar protoboards» ofrece una protoboard de 830, dos de 830, una de 400, dos de 400, una de 830 y una de 400, y una de 170 (la de 170 solo sin integrados; las que no caben salen apagadas con su motivo) y marca con «sugerida» la que elige la regla: una de 830, una de 400 si el circuito usa menos de media protoboard, y una segunda protoboard solo cuando no cabe en una. Cada etapa queda completa en su protoboard, el display junto al chip que lo maneja, los rieles unidos con puentes cortos y la protoboard de 170 toma la alimentación de la vecina.
+- Al simular, el DIP-switch y los teclados se accionan con un clic desde la protoboard, y con el esquema simulado la tecla C también dibuja las flechas de corriente en la protoboard.
+- Al grabar, el osciloscopio y las gráficas que están en su propia ventana entran al video encima de la imagen de Kirchi, en su lugar de la pantalla; si se mueven, se abren o se cierran mientras se graba, el video lo sigue.
+- Importar Proteus trae 19 piezas nuevas (registros de desplazamiento y búferes genéricos de Proteus, 74LS373 y 74HC573, 74175, 74174, 74273 y sus versiones 40xx, 74191, 74192, 4510, 4512, 74LS183 y 4068) y el terminal de alimentación sin nombre va a VCC. En los proyectos de prueba las cajas grises bajan de 417 a 223.
+
+- En el lienzo limpio, la barra lleva Simular con su flecha de fuente, Avanzar, Detener, Grabar con sus opciones, Voltajes y el osciloscopio, con los mismos iconos y colores de la cinta. Un botón la pliega a un asa mínima para dejar el lienzo completamente limpio, y el ajuste se recuerda.
+- El botón del osciloscopio abre el osciloscopio en un panel flotante sobre el lienzo limpio: se mueve por su barra de título, cambia de tamaño desde la esquina, se cierra con Esc, recuerda dónde quedó y sale en la grabación.
+
+### Diseño
+
+- Simular elige qué simular (Esquema o Protoboard) con la flecha junto al botón, como Grabar. Instrumentos (Etiquetas y Equipos) pasa arriba a la derecha y se pliega, y el rótulo Protoboard va abajo a la derecha.
+- La guía de uso y las novedades se abren encima del lienzo y se cierran con Esc, con un botón para abrirlas en una ventana aparte.
+- El display de 7 segmentos se lee mejor: los segmentos apagados quedan tenues y los encendidos llenos, en el esquema y en la protoboard.
+- La plantilla Contador de 0 a 99 se acomodó por dígito, con cables rectos y etiquetas de red.
+
+### Cambios
+
+- Toda la interfaz dice «protoboard»: el botón Placa de Colocar pasa a «Protoboard» (de 830, 400 o 170 puntos), el botón de menú Protoboard pasa a «Generar» (con Generar protoboard y Generar esquema) y los avisos, menús y la guía ya no dicen «placa». «Placa» queda para la placa de circuito impreso.
+- En el clic derecho de un cable, cada color del submenú Color lleva su muestra.
+- Cable es una herramienta con la tecla `W` y un botón en Colocar, en el esquema y en la protoboard: un clic en un pin o agujero y otro en el siguiente, y `Esc` la cancela.
+- Una sola palabra para cada cosa: la sección del menú Protoboard, el botón del diálogo y los avisos dicen «Generar», «Armar» queda para lo que hace la persona («Armar paso a paso»), y el aviso de una sonda sin punta en la protoboard usa «sonda» para el esquema y «punta» para la protoboard.
+- Generar protoboard desde el esquema, y Generar esquema desde la protoboard, llevan a Las dos al terminar.
+- F encuadra cada vista llenando su panel, también con la franja del osciloscopio abierta, y la vista encuadrada se ajusta sola al abrir o cerrar la franja.
+- Un clic en una esquina sin agujeros de la protoboard la selecciona.
+- Clic derecho en la protoboard › «Cambiar protoboards» ofrece una o dos protoboards de 830, una o dos de 400, una de 830 con una de 400 y una de 170 (solo sin integrados). La combinación que conviene lleva la marca «sugerida» y la que ya está, «actual»; las que no caben dicen por qué. Abrir el menú ya no arma el circuito.
+- Mover una protoboard con sus cables es fluido: mientras se arrastra se ve en su lugar nuevo y al soltar queda un solo paso de deshacer.
+- Cambiar «Lo que falta», «Diferencias» o Equipos ya no cuenta como edición: no crea pasos de deshacer ni marca el archivo como modificado.
+- Un instrumento sin conectar en la protoboard ya no impide simular las dos vistas: sale como aviso gris en Avisos.
+- El primer Generar protoboard en un archivo es un solo paso de deshacer, y Cancelar no deja rastro.
+- En el lienzo limpio, al simular solo se abre el osciloscopio flotante.
+- Un canal del osciloscopio sin nada conectado ya no se dibuja, y los números del eje ya no se enciman en anchos chicos.
+- Al abrir otro archivo con el tutorial en marcha, el capítulo se deja y su avance queda guardado.
+- Kirchi usa menos memoria al abrir: el editor de exportar y el de gráficas se cargan al usarlos.
+- Los colores de voltaje toman la escala de las señales: las alimentaciones quedan en el extremo y un voltaje chico ya se ve de color. Una fuente cuenta como alimentación solo si llega a la alimentación de un integrado o a un riel; la de una entrada es señal.
+- Las cifras de red se escriben como un multímetro de tres cifras: con ±15 V, lo que no llega a 1 mV dice 0.00 V, y nunca nV, pV ni fV.
+- En modo valores, la protoboard lleva un solo valor por red, y al pasar el ratón por una red se marcan sus agujeros y sale su valor.
+
+### Arreglos
+
+- F con un panel abierto, y con el lienzo limpio, ya no deja el dibujo pegado a una orilla: una barra ancha en el borde de abajo mandaba el encuadre a la franja de la izquierda. Al entrar o salir del lienzo limpio, y al plegar la barra o abrir el osciloscopio flotante, la vista encuadrada que no se movió se reencuadra sola.
+- En el lienzo limpio, el selector de vista ya no tapa el nombre del archivo.
+- «Acerca de» y las novedades mostraban 3.1.1 en la versión 3.1.2.
+- Avanzar (F6) y «Avanzar hasta» arrancan con las mismas reglas que Simular: los avisos en rojo y la vista que se simula.
+- Con la guía, las novedades u otro diálogo abiertos, los atajos del lienzo ya no actúan (Supr borraba la pieza de debajo).
+- Pegar en la protoboard usa lo que se copió en la protoboard; si lo copiado viene del esquema, lo avisa.
+- Deshacer simulando dice por qué no se puede: «Detén la vista previa para deshacer o rehacer».
+- Armar paso a paso: Avanzar queda bloqueado, el selector de instrumentos se apaga, la barra de estado dice el paso (y el cable, en los pasos de cables de señal) y al salir se vuelve a la vista de entrada.
+- La barra de estado describe la protoboard cuando el foco está en ella.
+- La ayuda al pie del menú Velocidad ya no ensancha el menú al pasar el ratón por «Sin límite de tiempo real».
+- El aviso de sobrecorriente de un LED se actualiza si la corriente sigue subiendo: con la perilla al tope ya no se queda en la cifra del primer cruce.
+- Con Equipos, mover o borrar una protoboard ya no cambia el agujero donde llegan los cables de la fuente, el osciloscopio o el multímetro en las otras.
+
 ## 3.1.2
 
 Abre proyectos de Proteus 9, enciende las dos vistas al simular en Las dos y trae una guía de uso y unas novedades más fáciles de leer.

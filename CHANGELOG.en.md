@@ -2,6 +2,65 @@
 
 The same history in Spanish is in [CHANGELOG.md](CHANGELOG.md).
 
+## 3.2.0
+
+Builds the circuit step by step on the breadboard, spreads it over several breadboards and opens more Proteus projects.
+
+### New
+
+- "Build step by step" shows how to build the breadboard on your bench: chips first, then the jumpers to the rails, resistors and capacitors, potentiometers and finally the wires, each step with its holes. Signal wires go one at a time, in the order the signal follows, with one step for each stage it goes through: "Wire 3 of 10", with a thin halo and the coordinates of its two holes.
+- Right-click the breadboard › "Spread over these breadboards" builds the circuit on the breadboards you already placed, of any size (830, 400 or 170) and without moving them, and "Change breadboards" offers one 830 breadboard, two 830 breadboards, one 400, two 400, one 830 plus one 400, and one 170 (the 170 only without ICs; those that do not fit are greyed out with the reason) and tags the one the rule picks as "suggested": one 830 breadboard, one 400 if the circuit uses less than half a breadboard, and a second breadboard only when it does not fit on one. Each stage stays complete on its breadboard, the display next to the chip that drives it, the rails joined with short jumpers, and a 170 breadboard takes its power from the neighbouring breadboard.
+- While simulating, DIP switches and keypads work with a click on the breadboard, and with the schematic simulated the C key also draws the current arrows on the breadboard.
+- When recording, the oscilloscope and graphs that sit in their own window are added to the video on top of the Kirchi image, where they are on screen; if they move, open or close during the recording, the video follows.
+- Proteus import brings 19 new parts (Proteus generic shift registers and buffers, 74LS373 and 74HC573, 74175, 74174, 74273 and their 40xx versions, 74191, 74192, 4510, 4512, 74LS183 and 4068), and the unnamed power terminal goes to VCC. In the test projects, gray boxes drop from 417 to 223.
+
+- In the clean canvas, the bar has Simulate with its source arrow, Advance, Stop, Record with its options, Voltages and the oscilloscope, with the same icons and colors as the ribbon. A button folds it to a minimal handle to leave the canvas completely clean, and the setting is remembered.
+- The oscilloscope button opens the oscilloscope in a floating panel over the clean canvas: it moves by its title bar, resizes from the corner, closes with Esc, remembers where it was left and appears in the recording.
+
+### Design
+
+- Simulate picks what to simulate (Schematic or Breadboard) with the arrow next to the button, like Record. Instruments (Labels and Equipment) moves to the top right and folds, and the Breadboard label goes to the bottom right.
+- The user guide and release notes open over the canvas and close with Esc, with a button to open them in a separate window.
+- The seven-segment display is easier to read: unlit segments are faint and lit ones are solid, on the schematic and on the breadboard.
+- The 0 to 99 Counter template is laid out by digit, with straight wires and net labels.
+
+### Changes
+
+- The whole interface says "breadboard": the Board button in Place becomes "Breadboard" (830, 400 or 170 points), the Breadboard menu button becomes "Generate" (with Generate breadboard and Generate schematic), and warnings, menus and the guide no longer say "board". "Board" is kept for the printed circuit board.
+- In the right-click menu of a wire, each color in the Color submenu shows its swatch.
+- Wire is a tool with the `W` key and a button in Place, in the schematic and on the breadboard: one click on a pin or hole and another on the next one, and `Esc` cancels it.
+- One word for each thing: the Breadboard menu section, the dialog button and the warnings say "Generate", "Build" is left for what the person does ("Build step by step"), and the warning for a probe with no tip on the breadboard uses "probe" for the schematic and "tip" for the breadboard.
+- Generate breadboard from the schematic, and Generate schematic from the breadboard, go to Both when done.
+- F fits each view to fill its pane, also with the oscilloscope strip open, and a fitted view adjusts by itself when the strip opens or closes.
+- Clicking a corner of the breadboard without holes selects it.
+- Right-click the breadboard › "Change breadboards" offers one or two 830 breadboards, one or two 400 breadboards, an 830 with a 400, and a 170 (only without chips). The combination that fits best is marked "suggested" and the current one "current"; the ones that do not fit say why. Opening the menu no longer builds the circuit.
+- Moving a breadboard with its wires is smooth: while you drag it you see it in its new place, and dropping it leaves a single undo step.
+- Changing "What is missing", "Differences" or Equipment no longer counts as an edit: it adds no undo steps and does not mark the file as modified.
+- An instrument that is not connected on the breadboard no longer stops both views from simulating: it shows as a gray notice in Notices.
+- The first Generate breadboard in a file is a single undo step, and Cancel leaves no trace.
+- In the clean canvas, simulating only opens the floating oscilloscope.
+- An oscilloscope channel with nothing connected is no longer drawn, and the axis numbers no longer overlap at small widths.
+- Opening another file while the tutorial runs leaves the chapter and keeps your progress.
+- Kirchi uses less memory at start: the export editor and the graphs editor load when you use them.
+- Voltage colors take their scale from the signals: supplies sit at the end of the scale and a small voltage now shows its color. A source counts as a supply only if it reaches a chip's power pin or a rail; an input source is a signal.
+- Net values are written like a three-digit multimeter: with ±15 V, anything under 1 mV reads 0.00 V, and never nV, pV or fV.
+- In values mode, the breadboard shows a single value per net, and hovering a net marks its holes and shows its value.
+
+### Fixes
+
+- F with a panel open, and with the clean canvas, no longer leaves the drawing against one edge: a wide bar along the bottom sent the fit to the strip on the left. When entering or leaving the clean canvas, and when folding the bar or opening the floating oscilloscope, a fitted view that was not moved refits by itself.
+- In the clean canvas, the view selector no longer covers the file name.
+- "About" and the release notes showed 3.1.1 in version 3.1.2.
+- Step (F6) and "Step to" start with the same rules as Simulate: red notices and the view being simulated.
+- With the user guide, the release notes or another dialog open, canvas shortcuts no longer act (Delete removed the part underneath).
+- Paste on the breadboard uses what was copied on the breadboard; if what you copied comes from the schematic, it says so.
+- Undo while simulating says why it cannot: "Stop the preview to undo or redo".
+- Build step by step: Step is blocked, the instruments selector is disabled, the status bar shows the step (and the wire, in signal wire steps), and leaving returns to the view you came from.
+- The status bar describes the breadboard when it has the focus.
+- The hint at the bottom of the Speed menu no longer widens the menu when hovering «No real-time limit».
+- An LED's overcurrent warning updates if the current keeps rising: with the knob at the top it no longer stays at the first crossing's figure.
+- With Equipment on, moving or deleting a breadboard no longer changes the hole where the power supply, oscilloscope or multimeter leads land on the other ones.
+
 ## 3.1.2
 
 Opens Proteus 9 projects, lights both views when simulating in Both, and brings a user guide and release notes that are easier to read.

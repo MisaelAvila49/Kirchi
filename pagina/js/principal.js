@@ -100,22 +100,56 @@ let origen = null;
 function cerrarLupa() {
   if (lupa.hidden) return;
   lupa.hidden = true; lupaImg.removeAttribute("src"); raiz.classList.remove("lupa-abierta");
+  lupaVideo.pause(); lupaVideo.removeAttribute("src"); lupaVideo.load();
   if (origen) origen.focus();
 }
+// Los videos cortos también se amplían: un <video> propio de la lupa, en bucle y sin sonido. Con la pausa global o con movimiento
+// reducido no arranca solo y muestra sus controles.
+const lupaVideo = document.createElement("video");
+lupaVideo.id = "lupa-video"; lupaVideo.muted = true; lupaVideo.loop = true; lupaVideo.playsInline = true; lupaVideo.hidden = true;
+lupaCuerpo.append(lupaVideo);
+function abrirLupa(img, boton) {
+  if (!img) return;
+  const esVideo = img.tagName === "VIDEO";
+  lupaImg.hidden = esVideo; lupaVideo.hidden = !esVideo;
+  if (esVideo) {
+    const quieto = raiz.classList.contains("pausado") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    lupaVideo.src = img.currentSrc || img.src; lupaVideo.poster = img.poster || "";
+    lupaVideo.setAttribute("aria-label", img.getAttribute("aria-label") || "");
+    lupaVideo.controls = quieto;
+    if (!quieto) lupaVideo.play().catch(() => { lupaVideo.controls = true; });
+    origen = boton; lupa.hidden = false; raiz.classList.add("lupa-abierta"); lupaCerrar.focus();
+    return;
+  }
+  origen = boton; lupaImg.src = img.currentSrc || img.src; lupaImg.alt = img.alt;
+  lupa.hidden = false; raiz.classList.add("lupa-abierta");
+  lupaCuerpo.scrollTop = 0; lupaCuerpo.scrollLeft = (lupaCuerpo.scrollWidth - lupaCuerpo.clientWidth) / 2;
+  lupaCerrar.focus();
+}
+// Captura sola: el botón envuelve la imagen.
 $$(".pant-cuerpo > img").forEach((img) => {
   const b = document.createElement("button");
   b.type = "button"; b.className = "ampliar";
   b.setAttribute("aria-label", t("ampliar"));
   img.replaceWith(b); b.append(img);
-  b.addEventListener("click", () => {
-    origen = b; lupaImg.src = img.currentSrc || img.src; lupaImg.alt = img.alt;
-    lupa.hidden = false; raiz.classList.add("lupa-abierta");
-    lupaCuerpo.scrollTop = 0; lupaCuerpo.scrollLeft = (lupaCuerpo.scrollWidth - lupaCuerpo.clientWidth) / 2;
-    lupaCerrar.focus();
+  b.addEventListener("click", () => abrirLupa(img, b));
+});
+// Varias capturas en el mismo marco (novedades con acercamiento y láminas del carrusel de exportar): un botón encima de todo el
+// marco abre la que se está viendo, completa y sin el acercamiento.
+[[".zoom-capa", ".cuadro.activo, .cuadro"], [".car-visor", ".car-lamina.activa, .car-lamina"], [".video-fig", "video"]].forEach(([marco, cual]) => {
+  $$(marco).forEach((m) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "ampliar-capa";
+    b.setAttribute("aria-label", t("ampliar"));
+    (m.classList.contains("zoom-capa") ? m.parentElement : m).append(b);
+    b.addEventListener("click", () => abrirLupa(m.querySelector(cual), b));
   });
 });
 lupaCerrar.addEventListener("click", cerrarLupa);
-lupa.addEventListener("click", (e) => { if (e.target !== lupaImg) cerrarLupa(); });
+// Un clic en cualquier parte cierra la lupa, también sobre la imagen; arrastrar para recorrerla no la cierra.
+let lupaX = 0, lupaY = 0;
+lupa.addEventListener("pointerdown", (e) => { lupaX = e.clientX; lupaY = e.clientY; });
+lupa.addEventListener("click", (e) => { if (e.target === lupaCerrar || (e.target === lupaVideo && lupaVideo.controls)) return; if (Math.hypot(e.clientX - lupaX, e.clientY - lupaY) < 6) cerrarLupa(); });
 document.addEventListener("keydown", (e) => {
   if (lupa.hidden) return;
   if (e.key === "Escape") { e.preventDefault(); cerrarLupa(); }
