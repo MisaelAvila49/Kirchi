@@ -12,7 +12,7 @@ Armas el circuito, pulsas F5 y lo ves funcionar. Gratis, sin internet, sin cuent
 
 [![Obtener en Microsoft Store](https://img.shields.io/badge/Microsoft%20Store-Obtener-0E7C66?style=for-the-badge&logo=microsoft&logoColor=white)](https://apps.microsoft.com/detail/9pks3qd294cn)
 [![Descargar para Windows, macOS y Linux](https://img.shields.io/badge/Releases-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-22252A?style=for-the-badge&logo=github&logoColor=white)](../../releases/latest)
-[![Página de descarga](https://img.shields.io/badge/P%C3%A1gina-Descargar-22252A?style=for-the-badge&logo=githubpages&logoColor=white)](https://misaelavila49.github.io/Kirchi/)
+[![Página de descarga](https://img.shields.io/badge/P%C3%A1gina-Descargar-22252A?style=for-the-badge&logo=githubpages&logoColor=white)](https://kirchi.app/)
 
 [![Uso gratuito](https://img.shields.io/badge/uso-gratuito-0E7C66.svg)](LICENSE)
 [![Versión](https://img.shields.io/badge/versi%C3%B3n-3.1.1-0E7C66.svg)](CHANGELOG.md)
@@ -169,7 +169,7 @@ El asistente puede construir, simular, leer mediciones y exportar la imagen del 
 
 ## Descargar e instalar
 
-La forma más sencilla en Windows es la [Microsoft Store](https://apps.microsoft.com/detail/9pks3qd294cn). Para cualquier sistema, los instaladores están en [Releases](../../releases/latest) y en la [página de descarga](https://misaelavila49.github.io/Kirchi/).
+La forma más sencilla en Windows es la [Microsoft Store](https://apps.microsoft.com/detail/9pks3qd294cn). Para cualquier sistema, los instaladores están en [Releases](../../releases/latest) y en la [página de descarga](https://kirchi.app/).
 
 La Microsoft Store instala y actualiza Kirchi sola. Con los archivos de Releases, los instaladores no están firmados con un certificado de pago, así que cada sistema pide una confirmación la primera vez:
 
