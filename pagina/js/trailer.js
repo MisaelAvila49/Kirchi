@@ -2,8 +2,8 @@
 // solo al pulsar; antes del clic la página no hace ninguna petición a YouTube. El video cambia con el idioma.
 import { idioma, alCambiar } from "./idioma.js";
 
-const IDS = { es: "OSJBYb792Fo", en: "UEJBj35t4yg" };
-const TITULOS = { es: "Tráiler de Kirchi", en: "Kirchi trailer" };
+const IDS = { es: "jf7WSukPmgM", en: "X_N-icyevDk" };
+const TITULOS = { es: "Novedades de Kirchi 3.2", en: "What's new in Kirchi 3.2" };
 const figura = document.getElementById("trailer");
 const boton = document.getElementById("trailer-jugar");
 let marco = null, idiomaCargado = null;
