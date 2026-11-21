@@ -1,43 +1,99 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://kirchi.app/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
+    <image:image><image:loc>https://kirchi.app/img/trailer-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/555-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/bode-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/exportar/01-esquema-pdf-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/exportar/02-protoboard-png-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/exportar/03-osciloscopio-svg-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/exportar/04-bom-jlcpcb-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/exportar/05-video-mp4-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/plantillas-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/asistente-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/contador-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cambiar-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/pasos-0-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-1-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-2-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-3-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-4-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-5-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-6-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/red-a-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/red-b-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/red-c-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/limpio-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/grabacion-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/amp-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/piezas-vivo-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/fabricar-es.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/armado-es.webp</image:loc></image:image>
     <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/"/>
   </url>
   <url>
     <loc>https://kirchi.app/en/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
+    <image:image><image:loc>https://kirchi.app/img/trailer-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/555-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/bode-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/exportar/01-esquema-pdf-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/exportar/02-protoboard-png-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/exportar/03-osciloscopio-svg-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/exportar/04-bom-jlcpcb-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/exportar/05-video-mp4-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/plantillas-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/asistente-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/contador-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cambiar-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/pasos-0-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-1-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-2-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-3-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-4-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-5-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/cable-6-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/red-a-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/red-b-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/red-c-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/limpio-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/grabacion-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/amp-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/piezas-vivo-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/fabricar-en.webp</image:loc></image:image>
+    <image:image><image:loc>https://kirchi.app/img/v32/armado-en.webp</image:loc></image:image>
     <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/"/>
   </url>
   <url>
     <loc>https://kirchi.app/apoyar</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/apoyar"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/apoyar"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/apoyar"/>
   </url>
   <url>
     <loc>https://kirchi.app/en/apoyar</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/apoyar"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/apoyar"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/apoyar"/>
   </url>
   <url>
     <loc>https://kirchi.app/sugerencias</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/sugerencias"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/sugerencias"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/sugerencias"/>
   </url>
   <url>
     <loc>https://kirchi.app/en/sugerencias</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <xhtml:link rel="alternate" hreflang="es" href="https://kirchi.app/sugerencias"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://kirchi.app/en/sugerencias"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kirchi.app/en/sugerencias"/>
